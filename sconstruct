@@ -1,0 +1,33 @@
+import os
+
+arch=os.uname()[4].lower()
+ostype=os.uname()[0].lower()
+cctype='gnu'
+
+basepath = 'src/' + arch + '-' + ostype + '/'
+basepath = basepath.replace(' ', '')
+
+basepath_wcc = 'src/' + arch + '-' + ostype + '-' + cctype + '/'
+basepath_wcc = basepath_wcc.replace(' ', '')
+genericpath = 'src/generic/'
+
+codepreference = [ 'S', 's', 'c' ]
+
+def haveasm(name):
+  return False
+
+def findsource(name):
+  return name
+
+def writepkgconfig():
+  return False
+
+sourcefiles = [ 'atom' ]
+
+print basepath
+print basepath_wcc
+
+if haveasm('atom'):
+  print 'adjusting linker flags for using assembly atomic-libc'
+else:
+  print 'adjusting linker flags for using host libc emulation layer'
