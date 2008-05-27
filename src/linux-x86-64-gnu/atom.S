@@ -41,7 +41,7 @@
 .globl	exit
 .type	exit,	@function
 
-exit:
+_atomic_exit:
 	mov $__NR_exit, %rax
 	mov %rdi, %rbx
 	SYSCALL

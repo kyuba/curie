@@ -39,6 +39,6 @@
 #ifndef NUCLEUS_H
 #define NUCLEUS_H
 
-void exit(int status);
+void _atomic_exit(int status);
 
 #endif /* NUCLEUS_H */
