@@ -1,0 +1,4 @@
+libatomic.a
+.sconsign.dblite
+*.o
+*.os

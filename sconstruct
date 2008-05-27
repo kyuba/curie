@@ -4,30 +4,58 @@ arch=os.uname()[4].lower()
 ostype=os.uname()[0].lower()
 cctype='gnu'
 
-basepath = 'src/' + arch + '-' + ostype + '/'
-basepath = basepath.replace(' ', '')
+def normalise(str):
+  return str.replace(' ', '').replace('_', '-')
 
-basepath_wcc = 'src/' + arch + '-' + ostype + '-' + cctype + '/'
-basepath_wcc = basepath_wcc.replace(' ', '')
+basepath = normalise('src/' + ostype + '-' + arch + '/')
+basepath_wcc = normalise('src/' + ostype + '-' + arch + '-' + cctype + '/')
 genericpath = 'src/generic/'
 
 codepreference = [ 'S', 's', 'c' ]
 
+def fileexists(name):
+  try:
+    os.stat(name)
+    return True
+  except:
+    return False
+
+
 def haveasm(name):
-  return False
+  global basepath, basepath_wcc
+
+  return fileexists(basepath_wcc + name + '.S') or \
+         fileexists(basepath_wcc + name + '.s') or \
+         fileexists(basepath + name + '.S') or \
+         fileexists(basepath + name + '.s')
 
 def findsource(name):
-  return name
+  global codepreference, basepath, basepath_wcc, genericpath
+  for l in [basepath_wcc, basepath, genericpath]:
+    for i in codepreference:
+      n = l + name + '.' + i
+      if fileexists(n):
+        return n
 
 def writepkgconfig():
   return False
 
-sourcefiles = [ 'atom' ]
-
-print basepath
-print basepath_wcc
+env = Environment()
 
 if haveasm('atom'):
   print 'adjusting linker flags for using assembly atomic-libc'
+  env.Append(CFLAGS = '-nostartfiles -nodefaultlibs -ffreestanding', LDFLAGS = '-static')
 else:
-  print 'adjusting linker flags for using host libc emulation layer'
+  print 'adjusting linker flags for using host-libc based atomic-libc'
+
+# LIBRARY FILES
+
+sourcefiles = [ 'atom' ]
+
+sf = []
+
+for i in sourcefiles:
+  f = findsource(i)
+  sf += [ f ]
+
+env.StaticLibrary('atomic', sf)
