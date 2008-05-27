@@ -44,7 +44,7 @@ env = Environment()
 
 if haveasm('atom'):
   print 'adjusting linker flags for using assembly atomic-libc'
-  env.Append(CFLAGS = '-nostartfiles -nodefaultlibs -ffreestanding', LDFLAGS = '-static')
+  env.Append(CFLAGS = '-Iinclude -nostdlib -nostartfiles -nodefaultlibs -ffreestanding', LDFLAGS = '-static')
 else:
   print 'adjusting linker flags for using host-libc based atomic-libc'
 
@@ -59,3 +59,4 @@ for i in sourcefiles:
   sf += [ f ]
 
 env.StaticLibrary('atomic', sf)
+env.Program('testsuite', [sf,'#/src/test-suite.c'])

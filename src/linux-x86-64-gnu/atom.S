@@ -38,15 +38,56 @@
 
 #include <sys/syscall.h>
 
-.globl	exit
-.type	exit,	@function
+.globl	_atomic_exit
+.globl  _atomic_read
+.globl  _atomic_write
+.globl  _atomic_open
+.globl  _atomic_close
+.globl  _atomic_mmap
+.globl  _atomic_socketpair
+.globl  _atomic_sigaction
+.globl  _atomic_kill
+.globl  _atomic_select
 
-exit:
-	mov $__NR_exit, %rax
-	mov %rdi, %rbx
-	SYSCALL
-	ret
+.type _atomic_exit,       @function
+.type _atomic_read,       @function
+.type _atomic_write,      @function
+.type _atomic_open,       @function
+.type _atomic_close,      @function
+.type _atomic_mmap,       @function
+.type _atomic_socketpair, @function
+.type _atomic_sigaction,  @function
+.type _atomic_kill,       @function
+.type _atomic_select,     @function
 
+// one   two   three four  five  six
+// rdi   rsi   rdx   rcx   r8    r9
+// syscall on rax
+// kernel breaks rcx and r11
+
+// void _atomic_exit(int);
+_atomic_exit:
+	movq $__NR_exit, %rax
+	movq %rdi, %rbx
+	syscall
+	retq
+
+_atomic_read:
+        movq $__NR_read, %rax
+        movq %rdi, %rbx
+        movq %rsi, %r12
+        movq %rdx, %r13
+        syscall
+        retq
+
+_atomic_write:
+        movq $__NR_write, %rax
+        movq %rdi, %rbx
+        movq %rsi, %r12
+        movq %rdx, %r13
+        syscall
+        retq
+      
 #if defined(__ELF__)
           .section .note.GNU-stack,"",%progbits
 #endif
