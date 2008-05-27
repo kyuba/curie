@@ -62,10 +62,7 @@
 
 // one   two   three four  five  six
 // rdi   rsi   rdx   rcx   r8    r9
-// syscall on rax
-// kernel breaks rcx and r11
 
-// void _atomic_exit(int);
 _atomic_exit:
 	movq $__NR_exit, %rax
 	movq %rdi, %rbx
