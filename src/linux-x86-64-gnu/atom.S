@@ -65,25 +65,25 @@
 
 _atomic_exit:
 	movq $__NR_exit, %rax
-	movq %rdi, %rbx
-	syscall
-	retq
+    jmp syscall1
 
 _atomic_read:
-        movq $__NR_read, %rax
-        movq %rdi, %rbx
-        movq %rsi, %r12
-        movq %rdx, %r13
-        syscall
-        retq
+    movq $__NR_read, %rax
+    jmp syscall3
 
 _atomic_write:
-        movq $__NR_write, %rax
-        movq %rdi, %rbx
-        movq %rsi, %r12
-        movq %rdx, %r13
-        syscall
-        retq
+    movq $__NR_write, %rax
+    jmp syscall3
+
+syscall3:
+    movq %rdx, %r13
+syscall2:
+    movq %rsi, %r12
+syscall1:
+    movq %rdi, %rbx
+    syscall
+    retq
+
       
 #if defined(__ELF__)
           .section .note.GNU-stack,"",%progbits
