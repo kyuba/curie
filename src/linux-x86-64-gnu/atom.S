@@ -49,6 +49,9 @@
 .globl  _atomic_kill
 .globl  _atomic_select
 
+.globl atomic_main
+.globl _start
+
 .type _atomic_exit,       @function
 .type _atomic_read,       @function
 .type _atomic_write,      @function
@@ -59,6 +62,9 @@
 .type _atomic_sigaction,  @function
 .type _atomic_kill,       @function
 .type _atomic_select,     @function
+
+.type atomic_main,        @function
+.type _start,             @function
 
 // one   two   three four  five  six
 // rdi   rsi   rdx   rcx   r8    r9
@@ -84,7 +90,12 @@ syscall1:
     syscall
     retq
 
-      
+_start:
+    CALL atomic_main
+    movq %rax, %rbx
+    movq $__NR_exit, %rax
+    SYSCALL
+
 #if defined(__ELF__)
           .section .note.GNU-stack,"",%progbits
 #endif

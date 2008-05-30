@@ -3,4 +3,5 @@ libatomic.a
 *.o
 *.os
 
-testsuite
+tests/*
+!tests/*.c

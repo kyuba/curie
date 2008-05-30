@@ -39,8 +39,26 @@
 #ifndef NUCLEUS_H
 #define NUCLEUS_H
 
-void _atomic_exit  (int status);
-int  _atomic_read  (int fd, void *buf, int count);
-int  _atomic_write (int fd, const void *buf, int count);
+#ifdef __cplusplus
+extern "C" {
+#endif
+  void _atomic_exit  (int status);
+  int  _atomic_read  (int fd, void *buf, int count);
+  int  _atomic_write (int fd, const void *buf, int count);
+
+  int  _atomic_open (const char *path, int flags);
+  int  _atomic_creat (const char *path, int mode);
+  int  _atomic_close (int fd);
+
+  int  _atomic_mmap (void *start, int lengthprot, int flags,
+                     int fd, int offset);
+  int  _atomic_munmap (void *start, int length);
+
+  int  _atomic_kill (int pid, int sig);
+
+  int atomic_main();
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* NUCLEUS_H */
