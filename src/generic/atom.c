@@ -35,3 +35,74 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
+
+#include <atomic/nucleus.h>
+#define _POSIX_SOURCE
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+void   _atomic_exit (int status)
+{
+    return exit (status);
+}
+
+int    _atomic_read (int fd, void *buf, int count)
+{
+    return read(fd, buf, count);
+}
+
+int    _atomic_write (int fd, const void *buf, int count)
+{
+    return write(fd, buf, count);
+}
+
+int    _atomic_open_read (const char *path)
+{
+    return creat(path, O_RDONLY | O_NONBLOCK);
+}
+
+int    _atomic_open_write (const char *path)
+{
+    return creat(path, O_WRONLY | O_NONBLOCK);
+}
+
+int    _atomic_create (const char *path, int mode)
+{
+    return creat(path, mode);
+}
+
+int    _atomic_creat (const char *path, int mode)
+{
+    return creat (path, mode);
+}
+
+int    _atomic_close (int fd)
+{
+    return close (fd);
+}
+
+void * _atomic_mmap (void *start, int length, int prot, int flags, int fd,
+                   int offset)
+{
+    return mmap (start, length, prot, flags, fd, offset);
+}
+int    _atomic_munmap (void *start, int length)
+{
+    return munmap (start, length);
+}
+
+int   _atomic_kill (int pid, int sig)
+{
+    return kill (pid, sig);
+}
+
+int   main ()
+{
+    return atomic_main();
+}

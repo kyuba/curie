@@ -42,12 +42,12 @@ def writepkgconfig():
 
 env = Environment()
 
+env.Append(LIBPATH = '.', CPPPATH='#include', CFLAGS="--std=c99")
+
 if haveasm('atom'):
   print 'adjusting linker flags for using assembly atomic-libc'
   env.Append(CFLAGS = '-ffreestanding',
-             LINKFLAGS = '-static -nostdlib -nostartfiles -nodefaultlibs',
-             LIBPATH = '.',
-             CPPPATH='include')
+             LINKFLAGS = '-static -nostdlib -nostartfiles -nodefaultlibs')
 else:
   print 'adjusting linker flags for using host-libc based atomic-libc'
 

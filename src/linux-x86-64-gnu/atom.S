@@ -36,12 +36,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/syscall.h>
+#include <asm/unistd.h>
 
 .globl	_atomic_exit
 .globl  _atomic_read
 .globl  _atomic_write
-.globl  _atomic_open
+.globl  _atomic_open_read
+.globl  _atomic_open_write
+.globl  _atomic_create
 .globl  _atomic_close
 .globl  _atomic_mmap
 .globl  _atomic_socketpair
@@ -52,19 +54,21 @@
 .globl atomic_main
 .globl _start
 
-.type _atomic_exit,       @function
-.type _atomic_read,       @function
-.type _atomic_write,      @function
-.type _atomic_open,       @function
-.type _atomic_close,      @function
-.type _atomic_mmap,       @function
-.type _atomic_socketpair, @function
-.type _atomic_sigaction,  @function
-.type _atomic_kill,       @function
-.type _atomic_select,     @function
+.type _atomic_exit,            @function
+.type _atomic_read,            @function
+.type _atomic_write,           @function
+.type _atomic_open_read,       @function
+.type _atomic_open_write,      @function
+.type _atomic_create,          @function
+.type _atomic_close,           @function
+.type _atomic_mmap,            @function
+.type _atomic_socketpair,      @function
+.type _atomic_sigaction,       @function
+.type _atomic_kill,            @function
+.type _atomic_select,          @function
 
-.type atomic_main,        @function
-.type _start,             @function
+.type atomic_main,             @function
+.type _start,                  @function
 
 // one   two   three four  five  six
 // rdi   rsi   rdx   rcx   r8    r9

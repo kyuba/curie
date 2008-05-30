@@ -1,5 +1,9 @@
 #/bin/sh
 
 for i in $(find ./tests ! \( -type d -o \( -name '*.c' -o -name '*.o' \) \) ); do
-  $i;
+    $i;
+    if [ "$@" != 0 ]; then
+        echo "test $i failed!";
+        exit;
+    fi
 done
