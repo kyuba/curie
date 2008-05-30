@@ -1,0 +1,5 @@
+#/bin/sh
+
+for i in $(find ./tests ! \( -type d -o \( -name '*.c' -o -name '*.o' \) \) ); do
+  $i;
+done
