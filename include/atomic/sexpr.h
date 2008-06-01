@@ -52,7 +52,8 @@ enum sx_type {
   sxt_empty_list = 7,
   sxt_end_of_list = 8,
   sxt_end_of_file = 9,
-  sxt_not_a_number = 10
+  sxt_not_a_number = 10,
+  sxt_nonexistent = 11
 };
 
 struct sexpr {
@@ -91,5 +92,27 @@ const struct sexpr * const sx_empty_list;
 const struct sexpr * const sx_end_of_list;
 const struct sexpr * const sx_end_of_file;
 const struct sexpr * const sx_not_a_number;
+const struct sexpr * const sx_nonexistent;
+
+#define nilp(sx)   (((sx) == sx_nil)          || ((sx)->type == sxt_nil))
+#define truep(sx)  (((sx) == sx_true)         || ((sx)->type == sxt_true))
+#define falsep(sx) (((sx) == sx_false)        || ((sx)->type == sxt_false))
+#define emptyp(sx) (((sx) == sx_empty_list)   || ((sx)->type == sxt_empty_list))
+#define eolp(sx)   (((sx) == sx_end_of_list)  || ((sx)->type == sxt_end_of_list))
+#define eofp(sx)   (((sx) == sx_end_of_file)  || ((sx)->type == sxt_end_of_file))
+#define nanp(sx)   (((sx) == sx_not_a_number) || ((sx)->type == sxt_not_a_number))
+#define nexp(sx)   (((sx) == sx_nonexistent)  || ((sx)->type == sxt_nonexistent))
+
+#define consp(sx)    ((sx)->type == sxt_cons)
+#define stringp(sx)  ((sx)->type == sxt_string)
+#define symbolp(sx)  ((sx)->type == sxt_symbol)
+#define integerp(sx) ((sx)->type == sxt_integer)
+
+#define car(sx) (((sx)->type == sxt_cons) ? ((sx)->data.cons.car) : sx_nonexistent)
+#define cdr(sx) (((sx)->type == sxt_cons) ? ((sx)->data.cons.cdr) : sx_nonexistent)
+
+#define sx_integer(sx) (((sx)->type == sxt_integer) ? ((sx)->data.integer) : -1)
+#define sx_string(sx)  (((sx)->type == sxt_string)  ? ((sx)->data.string)  : "#nonexistent")
+#define sx_symbol(sx)  (((sx)->type == sxt_symbol)  ? ((sx)->data.symbol)  : "#nonexistent")
 
 #endif
