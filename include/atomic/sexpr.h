@@ -42,17 +42,17 @@
 #include <atomic/parser.h>
 
 enum sx_type {
-  sxt_nil,
-  sxt_false,
-  sxt_true,
-  sxt_integer,
-  sxt_string,
-  sxt_symbol,
-  sxt_cons,
-  sxt_empty_list,
-  sxt_end_of_list,
-  sxt_end_of_file,
-  sxt_not_a_number
+  sxt_nil = 0,
+  sxt_false = 1,
+  sxt_true = 2,
+  sxt_integer = 3,
+  sxt_string = 4,
+  sxt_symbol = 5,
+  sxt_cons = 6,
+  sxt_empty_list = 7,
+  sxt_end_of_list = 8,
+  sxt_end_of_file = 9,
+  sxt_not_a_number = 10
 };
 
 struct sexpr {

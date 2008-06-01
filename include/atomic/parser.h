@@ -51,9 +51,9 @@ struct io {
 };
 
 enum io_result {
-  io_end_of_file,
-  io_unrecoverable_error,
-  io_no_change
+  io_end_of_file = 0,
+  io_unrecoverable_error = 1,
+  io_no_change = 2
 };
 
 struct io *io_open (int);
