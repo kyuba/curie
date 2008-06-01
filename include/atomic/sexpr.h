@@ -73,7 +73,6 @@ struct sexpr {
 
 struct sexpr_io {
   struct io *in, *out;
-  int inpos;
 };
 
 struct sexpr_io *sx_open_io(struct io *, struct io *);

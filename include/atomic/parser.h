@@ -44,13 +44,13 @@
 struct io {
   int fd;
   char *buffer; /* can't use a fixed buffer since we might need to read something larger */
-  
+
   int position;
   int length;
-  int used;
+  int cursor;
 };
 
-struct io *io_open ();
+struct io *io_open (int);
 void io_write(struct io *, char *, int);
 void io_read(struct io *);
 
