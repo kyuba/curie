@@ -1,8 +1,8 @@
 /*
- *  nucleus.h
+ *  sexpr.h
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 26/05/2008.
+ *  Created by Magnus Deininger on 01/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,30 +36,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_NUCLEUS_H
-#define ATOMIC_NUCLEUS_H
+#ifndef ATOMIC_SEXPR_H
+#define ATOMIC_SEXPR_H
 
-#ifdef __cplusplus
-extern "C" {
+#include <atomic/parser.h>
+
+enum sx_type {
+  sxt_nil,
+  sxt_false,
+  sxt_true,
+  sxt_integer,
+  sxt_string,
+  sxt_symbol,
+  sxt_cons,
+  sxt_empty_list,
+  sxt_end_of_list,
+  sxt_end_of_file,
+  sxt_not_a_number
+};
+
+struct sexpr {
+  enum sx_type type;
+
+  union {
+    struct {
+	  struct sexpr *car;
+	  struct sexpr *cdr;
+	} cons;
+
+	const char *string;
+	const char *symbol;
+
+	int integer;
+  } data;
+};
+
+struct sexpr_io {
+  struct io *in, *out;
+  int inpos;
+};
+
+struct sexpr_io *sx_open_io(struct io *, struct io *);
+struct sexpr_io *sx_open_io_fd(int, int);
+
+struct sexpr *sx_read(struct sexpr_io *);
+char sx_write(struct sexpr_io *, struct sexpr *);
+void sx_free(struct sexpr *);
+
+struct sexpr *sx_create(enum sx_type);
+
+const struct sexpr * const sx_nil;
+const struct sexpr * const sx_false;
+const struct sexpr * const sx_true;
+const struct sexpr * const sx_empty_list;
+const struct sexpr * const sx_end_of_list;
+const struct sexpr * const sx_end_of_file;
+const struct sexpr * const sx_not_a_number;
+
 #endif
-  void   _atomic_exit  (int status);
-  int    _atomic_read  (int fd, void *buf, int count);
-  int    _atomic_write (int fd, const void *buf, int count);
-
-  int    _atomic_open_read (const char *path);
-  int    _atomic_open_write (const char *path);
-  int    _atomic_create (const char *path, int mode);
-  int    _atomic_close (int fd);
-
-  void * _atomic_mmap (void *start, int length, int prot, int flags,
-                       int fd, int offset);
-  int    _atomic_munmap (void *start, int length);
-
-  int    _atomic_kill (int pid, int sig);
-
-  int atomic_main();
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* NUCLEUS_H */

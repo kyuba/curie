@@ -1,8 +1,8 @@
 /*
- *  nucleus.h
+ *  memory.h
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 26/05/2008.
+ *  Created by Magnus Deininger on 01/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,30 +36,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_NUCLEUS_H
-#define ATOMIC_NUCLEUS_H
+#ifndef ATOMIC_MEMORY_H
+#define ATOMIC_MEMORY_H
 
-#ifdef __cplusplus
-extern "C" {
+/* this'll allow managing 1024 entries per poolblock */
+#define MAPSIZE 128
+#define MAXBLOCKENTRIES MAPSIZE * 8
+
+typedef char bitmap[MAPSIZE];
+
+struct memory_pool {
+  int chunksize, entitysize, poolsize;
+  
+  bitmap map;
+  
+  struct memory_pool *next;
+
+  char memory[];
+};
+
+struct memory_pool *create_memory_pool (int chunksize, int entitysize);
+void free_memory_pool (struct memory_pool *);
+
+void *get_pool_mem(struct memory_pool *);
+void free_pool_mem(void *);
+
 #endif
-  void   _atomic_exit  (int status);
-  int    _atomic_read  (int fd, void *buf, int count);
-  int    _atomic_write (int fd, const void *buf, int count);
-
-  int    _atomic_open_read (const char *path);
-  int    _atomic_open_write (const char *path);
-  int    _atomic_create (const char *path, int mode);
-  int    _atomic_close (int fd);
-
-  void * _atomic_mmap (void *start, int length, int prot, int flags,
-                       int fd, int offset);
-  int    _atomic_munmap (void *start, int length);
-
-  int    _atomic_kill (int pid, int sig);
-
-  int atomic_main();
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* NUCLEUS_H */

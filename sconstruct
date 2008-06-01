@@ -53,7 +53,7 @@ else:
 
 # LIBRARY FILES
 
-sourcefiles = [ 'atom' ]
+sourcefiles = [ 'atom', 'sexpr', 'parser', 'memory' ]
 
 sf = []
 
