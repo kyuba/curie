@@ -61,4 +61,8 @@ void free_memory_pool (struct memory_pool *);
 void *get_pool_mem(struct memory_pool *);
 void free_pool_mem(void *);
 
+void *get_mem(int);
+void *resize_mem(int, void *, int);
+void free_mem(int, void *);
+
 #endif
