@@ -4,5 +4,8 @@
 *.a
 *.so
 
+*.xcodeproj
+build
+
 tests/*
 !tests/*.c
