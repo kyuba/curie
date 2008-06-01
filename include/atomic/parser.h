@@ -50,8 +50,14 @@ struct io {
   int cursor;
 };
 
+enum io_result {
+  io_end_of_file,
+  io_unrecoverable_error,
+  io_no_change
+};
+
 struct io *io_open (int);
-void io_write(struct io *, char *, int);
-void io_read(struct io *);
+enum io_result io_write(struct io *, char *, int);
+enum io_result io_read(struct io *);
 
 #endif

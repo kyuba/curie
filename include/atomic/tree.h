@@ -1,5 +1,5 @@
 /*
- *  memory.h
+ *  tree.h
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 01/06/2008.
@@ -36,33 +36,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MEMORY_H
-#define ATOMIC_MEMORY_H
+#ifndef ATOMIC_TREE_H
+#define ATOMIC_TREE_H
 
-/* this'll allow managing 1024 entries per poolblock */
-#define MAPSIZE 128
-#define MAXBLOCKENTRIES MAPSIZE * 8
-
-typedef char bitmap[MAPSIZE];
-
-struct memory_pool {
-  int entitysize, maxentities;
-
-  bitmap map;
-
-  struct memory_pool *next;
-
-  char memory[];
+struct tree {
+  struct node * root;
 };
 
-struct memory_pool *create_memory_pool (int entitysize);
-void free_memory_pool (struct memory_pool *);
+struct node {
+  struct node * left;
+  struct node * right;
 
-void *get_pool_mem(struct memory_pool *);
-void free_pool_mem(void *);
+  long key;
 
-void *get_mem(int);
-void *resize_mem(int, void *, int);
-void free_mem(int, void *);
+/* this is valid C99, so we can omit the value if it isn't needed */
+  char value[];
+};
+
+struct tree * tree_create ();
+void tree_destroy (struct tree *);
+
+void tree_add_node (struct tree *, long);
+void tree_add_node_value (struct tree *, long, void *);
+void tree_add_node_value_direct (struct tree *, long, void *, int);
+
+#define node_get_value(node) *((void**)((node)->value))
+#define node_get_value_direct(node) ((void*)((node)->value))
+
+void tree_map (struct tree *, void (*)(struct node *, void *), void *);
 
 #endif

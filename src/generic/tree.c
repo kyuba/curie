@@ -1,5 +1,5 @@
 /*
- *  memory.h
+ *  tree.c
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 01/06/2008.
@@ -36,33 +36,5 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MEMORY_H
-#define ATOMIC_MEMORY_H
-
-/* this'll allow managing 1024 entries per poolblock */
-#define MAPSIZE 128
-#define MAXBLOCKENTRIES MAPSIZE * 8
-
-typedef char bitmap[MAPSIZE];
-
-struct memory_pool {
-  int entitysize, maxentities;
-
-  bitmap map;
-
-  struct memory_pool *next;
-
-  char memory[];
-};
-
-struct memory_pool *create_memory_pool (int entitysize);
-void free_memory_pool (struct memory_pool *);
-
-void *get_pool_mem(struct memory_pool *);
-void free_pool_mem(void *);
-
-void *get_mem(int);
-void *resize_mem(int, void *, int);
-void free_mem(int, void *);
-
-#endif
+#include <atomic/memory.h>
+#include <atomic/tree.h>
