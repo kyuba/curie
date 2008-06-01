@@ -60,6 +60,11 @@ void tree_add_node (struct tree *, long);
 void tree_add_node_value (struct tree *, long, void *);
 void tree_add_node_value_direct (struct tree *, long, void *, int);
 
+struct node * tree_get_node (struct tree *, long);
+
+void tree_remove_node (struct tree *, long);
+void tree_remove_node_specific (struct tree *, long, struct node *);
+
 #define node_get_value(node) *((void**)((node)->value))
 #define node_get_value_direct(node) ((void*)((node)->value))
 
