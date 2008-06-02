@@ -47,6 +47,9 @@ struct exec_context {
   int pid;
   struct io *in;
   struct io *out;
+  
+  void (*on_death) (struct exec_context *);
+  void *arbitrary;
 };
 
 struct exec_call {

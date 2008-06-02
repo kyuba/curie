@@ -47,62 +47,98 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include <errno.h>
+
+char last_error_recoverable_p = 1;
+
+static void examine_error() {
+  switch (errno)
+  {
+    case EAGAIN:
+      last_error_recoverable_p = 1;
+    default:
+      last_error_recoverable_p = 0;
+  }
+}
+
 void   _atomic_exit (int status)
 {
-    return exit (status);
+    exit (status);
 }
 
 int    _atomic_read (int fd, void *buf, int count)
 {
-    return read(fd, buf, count);
+    int rv = read(fd, buf, count);
+    if (rv < 0) examine_error();
+	return rv;
 }
 
 int    _atomic_write (int fd, const void *buf, int count)
 {
-    return write(fd, buf, count);
+    int rv = write(fd, buf, count);
+    if (rv < 0) examine_error();
+	return rv;
 }
 
 int    _atomic_open_read (const char *path)
 {
-    return creat(path, O_RDONLY | O_NONBLOCK);
+    int rv = creat(path, O_RDONLY | O_NONBLOCK);
+    if (rv < 0) examine_error();
+	return rv;
 }
 
 int    _atomic_open_write (const char *path)
 {
-    return creat(path, O_WRONLY | O_NONBLOCK);
+    int rv = creat(path, O_WRONLY | O_NONBLOCK);
+    if (rv < 0) examine_error();
+	return rv;
 }
 
 int    _atomic_create (const char *path, int mode)
 {
-    return creat(path, mode);
+    int rv = creat(path, mode);
+    if (rv < 0) examine_error();
+	return rv;
 }
 
 int    _atomic_creat (const char *path, int mode)
 {
-    return creat (path, mode);
+    int rv = creat (path, mode);
+    if (rv < 0) examine_error();
+	return rv;
 }
 
 int    _atomic_close (int fd)
 {
-    return close (fd);
+    int rv = close (fd);
+    if (rv < 0) examine_error();
+	return rv;
 }
 
 void * _atomic_mmap (void *start, int length, int prot, int flags, int fd,
                    int offset)
 {
-    return mmap (start, length, prot, flags, fd, offset);
+    void * rv = mmap (start, length, prot, flags, fd, offset);
+    if (rv == 0) examine_error();
+	return rv;
 }
+
 int    _atomic_munmap (void *start, int length)
 {
-    return munmap (start, length);
+    int rv = munmap (start, length);
+    if (rv < 0) examine_error();
+	return rv;
 }
 
 int   _atomic_kill (int pid, int sig)
 {
-    return kill (pid, sig);
+    int rv = kill (pid, sig);
+    if (rv < 0) examine_error();
+	return rv;
 }
 
 int   main ()
 {
-    return atomic_main();
+    int rv = atomic_main();
+	return rv;
 }

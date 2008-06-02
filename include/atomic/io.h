@@ -41,6 +41,11 @@
 
 #define CHUNKSIZE 4096
 
+enum io_type {
+  iot_read = 0,
+  iot_write = 1
+};
+
 struct io {
   int fd;
   char *buffer;
@@ -49,6 +54,10 @@ struct io {
   int position;
   int length;
   int cursor;
+
+  void (*on_data_read) (struct io *);
+  void (*on_data_written) (struct io *);
+  void *arbitrary;
 };
 
 enum io_result {
