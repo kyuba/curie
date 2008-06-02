@@ -47,7 +47,7 @@ struct exec_context {
   int pid;
   struct io *in;
   struct io *out;
-  
+
   void (*on_death) (struct exec_context *);
   void *arbitrary;
 };
@@ -56,6 +56,9 @@ struct exec_call {
   int options;
   char **command;
   char **environment;
+
+  void (*on_death) (struct exec_context *);
+  void *arbitrary;
 };
 
 struct exec_call *create_exec_call ();
