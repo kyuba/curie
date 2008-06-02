@@ -1,5 +1,5 @@
 /*
- *  parser.h
+ *  io.c
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 01/06/2008.
@@ -9,11 +9,11 @@
 
 /*
  * Copyright (c) 2008, Magnus Deininger All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- *
+ * 
  * * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer. *
  * Redistributions in binary form must reproduce the above copyright
@@ -22,8 +22,8 @@
  * Neither the name of the project nor the names of its contributors may
  * be used to endorse or promote products derived from this software
  * without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS 
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
  * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
@@ -33,31 +33,8 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef ATOMIC_PARSER_H
-#define ATOMIC_PARSER_H
-
-#define CHUNKSIZE 4096
-
-struct io {
-  int fd;
-  char *buffer; /* can't use a fixed buffer since we might need to read something larger */
-
-  int position;
-  int length;
-  int cursor;
-};
-
-enum io_result {
-  io_end_of_file = 0,
-  io_unrecoverable_error = 1,
-  io_no_change = 2
-};
-
-struct io *io_open (int);
-enum io_result io_write(struct io *, char *, int);
-enum io_result io_read(struct io *);
-
-#endif
+#include <atomic/nucleus.h>
+#include <atomic/io.h>

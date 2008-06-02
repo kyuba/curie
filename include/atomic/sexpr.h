@@ -39,7 +39,7 @@
 #ifndef ATOMIC_SEXPR_H
 #define ATOMIC_SEXPR_H
 
-#include <atomic/parser.h>
+#include <atomic/io.h>
 
 enum sx_type {
   sxt_nil = 0,

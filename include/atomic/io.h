@@ -1,5 +1,5 @@
 /*
- *  memory.h
+ *  io.h
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 01/06/2008.
@@ -36,33 +36,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MEMORY_H
-#define ATOMIC_MEMORY_H
+#ifndef ATOMIC_IO_H
+#define ATOMIC_IO_H
 
-/* this'll allow managing 512 entries per poolblock */
-#define MAPSIZE 64
-#define MAXBLOCKENTRIES MAPSIZE * 8
+#define CHUNKSIZE 4096
 
-typedef char bitmap[MAPSIZE];
+struct io {
+  int fd;
+  char *buffer;
+/* can't use a fixed buffer since we might need to read (or write) something larger */
 
-struct memory_pool {
-  int entitysize, maxentities;
-
-  bitmap map;
-
-  struct memory_pool *next;
-
-  char memory[];
+  int position;
+  int length;
+  int cursor;
 };
 
-struct memory_pool *create_memory_pool (int entitysize);
-void free_memory_pool (struct memory_pool *);
+enum io_result {
+  io_end_of_file = 0,
+  io_changes = 1,
+  io_unrecoverable_error = 2,
+  io_no_change = 3,
+  io_complete = 4,
+  io_incomplete = 5
+};
 
-void *get_pool_mem(struct memory_pool *);
-void free_pool_mem(void *);
-
-void *get_mem(int);
-void *resize_mem(int, void *, int);
-void free_mem(int, void *);
+struct io *io_open (int);
+enum io_result io_write(struct io *, char *, int);
+enum io_result io_read(struct io *);
+enum io_result io_commit (struct io *);
+enum io_result io_finish (struct io *);
+void io_close (struct io *);
 
 #endif
