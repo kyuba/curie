@@ -43,19 +43,28 @@
 extern "C" {
 #endif
   void   _atomic_exit  (int status);
-  int    _atomic_read  (int fd, void *buf, int count);
-  int    _atomic_write (int fd, const void *buf, int count);
+  int    _atomic_read  (int fd, void *buf, int count)
+   /*@globals errno;@*/;
+  int    _atomic_write (int fd, const void *buf, int count)
+   /*@globals errno;@*/;
 
-  int    _atomic_open_read (const char *path);
-  int    _atomic_open_write (const char *path);
-  int    _atomic_create (const char *path, int mode);
-  int    _atomic_close (int fd);
+  int    _atomic_open_read (const char *path)
+   /*@globals errno;@*/;
+  int    _atomic_open_write (const char *path)
+   /*@globals errno;@*/;
+  int    _atomic_create (const char *path, int mode)
+   /*@globals errno;@*/;
+  int    _atomic_close (int fd)
+   /*@globals errno;@*/;
 
-  void * _atomic_mmap (void *start, int length, int prot, int flags,
-                       int fd, int offset);
-  int    _atomic_munmap (void *start, int length);
+  /*@null@*/ void * _atomic_mmap (void *start, int length, int prot, int flags,
+                                  int fd, int offset)
+   /*@globals errno;@*/;
+  int    _atomic_munmap (void *start, int length)
+   /*@globals errno;@*/;
 
-  int    _atomic_kill (int pid, int sig);
+  int    _atomic_kill (int pid, int sig)
+   /*@globals errno;@*/;
 
   int atomic_main();
   

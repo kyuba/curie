@@ -53,8 +53,14 @@ enum sx_type {
   sxt_end_of_list = 8,
   sxt_end_of_file = 9,
   sxt_not_a_number = 10,
-  sxt_nonexistent = 11
+  sxt_nonexistent = 11,
+  sxt_inline_string = 12,
+  sxt_inline_symbol = 13
 };
+
+struct sexpr;
+
+#define MAX_SEXPR_INLINE_SIZE (sizeof(struct sexpr *) * 2)
 
 struct sexpr {
   enum sx_type type;
@@ -69,6 +75,9 @@ struct sexpr {
 	const char *symbol;
 
 	int integer;
+	
+	char inline_string[MAX_SEXPR_INLINE_SIZE];
+	char inline_symbol[MAX_SEXPR_INLINE_SIZE];
   } data;
 };
 
@@ -104,8 +113,8 @@ const struct sexpr * const sx_nonexistent;
 #define nexp(sx)   (((sx) == sx_nonexistent)  || ((sx)->type == sxt_nonexistent))
 
 #define consp(sx)    ((sx)->type == sxt_cons)
-#define stringp(sx)  ((sx)->type == sxt_string)
-#define symbolp(sx)  ((sx)->type == sxt_symbol)
+#define stringp(sx)  (((sx)->type == sxt_string) || ((sx)->type == sxt_inline_string))
+#define symbolp(sx)  (((sx)->type == sxt_symbol) || ((sx)->type == sxt_inline_symbol))
 #define integerp(sx) ((sx)->type == sxt_integer)
 
 #define car(sx) (((sx)->type == sxt_cons) ? ((sx)->data.cons.car) : sx_nonexistent)

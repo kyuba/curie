@@ -1,0 +1,12 @@
+#!/bin/sh
+
+splint_params='-Iinclude'
+splint_params_posix='+posixstrictlib'
+
+for i in $(find . -name "*.c" -o -name "*.h"); do
+  if [ "$i" = "./src/generic/atom.c" ]; then
+    splint ${splint_params} ${splint_params_posix} "$i";
+  else
+    splint ${splint_params} "$i";
+  fi;
+done;
