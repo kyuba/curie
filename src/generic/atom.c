@@ -36,7 +36,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include <atomic/nucleus.h>
+#include <atomic/nucleus-posix.h>
 #define _POSIX_SOURCE
 
 #include <sys/types.h>
