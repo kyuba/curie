@@ -72,12 +72,10 @@ struct sexpr {
 	} cons;
 
 	const char *string;
-	const char *symbol;
 
-	int integer;
+	signed long long integer;
 	
 	char inline_string[MAX_SEXPR_INLINE_SIZE];
-	char inline_symbol[MAX_SEXPR_INLINE_SIZE];
   } data;
 };
 
@@ -88,11 +86,17 @@ struct sexpr_io {
 struct sexpr_io *sx_open_io(struct io *, struct io *);
 struct sexpr_io *sx_open_io_fd(int, int);
 
+#define sx_open_stdio() sx_open_io_fd(0, 1)
+
 struct sexpr *sx_read(struct sexpr_io *);
 char sx_write(struct sexpr_io *, struct sexpr *);
 void sx_free(struct sexpr *);
 
 struct sexpr *sx_create(enum sx_type);
+struct sexpr *sx_create_string(const char *);
+struct sexpr *sx_create_symbol(const char *);
+
+void sx_destroy(struct sexpr *);
 
 const struct sexpr * const sx_nil;
 const struct sexpr * const sx_false;
@@ -121,7 +125,9 @@ const struct sexpr * const sx_nonexistent;
 #define cdr(sx) (((sx)->type == sxt_cons) ? ((sx)->data.cons.cdr) : sx_nonexistent)
 
 #define sx_integer(sx) (((sx)->type == sxt_integer) ? ((sx)->data.integer) : -1)
-#define sx_string(sx)  (((sx)->type == sxt_string)  ? ((sx)->data.string)  : "#nonexistent")
-#define sx_symbol(sx)  (((sx)->type == sxt_symbol)  ? ((sx)->data.symbol)  : "#nonexistent")
+#define sx_string(sx)  (const char *)(((sx)->type == sxt_string)  ? ((sx)->data.string)  :\
+                                      (((sx)->type == sxt_inline_string) ? ((sx)->data.inline_string)  : "#nonexistent"))
+#define sx_symbol(sx)  (const char *)(((sx)->type == sxt_symbol)  ? ((sx)->data.string)  :\
+                                      (((sx)->type == sxt_inline_symbol) ? ((sx)->data.inline_string)  : "#nonexistent"))
 
 #endif
