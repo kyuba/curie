@@ -8,5 +8,5 @@ splint ${splint_params} ${splint_params_atomic} $(find ./include ./src \( -name 
 splint ${splint_params} ${splint_params_posix} src/generic/atom.c src/generic/memory.c
 
 for i in tests/*.c; do
-  splint ${splint_params} "${i}"
+  splint ${splint_params} ${splint_params_atomic} "${i}"
 done

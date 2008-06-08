@@ -36,12 +36,58 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*@-usedef@*/
+/*@-unqualifiedtrans@*/
+
 #include "atomic/memory.h"
 
-int atomic_main(void) {
-    struct memory_pool *pool = create_memory_pool(7);
+#define MAXSIZE 128
+#define MAXENTITIES 512
+
+static unsigned int test_pool(unsigned int poolentitysize, unsigned int usepoolentities) {
+    struct memory_pool *pool = create_memory_pool(poolentitysize);
+	char *entities[usepoolentities];
+	unsigned int i, j, rv = 0;
+
+    for (i = 0; i < usepoolentities; i++) {
+	    entities[i] = get_pool_mem(pool);
+	}
+
+    for (i = 0; i < usepoolentities; i++) {
+	    for (j = 0; j < poolentitysize; j++) {
+            entities[i][j] = (char)~j;
+        }
+	}
+
+    for (i = 0; i < usepoolentities; i++) {
+	    for (j = 0; j < poolentitysize; j++) {
+            if (entities[i][j] != (char)~j) {
+			    rv = 1;
+				*(char*)0 = 1;
+				goto do_return;
+			}
+        }
+	}
 	
+	do_return:
+
+    for (i = 0; i < usepoolentities; i++) {
+        free_pool_mem ((void *)(entities[i]));
+	}
+
 	free_memory_pool(pool);
+
+	return rv;
+}
+
+int atomic_main(void) {
+    unsigned int i, j;
+
+	for (i = 1; i < MAXSIZE; i++) {
+		for (j = 1; j < MAXENTITIES; j++) {
+            if (test_pool(i, j) == 1) return 1;
+        }
+	}
 
 	return 0;
 }

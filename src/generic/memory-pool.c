@@ -77,7 +77,7 @@ struct memory_pool *create_memory_pool (unsigned int entitysize) {
     struct memory_pool *pool = get_mem_chunk();
 
     pool->entitysize = (unsigned int)(((entitysize / ENTITY_ALIGNMENT)
-                         + (((entitysize % ENTITY_ALIGNMENT) == 0) ? 1 : 0))
+                         + (((entitysize % ENTITY_ALIGNMENT) == 0) ? 0 : 1))
                         * ENTITY_ALIGNMENT);
 	pool->maxentities = (unsigned int)((mem_chunk_size - sizeof(struct memory_pool)) / entitysize);
 
@@ -122,7 +122,7 @@ void free_pool_mem(void *mem) {
    this is because get_mem_chunk() is supposed to use an address that is
    pagesize-aligned and mem_chunk_size should be the pagesize. */
 
-	struct memory_pool *pool = (struct memory_pool *)(((long)((char *)mem)) / mem_chunk_size);
+	struct memory_pool *pool = (struct memory_pool *)((((long)((char *)mem)) / mem_chunk_size) * mem_chunk_size);
 	char *pool_mem_start = (char *)pool + sizeof(struct memory_pool);
 
     unsigned int index = (unsigned int)((char*)mem - pool_mem_start) / pool->entitysize;
