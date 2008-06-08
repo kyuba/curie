@@ -1,8 +1,8 @@
 /*
- *  memory.h
+ *  memory-pool.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 01/06/2008.
+ *  Created by Magnus Deininger on 08/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,48 +36,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MEMORY_H
-#define ATOMIC_MEMORY_H
+#include "atomic/memory.h"
 
-/* memory.c */
+int atomic_main(void) {
+    struct memory_pool *pool = create_memory_pool(7);
+	
+	free_memory_pool(pool);
 
-/*@notnull@*/ /*@only@*/ void *get_mem(int);
-/*@notnull@*/ /*@only@*/ void *resize_mem(int, /*@notnull@*/ /*@only@*/ void *, int);
-void free_mem(int, /*@notnull@*/ /*@only@*/void *);
-
-extern int mem_chunk_size;
-/*@notnull@*/ /*@only@*/ void *get_mem_chunk()
-  /*globals mem_chunk_size;*/;
-
-#define free_mem_chunk(p) free_mem(mem_chunk_size, p)
-
-/* memory-pool.c */
-
-#define BITSPERBYTE (unsigned int)8
-
-/* this'll allow managing 512 entries per poolblock */
-#define BITMAPMAPSIZE (unsigned int)64
-#define BITMAPMAXBLOCKENTRIES (unsigned int)(BITMAPMAPSIZE * BITSPERBYTE)
-#define BITMAPSLOTS (unsigned int)(BITMAPMAPSIZE/sizeof(int))
-
-#define ENTITY_ALIGNMENT (unsigned int)8
-
-typedef int bitmap[BITMAPSLOTS];
-
-struct memory_pool {
-  int entitysize, maxentities;
-
-  bitmap map;
-
-  /*@null@*/ /*@shared@*/ struct memory_pool *next;
-
-  char memory[];
-};
-
-/*@notnull@*/ /*@only@*/ struct memory_pool *create_memory_pool (int entitysize);
-void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *);
-
-/*@notnull@*/ /*@only@*/ void *get_pool_mem(struct memory_pool *);
-void free_pool_mem(/*@notnull@*/ /*@only@*/ void *);
-
-#endif
+	return 0;
+}

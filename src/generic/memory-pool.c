@@ -36,5 +36,85 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/nucleus.h>
 #include <atomic/memory.h>
+
+/*@-mustfreeonly@*/
+/* turns out we need this here, because we actually implement memory management here,
+   including functions that do do this */
+
+
+static unsigned int bitmap_getslot(unsigned int b) {
+	return (unsigned int)(b / BITMAPSLOTS);
+}
+
+static void bitmap_set(bitmap m, unsigned int b) {
+    unsigned int s = bitmap_getslot(b);
+	m[s] |= 1 << (b%BITMAPSLOTS);
+}
+
+static void bitmap_clear(bitmap m, unsigned int b) {
+    unsigned int s = bitmap_getslot(b);
+	m[s] &= ~(1 << (b%BITMAPSLOTS));
+}
+
+static unsigned char bitmap_isset(bitmap m, unsigned int b) {
+    unsigned int s = bitmap_getslot(b);
+	return (unsigned char)(m[s] & (1 << (b%BITMAPSLOTS)));
+}
+
+static unsigned char bitmap_isempty(bitmap m) {
+    unsigned int i = 0;
+	for (; i < BITMAPSLOTS; i++) {
+        if (m[i] != 0) return (unsigned char)0;
+	}
+
+	return (unsigned char)1;
+}
+
+struct memory_pool *create_memory_pool (int entitysize) {
+    struct memory_pool *pool = get_mem_chunk();
+
+    pool->entitysize = ((entitysize / ENTITY_ALIGNMENT)
+	                    + (((entitysize % ENTITY_ALIGNMENT) == 0) ? 1 : 0))
+                       * ENTITY_ALIGNMENT;
+	pool->maxentities = (int)((mem_chunk_size - sizeof(struct memory_pool)) / entitysize);
+    pool->next = (struct memory_pool *)0;
+
+	return pool;
+}
+
+/* this is actually a pretty inefficient implementation, but it does
+   make sure not to build up any extra stack for recursions, since we
+   can't rely on gcc's tail recursion... */
+
+/*@-branchstate@*/
+
+void free_memory_pool (struct memory_pool *pool) {
+    struct memory_pool *cursor, *last;
+
+    retry:
+
+	last = ((struct memory_pool *)0);
+    cursor = pool;
+
+	if (cursor->next != ((struct memory_pool *)0)) {
+	    last = cursor;
+		cursor = cursor->next;
+	}
+
+    if (cursor != ((struct memory_pool *)0)) {
+	    free_mem_chunk(cursor);
+
+        if (last != ((struct memory_pool *)0)) {
+	        last->next = ((struct memory_pool *)0);
+			goto retry;
+        }
+    }
+}
+
+void *get_pool_mem(struct memory_pool *pool) {
+    return (void *)1;
+}
+
+void free_pool_mem(void *mem) {
+}
