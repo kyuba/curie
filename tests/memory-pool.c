@@ -44,7 +44,7 @@
 #define MAXSIZE 23
 #define MAXENTITIES 1026
 
-static unsigned int test_pool(unsigned int poolentitysize, unsigned int usepoolentities) {
+static unsigned int test_pool(unsigned int poolentitysize, unsigned int usepoolentities, int do_negate) {
     struct memory_pool *pool = create_memory_pool(poolentitysize);
 	char *entities[usepoolentities];
 	unsigned int i, j, rv = 0;
@@ -55,13 +55,17 @@ static unsigned int test_pool(unsigned int poolentitysize, unsigned int usepoole
 
     for (i = 0; i < usepoolentities; i++) {
 	    for (j = 0; j < poolentitysize; j++) {
-            entities[i][j] = (char)~j;
+		    if (do_negate == 1)
+                entities[i][j] = (char)~j;
+			else
+                entities[i][j] = (char)j;
         }
 	}
 
     for (i = 0; i < usepoolentities; i++) {
 	    for (j = 0; j < poolentitysize; j++) {
-            if (entities[i][j] != (char)~j) {
+            if (((do_negate == 1) && (entities[i][j] != (char)~j)) ||
+				((do_negate == 0) && (entities[i][j] != (char)j))){
 			    rv = 1;
 				goto do_return;
 			}
@@ -84,7 +88,8 @@ int atomic_main(void) {
 
 	for (i = 1; i < MAXSIZE; i++) {
 		for (j = 1; j < MAXENTITIES; j++) {
-            if (test_pool(i, j) == 1) return 1;
+            if (test_pool(i, j, 1) == 1) return 1;
+            if (test_pool(i, j, 0) == 1) return 1;
         }
 	}
 
