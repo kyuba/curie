@@ -39,14 +39,17 @@
 #include "atomic/nucleus.h"
 
 #define TESTDATA       "TEST-DATA"
-#define TESTDATA_SIZE  (sizeof(TESTDATA)-1)
+#define TESTDATA_SIZE  (int)(sizeof(TESTDATA)-1)
 
 int atomic_main(void) {
 /* test the _atomic_create() and _atomic_close() functions */
-    int fd = _atomic_create ("temporary-atomic-test-data", 0660);
+    int fd, i, j;
+    char buffer[TESTDATA_SIZE];
+
+    fd = _atomic_create ("temporary-atomic-test-data", 0660);
     if (fd < 0) return 1;
 
-    int i = _atomic_close(fd);
+    i = _atomic_close(fd);
     if (i < 0) return 2;
 
 /* test the _atomic_write() and _atomic_open_write() functions */
@@ -65,12 +68,10 @@ int atomic_main(void) {
     fd = _atomic_open_read ("temporary-atomic-test-data");
     if (fd < 0) return 7;
 
-    char buffer[TESTDATA_SIZE];
     i = _atomic_read (fd, buffer, TESTDATA_SIZE);
     if (i < 0) return 8;
     if (i != TESTDATA_SIZE) return 9;
     
-    int j;
     for (j = 0; j < i; j++) {
       if (buffer[j] != TESTDATA[j]) return 10;
     }

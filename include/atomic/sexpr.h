@@ -98,6 +98,9 @@ struct sexpr *sx_create_symbol(const char *);
 
 void sx_destroy(struct sexpr *);
 
+void *sx_list_map (struct sexpr *, void (*)(struct sexpr *, void *), void *);
+struct sexpr *sx_list_fold (struct sexpr *, void (*)(struct sexpr *));
+
 const struct sexpr * const sx_nil;
 const struct sexpr * const sx_false;
 const struct sexpr * const sx_true;
