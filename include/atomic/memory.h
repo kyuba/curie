@@ -46,6 +46,7 @@
 void free_mem(int, /*@notnull@*/ /*@only@*/void *);
 
 extern int mem_chunk_size;
+
 /*@notnull@*/ /*@only@*/ void *get_mem_chunk()
   /*globals mem_chunk_size;*/;
 
@@ -65,7 +66,7 @@ extern int mem_chunk_size;
 typedef int bitmap[BITMAPSLOTS];
 
 struct memory_pool {
-  int entitysize, maxentities;
+  unsigned int entitysize, maxentities;
 
   bitmap map;
 
@@ -74,10 +75,12 @@ struct memory_pool {
   char memory[];
 };
 
-/*@notnull@*/ /*@only@*/ struct memory_pool *create_memory_pool (int entitysize);
+/*@notnull@*/ /*@only@*/ struct memory_pool *create_memory_pool (unsigned int entitysize);
 void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *);
 
 /*@notnull@*/ /*@only@*/ void *get_pool_mem(struct memory_pool *);
 void free_pool_mem(/*@notnull@*/ /*@only@*/ void *);
+
+void optimise_memory_pool (/*@shared@*/ struct memory_pool *);
 
 #endif

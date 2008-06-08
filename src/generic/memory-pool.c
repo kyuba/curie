@@ -39,9 +39,11 @@
 #include <atomic/memory.h>
 
 /*@-mustfreeonly@*/
+/*@-onlytrans@*/
+/*@-sharedtrans@*/
+/*@-temptrans@*/
 /* turns out we need this here, because we actually implement memory management here,
-   including functions that do do this */
-
+   including functions that do do these thingamajigs */
 
 static unsigned int bitmap_getslot(unsigned int b) {
 	return (unsigned int)(b / BITMAPSLOTS);
@@ -71,50 +73,75 @@ static unsigned char bitmap_isempty(bitmap m) {
 	return (unsigned char)1;
 }
 
-struct memory_pool *create_memory_pool (int entitysize) {
+struct memory_pool *create_memory_pool (unsigned int entitysize) {
     struct memory_pool *pool = get_mem_chunk();
 
-    pool->entitysize = ((entitysize / ENTITY_ALIGNMENT)
-	                    + (((entitysize % ENTITY_ALIGNMENT) == 0) ? 1 : 0))
-                       * ENTITY_ALIGNMENT;
-	pool->maxentities = (int)((mem_chunk_size - sizeof(struct memory_pool)) / entitysize);
+    pool->entitysize = (unsigned int)(((entitysize / ENTITY_ALIGNMENT)
+                         + (((entitysize % ENTITY_ALIGNMENT) == 0) ? 1 : 0))
+                        * ENTITY_ALIGNMENT);
+	pool->maxentities = (unsigned int)((mem_chunk_size - sizeof(struct memory_pool)) / entitysize);
+
+	if (pool->maxentities > BITMAPMAXBLOCKENTRIES) pool->maxentities = BITMAPMAXBLOCKENTRIES;
+
     pool->next = (struct memory_pool *)0;
 
 	return pool;
 }
 
-/* this is actually a pretty inefficient implementation, but it does
-   make sure not to build up any extra stack for recursions, since we
-   can't rely on gcc's tail recursion... */
-
-/*@-branchstate@*/
-
 void free_memory_pool (struct memory_pool *pool) {
-    struct memory_pool *cursor, *last;
-
-    retry:
-
-	last = ((struct memory_pool *)0);
-    cursor = pool;
-
-	if (cursor->next != ((struct memory_pool *)0)) {
-	    last = cursor;
-		cursor = cursor->next;
-	}
-
-    if (cursor != ((struct memory_pool *)0)) {
-	    free_mem_chunk(cursor);
-
-        if (last != ((struct memory_pool *)0)) {
-	        last->next = ((struct memory_pool *)0);
-			goto retry;
-        }
-    }
+    if (pool->next) free_memory_pool (pool->next);
+    free_mem_chunk((void *)pool);
 }
 
 void *get_pool_mem(struct memory_pool *pool) {
-    return (void *)1;
+    unsigned int index = 0;
+	
+	for (; index < pool->maxentities; index++) {
+        if (bitmap_isset(pool->map, index) == (unsigned char)0)
+		{
+		    char *pool_mem_start;
+
+			bitmap_set(pool->map, index);
+
+            pool_mem_start = (char *)pool + sizeof(struct memory_pool);
+
+			return (void *)(pool_mem_start + (index * (pool->entitysize)));
+		}
+	}
+
+    if (pool->next == (struct memory_pool *)0) {
+	    pool->next = create_memory_pool (pool->entitysize);
+	}
+
+    return get_pool_mem(pool->next);
 }
 
 void free_pool_mem(void *mem) {
+/* actually we /can/ derive the start address of a pool frame using an
+   address that points into the pool...
+   this is because get_mem_chunk() is supposed to use an address that is
+   pagesize-aligned and mem_chunk_size should be the pagesize. */
+
+	struct memory_pool *pool = (struct memory_pool *)(((long)((char *)mem)) / mem_chunk_size);
+	char *pool_mem_start = (char *)pool + sizeof(struct memory_pool);
+
+    unsigned int index = (unsigned int)((char*)mem - pool_mem_start) / pool->entitysize;
+
+	bitmap_clear (pool->map, index);
+}
+
+void optimise_memory_pool(struct memory_pool *pool) {
+    struct memory_pool *cursor = pool, *last = (struct memory_pool *)0;
+
+    while ((cursor != (struct memory_pool *)0) &&
+	       (cursor->next != (struct memory_pool *)0)) {
+	    last = cursor;
+        cursor = cursor->next;
+
+        while (bitmap_isempty(cursor->map) == (unsigned char)0) {
+            last->next = cursor->next;
+            free_mem_chunk((void *)cursor);
+			cursor = last->next;
+		}
+	}
 }
