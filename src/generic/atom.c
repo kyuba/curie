@@ -36,9 +36,28 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include <atomic/nucleus-posix.h>
 #define _POSIX_SOURCE
 
+void   _atomic_exit  (int status);
+int    _atomic_read  (int fd, /*@out@*/ void *buf, int count)
+/*@globals errno;@*/;
+int    _atomic_write (int fd, const void *buf, int count)
+/*@globals errno;@*/;
+
+int    _atomic_open_read (const char *path)
+/*@globals errno;@*/;
+int    _atomic_open_write (const char *path)
+/*@globals errno;@*/;
+int    _atomic_create (const char *path, int mode)
+/*@globals errno;@*/;
+int    _atomic_close (int fd)
+/*@globals errno;@*/;
+
+int    _atomic_kill (int pid, int sig)
+/*@globals errno;@*/;
+
+int atomic_main();
+  
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -108,21 +127,6 @@ int    _atomic_create (const char *path, int mode)
 int    _atomic_close (int fd)
 {
     int rv = close (fd);
-    if (rv < 0) examine_error();
-	return rv;
-}
-
-void * _atomic_mmap (void *start, int length, int prot, int flags, int fd,
-                   int offset)
-{
-    void * rv = mmap (start, (size_t)length, prot, flags, fd, (off_t)offset);
-    if (rv == 0) examine_error();
-	return rv;
-}
-
-int    _atomic_munmap (void *start, int length)
-{
-    int rv = munmap (start, (size_t)length);
     if (rv < 0) examine_error();
 	return rv;
 }

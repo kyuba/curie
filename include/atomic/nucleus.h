@@ -51,10 +51,6 @@ extern "C" {
   int    _atomic_create (const char *path, int mode);
   int    _atomic_close (int fd);
 
-  /*@null@*/ void * _atomic_mmap (void *start, int length, int prot, int flags,
-                                  int fd, int offset);
-  int    _atomic_munmap (void *start, int length);
-
   int    _atomic_kill (int pid, int sig);
 
   int atomic_main();

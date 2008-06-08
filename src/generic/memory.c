@@ -36,5 +36,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/nucleus.h>
-#include <atomic/memory.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+
+/*@null@*/ void *get_mem(int);
+/*@null@*/ void *resize_mem(int, void *, int);
+void free_mem(int, void *);
+
+void *get_mem(int size) {
+    return (void *)0;
+}
+
+void *resize_mem(int size, void *location, int new_size) {
+    return (void *)0;
+}
+
+void free_mem(int size, void *location) {
+}
