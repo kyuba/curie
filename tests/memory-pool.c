@@ -41,8 +41,8 @@
 
 #include "atomic/memory.h"
 
-#define MAXSIZE 128
-#define MAXENTITIES 512
+#define MAXSIZE 23
+#define MAXENTITIES 1026
 
 static unsigned int test_pool(unsigned int poolentitysize, unsigned int usepoolentities) {
     struct memory_pool *pool = create_memory_pool(poolentitysize);
@@ -63,7 +63,6 @@ static unsigned int test_pool(unsigned int poolentitysize, unsigned int usepoole
 	    for (j = 0; j < poolentitysize; j++) {
             if (entities[i][j] != (char)~j) {
 			    rv = 1;
-				*(char*)0 = 1;
 				goto do_return;
 			}
         }
