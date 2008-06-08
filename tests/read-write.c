@@ -42,30 +42,37 @@
 #define TESTDATA_SIZE  (sizeof(TESTDATA)-1)
 
 int atomic_main(void) {
-/* test the _atomic_write() and _atomic_open_write() functions */
+/* test the _atomic_create() and _atomic_close() functions */
     int fd = _atomic_create ("temporary-atomic-test-data", 0660);
     if (fd < 0) return 1;
 
-    int i = _atomic_write(fd, TESTDATA, TESTDATA_SIZE);
+    int i = _atomic_close(fd);
     if (i < 0) return 2;
-    if (i != TESTDATA_SIZE) return 3;
+
+/* test the _atomic_write() and _atomic_open_write() functions */
+    fd = _atomic_open_write ("temporary-atomic-test-data");
+    if (fd < 0) return 3;
+
+    i = _atomic_write(fd, TESTDATA, TESTDATA_SIZE);
+    if (i < 0) return 4;
+    if (i != TESTDATA_SIZE) return 5;
 
 /* close file descriptor */
     i = _atomic_close(fd);
-    if (i < 0) return 4;
+    if (i < 0) return 6;
 
 /* test the _atomic_read() and _atomic_open_read() functions */
     fd = _atomic_open_read ("temporary-atomic-test-data");
-    if (fd < 0) return 5;
+    if (fd < 0) return 7;
 
     char buffer[TESTDATA_SIZE];
     i = _atomic_read (fd, buffer, TESTDATA_SIZE);
-    if (i < 0) return 6;
-    if (i != TESTDATA_SIZE) return 7;
+    if (i < 0) return 8;
+    if (i != TESTDATA_SIZE) return 9;
     
     int j;
     for (j = 0; j < i; j++) {
-      if (buffer[j] != TESTDATA[j]) return 8;
+      if (buffer[j] != TESTDATA[j]) return 10;
     }
 
     return 0;
