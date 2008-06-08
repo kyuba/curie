@@ -1,9 +1,17 @@
 #/bin/sh
 
+failed=0;
+tests=0;
+
 for i in $(find ./tests ! \( -type d -o \( -name '*.c' -o -name '*.o' \) \) ); do
-    $i;
-    if [ ! "$@" = 0 ]; then
-        echo "test $i failed!";
-        exit;
+    let "tests += 1";
+
+    if $i; then
+        echo $i;
+    else
+        echo "failed: $i";
+        let "failed += 1";
     fi
 done
+
+echo "$tests tests, $failed failed";
