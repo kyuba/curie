@@ -42,7 +42,7 @@
 #define CHUNKSIZE (int)(64*1024)
 #define CHUNKSLOTS (int)(CHUNKSIZE/sizeof(int))
 
-#define CHUNKSIZE2 (int)(2*64*1024)
+#define CHUNKSIZE2 (int)((2*64*1024)+3) /* wee bit meaner this way */
 #define CHUNKSLOTS2 (int)(CHUNKSIZE2/sizeof(int))
 
 int atomic_main(void) {
