@@ -1,8 +1,8 @@
 /*
- *  memory.h
+ *  memory-primitives.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 01/06/2008.
+ *  Created by Magnus Deininger on 08/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,39 +36,51 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MEMORY_H
-#define ATOMIC_MEMORY_H
+#include "atomic/memory.h"
 
-/* memory.c */
+/* this should be larger than most any PAGESIZE out there */
+#define CHUNKSIZE (int)(64*1024)
+#define CHUNKSLOTS (int)(CHUNKSIZE/sizeof(int))
 
-/*@only@*/ void *get_mem(int);
-/*@only@*/ void *resize_mem(int, /*@only@*/ void *, int);
-void free_mem(int, /*@only@*/void *);
+#define CHUNKSIZE2 (int)(2*64*1024)
+#define CHUNKSLOTS2 (int)(CHUNKSIZE2/sizeof(int))
 
-/* memory-pool.c */
+int atomic_main(void) {
+    int *chunk = (int *)get_mem(CHUNKSIZE);
+	int i;
 
-#define BITSPERBYTE 8
+	for (i = 0; i < CHUNKSLOTS; i++) {
+		chunk[i] = i;
+	}
 
-/* this'll allow managing 512 entries per poolblock */
-#define MAPSIZE 64
-#define MAXBLOCKENTRIES (MAPSIZE * BITSPERBYTE)
+	for (i = 0; i < CHUNKSLOTS; i++) {
+	    if (chunk[i] != i) {
+            free_mem(CHUNKSIZE, chunk);
+		    return 1;
+		}
+	}
 
-typedef char bitmap[MAPSIZE];
+	chunk = resize_mem(CHUNKSIZE, chunk, CHUNKSIZE2);
 
-struct memory_pool {
-  int entitysize, maxentities;
+	for (i = 0; i < CHUNKSLOTS; i++) {
+	    if (chunk[i] != i) {
+            free_mem(CHUNKSIZE2, chunk);
+		    return 2;
+        }
+	}
 
-  bitmap map;
+	for (i = 0; i < CHUNKSLOTS2; i++) {
+		chunk[i] = i;
+	}
 
-  struct memory_pool *next;
+	for (i = 0; i < CHUNKSLOTS2; i++) {
+	    if (chunk[i] != i) {
+            free_mem(CHUNKSIZE2, chunk);
+		    return 3;
+        }
+	}
 
-  char memory[];
-};
+	free_mem(CHUNKSIZE2, chunk);
 
-struct memory_pool *create_memory_pool (int entitysize);
-void free_memory_pool (struct memory_pool *);
-
-void *get_pool_mem(struct memory_pool *);
-void free_pool_mem(void *);
-
-#endif
+	return 0;
+}

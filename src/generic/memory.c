@@ -36,20 +36,94 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*@-nullpass@*/
+/* we explicitly pass a (void*)0 as the first parameter of mmap;
+   apparently splint thinks this to be illegal, but according to SUS this
+   is allowed */
+
+/*@-mustfreeonly@*/
+/* this seems necessary for the free_mem() function to pass...
+   problem is we can't meaningfully check for a failure in munmap() here,
+   and it looks like the strictposix definition of munmap() isnt taking
+   an only-annotated pointer */
+
 #include <sys/types.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
-/*@null@*/ void *get_mem(int);
-/*@null@*/ void *resize_mem(int, void *, int);
-void free_mem(int, void *);
+int getpagesize(void);
 
-void *get_mem(int size) {
-    return (void *)0;
+static size_t get_multiple_of_pagesize(int s)
+{
+    static int pagesize = 0;
+
+    if (pagesize == 0)
+        pagesize = getpagesize();
+
+    if ((s % pagesize) == 0)
+        return (size_t)s;
+    else
+        return (size_t)(((s / pagesize) + 1) * pagesize);
 }
 
+/*@only@*/ void *get_mem(int);
+/*@only@*/ void *resize_mem(int, /*@only@*/ void *, int);
+void free_mem(int, /*@only@*/void *);
+
+void *get_mem(int size) {
+    void *rv = (void *)-1;
+    size_t msize = get_multiple_of_pagesize(size);
+
+    retry:
+
+    rv = mmap((void *)0, msize, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+
+    if ((rv == (void *)-1) || (rv == (void *)0)) {
+        /* failure is not an option */
+        (void)sleep (1);
+        goto retry;
+    }
+
+    return rv;
+}
+
+/* this function will reallocate a new chunk of memory and copy the contents of the
+   old chunk to the new chunk;
+   it's copying in chunks of longs, and it should do so in a way that wont cause
+   aligning issues on most systems, however it might cause unaligned access errors on
+   anything powered by an sh4 cpu, so this function will need to be revised there.
+   on the other hand, about the only unix-ish OS i've heard people use on sh4s is linux,
+   and on linux we'll be using mremap() anyway, so meh... */
+
 void *resize_mem(int size, void *location, int new_size) {
-    return (void *)0;
+/* with plain posix calls we can't implement a resize that doesn't
+   need to copy a lot around */
+    size_t msize = get_multiple_of_pagesize(size);
+    size_t mnew_size = get_multiple_of_pagesize(new_size);
+    
+    if (msize != mnew_size) {
+        long *new_location = (long *)get_mem(new_size),
+             *old_location = (long *)location;
+        int i = 0,
+            copysize = (int)((size < new_size) ? size : new_size);
+            
+        copysize = (int)((copysize / sizeof(long)) + (((copysize % sizeof(long)) == 0) ? 0 : 1));
+
+        for(; i < copysize; i++) {
+            /* copy in chunks of longs */
+            new_location[i] = old_location[i];
+        }
+
+        free_mem (size, location);
+
+        return (void*)new_location;
+    } else return location;
 }
 
 void free_mem(int size, void *location) {
+    size_t msize = get_multiple_of_pagesize(size);
+
+    /* we ignore the return value, because the only way this will return in a bad way
+       is whenever */
+    (void)munmap (location, msize);
 }

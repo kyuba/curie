@@ -46,7 +46,7 @@ env = Environment()
 
 env.Append(LIBPATH = '.', CPPPATH='#include', CFLAGS="--std=c99")
 
-if haveasm('atom'):
+if haveasm('atom') and haveasm('memory'):
   print 'adjusting linker flags for using assembly atomic-libc'
   env.Append(CFLAGS = '-ffreestanding',
              LINKFLAGS = '-static -nostdlib -nostartfiles -nodefaultlibs')
@@ -68,7 +68,7 @@ import glob
 testsource = glob.glob('tests/*.c');
 
 tenv = env.Clone()
-tenv.Append(LIBS = ['atomic'])
+tenv.Append(LIBS = ['atomic'], CFLAGS = '-g')
 
 for i in testsource:
   tenv.Program(i)
