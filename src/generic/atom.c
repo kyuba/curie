@@ -100,7 +100,7 @@ int    _atomic_open_write (const char *path)
 
 int    _atomic_create (const char *path, int mode)
 {
-    int rv = creat(path, (mode_t)mode);
+    int rv = open(path, O_WRONLY | O_NONBLOCK | O_CREAT, (mode_t)mode);
     if (rv < 0) examine_error();
 	return rv;
 }

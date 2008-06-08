@@ -3,6 +3,7 @@
 *.os
 *.a
 *.so
+temporary*
 
 *.xcodeproj
 build
