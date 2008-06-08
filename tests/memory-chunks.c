@@ -1,8 +1,8 @@
 /*
- *  memory.h
+ *  memory-chunks.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 01/06/2008.
+ *  Created by Magnus Deininger on 08/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,45 +36,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MEMORY_H
-#define ATOMIC_MEMORY_H
+#include "atomic/memory.h"
 
-/* memory.c */
+#define CHUNKSLOTS (int)(mem_chunk_size/sizeof(int))
 
-/*@only@*/ void *get_mem(int);
-/*@only@*/ void *resize_mem(int, /*@only@*/ void *, int);
-void free_mem(int, /*@only@*/void *);
+int atomic_main(void) {
+    int *chunk = (int *)get_mem_chunk();
+	int i;
 
-extern int mem_chunk_size;
-/*@only@*/ void *get_mem_chunk()
-  /*globals mem_chunk_size;*/;
+    if (mem_chunk_size == 0) {
+	    free_mem_chunk(chunk);
+		return 1;
+	}
 
-#define free_mem_chunk(p) free_mem(mem_chunk_size, p)
+	for (i = 0; i < CHUNKSLOTS; i++) {
+		chunk[i] = i;
+	}
 
-/* memory-pool.c */
+	for (i = 0; i < CHUNKSLOTS; i++) {
+	    if (chunk[i] != i) {
+            free_mem_chunk(chunk);
+		    return 2;
+		}
+	}
 
-#define BITSPERBYTE 8
+    free_mem_chunk(chunk);
 
-/* this'll allow managing 512 entries per poolblock */
-#define MAPSIZE 64
-#define MAXBLOCKENTRIES (MAPSIZE * BITSPERBYTE)
-
-typedef char bitmap[MAPSIZE];
-
-struct memory_pool {
-  int entitysize, maxentities;
-
-  bitmap map;
-
-  struct memory_pool *next;
-
-  char memory[];
-};
-
-struct memory_pool *create_memory_pool (int entitysize);
-void free_memory_pool (struct memory_pool *);
-
-void *get_pool_mem(struct memory_pool *);
-void free_pool_mem(void *);
-
-#endif
+	return 0;
+}

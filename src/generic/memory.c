@@ -53,6 +53,13 @@
 
 int getpagesize(void);
 
+/*@only@*/ void *get_mem(int);
+/*@only@*/ void *resize_mem(int, /*@only@*/ void *, int);
+void free_mem(int, /*@only@*/void *);
+int mem_chunk_size = 0;
+/*@only@*/ void *get_mem_chunk()
+  /*globals mem_chunk_size;*/;
+
 static size_t get_multiple_of_pagesize(int s)
 {
     static int pagesize = 0;
@@ -65,10 +72,6 @@ static size_t get_multiple_of_pagesize(int s)
     else
         return (size_t)(((s / pagesize) + 1) * pagesize);
 }
-
-/*@only@*/ void *get_mem(int);
-/*@only@*/ void *resize_mem(int, /*@only@*/ void *, int);
-void free_mem(int, /*@only@*/void *);
 
 void *get_mem(int size) {
     void *rv = (void *)-1;
@@ -126,4 +129,11 @@ void free_mem(int size, void *location) {
     /* we ignore the return value, because the only way this will return in a bad way
        is whenever */
     (void)munmap (location, msize);
+}
+
+void *get_mem_chunk() {
+    /* get smallest multiple of the pagesize */
+    if (mem_chunk_size == 0) mem_chunk_size = (int)get_multiple_of_pagesize(1);
+
+    return get_mem(mem_chunk_size);
 }
