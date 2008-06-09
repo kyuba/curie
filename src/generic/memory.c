@@ -47,6 +47,8 @@
    and it looks like the strictposix definition of munmap() isnt taking
    an only-annotated pointer */
 
+#define _BSD_SOURCE
+
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <unistd.h>
