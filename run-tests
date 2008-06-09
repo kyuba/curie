@@ -9,7 +9,7 @@ for i in $(find ./tests ! \( -type d -o \( -name '*.c' -o -name '*.o' \) \) ); d
     let "tests += 1";
     echo $i;
 
-    if $i; then t=1;
+    if $@ $i; then t=1;
     else
         echo " * $i failed (code $?)";
         let "failed += 1";

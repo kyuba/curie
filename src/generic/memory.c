@@ -49,8 +49,8 @@
 
 #define _BSD_SOURCE
 
-#include <sys/types.h>
 #include <sys/mman.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 int getpagesize(void);
@@ -81,7 +81,8 @@ void *get_mem(int size) {
 
     retry:
 
-    rv = mmap((void *)0, msize, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+    rv = mmap((void *)0, msize, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE,
+              -1, 0);
 
     if ((rv == (void *)-1) || (rv == (void *)0)) {
         /* failure is not an option */
@@ -92,26 +93,27 @@ void *get_mem(int size) {
     return rv;
 }
 
-/* this function will reallocate a new chunk of memory and copy the contents of the
-   old chunk to the new chunk;
+/* this function will reallocate a new chunk of memory and copy the contents of
+   the old chunk to the new chunk;
    it's copying in chunks of longs, and it should do so in a way that wont cause
-   aligning issues on most systems, however it might cause unaligned access errors on
-   anything powered by an sh4 cpu, so this function will need to be revised there.
-   on the other hand, about the only unix-ish OS i've heard people use on sh4s is linux,
-   and on linux we'll be using mremap() anyway, so meh... */
+   aligning issues on most systems, however it might cause unaligned access
+   errors on anything powered by an sh4 cpu, so this function will need to be
+   revised there. on the other hand, about the only unix-ish OS i've heard
+   people use on sh4s is linux, and on linux we'll be using mremap() anyway, so
+   meh... */
 
 void *resize_mem(int size, void *location, int new_size) {
 /* with plain posix calls we can't implement a resize that doesn't
    need to copy a lot around */
     size_t msize = get_multiple_of_pagesize(size);
     size_t mnew_size = get_multiple_of_pagesize(new_size);
-    
+
     if (msize != mnew_size) {
         long *new_location = (long *)get_mem(new_size),
              *old_location = (long *)location;
         int i = 0,
             copysize = (int)((size < new_size) ? size : new_size);
-            
+
         copysize = (int)((copysize / sizeof(long)) + (((copysize % sizeof(long)) == 0) ? 0 : 1));
 
         for(; i < copysize; i++) {
@@ -128,8 +130,10 @@ void *resize_mem(int size, void *location, int new_size) {
 void free_mem(int size, void *location) {
     size_t msize = get_multiple_of_pagesize(size);
 
-    /* we ignore the return value, because the only way this will return in a bad way
-       is whenever */
+    /* we ignore the return value, because the only way this will return in a
+       bad way is whenever people pass invalid data to this function, which in
+       turn would either lead to serious issues with the kernel or other parts
+       of the programme. */
     (void)munmap (location, msize);
 }
 
