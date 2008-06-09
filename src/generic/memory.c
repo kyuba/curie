@@ -95,7 +95,7 @@ void *get_mem(int size) {
 
 /* this function will reallocate a new chunk of memory and copy the contents of
    the old chunk to the new chunk;
-   it's copying in chunks of longs, and it should do so in a way that wont cause
+   it's copying in chunks of ints, and it should do so in a way that wont cause
    aligning issues on most systems, however it might cause unaligned access
    errors on anything powered by an sh4 cpu, so this function will need to be
    revised there. on the other hand, about the only unix-ish OS i've heard
@@ -109,15 +109,16 @@ void *resize_mem(int size, void *location, int new_size) {
     size_t mnew_size = get_multiple_of_pagesize(new_size);
 
     if (msize != mnew_size) {
-        long *new_location = (long *)get_mem(new_size),
-             *old_location = (long *)location;
+        int *new_location = (int *)get_mem(new_size),
+            *old_location = (int *)location;
         int i = 0,
             copysize = (int)((size < new_size) ? size : new_size);
 
-        copysize = (int)((copysize / sizeof(long)) + (((copysize % sizeof(long)) == 0) ? 0 : 1));
+        copysize = (int)((copysize / sizeof(int))
+                         + (((copysize % sizeof(int)) == 0) ? 0 : 1));
 
         for(; i < copysize; i++) {
-            /* copy in chunks of longs */
+            /* copy in chunks of ints */
             new_location[i] = old_location[i];
         }
 
