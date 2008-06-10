@@ -55,7 +55,7 @@ else:
 
 # LIBRARY FILES
 
-sourcefiles = [ 'atom', 'sexpr', 'io', 'memory-pool', 'memory', 'tree', 'exec', 'progress' ]
+sourcefiles = [ 'atom', 'sexpr', 'io', 'memory-pool', 'memory', 'tree', 'exec', 'progress', 'immutable' ]
 
 sf = []
 

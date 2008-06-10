@@ -40,34 +40,38 @@
 #define ATOMIC_TREE_H
 
 struct tree {
-  struct node * root;
+    struct tree_node * root;
 };
 
-struct node {
-  struct node * left;
-  struct node * right;
+struct tree_node {
+    /*@null@*/ struct tree_node * left;
+    /*@null@*/ struct tree_node * right;
 
-  long key;
+    unsigned long key;
+};
 
-/* this is valid C99, so we can omit the value if it isn't needed */
-  char value[];
+struct tree_node_pointer {
+    /*@null@*/ struct tree_node * left;
+    /*@null@*/ struct tree_node * right;
+
+    unsigned long key;
+
+    void *value;
 };
 
 struct tree * tree_create ();
 void tree_destroy (struct tree *);
 
-void tree_add_node (struct tree *, long);
-void tree_add_node_value (struct tree *, long, void *);
-void tree_add_node_value_direct (struct tree *, long, void *, int);
+void tree_add_node (struct tree *, unsigned long);
+void tree_add_node_value (struct tree *, unsigned long, void *);
 
-struct node * tree_get_node (struct tree *, long);
+struct tree_node * tree_get_node (struct tree *, unsigned long);
 
-void tree_remove_node (struct tree *, long);
-void tree_remove_node_specific (struct tree *, long, struct node *);
+void tree_remove_node (struct tree *, unsigned long);
+void tree_remove_node_specific (struct tree *, unsigned long, struct tree_node *);
 
-#define node_get_value(node) *((void**)((node)->value))
-#define node_get_value_direct(node) ((void*)((node)->value))
+#define node_get_value(node) ((struct tree_node_pointer *)node)->value
 
-void tree_map (struct tree *, void (*)(struct node *, void *), void *);
+void tree_map (struct tree *, void (*)(struct tree_node *, void *), void *);
 
 #endif

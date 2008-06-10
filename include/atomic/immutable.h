@@ -1,8 +1,8 @@
 /*
- *  memory.h
+ *  immutable.h
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 01/06/2008.
+ *  Created by Magnus Deininger on 10/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,52 +36,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MEMORY_H
-#define ATOMIC_MEMORY_H
+#ifndef ATOMIC_IMMUTABLE_H
+#define ATOMIC_IMMUTABLE_H
 
-/* memory.c */
+/* making immutable copies of strings may help reduce the likelihood of
+   memory leaks by making sure all immutable copies only exist exactly once
+   in the process space, as well as prevent improper access to these strings
+   (such as inadvertedly modifying them */
 
-/*@notnull@*/ /*@only@*/ void *get_mem(unsigned long int);
-/*@notnull@*/ /*@only@*/ void *resize_mem(unsigned long int, /*@notnull@*/ /*@only@*/ void *, unsigned long int);
-void free_mem(unsigned long int, /*@notnull@*/ /*@only@*/void *);
-
-extern unsigned long int mem_chunk_size;
-
-/*@notnull@*/ /*@only@*/ void *get_mem_chunk()
-  /*globals mem_chunk_size;*/;
-
-#define free_mem_chunk(p) free_mem(mem_chunk_size, p)
-
-/* memory-pool.c */
-
-#define BITSPERBYTE (unsigned short)8
-
-/* this'll allow managing 512 entries per poolblock */
-#define BITMAPMAPSIZE (unsigned short)64
-#define BITMAPMAXBLOCKENTRIES (unsigned short)(BITMAPMAPSIZE * BITSPERBYTE)
-#define BITMAPSLOTS (unsigned short)(BITMAPMAPSIZE/sizeof(int))
-
-#define ENTITY_ALIGNMENT (unsigned short)8
-
-typedef int bitmap[BITMAPSLOTS];
-
-struct memory_pool {
-  unsigned long int entitysize;
-  unsigned short maxentities;
-
-  bitmap map;
-
-  /*@null@*/ /*@shared@*/ struct memory_pool *next;
-
-  char memory[];
-};
-
-/*@notnull@*/ /*@only@*/ struct memory_pool *create_memory_pool (unsigned long int entitysize);
-void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *);
-
-/*@notnull@*/ /*@only@*/ void *get_pool_mem(struct memory_pool *);
-void free_pool_mem(/*@notnull@*/ /*@only@*/ void *);
-
-void optimise_memory_pool (/*@shared@*/ struct memory_pool *);
+const char *str_immutable ( const char * );
+void lock_immutable_pages ( void );
 
 #endif

@@ -73,19 +73,19 @@ static unsigned char bitmap_isempty(bitmap m) {
 	return (unsigned char)1;
 }
 
-struct memory_pool *create_memory_pool (unsigned int entitysize) {
+struct memory_pool *create_memory_pool (unsigned long int entitysize) {
     struct memory_pool *pool = get_mem_chunk();
 
-    pool->entitysize = (unsigned int)(((entitysize / ENTITY_ALIGNMENT)
+    pool->entitysize = (unsigned short)(((entitysize / ENTITY_ALIGNMENT)
                          + (((entitysize % ENTITY_ALIGNMENT) == 0) ? 0 : 1))
                         * ENTITY_ALIGNMENT);
-	pool->maxentities = (unsigned int)((mem_chunk_size - sizeof(struct memory_pool)) / entitysize);
+    pool->maxentities = (unsigned short)((mem_chunk_size - sizeof(struct memory_pool)) / entitysize);
 
-	if (pool->maxentities > BITMAPMAXBLOCKENTRIES) pool->maxentities = BITMAPMAXBLOCKENTRIES;
+    if (pool->maxentities > BITMAPMAXBLOCKENTRIES) pool->maxentities = BITMAPMAXBLOCKENTRIES;
 
     pool->next = (struct memory_pool *)0;
 
-	return pool;
+    return pool;
 }
 
 void free_memory_pool (struct memory_pool *pool) {
@@ -95,23 +95,23 @@ void free_memory_pool (struct memory_pool *pool) {
 
 void *get_pool_mem(struct memory_pool *pool) {
     unsigned int index = 0;
-	
-	for (; index < pool->maxentities; index++) {
-        if (bitmap_isset(pool->map, index) == (unsigned char)0)
-		{
-		    char *pool_mem_start;
 
-			bitmap_set(pool->map, index);
+    for (; index < pool->maxentities; index++) {
+        if (bitmap_isset(pool->map, index) == (unsigned char)0)
+        {
+            char *pool_mem_start;
+
+            bitmap_set(pool->map, index);
 
             pool_mem_start = (char *)pool + sizeof(struct memory_pool);
 
-			return (void *)(pool_mem_start + (index * (pool->entitysize)));
-		}
-	}
+            return (void *)(pool_mem_start + (index * (pool->entitysize)));
+        }
+    }
 
     if (pool->next == (struct memory_pool *)0) {
-	    pool->next = create_memory_pool (pool->entitysize);
-	}
+        pool->next = create_memory_pool (pool->entitysize);
+    }
 
     return get_pool_mem(pool->next);
 }
@@ -122,26 +122,26 @@ void free_pool_mem(void *mem) {
    this is because get_mem_chunk() is supposed to use an address that is
    pagesize-aligned and mem_chunk_size should be the pagesize. */
 
-	struct memory_pool *pool = (struct memory_pool *)((((long)((char *)mem)) / mem_chunk_size) * mem_chunk_size);
-	char *pool_mem_start = (char *)pool + sizeof(struct memory_pool);
+    struct memory_pool *pool = (struct memory_pool *)((((long)((char *)mem)) / mem_chunk_size) * mem_chunk_size);
+    char *pool_mem_start = (char *)pool + sizeof(struct memory_pool);
 
-    unsigned int index = (unsigned int)((char*)mem - pool_mem_start) / pool->entitysize;
+    unsigned int index = (unsigned int)(((char*)mem - pool_mem_start) / pool->entitysize);
 
-	bitmap_clear (pool->map, index);
+    bitmap_clear (pool->map, index);
 }
 
 void optimise_memory_pool(struct memory_pool *pool) {
     struct memory_pool *cursor = pool, *last = (struct memory_pool *)0;
 
     while ((cursor != (struct memory_pool *)0) &&
-	       (cursor->next != (struct memory_pool *)0)) {
-	    last = cursor;
+            (cursor->next != (struct memory_pool *)0)) {
+        last = cursor;
         cursor = cursor->next;
 
         while (bitmap_isempty(cursor->map) == (unsigned char)0) {
             last->next = cursor->next;
             free_mem_chunk((void *)cursor);
-			cursor = last->next;
-		}
-	}
+            cursor = last->next;
+        }
+    }
 }

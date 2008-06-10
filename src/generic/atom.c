@@ -131,9 +131,11 @@ int    _atomic_create (const char *path, int mode)
 int    _atomic_close (int fd)
 {
     int rv = close (fd);
-    if (rv < 0) examine_error();
+    if (rv < 0) {
+        examine_error();
 
-    if (last_error_recoverable_p == (char)1) return _atomic_close (fd);
+        if (last_error_recoverable_p == (char)1) return _atomic_close (fd);
+    }
     return rv;
 }
 

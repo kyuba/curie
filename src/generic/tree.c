@@ -38,3 +38,53 @@
 
 #include <atomic/memory.h>
 #include <atomic/tree.h>
+
+/*@null@*/ struct memory_pool *tree_root_pool = 0;
+/*@null@*/ struct memory_pool *tree_node_pool = 0;
+/*@null@*/ struct memory_pool *tree_node_pointer_pool = 0;
+
+struct tree * tree_create () {
+    struct tree *tree;
+
+    if (tree_root_pool == 0) {
+        tree_root_pool = create_memory_pool (sizeof (struct tree));
+    }
+
+    if (tree_node_pool == 0) {
+        tree_node_pool = create_memory_pool (sizeof (struct tree_node));
+    }
+
+    if (tree_node_pointer_pool == 0) {
+        tree_node_pointer_pool = create_memory_pool (sizeof (struct tree_node_pointer));
+    }
+
+    tree = (struct tree *)get_pool_mem(tree_root_pool);
+
+    return tree;
+}
+
+void tree_destroy (struct tree *tree) {
+    /* TODO: clean all nodes in 'ere */
+
+    free_pool_mem((void *)tree);
+}
+
+static void tree_add_node_to_tree (struct tree *tree, struct tree_node *node, unsigned long key) {
+    node->left = (struct tree_node *)0;
+    node->right = (struct tree_node *)0;
+    node->key = key;
+}
+
+void tree_add_node (struct tree *tree, unsigned long key) {
+    struct tree_node *node = (struct tree_node *)get_pool_mem(tree_node_pool);
+
+    tree_add_node_to_tree (tree, node, key);
+}
+
+void tree_add_node_value (struct tree *tree, unsigned long key, void *value) {
+    struct tree_node_pointer *node = (struct tree_node_pointer *)get_pool_mem(tree_node_pointer_pool);
+
+    node->value = value;
+
+    tree_add_node_to_tree (tree, (struct tree_node *)node, key);
+}
