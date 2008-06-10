@@ -39,9 +39,9 @@
 #define _POSIX_SOURCE
 
 void   _atomic_exit  (int status);
-int    _atomic_read  (int fd, /*@out@*/ void *buf, int count)
+int    _atomic_read  (int fd, /*@out@*/ void *buf, unsigned int count)
 /*@globals errno;@*/;
-int    _atomic_write (int fd, const void *buf, int count)
+int    _atomic_write (int fd, const void *buf, unsigned int count)
 /*@globals errno;@*/;
 
 int    _atomic_open_read (const char *path)
@@ -93,14 +93,14 @@ void   _atomic_exit (int status)
     exit (status);
 }
 
-int    _atomic_read (int fd, void *buf, int count)
+int    _atomic_read (int fd, void *buf, unsigned int count)
 {
     int rv = (int)read(fd, buf, (size_t)count);
     if (rv < 0) examine_error();
     return rv;
 }
 
-int    _atomic_write (int fd, const void *buf, int count)
+int    _atomic_write (int fd, const void *buf, unsigned int count)
 {
     int rv = (int)write(fd, buf, (size_t)count);
     if (rv < 0) examine_error();

@@ -55,19 +55,19 @@
 
 int getpagesize(void);
 
-/*@only@*/ void *get_mem(int);
-/*@only@*/ void *resize_mem(int, /*@only@*/ void *, int);
-void free_mem(int, /*@only@*/void *);
-int mem_chunk_size = 0;
+/*@only@*/ void *get_mem(unsigned int);
+/*@only@*/ void *resize_mem(unsigned int, /*@only@*/ void *, unsigned int);
+void free_mem(unsigned int, /*@only@*/void *);
+unsigned int mem_chunk_size = 0;
 /*@only@*/ void *get_mem_chunk()
   /*globals mem_chunk_size;*/;
 
-static size_t get_multiple_of_pagesize(int s)
+static size_t get_multiple_of_pagesize(unsigned int s)
 {
-    static int pagesize = 0;
+    static unsigned int pagesize = 0;
 
     if (pagesize == 0)
-        pagesize = getpagesize();
+        pagesize = (unsigned int)getpagesize();
 
     if ((s % pagesize) == 0)
         return (size_t)s;
@@ -75,7 +75,7 @@ static size_t get_multiple_of_pagesize(int s)
         return (size_t)(((s / pagesize) + 1) * pagesize);
 }
 
-void *get_mem(int size) {
+void *get_mem(unsigned int size) {
     void *rv = (void *)-1;
     size_t msize = get_multiple_of_pagesize(size);
 
@@ -102,7 +102,7 @@ void *get_mem(int size) {
    people use on sh4s is linux, and on linux we'll be using mremap() anyway, so
    meh... */
 
-void *resize_mem(int size, void *location, int new_size) {
+void *resize_mem(unsigned int size, void *location, unsigned int new_size) {
 /* with plain posix calls we can't implement a resize that doesn't
    need to copy a lot around */
     size_t msize = get_multiple_of_pagesize(size);
@@ -128,7 +128,7 @@ void *resize_mem(int size, void *location, int new_size) {
     } else return location;
 }
 
-void free_mem(int size, void *location) {
+void free_mem(unsigned int size, void *location) {
     size_t msize = get_multiple_of_pagesize(size);
 
     /* we ignore the return value, because the only way this will return in a
@@ -140,7 +140,7 @@ void free_mem(int size, void *location) {
 
 void *get_mem_chunk() {
     /* get smallest multiple of the pagesize */
-    if (mem_chunk_size == 0) mem_chunk_size = (int)get_multiple_of_pagesize(1);
+    if (mem_chunk_size == 0) mem_chunk_size = (unsigned int)get_multiple_of_pagesize(1);
 
     return get_mem(mem_chunk_size);
 }

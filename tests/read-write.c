@@ -56,7 +56,7 @@ int atomic_main(void) {
     fd = _atomic_open_write ("temporary-atomic-test-data");
     if (fd < 0) return 3;
 
-    i = _atomic_write(fd, TESTDATA, TESTDATA_SIZE);
+    i = _atomic_write(fd, TESTDATA, (unsigned int)TESTDATA_SIZE);
     if (i < 0) return 4;
     if (i != TESTDATA_SIZE) return 5;
 
@@ -68,7 +68,7 @@ int atomic_main(void) {
     fd = _atomic_open_read ("temporary-atomic-test-data");
     if (fd < 0) return 7;
 
-    i = _atomic_read (fd, buffer, TESTDATA_SIZE);
+    i = _atomic_read (fd, buffer, (unsigned int)TESTDATA_SIZE);
     if (i < 0) return 8;
     if (i != TESTDATA_SIZE) return 9;
     

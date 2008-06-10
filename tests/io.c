@@ -40,14 +40,16 @@
 #include <errno.h>
 
 #define TESTDATA "THIS IS SOME TEST DATA"
-#define TESTDATA_LENGTH (sizeof(TESTDATA) -1)
+#define TESTDATA_LENGTH (unsigned int)(sizeof(TESTDATA) -1)
 
 int atomic_main(void) {
     struct io *out = io_open_write ("temporary-io-test-file"), *in;
-    char cont;
-    int i;
+    char cont = (char)1;
+    unsigned int i;
+    int rv = 0;
 
     if (io_write (out, TESTDATA, TESTDATA_LENGTH) != io_complete) {
+        io_close (out);
         return 11;
     }
 
@@ -61,24 +63,33 @@ int atomic_main(void) {
         switch (res) {
             case io_changes:
             case io_no_change:
-                cont = 1;
+                cont = (char)1;
                 break;
             case io_end_of_file:
-                cont = 0;
+                cont = (char)0;
                 break;
             case io_unrecoverable_error:
-                return 12;
+                rv = 12;
+                goto end;
             default:
-                return res;
+                rv = res;
+                goto end;
         }
-    } while (cont);
+    } while (cont == (char)1);
 
-    if (in->length != TESTDATA_LENGTH) return 13;
+    if (in->length != TESTDATA_LENGTH) {
+        rv = 13;
+        goto end;
+    }
 
     for (i = 0; i < in->length; i++) {
-        if ((in->buffer)[i] != TESTDATA[i])
-            return 4;
+        if ((in->buffer)[i] != TESTDATA[i]) {
+            rv = 14;
+            goto end;
+        }
     }
+
+    end:
 
     io_close (in);
 

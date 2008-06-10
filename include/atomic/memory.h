@@ -41,11 +41,11 @@
 
 /* memory.c */
 
-/*@notnull@*/ /*@only@*/ void *get_mem(int);
-/*@notnull@*/ /*@only@*/ void *resize_mem(int, /*@notnull@*/ /*@only@*/ void *, int);
-void free_mem(int, /*@notnull@*/ /*@only@*/void *);
+/*@notnull@*/ /*@only@*/ void *get_mem(unsigned int);
+/*@notnull@*/ /*@only@*/ void *resize_mem(unsigned int, /*@notnull@*/ /*@only@*/ void *, unsigned int);
+void free_mem(unsigned int, /*@notnull@*/ /*@only@*/void *);
 
-extern int mem_chunk_size;
+extern unsigned int mem_chunk_size;
 
 /*@notnull@*/ /*@only@*/ void *get_mem_chunk()
   /*globals mem_chunk_size;*/;

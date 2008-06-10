@@ -40,6 +40,16 @@
 #include <atomic/io.h>
 #include <atomic/memory.h>
 
+/*@-castfcnptr@*/
+/* somehow that test didn't work properly on my box... ah well */
+
+/*@-mustfreeonly@*/
+/* if i don't specify this, then the line
+   io->buffer = get_mem ();
+   is invalid. however, it isn't. i simply can't free the storage in there
+   before assigning the new address, because there is no address in there
+   when i get the chunk from get_pool_mem(). */
+
 /*@null@*/ struct memory_pool * io_pool = 0;
 
 struct io *io_open (int fd)
@@ -62,8 +72,11 @@ struct io *io_open (int fd)
 
     io->buffer = get_mem (IO_CHUNKSIZE);
 
-    io->on_data_read = 0;
-    io->arbitrary = 0;
+    /* splint bitches about this one, claiming i'd cast it to int... */
+    io->on_data_read = (void (*)(struct io *))0;
+    io->on_struct_deallocation = (void (*)(struct io *))0;
+
+    io->arbitrary = (void *)0;
 
     return io;
 }
@@ -105,7 +118,7 @@ enum io_result io_write(struct io *io, char *data, unsigned int length)
     }
 
     if ((io->length + length) > io->buffersize) {
-        int newsize = (io->length + length);
+        unsigned int newsize = (io->length + length);
         if ((newsize % IO_CHUNKSIZE) != 0) {
             newsize = ((newsize / IO_CHUNKSIZE) + 1) * IO_CHUNKSIZE;
         }
@@ -140,7 +153,7 @@ enum io_result io_read(struct io *io)
     }
 
     if ((io->length + IO_CHUNKSIZE) > io->buffersize) {
-        int newsize = (io->length + IO_CHUNKSIZE);
+        unsigned int newsize = (io->length + IO_CHUNKSIZE);
         if ((newsize % IO_CHUNKSIZE) != 0) {
             newsize = ((newsize / IO_CHUNKSIZE) + 1) * IO_CHUNKSIZE;
         }
@@ -153,12 +166,12 @@ enum io_result io_read(struct io *io)
 
     if (readrv < 0) /* potential error */
     {
-        if (last_error_recoverable_p) { /* nothing serious,
-                                           just try again later */
+        if (last_error_recoverable_p == (char)1) { /* nothing serious,
+                                                      just try again later */
             return io_no_change;
         } else { /* source is dead, close the fd */
             io->status = io_unrecoverable_error;
-            _atomic_close (io->fd);
+            (void)_atomic_close (io->fd);
             io->fd = -1;
             return io_unrecoverable_error;
         }
@@ -167,7 +180,7 @@ enum io_result io_read(struct io *io)
     if (readrv == 0) /* end-of-file */
     {
         io->status = io_end_of_file;
-        _atomic_close (io->fd);
+        (void)_atomic_close (io->fd);
         io->fd = -1;
         return io_end_of_file;
     }
@@ -182,7 +195,8 @@ enum io_result io_read(struct io *io)
 
 enum io_result io_commit (struct io *io)
 {
-    int rv, i, pos;
+    int rv, pos;
+    unsigned int i;
 
     switch (io->type) {
         case iot_undefined:
@@ -196,12 +210,12 @@ enum io_result io_commit (struct io *io)
 
     if (rv < 0) /* potential error */
     {
-        if (last_error_recoverable_p) { /* nothing serious,
-                                           just try again later */
+        if (last_error_recoverable_p == (char)1) { /* nothing serious,
+                                                      just try again later */
             return io_no_change;
         } else { /* target is dead, close the fd */
             io->status = io_unrecoverable_error;
-            _atomic_close (io->fd);
+            (void)_atomic_close (io->fd);
             io->fd = -1;
             return io_unrecoverable_error;
         }
@@ -210,12 +224,12 @@ enum io_result io_commit (struct io *io)
     if (rv == 0) /* end-of-file */
     {
         io->status = io_end_of_file;
-        _atomic_close (io->fd);
+        (void)_atomic_close (io->fd);
         io->fd = -1;
         return io_end_of_file;
     }
 
-    if (rv == io->length)
+    if (rv == (int)io->length)
     {
         io->length = 0;
         return io_complete;
@@ -250,7 +264,7 @@ void io_close (struct io *io)
     }
 
     if (io->fd >= 0)
-        _atomic_close (io->fd);
+        (void)_atomic_close (io->fd);
 
     if (io->on_struct_deallocation)
         io->on_struct_deallocation(io);

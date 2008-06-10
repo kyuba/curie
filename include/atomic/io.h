@@ -60,7 +60,7 @@ enum io_result {
 
 struct io {
     int fd;
-    char *buffer;
+    /*@notnull@*/ /*@only@*/ char *buffer;
     /* can't use a fixed buffer since we might need to read (or write)
        something larger */
 
@@ -72,18 +72,18 @@ struct io {
     unsigned int cursor;
     unsigned int buffersize;
 
-    void (*on_data_read) (struct io *);
-    void (*on_struct_deallocation) (struct io *);
-    void *arbitrary;
+    /*@null@*/ void (*on_data_read) (struct io *);
+    /*@null@*/ void (*on_struct_deallocation) (struct io *);
+    /*@null@*/ /*@shared@*/ void *arbitrary;
 };
 
-struct io *io_open (int);
-struct io *io_open_read (const char *);
-struct io *io_open_write (const char *);
-enum io_result io_write(struct io *, char *, unsigned int);
-enum io_result io_read(struct io *);
-enum io_result io_commit (struct io *);
-enum io_result io_finish (struct io *);
-void io_close (struct io *);
+/*@notnull@*/ /*@only@*/ struct io *io_open (int);
+/*@notnull@*/ /*@only@*/ struct io *io_open_read (const char *);
+/*@notnull@*/ /*@only@*/ struct io *io_open_write (const char *);
+enum io_result io_write(/*@notnull@*/ struct io *, char *, unsigned int);
+enum io_result io_read(/*@notnull@*/ struct io *);
+enum io_result io_commit (/*@notnull@*/ struct io *);
+enum io_result io_finish (/*@notnull@*/ struct io *);
+void io_close (/*@notnull@*/ /*@only@*/ struct io *);
 
 #endif

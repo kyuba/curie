@@ -43,8 +43,8 @@
 extern "C" {
 #endif
   void   _atomic_exit  (int status);
-  int    _atomic_read  (int fd, /*@out@*/ void *buf, int count);
-  int    _atomic_write (int fd, const void *buf, int count);
+  int    _atomic_read  (int fd, /*@out@*/ void *buf, unsigned int count);
+  int    _atomic_write (int fd, const void *buf, unsigned int count);
 
   int    _atomic_open_read (const char *path);
   int    _atomic_open_write (const char *path);
