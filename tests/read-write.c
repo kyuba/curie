@@ -71,7 +71,7 @@ int atomic_main(void) {
     i = _atomic_read (fd, buffer, (unsigned int)TESTDATA_SIZE);
     if (i < 0) return 8;
     if (i != TESTDATA_SIZE) return 9;
-    
+
     for (j = 0; j < i; j++) {
       if (buffer[j] != TESTDATA[j]) return 10;
     }
