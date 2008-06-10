@@ -76,6 +76,7 @@ static void examine_error( void )
 static void examine_error( void ) {
   switch (errno)
   {
+    case EINTR:
     case EAGAIN:
 #if defined(EWOULDBLOCK) && (EWOULDBLOCK != EAGAIN)
     case EWOULDBLOCK:
@@ -96,53 +97,53 @@ int    _atomic_read (int fd, void *buf, int count)
 {
     int rv = (int)read(fd, buf, (size_t)count);
     if (rv < 0) examine_error();
-	return rv;
+    return rv;
 }
 
 int    _atomic_write (int fd, const void *buf, int count)
 {
     int rv = (int)write(fd, buf, (size_t)count);
     if (rv < 0) examine_error();
-	return rv;
+    return rv;
 }
 
 int    _atomic_open_read (const char *path)
 {
     int rv = open(path, O_RDONLY | O_NONBLOCK);
     if (rv < 0) examine_error();
-	return rv;
+    return rv;
 }
 
 int    _atomic_open_write (const char *path)
 {
-    int rv = open(path, O_WRONLY | O_NONBLOCK | O_CREAT);
+    int rv = open(path, O_WRONLY | O_NONBLOCK | O_CREAT, 0666);
     if (rv < 0) examine_error();
-	return rv;
+    return rv;
 }
 
 int    _atomic_create (const char *path, int mode)
 {
     int rv = open(path, O_WRONLY | O_NONBLOCK | O_CREAT, (mode_t)mode);
     if (rv < 0) examine_error();
-	return rv;
+    return rv;
 }
 
 int    _atomic_close (int fd)
 {
     int rv = close (fd);
     if (rv < 0) examine_error();
-	return rv;
+    return rv;
 }
 
 int   _atomic_kill (int pid, int sig)
 {
     int rv = kill ((pid_t)pid, sig);
     if (rv < 0) examine_error();
-	return rv;
+    return rv;
 }
 
 int   main ()
 {
     int rv = atomic_main();
-	return rv;
+    return rv;
 }

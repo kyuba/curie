@@ -37,6 +37,7 @@
  */
 
 #include "atomic/io.h"
+#include <errno.h>
 
 #define TESTDATA "THIS IS SOME TEST DATA"
 #define TESTDATA_LENGTH (sizeof(TESTDATA) -1)
@@ -47,7 +48,7 @@ int atomic_main(void) {
     int i;
 
     if (io_write (out, TESTDATA, TESTDATA_LENGTH) != io_complete) {
-        return 1;
+        return 11;
     }
 
     io_close (out);
@@ -65,12 +66,14 @@ int atomic_main(void) {
             case io_end_of_file:
                 cont = 0;
                 break;
+            case io_unrecoverable_error:
+                return 12;
             default:
-                return 2;
+                return res;
         }
     } while (cont);
 
-    if (in->length != TESTDATA_LENGTH) return 3;
+    if (in->length != TESTDATA_LENGTH) return 13;
 
     for (i = 0; i < in->length; i++) {
         if ((in->buffer)[i] != TESTDATA[i])
