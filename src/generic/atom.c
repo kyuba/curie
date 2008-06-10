@@ -115,7 +115,7 @@ int    _atomic_open_read (const char *path)
 
 int    _atomic_open_write (const char *path)
 {
-    int rv = open(path, O_WRONLY | O_NONBLOCK);
+    int rv = open(path, O_WRONLY | O_NONBLOCK | O_CREAT);
     if (rv < 0) examine_error();
 	return rv;
 }
