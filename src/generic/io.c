@@ -38,3 +38,223 @@
 
 #include <atomic/nucleus.h>
 #include <atomic/io.h>
+#include <atomic/memory.h>
+
+/*@null@*/ struct memory_pool * io_pool = 0;
+
+struct io *io_open (int fd)
+{
+    struct io *io = 0;
+
+    if (io_pool == 0) {
+        io_pool = create_memory_pool ((unsigned int)sizeof(struct io));
+    }
+
+    io = get_pool_mem(io_pool);
+
+    io->fd = fd;
+    io->type = iot_undefined;
+    io->status = io_undefined;
+    io->position = 0;
+    io->length = 0;
+    io->cursor = 0;
+    io->buffersize = IO_CHUNKSIZE;
+
+    io->buffer = get_mem (IO_CHUNKSIZE);
+
+    io->on_data_read = 0;
+    io->arbitrary = 0;
+
+    return io;
+}
+
+struct io *io_open_read (const char *path)
+{
+    int fd = _atomic_open_read (path);
+    struct io *io = io_open(fd);
+
+    io->type = iot_read;
+
+    return io;
+}
+
+struct io *io_open_write (const char *path)
+{
+    int fd = _atomic_open_write (path);
+    struct io *io = io_open(fd);
+
+    io->type = iot_write;
+
+    return io;
+}
+
+enum io_result io_write(struct io *io, char *data, unsigned int length)
+{
+    unsigned int i, pos;
+
+    if (io->status == io_finalising)
+        return io_finalising;
+
+    if (io->type != iot_write) {
+        io->position = 0;
+        io->length = 0;
+        io->cursor = 0;
+
+        io->type = iot_write;
+        io->status = io_undefined;
+    }
+
+    if ((io->length + length) > io->buffersize) {
+        int newsize = (io->length + length);
+        if ((newsize % IO_CHUNKSIZE) != 0) {
+            newsize = ((newsize / IO_CHUNKSIZE) + 1) * IO_CHUNKSIZE;
+        }
+
+        io->buffer = resize_mem (io->buffersize, io->buffer, newsize);
+        io->buffersize = newsize;
+    }
+
+    for (i = 0, pos = io->length; i < length; i++, pos++) {
+        io->buffer[pos] = data[i];
+    }
+
+    io->length += length;
+
+    return io_commit(io);
+}
+
+enum io_result io_read(struct io *io)
+{
+    int readrv;
+
+    if (io->status == io_finalising)
+        return io_finalising;
+
+    if (io->type != iot_read) {
+        io->position = 0;
+        io->length = 0;
+        io->cursor = 0;
+
+        io->type = iot_read;
+        io->status = io_undefined;
+    }
+
+    if ((io->length + IO_CHUNKSIZE) > io->buffersize) {
+        int newsize = (io->length + IO_CHUNKSIZE);
+        if ((newsize % IO_CHUNKSIZE) != 0) {
+            newsize = ((newsize / IO_CHUNKSIZE) + 1) * IO_CHUNKSIZE;
+        }
+
+        io->buffer = resize_mem (io->buffersize, io->buffer, newsize);
+        io->buffersize = newsize;
+    }
+
+    readrv = _atomic_read(io->fd, (io->buffer + io->length), IO_CHUNKSIZE);
+
+    if (readrv < 0) /* potential error */
+    {
+        if (last_error_recoverable_p) { /* nothing serious,
+                                           just try again later */
+            return io_no_change;
+        } else { /* source is dead, close the fd */
+            io->status = io_unrecoverable_error;
+            _atomic_close (io->fd);
+            io->fd = -1;
+            return io_unrecoverable_error;
+        }
+    }
+
+    if (readrv == 0) /* end-of-file */
+    {
+        io->status = io_end_of_file;
+        _atomic_close (io->fd);
+        io->fd = -1;
+        return io_end_of_file;
+    }
+
+    io->length += readrv;
+
+    if (io->on_data_read)
+        io->on_data_read (io);
+
+    return io_changes;
+}
+
+enum io_result io_commit (struct io *io)
+{
+    int rv, i, pos;
+
+    switch (io->type) {
+        case iot_undefined:
+            return io_undefined;
+        case iot_read:
+            return io_read(io);
+        case iot_write:
+            rv = _atomic_write(io->fd, io->buffer, io->length);
+            break;
+    }
+
+    if (rv < 0) /* potential error */
+    {
+        if (last_error_recoverable_p) { /* nothing serious,
+                                           just try again later */
+            return io_no_change;
+        } else { /* target is dead, close the fd */
+            io->status = io_unrecoverable_error;
+            _atomic_close (io->fd);
+            io->fd = -1;
+            return io_unrecoverable_error;
+        }
+    }
+
+    if (rv == 0) /* end-of-file */
+    {
+        io->status = io_end_of_file;
+        _atomic_close (io->fd);
+        io->fd = -1;
+        return io_end_of_file;
+    }
+
+    if (rv == io->length)
+    {
+        io->length = 0;
+        return io_complete;
+    }
+
+    io->length -= rv;
+
+    for (i = 0, pos = rv; i < io->length; i++, pos++) {
+        io->buffer[i] = io->buffer[pos];
+    }
+
+    return io_incomplete;
+}
+
+enum io_result io_finish (struct io *io)
+{
+    io->status = io_finalising;
+    return io_finalising;
+}
+
+void io_close (struct io *io)
+{
+    if (io->status != io_finalising) (void)io_finish (io);
+
+    switch (io->type)
+    {
+        case iot_undefined: break;
+        case iot_read: break;
+        case iot_write:
+            while (io_commit (io) == io_incomplete);
+            break;
+    }
+
+    if (io->fd >= 0)
+        _atomic_close (io->fd);
+
+    if (io->on_struct_deallocation)
+        io->on_struct_deallocation(io);
+
+    free_mem(io->buffersize, io->buffer);
+    free_pool_mem ((void *)io);
+}

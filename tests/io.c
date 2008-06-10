@@ -1,8 +1,8 @@
 /*
- *  io.h
+ *  io.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 01/06/2008.
+ *  Created by Magnus Deininger on 08/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,54 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_IO_H
-#define ATOMIC_IO_H
+#include "atomic/io.h"
 
-#define IO_CHUNKSIZE 4096
-
-enum io_type {
-  iot_undefined = 0,
-  iot_read = 1,
-  iot_write = 2
-};
-
-enum io_result {
-  io_undefined = 0,
-  io_end_of_file = 1,
-  io_changes = 2,
-  io_unrecoverable_error = 3,
-  io_no_change = 4,
-  io_complete = 5,
-  io_incomplete = 6,
-  io_finalising = 7
-};
-
-struct io {
-    int fd;
-    char *buffer;
-    /* can't use a fixed buffer since we might need to read (or write)
-       something larger */
-
-    enum io_type   type;
-    enum io_result status;
-
-    unsigned int position;
-    unsigned int length;
-    unsigned int cursor;
-    unsigned int buffersize;
-
-    void (*on_data_read) (struct io *);
-    void (*on_struct_deallocation) (struct io *);
-    void *arbitrary;
-};
-
-struct io *io_open (int);
-struct io *io_open_read (const char *);
-struct io *io_open_write (const char *);
-enum io_result io_write(struct io *, char *, unsigned int);
-enum io_result io_read(struct io *);
-enum io_result io_commit (struct io *);
-enum io_result io_finish (struct io *);
-void io_close (struct io *);
-
-#endif
+int atomic_main(void) {
+    return 0;
+}

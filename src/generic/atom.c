@@ -77,8 +77,11 @@ static void examine_error( void ) {
   switch (errno)
   {
     case EAGAIN:
+#if defined(EWOULDBLOCK) && (EWOULDBLOCK != EAGAIN)
+    case EWOULDBLOCK:
+#endif
       last_error_recoverable_p = (char)1;
-	  break;
+      break;
     default:
       last_error_recoverable_p = (char)0;
   }

@@ -54,7 +54,7 @@ extern "C" {
   int    _atomic_kill (int pid, int sig);
 
   int atomic_main();
-  
+
   extern char last_error_recoverable_p;
 #ifdef __cplusplus
 }
