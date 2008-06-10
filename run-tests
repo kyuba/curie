@@ -16,6 +16,6 @@ for i in $(find ./tests ! \( -type d -o \( -name '*.c' -o -name '*.o' \) \) ); d
     fi
 done
 
-rm -f temporary* 
+# rm -f temporary* 
 
 echo "$tests tests, $failed failed";

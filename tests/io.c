@@ -38,6 +38,46 @@
 
 #include "atomic/io.h"
 
+#define TESTDATA "THIS IS SOME TEST DATA"
+#define TESTDATA_LENGTH (sizeof(TESTDATA) -1)
+
 int atomic_main(void) {
+    struct io *out = io_open_write ("temporary-io-test-file"), *in;
+    char cont;
+    int i;
+
+    if (io_write (out, TESTDATA, TESTDATA_LENGTH) != io_complete) {
+        return 1;
+    }
+
+    io_close (out);
+
+    in = io_open_read ("temporary-io-test-file");
+
+    do {
+        enum io_result res = io_read (in);
+
+        switch (res) {
+            case io_changes:
+            case io_no_change:
+                cont = 1;
+                break;
+            case io_end_of_file:
+                cont = 0;
+                break;
+            default:
+                return 2;
+        }
+    } while (cont);
+
+    if (in->length != TESTDATA_LENGTH) return 3;
+
+    for (i = 0; i < in->length; i++) {
+        if ((in->buffer)[i] != TESTDATA[i])
+            return 4;
+    }
+
+    io_close (in);
+
     return 0;
 }
