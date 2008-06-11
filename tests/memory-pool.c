@@ -58,25 +58,14 @@ static unsigned int test_pool(unsigned int poolentitysize, unsigned int usepoole
 
     for (i = 0; i < usepoolentities; i++) {
         for (j = 0; j < poolentitysize; j++) {
-            entities[i][j] = counter + i;
+            entities[i][j] = counter + i + j;
         }
     }
 
     for (i = 0; i < usepoolentities; i++) {
         for (j = 0; j < poolentitysize; j++) {
-            entities[i][j] = counter + i;
-
-            if (entities[i][j] != (counter + i)) {
+            if (entities[i][j] != (counter + i + j)) {
                 rv = 2;
-                goto do_return;
-            }
-        }
-    }
-
-    for (i = 0; i < usepoolentities; i++) {
-        for (j = 0; j < poolentitysize; j++) {
-            if (entities[i][j] != (counter + i)) {
-                rv = 3;
                 goto do_return;
             }
         }
