@@ -37,6 +37,7 @@
  */
 
 #include <atomic/memory.h>
+#include <atomic/int.h>
 
 /*@-mustfreeonly@*/
 /*@-onlytrans@*/
@@ -124,7 +125,7 @@ void free_pool_mem(void *mem) {
    this is because get_mem_chunk() is supposed to use an address that is
    pagesize-aligned and mem_chunk_size should be the pagesize. */
 
-    struct memory_pool *pool = (struct memory_pool *)((((long)((char *)mem)) / mem_chunk_size) * mem_chunk_size);
+    struct memory_pool *pool = (struct memory_pool *)((((int_pointer)((char *)mem)) / mem_chunk_size) * mem_chunk_size);
     char *pool_mem_start = (char *)pool + sizeof(struct memory_pool);
 
     unsigned int index = (unsigned int)(((char*)mem - pool_mem_start) / pool->entitysize);
