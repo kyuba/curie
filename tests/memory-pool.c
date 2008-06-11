@@ -44,54 +44,70 @@
 #define MAXSIZE 23
 #define MAXENTITIES 1026
 
-static unsigned int test_pool(unsigned int poolentitysize, unsigned int usepoolentities, int do_negate) {
-    struct memory_pool *pool = create_memory_pool(poolentitysize);
-	char *entities[usepoolentities];
-	unsigned int i, j, rv = 0;
+unsigned int counter = 0;
+
+static unsigned int test_pool(unsigned int poolentitysize, unsigned int usepoolentities) {
+    struct memory_pool *pool = create_memory_pool(poolentitysize*sizeof(unsigned int));
+    unsigned int i, j, rv = 0, **entities;
+
+    entities = (unsigned int **)get_mem(sizeof(unsigned int *)*usepoolentities);
 
     for (i = 0; i < usepoolentities; i++) {
-	    entities[i] = get_pool_mem(pool);
-	}
+        entities[i] = (unsigned int *)get_pool_mem(pool);
+    }
 
     for (i = 0; i < usepoolentities; i++) {
-	    for (j = 0; j < poolentitysize; j++) {
-		    if (do_negate == 1)
-                entities[i][j] = (char)~j;
-			else
-                entities[i][j] = (char)j;
+        for (j = 0; j < poolentitysize; j++) {
+            entities[i][j] = counter + i;
         }
-	}
+    }
 
     for (i = 0; i < usepoolentities; i++) {
-	    for (j = 0; j < poolentitysize; j++) {
-            if (((do_negate == 1) && (entities[i][j] != (char)~j)) ||
-				((do_negate == 0) && (entities[i][j] != (char)j))){
-			    rv = 1;
-				goto do_return;
-			}
+        for (j = 0; j < poolentitysize; j++) {
+            entities[i][j] = counter + i;
+
+            if (entities[i][j] != (counter + i)) {
+                rv = 2;
+                goto do_return;
+            }
         }
-	}
-	
-	do_return:
+    }
+
+    for (i = 0; i < usepoolentities; i++) {
+        for (j = 0; j < poolentitysize; j++) {
+            if (entities[i][j] != (counter + i)) {
+                rv = 3;
+                goto do_return;
+            }
+        }
+    }
+
+    counter += usepoolentities + poolentitysize;
+
+    do_return:
 
     for (i = 0; i < usepoolentities; i++) {
         free_pool_mem ((void *)(entities[i]));
-	}
+    }
 
-	free_memory_pool(pool);
+    free_mem(sizeof(unsigned int *)*usepoolentities, (void *)entities);
 
-	return rv;
+    free_memory_pool(pool);
+
+    return rv;
 }
 
 int atomic_main(void) {
     unsigned int i, j;
 
-	for (i = 1; i < MAXSIZE; i++) {
-		for (j = 1; j < MAXENTITIES; j++) {
-            if (test_pool(i, j, 1) == 1) return 1;
-            if (test_pool(i, j, 0) == 1) return 1;
-        }
-	}
+    for (i = 1; i < MAXSIZE; i++) {
+        for (j = 1; j < MAXENTITIES; j++) {
+            unsigned int rv = 0;
+            rv = test_pool(i, j);
 
-	return 0;
+            if (rv != (unsigned int)0) return (int)rv;
+        }
+    }
+
+    return 0;
 }

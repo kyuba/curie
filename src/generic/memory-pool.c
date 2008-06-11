@@ -63,7 +63,7 @@ static void bitmap_clear(bitmap m, unsigned int b) {
 static unsigned char bitmap_isset(bitmap m, unsigned int b) {
     unsigned int s = bitmap_getslot(b);
 
-    return (unsigned char)(m[s] & (1 << (b%BITSPERBITMAPENTITY)));
+    return (unsigned char)((m[s] & (1 << (b%BITSPERBITMAPENTITY))) != 0);
 }
 
 static unsigned char bitmap_isempty(bitmap m) {
@@ -81,7 +81,7 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize) {
     pool->entitysize = (unsigned short)(((entitysize / ENTITY_ALIGNMENT)
                          + (((entitysize % ENTITY_ALIGNMENT) == 0) ? 0 : 1))
                         * ENTITY_ALIGNMENT);
-    pool->maxentities = (unsigned short)((mem_chunk_size - sizeof(struct memory_pool)) / entitysize);
+    pool->maxentities = (unsigned short)((mem_chunk_size - sizeof(struct memory_pool)) / pool->entitysize);
 
     if (pool->maxentities > BITMAPMAXBLOCKENTRIES) pool->maxentities = BITMAPMAXBLOCKENTRIES;
 
