@@ -9,10 +9,14 @@ def normalise(str):
 
 paths = [ normalise(ostype + '-' + arch + '-' + cctype + '/'),
           normalise(ostype + '-' + arch + '/'),
+          normalise(ostype + '-' + cctype + '/'),
           normalise(ostype + '/'),
           normalise(arch + '-' + cctype + '/'),
           normalise(arch + '/'),
-          normalise(ostype + '-' + cctype + '/'),
+          normalise('posix-' + arch + '-' + cctype + '/'),
+          normalise('posix-' + arch + '/'),
+          normalise('posix-' + cctype + '/'),
+          normalise('posix/'),
           normalise(cctype + '/'),
           'generic/' ]
 

@@ -1,11 +1,11 @@
 #!/bin/sh
 
-splint_params='-Iinclude -export-local'
+splint_params='-Iinclude/generic -export-local'
 splint_params_posix='+posixstrictlib'
 splint_params_atomic='+nolib'
 
-splint ${splint_params} ${splint_params_atomic} $(find ./include ./src \( -name "*.c" -o -name "*.h" \) -a \! \( -path "./src/generic/atom.c" -o -path "./src/generic/memory.c" \))
-splint ${splint_params} ${splint_params_posix} src/generic/atom.c src/generic/memory.c
+splint ${splint_params} ${splint_params_atomic} $(find ./include ./src \( -name "*.c" -o -name "*.h" \) -a \! \( -path "./src/posix/atom.c" -o -path "./src/posix/memory.c" \))
+splint ${splint_params} ${splint_params_posix} src/posix/*.c
 
 for i in tests/*.c; do
   splint ${splint_params} ${splint_params_atomic} "${i}"
