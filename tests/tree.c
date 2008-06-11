@@ -38,7 +38,7 @@
 
 #include "atomic/tree.h"
 
-#define MAXKEYNUM 128
+#define MAXKEYNUM 2048
 
 /*@-branchstate@*/
 /*@-sharedtrans@*/

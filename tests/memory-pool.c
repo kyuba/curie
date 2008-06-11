@@ -92,6 +92,7 @@ int atomic_main(void) {
     for (i = 1; i < MAXSIZE; i++) {
         for (j = 1; j < MAXENTITIES; j++) {
             unsigned int rv = 0;
+
             rv = test_pool(i, j);
 
             if (rv != (unsigned int)0) return (int)rv;

@@ -66,10 +66,26 @@ struct tree * tree_create () {
     return tree;
 }
 
+static void node_destroy(struct tree_node *node)
+{
+    if (node != (struct tree_node *)0) {
+        node_destroy ((void *)node->left);
+        node_destroy ((void *)node->right);
+
+        free_pool_mem((void *)node);
+    }
+}
+
 void tree_destroy (struct tree *tree) {
     /* TODO: clean all nodes in 'ere */
 
+    node_destroy (tree->root);
+
     free_pool_mem((void *)tree);
+
+    optimise_memory_pool (tree_root_pool);
+    optimise_memory_pool (tree_node_pool);
+    optimise_memory_pool (tree_node_pointer_pool);
 }
 
 static void tree_add_node_to_tree (/*@shared@*/ struct tree *tree, /*@only@*/ struct tree_node *node, unsigned long key) {
