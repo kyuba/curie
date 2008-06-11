@@ -98,7 +98,7 @@ void tree_destroy (struct tree *tree) {
     optimise_memory_pool (tree_node_pointer_pool);
 }
 
-static void tree_add_node_to_tree (/*@shared@*/ struct tree *tree, /*@only@*/ struct tree_node *node, unsigned long key) {
+static void tree_add_node_to_tree (/*@shared@*/ struct tree *tree, /*@only@*/ struct tree_node *node, int_pointer key) {
     node->key = key;
 
     /* we'll be implementing a self-optimising tree, so we can use dirty cheap
@@ -116,13 +116,13 @@ static void tree_add_node_to_tree (/*@shared@*/ struct tree *tree, /*@only@*/ st
     tree->root = node;
 }
 
-void tree_add_node (struct tree *tree, unsigned long key) {
+void tree_add_node (struct tree *tree, int_pointer key) {
     struct tree_node *node = (struct tree_node *)get_pool_mem(tree_node_pool);
 
     tree_add_node_to_tree (tree, node, key);
 }
 
-void tree_add_node_value (struct tree *tree, unsigned long key, void *value) {
+void tree_add_node_value (struct tree *tree, int_pointer key, void *value) {
     struct tree_node_pointer *node = (struct tree_node_pointer *)get_pool_mem(tree_node_pointer_pool);
 
     node->value = value;
@@ -130,7 +130,7 @@ void tree_add_node_value (struct tree *tree, unsigned long key, void *value) {
     tree_add_node_to_tree (tree, (struct tree_node *)node, key);
 }
 
-struct tree_node * tree_get_node (struct tree *tree, unsigned long key) {
+struct tree_node * tree_get_node (struct tree *tree, int_pointer key) {
     struct tree_node *cur;
 
     for (cur = tree->root; cur != (struct tree_node *)0; ) {
@@ -160,7 +160,7 @@ static void node_rotate (struct tree_node **root, struct tree_node *old, struct 
     }
 }
 
-void tree_remove_node_specific (struct tree *tree, unsigned long key, struct tree_node *node) {
+void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_node *node) {
     struct tree_node *cur, *last;
 
     for (cur = tree->root, last = (struct tree_node *)0;

@@ -42,6 +42,9 @@
 
 #define IMMUTABLE_CHUNKSIZE (4096*2)
 
+/*@-observertrans@*/
+/* there's a warning emitted for our use of "" for empty strings */
+
 /*@null@*/ static char *immutable_string_data = (char *)0;
 /*@null@*/ static char *immutable_string_cursor = (char *)0;
 static unsigned long immutable_string_data_size = 0;
@@ -53,11 +56,11 @@ const char *str_immutable ( const char * string ) {
     int stringlength = 0;
     const char *rv;
 
-    if (string[0] == (char)0) return "";
+    if (string[0] == (char)0) return (const char *)"";
 
     if (immutable_strings == (struct tree *)0) {
         immutable_strings = tree_create();
-    } else if (tree_get_node (immutable_strings, (long)string) != (struct tree_node *)0) {
+    } else if (tree_get_node (immutable_strings, (int_pointer)string) != (struct tree_node *)0) {
         return string;
     }
 

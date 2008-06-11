@@ -41,7 +41,7 @@
 
 /* TODO: define proper integer types */
 
-/* longs should be the same length as pointers... */
-typedef unsigned long int_pointer;
+/* longs should be the same length as pointers... and long longs doubly so */
+typedef unsigned long long int_pointer;
 
 #endif

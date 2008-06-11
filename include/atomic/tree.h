@@ -39,6 +39,8 @@
 #ifndef ATOMIC_TREE_H
 #define ATOMIC_TREE_H
 
+#include <atomic/int.h>
+
 struct tree {
     /*@null@*/ /*@only@*/ struct tree_node * root;
 };
@@ -47,14 +49,14 @@ struct tree_node {
     /*@null@*/ /*@only@*/ struct tree_node * left;
     /*@null@*/ /*@only@*/ struct tree_node * right;
 
-    unsigned long key;
+    int_pointer key;
 };
 
 struct tree_node_pointer {
     /*@null@*/ /*@only@*/ struct tree_node * left;
     /*@null@*/ /*@only@*/ struct tree_node * right;
 
-    unsigned long key;
+    int_pointer key;
 
     /*@shared@*/ void *value;
 };
@@ -62,12 +64,12 @@ struct tree_node_pointer {
 /*@notnull@*/ /*@only@*/ struct tree * tree_create ();
 void tree_destroy (/*@notnull@*/ /*@only@*/ struct tree *);
 
-void tree_add_node (/*@shared@*/ struct tree *, unsigned long);
-void tree_add_node_value (/*@shared@*/ struct tree *, unsigned long, /*@shared@*/ void *);
+void tree_add_node (/*@shared@*/ struct tree *, int_pointer);
+void tree_add_node_value (/*@shared@*/ struct tree *, int_pointer, /*@shared@*/ void *);
 
-/*@null@*/ /*@shared@*/ struct tree_node * tree_get_node (/*@notnull@*/ /*@shared@*/ struct tree *, unsigned long);
+/*@null@*/ /*@shared@*/ struct tree_node * tree_get_node (/*@notnull@*/ /*@shared@*/ struct tree *, int_pointer);
 
-void tree_remove_node_specific (struct tree *, unsigned long, /*@null@*/ struct tree_node *);
+void tree_remove_node_specific (struct tree *, int_pointer, /*@null@*/ struct tree_node *);
 
 #define tree_remove_node(t,k) tree_remove_node_specific(t, k, (struct tree_node *)0)
 #define node_get_value(node) ((struct tree_node_pointer *)node)->value
