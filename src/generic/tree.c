@@ -39,6 +39,13 @@
 #include <atomic/memory.h>
 #include <atomic/tree.h>
 
+/*@-branchstate@*/
+/*@-nullpass@*/
+/*@-mustfreeonly@*/
+/*@-onlytrans@*/
+/*@-nullderef@*/
+/* the usual memory management woes again... */
+
 /*@null@*/ struct memory_pool *tree_root_pool = 0;
 /*@null@*/ struct memory_pool *tree_node_pool = 0;
 /*@null@*/ struct memory_pool *tree_node_pointer_pool = 0;
@@ -48,17 +55,13 @@ struct tree * tree_create () {
 
     if (tree_root_pool == 0) {
         tree_root_pool = create_memory_pool (sizeof (struct tree));
-    }
-
-    if (tree_node_pool == 0) {
         tree_node_pool = create_memory_pool (sizeof (struct tree_node));
-    }
-
-    if (tree_node_pointer_pool == 0) {
         tree_node_pointer_pool = create_memory_pool (sizeof (struct tree_node_pointer));
     }
 
     tree = (struct tree *)get_pool_mem(tree_root_pool);
+
+    tree->root = (struct tree_node *)0;
 
     return tree;
 }
@@ -69,10 +72,22 @@ void tree_destroy (struct tree *tree) {
     free_pool_mem((void *)tree);
 }
 
-static void tree_add_node_to_tree (struct tree *tree, struct tree_node *node, unsigned long key) {
-    node->left = (struct tree_node *)0;
-    node->right = (struct tree_node *)0;
+static void tree_add_node_to_tree (/*@shared@*/ struct tree *tree, /*@only@*/ struct tree_node *node, unsigned long key) {
     node->key = key;
+
+    /* we'll be implementing a self-optimising tree, so we can use dirty cheap
+       inserts */
+
+    if ((tree->root != (struct tree_node *)0) &&
+        (tree->root->key > node->key)) {
+        node->left = (struct tree_node *)0;
+        node->right = tree->root;
+    } else {
+        node->left = tree->root;
+        node->right = (struct tree_node *)0;
+    }
+
+    tree->root = node;
 }
 
 void tree_add_node (struct tree *tree, unsigned long key) {
@@ -87,4 +102,20 @@ void tree_add_node_value (struct tree *tree, unsigned long key, void *value) {
     node->value = value;
 
     tree_add_node_to_tree (tree, (struct tree_node *)node, key);
+}
+
+struct tree_node * tree_get_node (struct tree *tree, unsigned long key) {
+    struct tree_node *cur;
+
+    for (cur = tree->root; cur != (struct tree_node *)0; ) {
+        if (cur->key == key) break;
+
+        if (key > cur->key) {
+            cur = cur->right;
+        } else {
+            cur = cur->left;
+        }
+    }
+
+    return cur;
 }

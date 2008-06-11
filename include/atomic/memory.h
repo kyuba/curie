@@ -54,16 +54,15 @@ extern unsigned long int mem_chunk_size;
 
 /* memory-pool.c */
 
-#define BITSPERBYTE (unsigned short)8
+#define BITSPERBITMAPENTITY (unsigned short)31
 
 /* this'll allow managing 512 entries per poolblock */
-#define BITMAPMAPSIZE (unsigned short)64
-#define BITMAPMAXBLOCKENTRIES (unsigned short)(BITMAPMAPSIZE * BITSPERBYTE)
-#define BITMAPSLOTS (unsigned short)(BITMAPMAPSIZE/sizeof(int))
+#define BITMAPMAPSIZE (unsigned short)16
+#define BITMAPMAXBLOCKENTRIES (unsigned short)(BITMAPMAPSIZE * BITSPERBITMAPENTITY)
 
 #define ENTITY_ALIGNMENT (unsigned short)8
 
-typedef int bitmap[BITMAPSLOTS];
+typedef unsigned long bitmap[BITMAPMAPSIZE];
 
 struct memory_pool {
   unsigned long int entitysize;
@@ -72,8 +71,6 @@ struct memory_pool {
   bitmap map;
 
   /*@null@*/ /*@shared@*/ struct memory_pool *next;
-
-  char memory[];
 };
 
 /*@notnull@*/ /*@only@*/ struct memory_pool *create_memory_pool (unsigned long int entitysize);

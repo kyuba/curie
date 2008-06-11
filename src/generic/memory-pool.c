@@ -42,35 +42,37 @@
 /*@-onlytrans@*/
 /*@-sharedtrans@*/
 /*@-temptrans@*/
+/*@-fixedformalarray@*/
 /* turns out we need this here, because we actually implement memory management here,
    including functions that do do these thingamajigs */
 
 static unsigned int bitmap_getslot(unsigned int b) {
-	return (unsigned int)(b / BITMAPSLOTS);
+    return (unsigned int)(b / BITSPERBITMAPENTITY);
 }
 
 static void bitmap_set(bitmap m, unsigned int b) {
     unsigned int s = bitmap_getslot(b);
-	m[s] |= 1 << (b%BITMAPSLOTS);
+    m[s] |= 1 << (b%BITSPERBITMAPENTITY);
 }
 
 static void bitmap_clear(bitmap m, unsigned int b) {
     unsigned int s = bitmap_getslot(b);
-	m[s] &= ~(1 << (b%BITMAPSLOTS));
+    m[s] &= ~(1 << (b%BITSPERBITMAPENTITY));
 }
 
 static unsigned char bitmap_isset(bitmap m, unsigned int b) {
     unsigned int s = bitmap_getslot(b);
-	return (unsigned char)(m[s] & (1 << (b%BITMAPSLOTS)));
+
+    return (unsigned char)(m[s] & (1 << (b%BITSPERBITMAPENTITY)));
 }
 
 static unsigned char bitmap_isempty(bitmap m) {
     unsigned int i = 0;
-	for (; i < BITMAPSLOTS; i++) {
+    for (; i < BITMAPMAPSIZE; i++) {
         if (m[i] != 0) return (unsigned char)0;
-	}
+    }
 
-	return (unsigned char)1;
+    return (unsigned char)1;
 }
 
 struct memory_pool *create_memory_pool (unsigned long int entitysize) {

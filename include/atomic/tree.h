@@ -40,32 +40,32 @@
 #define ATOMIC_TREE_H
 
 struct tree {
-    struct tree_node * root;
+    /*@null@*/ /*@only@*/ struct tree_node * root;
 };
 
 struct tree_node {
-    /*@null@*/ struct tree_node * left;
-    /*@null@*/ struct tree_node * right;
+    /*@null@*/ /*@only@*/ struct tree_node * left;
+    /*@null@*/ /*@only@*/ struct tree_node * right;
 
     unsigned long key;
 };
 
 struct tree_node_pointer {
-    /*@null@*/ struct tree_node * left;
-    /*@null@*/ struct tree_node * right;
+    /*@null@*/ /*@only@*/ struct tree_node * left;
+    /*@null@*/ /*@only@*/ struct tree_node * right;
 
     unsigned long key;
 
-    void *value;
+    /*@shared@*/ void *value;
 };
 
-struct tree * tree_create ();
-void tree_destroy (struct tree *);
+/*@notnull@*/ /*@only@*/ struct tree * tree_create ();
+void tree_destroy (/*@notnull@*/ /*@only@*/ struct tree *);
 
-void tree_add_node (struct tree *, unsigned long);
-void tree_add_node_value (struct tree *, unsigned long, void *);
+void tree_add_node (/*@shared@*/ struct tree *, unsigned long);
+void tree_add_node_value (/*@shared@*/ struct tree *, unsigned long, /*@shared@*/ void *);
 
-struct tree_node * tree_get_node (struct tree *, unsigned long);
+/*@null@*/ /*@shared@*/ struct tree_node * tree_get_node (/*@notnull@*/ /*@shared@*/ struct tree *, unsigned long);
 
 void tree_remove_node (struct tree *, unsigned long);
 void tree_remove_node_specific (struct tree *, unsigned long, struct tree_node *);
