@@ -45,6 +45,9 @@
 /*@notnull@*/ /*@only@*/ void *resize_mem(unsigned long int, /*@notnull@*/ /*@only@*/ void *, unsigned long int);
 void free_mem(unsigned long int, /*@notnull@*/ /*@only@*/void *);
 
+void mark_mem_ro (unsigned long int, /*@notnull@*/ void *);
+void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
+
 extern unsigned long int mem_chunk_size;
 
 /*@notnull@*/ /*@only@*/ void *get_mem_chunk()

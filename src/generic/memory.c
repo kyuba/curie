@@ -62,6 +62,9 @@ unsigned long int mem_chunk_size = 0;
 /*@only@*/ void *get_mem_chunk()
   /*globals mem_chunk_size;*/;
 
+void mark_mem_ro (unsigned long int, /*@notnull@*/ void *);
+void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
+
 static size_t get_multiple_of_pagesize(unsigned long int s)
 {
     static unsigned long int pagesize = 0;
@@ -143,4 +146,19 @@ void *get_mem_chunk() {
     if (mem_chunk_size == 0) mem_chunk_size = (unsigned long int)get_multiple_of_pagesize(1);
 
     return get_mem(mem_chunk_size);
+}
+
+void mark_mem_ro (unsigned long int size, /*@notnull@*/ void *location) {
+    size_t msize = get_multiple_of_pagesize(size);
+
+    /* again we ignore the return value, because failure to mark the memory will
+       only result in the memory still being writable, which is not going to be
+       a critical issue */
+    (void)mprotect (location, msize, PROT_READ);
+}
+
+void mark_mem_rw (unsigned long int size, /*@notnull@*/ void *location) {
+    size_t msize = get_multiple_of_pagesize(size);
+
+    (void)mprotect (location, msize, PROT_READ | PROT_WRITE);
 }

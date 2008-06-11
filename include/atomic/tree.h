@@ -67,9 +67,9 @@ void tree_add_node_value (/*@shared@*/ struct tree *, unsigned long, /*@shared@*
 
 /*@null@*/ /*@shared@*/ struct tree_node * tree_get_node (/*@notnull@*/ /*@shared@*/ struct tree *, unsigned long);
 
-void tree_remove_node (struct tree *, unsigned long);
 void tree_remove_node_specific (struct tree *, unsigned long, struct tree_node *);
 
+#define tree_remove_node(t,k) tree_remove_node_specific(t, k, (struct tree_node *)0)
 #define node_get_value(node) ((struct tree_node_pointer *)node)->value
 
 void tree_map (struct tree *, void (*)(struct tree_node *, void *), void *);

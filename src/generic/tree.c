@@ -66,7 +66,7 @@ struct tree * tree_create () {
     return tree;
 }
 
-static void node_destroy(struct tree_node *node)
+static void node_destroy(/*@only@*/ struct tree_node *node)
 {
     if (node != (struct tree_node *)0) {
         node_destroy ((void *)node->left);
