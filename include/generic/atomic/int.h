@@ -41,7 +41,9 @@
 
 /* TODO: define proper integer types */
 
-/* longs should be the same length as pointers... and long longs doubly so */
-typedef unsigned long long int_pointer;
+/* longs should be the same length as pointers, really... we'll see compiler
+   warnings if it ain't anyway, but the long<>pointer size thing holds true on
+   the platforms that are of most concern to me, so it should be good enough. */
+typedef unsigned long int_pointer;
 
 #endif

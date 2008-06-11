@@ -7,10 +7,14 @@ cctype='gnu'
 def normalise(str):
   return str.replace(' ', '').replace('_', '-')
 
-paths = [ normalise('src/' + ostype + '-' + arch + '-' + cctype + '/'),
-          normalise('src/' + ostype + '-' + arch + '/'),
-          normalise('src/' + ostype + '/'),
-          'src/generic/' ]
+paths = [ normalise(ostype + '-' + arch + '-' + cctype + '/'),
+          normalise(ostype + '-' + arch + '/'),
+          normalise(ostype + '/'),
+          normalise(arch + '-' + cctype + '/'),
+          normalise(arch + '/'),
+          normalise(ostype + '-' + cctype + '/'),
+          normalise(cctype + '/'),
+          'generic/' ]
 
 codepreference = [ 'S', 's', 'c' ]
 
@@ -26,7 +30,7 @@ def haveasm(name):
   global paths
   
   for i in paths:
-    if fileexists(i + name + '.S') or fileexists(i + name + '.s'):
+    if fileexists('src/' + i + name + '.S') or fileexists('src/' + i + name + '.s'):
       return True
 
   return False
@@ -35,7 +39,7 @@ def findsource(name):
   global codepreference, paths
   for l in paths:
     for i in codepreference:
-      n = l + name + '.' + i
+      n = 'src/' + l + name + '.' + i
       if fileexists(n):
         return n
 
@@ -44,7 +48,11 @@ def writepkgconfig():
 
 env = Environment()
 
-env.Append(LIBPATH = '.', CPPPATH='#include', CFLAGS='--std=c99 -Wall -pedantic -g')
+for i in paths:
+  if fileexists('include/' + i):
+    env.Append (CPPPATH = '#include/' + i)
+
+env.Append(LIBPATH = '.', CFLAGS='--std=c99 -Wall -pedantic -g')
 
 if haveasm('atom') and haveasm('memory'):
   print 'adjusting linker flags for using assembly atomic-libc'
