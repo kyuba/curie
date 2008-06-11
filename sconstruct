@@ -68,7 +68,7 @@ import glob
 testsource = glob.glob('tests/*.c');
 
 tenv = env.Clone()
-tenv.Append(LIBS = ['atomic'], CFLAGS = '-g')
+tenv.Append(LIBS = ['atomic'], CFLAGS='-g')
 
 for i in testsource:
   tenv.Program(i)

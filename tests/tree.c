@@ -122,6 +122,74 @@ static unsigned int test_tree_value(unsigned int keys) {
     return 0;
 }
 
+static unsigned int test_tree_node_removal(unsigned int keys) {
+    struct tree *t = tree_create ();
+    unsigned int i;
+    struct tree_node *n;
+
+    for (i = 0; i < keys; i++) {
+        tree_add_node_value (t, i, sentinelvalue(i));
+    }
+
+    /* remove half the nodes */
+    for (i = 0; i < keys; i+=2) {
+        tree_remove_node (t, i);
+    }
+
+    /* search for the nodes that should still be present */
+    for (i = 1; i < keys; i+=2) {
+        n = tree_get_node (t, i);
+
+        if (n == (struct tree_node *)0) return 15;
+        if (n->key != i) return 16;
+        if (node_get_value (n) != sentinelvalue(i))
+            return 17;
+    }
+
+    /* search for the nodes that should be missing */
+    for (i = 0; i < keys; i+=2) {
+        n = tree_get_node (t, i);
+
+        if (n != (struct tree_node *)0) return 18;
+    }
+
+    /* search for an arbitrary node that can't be present */
+    n = tree_get_node (t, keys + 1);
+    if (n != (struct tree_node *)0) return 19;
+
+    /* we do the searches twice to stress the optimising algo once it's in */
+
+    /* search for the nodes that should still be present */
+    for (i = 1; i < keys; i+=2) {
+        n = tree_get_node (t, i);
+
+        if (n == (struct tree_node *)0) return 20;
+        if (n->key != i) return 21;
+        if (node_get_value (n) != sentinelvalue(i))
+            return 22;
+    }
+
+    /* search for the nodes that should be missing */
+    for (i = 0; i < keys; i+=2) {
+        n = tree_get_node (t, i);
+
+        if (n != (struct tree_node *)0) return 23;
+    }
+
+    /* remove the remaining nodes */
+    for (i = 1; i < keys; i+=2) {
+        tree_remove_node (t, i);
+    }
+
+    if (t->root != (struct tree_node *)0) {
+        return 24;
+    }
+
+    tree_destroy(t);
+
+    return 0;
+}
+
 int atomic_main(void) {
     unsigned int i;
 
@@ -132,6 +200,9 @@ int atomic_main(void) {
         if (rv != 0) return (int)rv;
 
         rv = test_tree_value(i);
+        if (rv != 0) return (int)rv;
+
+        rv = test_tree_node_removal(i * 2);
         if (rv != 0) return (int)rv;
     }
 

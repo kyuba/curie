@@ -67,8 +67,8 @@ static unsigned char bitmap_isset(bitmap m, unsigned int b) {
 }
 
 static unsigned char bitmap_isempty(bitmap m) {
-    unsigned int i = 0;
-    for (; i < BITMAPMAPSIZE; i++) {
+    unsigned int i;
+    for (i = 0; i < BITMAPMAPSIZE; i++) {
         if (m[i] != 0) return (unsigned char)0;
     }
 
@@ -140,7 +140,8 @@ void optimise_memory_pool(struct memory_pool *pool) {
         last = cursor;
         cursor = cursor->next;
 
-        while (bitmap_isempty(cursor->map) == (unsigned char)0) {
+        while ((cursor != (struct memory_pool *)0) &&
+               (bitmap_isempty(cursor->map) == (unsigned char)1)) {
             last->next = cursor->next;
             free_mem_chunk((void *)cursor);
             cursor = last->next;

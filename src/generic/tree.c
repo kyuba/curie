@@ -135,3 +135,97 @@ struct tree_node * tree_get_node (struct tree *tree, unsigned long key) {
 
     return cur;
 }
+
+static void node_rotate (struct tree_node **root, struct tree_node *old, struct tree_node *new) {
+    if (old->left == new) {
+        old->left = new->right;
+        new->right = old;
+    } else {
+        old->right = new->left;
+        new->left = old;
+    }
+
+    if (root != (struct tree_node **)0) {
+        *root = new;
+    }
+}
+
+void tree_remove_node_specific (struct tree *tree, unsigned long key, struct tree_node *node) {
+    struct tree_node *cur, *last;
+
+    for (cur = tree->root, last = (struct tree_node *)0;
+         cur != (struct tree_node *)0; ) {
+
+        if ((cur->key == key) &&
+            ((node == (struct tree_node *)0) ||
+             (cur == node))) {
+
+            /* perform tree rotations to make the node a leaf node */
+            while ((cur->left != (struct tree_node *)0) ||
+                   (cur->right != (struct tree_node *)0)) {
+
+                struct tree_node **update, *new_last;
+
+                if (last == (struct tree_node *)0) {
+                    update = &(tree->root);
+                } else {
+                    if (last->left == cur) {
+                        update = &(last->left);
+                    } else {
+                        update = &(last->right);
+                    }
+                }
+
+                if (cur->left != (struct tree_node *)0) {
+                    new_last = cur->left;
+                } else {
+                    new_last = cur->right;
+                }
+
+                node_rotate (update, cur, new_last);
+                last = new_last;
+            }
+
+            /* isolate the node by disconnecting it */
+            if (last == (struct tree_node *)0) {
+                tree->root = (struct tree_node *)0;
+            } else {
+                if (last->left == cur) {
+                    last->left = (struct tree_node *)0;
+                } else {
+                    last->right = (struct tree_node *)0;
+                }
+            }
+
+            /* release the node's memory back into the pool */
+            free_pool_mem((void *)cur);
+
+            /* try to optimise the node pools */
+            optimise_memory_pool (tree_node_pool);
+            optimise_memory_pool (tree_node_pointer_pool);
+
+            return;
+        }
+
+        last = cur;
+
+        if (key > cur->key) {
+            cur = cur->right;
+        } else {
+            cur = cur->left;
+        }
+    }
+}
+
+static void tree_map_worker(struct tree_node *node, void (*callback)(struct tree_node *, void *), void *sv) {
+    if (node != (struct tree_node *)0) {
+        tree_map_worker ((void *)node->left, callback, sv);
+        tree_map_worker ((void *)node->right, callback, sv);
+
+        callback((void *)node, sv);
+    }
+}
+
+void tree_map (struct tree *tree, void (*callback)(struct tree_node *, void *), void *sv) {
+    tree_map_worker ((void *)tree->root, callback, sv);
+}
