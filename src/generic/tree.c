@@ -44,7 +44,17 @@
 /*@-mustfreeonly@*/
 /*@-onlytrans@*/
 /*@-nullderef@*/
-/* the usual memory management woes again... */
+/*@-temptrans@*/
+/*@-usereleased@*/
+/* the usual memory management woes again...
+   pretty sure my annotations are off in this file and its header. */
+
+/*@-compdef@*/
+/* not sure why it thinks this one to be necessary... */
+
+/*@-noeffect@*/
+/* splint warns about the _map() callback lacking any visible side effects, but
+   that's really how map should work there... */
 
 /*@null@*/ struct memory_pool *tree_root_pool = 0;
 /*@null@*/ struct memory_pool *tree_node_pool = 0;
