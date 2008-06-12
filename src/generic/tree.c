@@ -126,8 +126,6 @@ static void tree_add_node_to_tree (/*@shared@*/ struct tree *tree, /*@only@*/ st
     } else {
         last->left = node;
     }
-
-    tree->root = node;
 }
 
 void tree_add_node (struct tree *tree, int_pointer key) {
