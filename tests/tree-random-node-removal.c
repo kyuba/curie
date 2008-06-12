@@ -39,47 +39,79 @@
 #include "atomic/tree.h"
 #include "atomic/io.h"
 
-#define MAXKEYNUM 2048
+#define MAXKEYNUM 4096
 
 /*@-branchstate@*/
 /*@-sharedtrans@*/
+
+unsigned int random_numbers[MAXKEYNUM];
+
+static unsigned int have_number_before_slot (unsigned int n, unsigned int s) {
+    unsigned int i;
+
+    for (i = 0; i < s; i++) {
+        if (random_numbers[i] == n) return 1;
+    }
+
+    return 0;
+}
+
+static void assign_number_to_slot (unsigned int n, unsigned int s) {
+    while (have_number_before_slot(n, s) != 0) {
+        n++;
+    }
+
+    random_numbers[s] = n;
+}
+
+static unsigned int populate_random_numbers_array() {
+    unsigned int i;
+
+    struct io *r = io_open_read ("/dev/urandom");
+    while (r->length < (unsigned int)(MAXKEYNUM * sizeof(unsigned int))) {
+        if (io_read(r) == io_unrecoverable_error) {
+            io_close (r);
+            return 1;
+        }
+    }
+
+    for (i = 0; i < MAXKEYNUM; i++) {
+        assign_number_to_slot (((unsigned int *)(r->buffer))[i], i);
+    }
+
+    io_close (r);
+
+    return 0;
+}
 
 static unsigned int test_tree_random_node_removal(unsigned int keys) {
     struct tree *t = tree_create ();
     unsigned int i;
     struct tree_node *n;
-    struct io *r = io_open_read ("/dev/urandom");
-    unsigned int *keyarray;
 
-    while (r->length < (unsigned int)(keys * sizeof(unsigned int))) {
-        if (io_read(r) == io_unrecoverable_error) {
-            io_close (r);
-            tree_destroy(t);
-            return 1;
-        }
+    i = populate_random_numbers_array();
+    if (i != 0) {
+        tree_destroy(t);
+        return i;
     }
 
-    keyarray = (unsigned int *)(r->buffer);
-
     for (i = 0; i < keys; i++) {
-        tree_add_node (t, keyarray[i]);
+        tree_add_node (t, random_numbers[i]);
     }
 
     /* remove half the nodes */
     for (i = 0; i < keys; i+=2) {
-        tree_remove_node (t, keyarray[i]);
+        tree_remove_node (t, random_numbers[i]);
     }
 
     for (i = 1; i < keys; i+=2) {
-        n = tree_get_node (t, keyarray[i]);
+        n = tree_get_node (t, random_numbers[i]);
 
         if (n == (struct tree_node *)0) {
-            io_close (r);
             tree_destroy(t);
             return 2;
         }
-        if (n->key != keyarray[i]) {
-            io_close (r);
+        if (n->key != random_numbers[i]) {
             tree_destroy(t);
             return 3;
         }
@@ -87,22 +119,20 @@ static unsigned int test_tree_random_node_removal(unsigned int keys) {
 
     /* search for the nodes that should be missing */
     for (i = 0; i < keys; i+=2) {
-        n = tree_get_node (t, keyarray[i]);
+        n = tree_get_node (t, random_numbers[i]);
 
         if (n != (struct tree_node *)0) return 4;
     }
 
     /* we do this twice to stress the optimising algo once it's in */
     for (i = 1; i < keys; i+=2) {
-        n = tree_get_node (t, keyarray[i]);
+        n = tree_get_node (t, random_numbers[i]);
 
         if (n == (struct tree_node *)0) {
-            io_close (r);
             tree_destroy(t);
             return 5;
         }
-        if (n->key != keyarray[i]) {
-            io_close (r);
+        if (n->key != random_numbers[i]) {
             tree_destroy(t);
             return 6;
         }
@@ -110,23 +140,21 @@ static unsigned int test_tree_random_node_removal(unsigned int keys) {
 
     /* search for the nodes that should be missing */
     for (i = 0; i < keys; i+=2) {
-        n = tree_get_node (t, keyarray[i]);
+        n = tree_get_node (t, random_numbers[i]);
 
         if (n != (struct tree_node *)0) return 7;
     }
 
     /* remove the remaining nodes */
     for (i = 1; i < keys; i+=2) {
-        tree_remove_node (t, keyarray[i]);
+        tree_remove_node (t, random_numbers[i]);
     }
 
     if (t->root != (struct tree_node *)0) {
-        io_close (r);
         tree_destroy(t);
         return 8;
     }
 
-    io_close (r);
     tree_destroy(t);
 
     return 0;
@@ -135,10 +163,10 @@ static unsigned int test_tree_random_node_removal(unsigned int keys) {
 int atomic_main(void) {
     unsigned int i;
 
-    for (i = 1; i < MAXKEYNUM; i++) {
+    for (i = 2; i < MAXKEYNUM; i++) {
         unsigned int rv;
 
-        rv = test_tree_random_node_removal(i*2);
+        rv = test_tree_random_node_removal(i);
         if (rv != 0) return (int)rv;
     }
 
