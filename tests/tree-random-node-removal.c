@@ -51,9 +51,10 @@ static unsigned int test_tree_random_node_removal(unsigned int keys) {
     struct io *r = io_open_read ("/dev/urandom");
     unsigned int *keyarray;
 
-    while (r->length < (keys * sizeof(unsigned int))) {
+    while (r->length < (unsigned int)(keys * sizeof(unsigned int))) {
         if (io_read(r) == io_unrecoverable_error) {
             io_close (r);
+            tree_destroy(t);
             return 1;
         }
     }
@@ -74,10 +75,12 @@ static unsigned int test_tree_random_node_removal(unsigned int keys) {
 
         if (n == (struct tree_node *)0) {
             io_close (r);
+            tree_destroy(t);
             return 2;
         }
         if (n->key != keyarray[i]) {
             io_close (r);
+            tree_destroy(t);
             return 3;
         }
     }
@@ -95,10 +98,12 @@ static unsigned int test_tree_random_node_removal(unsigned int keys) {
 
         if (n == (struct tree_node *)0) {
             io_close (r);
+            tree_destroy(t);
             return 5;
         }
         if (n->key != keyarray[i]) {
             io_close (r);
+            tree_destroy(t);
             return 6;
         }
     }
@@ -116,6 +121,8 @@ static unsigned int test_tree_random_node_removal(unsigned int keys) {
     }
 
     if (t->root != (struct tree_node *)0) {
+        io_close (r);
+        tree_destroy(t);
         return 8;
     }
 
