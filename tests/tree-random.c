@@ -71,9 +71,6 @@ static unsigned int test_tree_random(unsigned int keys) {
         if (n->key != keyarray[i]) return 3;
     }
 
-    n = tree_get_node (t, keys + keyarray[i]);
-    if (n != (struct tree_node *)0) return 4;
-
     /* we do this twice to stress the optimising algo once it's in */
 
     for (i = 0; i < keys; i++) {
