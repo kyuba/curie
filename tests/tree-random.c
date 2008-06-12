@@ -86,7 +86,7 @@ static unsigned int test_tree_random(unsigned int keys) {
             io_close (r);
             return 5;
         }
-        if (n->key != i) {
+        if (n->key != keyarray[i]) {
             io_close (r);
             return 6;
         }
