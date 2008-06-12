@@ -99,18 +99,32 @@ void tree_destroy (struct tree *tree) {
 }
 
 static void tree_add_node_to_tree (/*@shared@*/ struct tree *tree, /*@only@*/ struct tree_node *node, int_pointer key) {
+    struct tree_node *cur, *last;
+
     node->key = key;
+    node->left = (struct tree_node *)0;
+    node->right = (struct tree_node *)0;
 
-    /* we'll be implementing a self-optimising tree, so we can use dirty cheap
-       inserts */
+    if (tree->root == (struct tree_node *)0) {
+        tree->root = node;
 
-    if ((tree->root != (struct tree_node *)0) &&
-        (tree->root->key > node->key)) {
-        node->left = (struct tree_node *)0;
-        node->right = tree->root;
+        return;
+    }
+
+    for (cur = tree->root;
+         cur != (struct tree_node *)0; ) {
+        last = cur;
+        if (key > cur->key) {
+            cur = cur->right;
+        } else {
+            cur = cur->left;
+        }
+    }
+
+    if (key > last->key) {
+        last->right = node;
     } else {
-        node->left = tree->root;
-        node->right = (struct tree_node *)0;
+        last->left = node;
     }
 
     tree->root = node;
