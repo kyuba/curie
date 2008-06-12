@@ -52,7 +52,10 @@ static unsigned int test_tree_random(unsigned int keys) {
     unsigned int *keyarray;
 
     while (r->length < (keys * sizeof(unsigned int))) {
-        if (io_read(r) == io_unrecoverable_error) return 1;
+        if (io_read(r) == io_unrecoverable_error) {
+            io_close (r);
+            return 1;
+        }
     }
 
     keyarray = (unsigned int *)(r->buffer);
@@ -80,6 +83,7 @@ static unsigned int test_tree_random(unsigned int keys) {
         if (n->key != i) return 6;
     }
 
+    io_close (r);
     tree_destroy(t);
 
     return 0;
