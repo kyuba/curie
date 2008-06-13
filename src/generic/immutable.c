@@ -53,6 +53,7 @@ static unsigned long immutable_data_space_left = 0;
 
 const char *str_immutable ( const char * string ) {
     unsigned long stringlength = 0;
+    const char *rv;
 
     /* the compiler should put static strings into read-only storage... */
     if (string[0] == (char)0) return (const char *)"";
@@ -67,7 +68,11 @@ const char *str_immutable ( const char * string ) {
 
     stringlength++; /* add an extra character for the terminating 0 */
 
-    return (char *)immutable (string, stringlength);
+    rv = immutable (string, stringlength);
+
+    tree_add_node (immutable_strings, (int_pointer)rv);
+
+    return rv;
 }
 
 const void *immutable ( const void * data, unsigned long length ) {
