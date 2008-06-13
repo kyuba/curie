@@ -42,18 +42,17 @@
 /*@-nullinit@*/
 /*@-noeffect@*/
 /* the map function does actually not have a visible effect from this file's
-   POV, however it really does serve a purpose */
+   POV, however it really does serve a purpose. */
 
 /*@-nullpass@*/
 /*@-nullderef@*/
 /*@-usereleased@*/
 /*@-compdef@*/
-/* uh... yeah, looks like splint can't seem to get through some logic in loop
-   conditionals... */
+/* looks like splint can't seem to get through some logic in loop
+   conditionals. */
 
 /*@-temptrans@*/
 /*@-mustfreeonly@*/
-/* oh, i give up... */
 
 /*@notnull@*/ struct memory_pool *tree_root_pool = 0;
 /*@notnull@*/ struct memory_pool *tree_node_pool;
