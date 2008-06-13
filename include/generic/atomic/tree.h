@@ -58,14 +58,14 @@ struct tree_node_pointer {
 
     int_pointer key;
 
-    /*@dependent@*/ void *value;
+    /*@dependent@*/ const void *value;
 };
 
 /*@notnull@*/ /*@only@*/ struct tree * tree_create ();
 void tree_destroy (/*@notnull@*/ /*@only@*/ struct tree *);
 
 void tree_add_node (/*@dependent@*/ struct tree *, int_pointer);
-void tree_add_node_value (/*@dependent@*/ struct tree *, int_pointer, /*@dependent@*/ void *);
+void tree_add_node_value (/*@dependent@*/ struct tree *, int_pointer, /*@dependent@*/ const void *);
 
 /*@null@*/ /*@dependent@*/ struct tree_node * tree_get_node (/*@notnull@*/ /*@dependent@*/ struct tree *, int_pointer);
 

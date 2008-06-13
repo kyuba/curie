@@ -131,7 +131,7 @@ void tree_add_node (struct tree *tree, int_pointer key) {
     tree_add_node_to_tree (tree, node, key);
 }
 
-void tree_add_node_value (struct tree *tree, int_pointer key, void *value) {
+void tree_add_node_value (struct tree *tree, int_pointer key, const void *value) {
     struct tree_node_pointer *node = (struct tree_node_pointer *)get_pool_mem(tree_node_pointer_pool);
 
     node->value = value;

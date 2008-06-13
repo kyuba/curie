@@ -39,11 +39,26 @@
 #ifndef ATOMIC_INT_H
 #define ATOMIC_INT_H
 
-/* TODO: define proper integer types */
+/* NOTE: this file is rather platform/architecture specific, so this header file
+         may need porting, depending on the target architecture. for this very
+         purpose, the build system is capable of feeding the compiler with
+         appropriate path information to allow overrides in the include/
+         directory.
+         this means, instead of mucking with wickedass macromagic, just add
+         an appropriate directory under include/ and copy this file there. */
 
 /* longs should be the same length as pointers, really... we'll see compiler
    warnings if it ain't anyway, but the long<>pointer size thing holds true on
    the platforms that are of most concern to me, so it should be good enough. */
 typedef unsigned long int_pointer;
+
+/* an astounishing lot of machines use 32-bit ints ... */
+typedef unsigned int int_32;
+
+/* ... and 16-bit shorts ... */
+typedef unsigned short int_16;
+
+/* ... and 8-bit chars. */
+typedef unsigned char int_8;
 
 #endif

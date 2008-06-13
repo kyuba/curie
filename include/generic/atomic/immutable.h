@@ -57,4 +57,12 @@
 
 void lock_immutable_pages ( void );
 
+/* the str_immutable() function expects its parameter to be aligned to an 8-byte
+   boundary, as well as zero-padded to the next 8-byte boundary, unless its a
+   previous return value of itself. this function is a bit of a helper to ensure
+   these alignment-constraints in case you dont know if your input meets these
+   criteria. */
+
+/*@notnull@*/ /*@observer@*/ const char *str_immutable_unaligned (/*@notnull@*/ /*@returned@*/ const char *);
+
 #endif
