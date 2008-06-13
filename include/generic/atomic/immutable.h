@@ -44,7 +44,17 @@
    in the process space, as well as prevent improper access to these strings
    (such as inadvertedly modifying them */
 
-const char *str_immutable ( const char * );
+/*@notnull@*/ /*@observer@*/ const char *str_immutable (/*@notnull@*/ /*@returned@*/ const char *);
+
+/* similarly, non-string data should be storable in this way, so here we go. */
+
+/*@notnull@*/ /*@observer@*/ const void *immutable (/*@notnull@*/ /*@returned@*/ const void *, unsigned long);
+
+/* this function is used to force locking of all the current pages that are used
+   to store new immutable data. the idea is that if you know you wont be storing
+   (much) new stuff anytime soon, you can call this function and immediately get
+   the memory protection effect. */
+
 void lock_immutable_pages ( void );
 
 #endif

@@ -121,7 +121,10 @@ static unsigned int test_tree_random_node_removal(unsigned int keys) {
     for (i = 0; i < keys; i+=2) {
         n = tree_get_node (t, random_numbers[i]);
 
-        if (n != (struct tree_node *)0) return 4;
+        if (n != (struct tree_node *)0) {
+            tree_destroy(t);
+            return 4;
+        }
     }
 
     /* we do this twice to stress the optimising algo once it's in */
@@ -142,7 +145,10 @@ static unsigned int test_tree_random_node_removal(unsigned int keys) {
     for (i = 0; i < keys; i+=2) {
         n = tree_get_node (t, random_numbers[i]);
 
-        if (n != (struct tree_node *)0) return 7;
+        if (n != (struct tree_node *)0) {
+            tree_destroy(t);
+            return 7;
+        }
     }
 
     /* remove the remaining nodes */

@@ -58,28 +58,50 @@ static unsigned int test_tree_value(unsigned int keys) {
     for (i = 0; i < keys; i++) {
         n = tree_get_node (t, i);
 
-        if (n == (struct tree_node *)0) return 7;
-        if (n->key != i) return 8;
-        if (node_get_value (n) != sentinelvalue(i))
+        if (n == (struct tree_node *)0) {
+            tree_destroy(t);
+            return 7;
+        }
+        if (n->key != i) {
+            tree_destroy(t);
+            return 8;
+        }
+        if (node_get_value (n) != sentinelvalue(i)) {
+            tree_destroy(t);
             return 9;
+        }
     }
 
     n = tree_get_node (t, keys + 1);
-    if (n != (struct tree_node *)0) return 10;
+    if (n != (struct tree_node *)0) {
+        tree_destroy(t);
+        return 10;
+    }
 
     /* we do this twice to stress the optimising algo once it's in */
 
     for (i = 0; i < keys; i++) {
         n = tree_get_node (t, i);
 
-        if (n == (struct tree_node *)0) return 11;
-        if (n->key != i) return 12;
-        if (node_get_value (n) != sentinelvalue(i))
+        if (n == (struct tree_node *)0) {
+            tree_destroy(t);
+            return 11;
+        }
+        if (n->key != i) {
+            tree_destroy(t);
+            return 12;
+        }
+        if (node_get_value (n) != sentinelvalue(i)) {
+            tree_destroy(t);
             return 13;
+        }
     }
 
     n = tree_get_node (t, keys + 1);
-    if (n != (struct tree_node *)0) return 14;
+    if (n != (struct tree_node *)0) {
+        tree_destroy(t);
+        return 14;
+    }
 
     tree_destroy(t);
 

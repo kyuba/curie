@@ -55,24 +55,42 @@ static unsigned int test_tree(unsigned int keys) {
     for (i = 0; i < keys; i++) {
         n = tree_get_node (t, i);
 
-        if (n == (struct tree_node *)0) return 1;
-        if (n->key != i) return 2;
+        if (n == (struct tree_node *)0) {
+            tree_destroy(t);
+            return 1;
+        }
+        if (n->key != i) {
+            tree_destroy(t);
+            return 2;
+        }
     }
 
     n = tree_get_node (t, keys + 1);
-    if (n != (struct tree_node *)0) return 3;
+    if (n != (struct tree_node *)0) {
+        tree_destroy(t);
+        return 3;
+    }
 
     /* we do this twice to stress the optimising algo once it's in */
 
     for (i = 0; i < keys; i++) {
         n = tree_get_node (t, i);
 
-        if (n == (struct tree_node *)0) return 4;
-        if (n->key != i) return 5;
+        if (n == (struct tree_node *)0) {
+            tree_destroy(t);
+            return 4;
+        }
+        if (n->key != i) {
+            tree_destroy(t);
+            return 5;
+        }
     }
 
     n = tree_get_node (t, keys + 1);
-    if (n != (struct tree_node *)0) return 6;
+    if (n != (struct tree_node *)0) {
+        tree_destroy(t);
+        return 6;
+    }
 
     tree_destroy(t);
 

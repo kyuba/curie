@@ -39,26 +39,25 @@
 #include <atomic/memory.h>
 #include <atomic/tree.h>
 
-/*@-branchstate@*/
-/*@-nullpass@*/
-/*@-mustfreeonly@*/
-/*@-onlytrans@*/
-/*@-nullderef@*/
-/*@-temptrans@*/
-/*@-usereleased@*/
-/* the usual memory management woes again...
-   pretty sure my annotations are off in this file and its header. */
-
-/*@-compdef@*/
-/* not sure why it thinks this one to be necessary... */
-
+/*@-nullinit@*/
 /*@-noeffect@*/
-/* splint warns about the _map() callback lacking any visible side effects, but
-   that's really how map should work there... */
+/* the map function does actually not have a visible effect from this file's
+   POV, however it really does serve a purpose */
 
-/*@null@*/ struct memory_pool *tree_root_pool = 0;
-/*@null@*/ struct memory_pool *tree_node_pool = 0;
-/*@null@*/ struct memory_pool *tree_node_pointer_pool = 0;
+/*@-nullpass@*/
+/*@-nullderef@*/
+/*@-usereleased@*/
+/*@-compdef@*/
+/* uh... yeah, looks like splint can't seem to get through some logic in loop
+   conditionals... */
+
+/*@-temptrans@*/
+/*@-mustfreeonly@*/
+/* oh, i give up... */
+
+/*@notnull@*/ struct memory_pool *tree_root_pool = 0;
+/*@notnull@*/ struct memory_pool *tree_node_pool;
+/*@notnull@*/ struct memory_pool *tree_node_pointer_pool;
 
 struct tree * tree_create () {
     struct tree *tree;
@@ -76,7 +75,7 @@ struct tree * tree_create () {
     return tree;
 }
 
-static void node_destroy(/*@only@*/ struct tree_node *node)
+static void node_destroy(/*@null@*/ /*@owned@*/ struct tree_node *node)
 {
     if (node != (struct tree_node *)0) {
         node_destroy ((void *)node->left);
@@ -98,8 +97,8 @@ void tree_destroy (struct tree *tree) {
     optimise_memory_pool (tree_node_pointer_pool);
 }
 
-static void tree_add_node_to_tree (/*@shared@*/ struct tree *tree, /*@only@*/ struct tree_node *node, int_pointer key) {
-    struct tree_node *cur, *last;
+static void tree_add_node_to_tree (/*@dependent@*/ struct tree *tree, /*@only@*/ struct tree_node *node, int_pointer key) {
+    struct tree_node *cur = tree->root, *last = (struct tree_node *)0;
 
     node->key = key;
     node->left = (struct tree_node *)0;
@@ -111,8 +110,7 @@ static void tree_add_node_to_tree (/*@shared@*/ struct tree *tree, /*@only@*/ st
         return;
     }
 
-    for (cur = tree->root;
-         cur != (struct tree_node *)0; ) {
+    for (; cur != (struct tree_node *)0; ) {
         last = cur;
         if (key > cur->key) {
             cur = cur->right;
@@ -143,9 +141,9 @@ void tree_add_node_value (struct tree *tree, int_pointer key, void *value) {
 }
 
 struct tree_node * tree_get_node (struct tree *tree, int_pointer key) {
-    struct tree_node *cur;
+    /*@null@*/ struct tree_node *cur = tree->root;
 
-    for (cur = tree->root; cur != (struct tree_node *)0; ) {
+    while (cur != (struct tree_node *)0) {
         if (cur->key == key) break;
 
         if (key > cur->key) {
@@ -158,7 +156,7 @@ struct tree_node * tree_get_node (struct tree *tree, int_pointer key) {
     return cur;
 }
 
-static void node_rotate (struct tree_node **root, struct tree_node *old, struct tree_node *new) {
+static void node_rotate (struct tree_node **root, /*owned*/ struct tree_node *old, /*owned*/ struct tree_node *new) {
     if (old->left == new) {
         old->left = new->right;
         new->right = old;
@@ -173,10 +171,9 @@ static void node_rotate (struct tree_node **root, struct tree_node *old, struct 
 }
 
 void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_node *node) {
-    struct tree_node *cur, *last;
+    struct tree_node *cur = tree->root, *last = last = (struct tree_node *)0;
 
-    for (cur = tree->root, last = (struct tree_node *)0;
-         cur != (struct tree_node *)0; ) {
+    while (cur != (struct tree_node *)0) {
 
         if ((cur->key == key) &&
             ((node == (struct tree_node *)0) ||
@@ -239,7 +236,7 @@ void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_
     }
 }
 
-static void tree_map_worker(struct tree_node *node, void (*callback)(struct tree_node *, void *), void *sv) {
+static void tree_map_worker(/*@null@*/ struct tree_node *node, void (*callback)(struct tree_node *, void *), void *sv) {
     if (node != (struct tree_node *)0) {
         tree_map_worker ((void *)node->left, callback, sv);
         tree_map_worker ((void *)node->right, callback, sv);

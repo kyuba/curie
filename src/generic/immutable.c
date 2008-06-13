@@ -42,20 +42,19 @@
 
 #define IMMUTABLE_CHUNKSIZE (4096*2)
 
-/*@-observertrans@*/
-/* there's a warning emitted for our use of "" for empty strings */
+/*@-onlytrans@*/
 
-/*@null@*/ static char *immutable_string_data = (char *)0;
-/*@null@*/ static char *immutable_string_cursor = (char *)0;
-static unsigned long immutable_string_data_size = 0;
-static unsigned long immutable_string_data_space_left = 0;
+/*@notnull@*/ static char *immutable_data;
+/*@notnull@*/ static char *immutable_cursor;
+static unsigned long immutable_data_size = 0;
+static unsigned long immutable_data_space_left = 0;
 
-/*@null@*/ static struct tree *immutable_strings = (struct tree *)0;
+/*@null@*/ /*@owned@*/ static struct tree *immutable_strings = (struct tree *)0;
 
 const char *str_immutable ( const char * string ) {
-    int stringlength = 0;
-    const char *rv;
+    unsigned long stringlength = 0;
 
+    /* the compiler should put static strings into read-only storage... */
     if (string[0] == (char)0) return (const char *)"";
 
     if (immutable_strings == (struct tree *)0) {
@@ -68,38 +67,48 @@ const char *str_immutable ( const char * string ) {
 
     stringlength++; /* add an extra character for the terminating 0 */
 
-    if (stringlength > immutable_string_data_space_left) {
+    return (char *)immutable (string, stringlength);
+}
+
+const void *immutable ( const void * data, unsigned long length ) {
+    const char *rv;
+    const char *data_char = (const char *)data;
+
+    if (length > immutable_data_space_left) {
         unsigned long new_size = IMMUTABLE_CHUNKSIZE;
         lock_immutable_pages();
 
-        if (stringlength > IMMUTABLE_CHUNKSIZE) {
-            new_size = ((stringlength / IMMUTABLE_CHUNKSIZE) +
-                        (((stringlength % IMMUTABLE_CHUNKSIZE) != 0) ? 1 : 0))
-                        * IMMUTABLE_CHUNKSIZE;
+        if (length > IMMUTABLE_CHUNKSIZE) {
+            new_size = ((length / IMMUTABLE_CHUNKSIZE) +
+                    (((length % IMMUTABLE_CHUNKSIZE) != 0) ? 1 : 0))
+                    * IMMUTABLE_CHUNKSIZE;
         }
 
-        immutable_string_data = get_mem(new_size);
-        immutable_string_data_space_left = new_size;
-        immutable_string_cursor = immutable_string_data;
-        immutable_string_data_size = new_size;
+        immutable_data = get_mem(new_size);
+        immutable_data_space_left = new_size;
+        immutable_cursor = immutable_data;
+        immutable_data_size = new_size;
     }
 
-    rv = immutable_string_cursor;
+    rv = immutable_cursor;
 
-    for (stringlength = 0; string[stringlength] != (char)0;
-         immutable_string_cursor++, stringlength++) {
+    for (; length != 0;
+         immutable_cursor++,
+         data_char++,
+         length--,
+         immutable_data_space_left--) {
 
-        *immutable_string_cursor = string[stringlength];
+         *immutable_cursor = *data_char;
     }
 
     return rv;
 }
 
 void lock_immutable_pages ( void ) {
-    if (immutable_string_data_size != 0) {
-        mark_mem_ro (immutable_string_data_size, immutable_string_data);
+    if (immutable_data_size != 0) {
+        mark_mem_ro (immutable_data_size, immutable_data);
     }
 
-    immutable_string_data_size = 0;
-    immutable_string_data_space_left = 0;
+    immutable_data_size = 0;
+    immutable_data_space_left = 0;
 }

@@ -64,22 +64,36 @@ static unsigned int test_tree_node_removal(unsigned int keys) {
     for (i = 1; i < keys; i+=2) {
         n = tree_get_node (t, i);
 
-        if (n == (struct tree_node *)0) return 15;
-        if (n->key != i) return 16;
-        if (node_get_value (n) != sentinelvalue(i))
+        if (n == (struct tree_node *)0) {
+            tree_destroy(t);
+            return 15;
+        }
+        if (n->key != i) {
+            tree_destroy(t);
+            return 16;
+        }
+        if (node_get_value (n) != sentinelvalue(i)) {
+            tree_destroy(t);
             return 17;
+        }
     }
 
     /* search for the nodes that should be missing */
     for (i = 0; i < keys; i+=2) {
         n = tree_get_node (t, i);
 
-        if (n != (struct tree_node *)0) return 18;
+        if (n != (struct tree_node *)0) {
+            tree_destroy(t);
+            return 18;
+        }
     }
 
     /* search for an arbitrary node that can't be present */
     n = tree_get_node (t, keys + 1);
-    if (n != (struct tree_node *)0) return 19;
+    if (n != (struct tree_node *)0) {
+        tree_destroy(t);
+        return 19;
+    }
 
     /* we do the searches twice to stress the optimising algo once it's in */
 
@@ -87,17 +101,28 @@ static unsigned int test_tree_node_removal(unsigned int keys) {
     for (i = 1; i < keys; i+=2) {
         n = tree_get_node (t, i);
 
-        if (n == (struct tree_node *)0) return 20;
-        if (n->key != i) return 21;
-        if (node_get_value (n) != sentinelvalue(i))
+        if (n == (struct tree_node *)0) {
+            tree_destroy(t);
+            return 20;
+        }
+        if (n->key != i) {
+            tree_destroy(t);
+            return 21;
+        }
+        if (node_get_value (n) != sentinelvalue(i)) {
+            tree_destroy(t);
             return 22;
+        }
     }
 
     /* search for the nodes that should be missing */
     for (i = 0; i < keys; i+=2) {
         n = tree_get_node (t, i);
 
-        if (n != (struct tree_node *)0) return 23;
+        if (n != (struct tree_node *)0) {
+            tree_destroy(t);
+            return 23;
+        }
     }
 
     /* remove the remaining nodes */
@@ -106,6 +131,7 @@ static unsigned int test_tree_node_removal(unsigned int keys) {
     }
 
     if (t->root != (struct tree_node *)0) {
+        tree_destroy(t);
         return 24;
     }
 

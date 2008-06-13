@@ -38,8 +38,12 @@
 
 #include "atomic/nucleus.h"
 
+/*@-unreachable@*/
+/* this annotiation makes sure to inhibit the warning on the 'return 1'
+   statement, because we intend to test _atomic_exit() to behave correctly. */
+
 int atomic_main(void) {
 /* test the _atomic_exit() call */
     _atomic_exit(0);
-	return 1;
+    return 1;
 }
