@@ -51,6 +51,11 @@
 /*@+charint@*/
 /* markos' string hash function requires these */
 
+/*@-usereleased@*/
+/* there is a false positive in the str_immutable_unaligned() function, because
+   str_immutable() is allowed to return the same string as its input; however,
+   in the given use case, that is impossible. */
+
 /*@notnull@*/ static char *immutable_data;
 /*@notnull@*/ static char *immutable_cursor;
 static unsigned long immutable_data_size = 0;
@@ -156,7 +161,7 @@ const char *str_immutable_unaligned (const char * string) {
     unsigned int length;
     const char *rv;
 
-    for (length = 0; string[length]; length++);
+    for (length = 0; string[length] != (char)0; length++);
     length++;
 
     if (((length % 8) == 0) && ((((int_pointer)string) % 8) == 0)) {
@@ -170,7 +175,7 @@ const char *str_immutable_unaligned (const char * string) {
         r = get_mem (length); /* the return value of this is always suitable for
                                  our purposes. */
 
-        for (i = 0; string[i]; i++) r[i] = string[i];
+        for (i = 0; string[i] != (char)0; i++) r[i] = string[i];
 
         rv = str_immutable (r);
 
