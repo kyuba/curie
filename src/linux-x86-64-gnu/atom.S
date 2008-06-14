@@ -40,11 +40,26 @@
 
 .globl  last_error_recoverable_p
         .data
-        .type last_error_recoverable_p @object
+        .type last_error_recoverable_p, @object
         .size last_error_recoverable_p, 1
 
 last_error_recoverable_p:
         .byte 1
+
+.globl atomic_argv
+.type atomic_argv, @object
+        .size atomic_argv, 8
+
+atomic_argv:
+        .quad 0x0
+
+.globl atomic_environment
+.type atomic_environment, @object
+        .size atomic_environment, 8
+
+atomic_environment:
+        .quad 0x0
+
 
 .text
         .align 8

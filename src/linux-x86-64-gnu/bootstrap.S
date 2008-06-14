@@ -1,5 +1,5 @@
 /*
- *  linux-x86-64-gnu/atomic-startup.S
+ *  linux-x86-64-gnu/bootstrap.S
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 14/06/2008.

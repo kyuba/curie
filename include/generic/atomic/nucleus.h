@@ -56,7 +56,8 @@ extern "C" {
   int atomic_main();
 
   extern char last_error_recoverable_p;
-  extern void _start();
+  extern char **atomic_argv;
+  extern char **atomic_environment;
 #ifdef __cplusplus
 }
 #endif

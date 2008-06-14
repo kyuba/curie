@@ -1,5 +1,5 @@
 /*
- *  atomic-startup.c
+ *  bootstrap.c
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 14/06/2008.
@@ -36,10 +36,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+extern char **atomic_argv;
+extern char **atomic_environment;
 int atomic_main();
 
-int   main ()
+/*@-maintype@*/
+
+int   main (/*@unused@*/ int argc, char **argv, char **env)
 {
-    int rv = atomic_main();
+    int rv;
+
+    atomic_argv = argv;
+    atomic_environment = env;
+
+    rv = atomic_main();
     return rv;
 }

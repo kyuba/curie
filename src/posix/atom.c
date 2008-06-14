@@ -57,7 +57,9 @@ int    _atomic_kill (int pid, int sig)
 /*@globals errno;@*/;
 
 int atomic_main();
-  
+/*@null@*/ char **atomic_argv = (char **)0;
+/*@null@*/ char **atomic_environment = (char **)0;
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -143,11 +145,5 @@ int   _atomic_kill (int pid, int sig)
 {
     int rv = kill ((pid_t)pid, sig);
     if (rv < 0) examine_error();
-    return rv;
-}
-
-int   main ()
-{
-    int rv = atomic_main();
     return rv;
 }
