@@ -1,3 +1,11 @@
+# LIBRARY FILES
+sourcefiles = [ 'atom', 'sexpr', 'io', 'memory-pool', 'memory', 'tree', 'exec',\
+                'progress', 'immutable', 'string' ]
+
+needforstandalone = [ 'atom', 'memory' ]
+
+
+
 import os
 
 arch=os.uname()[4].lower()
@@ -32,7 +40,7 @@ def fileexists(name):
 
 def haveasm(name):
   global paths
-  
+
   for i in paths:
     if fileexists('src/' + i + name + '.S') or fileexists('src/' + i + name + '.s'):
       return True
@@ -50,6 +58,15 @@ def findsource(name):
 def writepkgconfig():
   return False
 
+def standalone():
+  global needforstandalone
+
+  for i in needforstandalone:
+    if not haveasm(i):
+      return False
+
+  return True
+
 env = Environment()
 
 for i in paths:
@@ -58,16 +75,12 @@ for i in paths:
 
 env.Append(LIBPATH = '.', CFLAGS='--std=c99 -Wall -pedantic')
 
-if haveasm('atom') and haveasm('memory'):
+if standalone():
   print 'adjusting linker flags for using assembly atomic-libc'
   env.Append(CFLAGS = '-ffreestanding',
              LINKFLAGS = '-static -nostdlib -nostartfiles -nodefaultlibs')
 else:
   print 'adjusting linker flags for using host-libc based atomic-libc'
-
-# LIBRARY FILES
-
-sourcefiles = [ 'atom', 'sexpr', 'io', 'memory-pool', 'memory', 'tree', 'exec', 'progress', 'immutable', 'string' ]
 
 sf = []
 
