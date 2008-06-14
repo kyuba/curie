@@ -4,7 +4,7 @@ sourcefiles = [ 'bootstrap', 'atom', 'sexpr', 'io', 'memory-pool',
 
 needforstandalone = [ 'atom', 'memory', 'bootstrap' ]
 
-
+debug = False
 
 import os
 
@@ -73,7 +73,10 @@ for i in paths:
   if fileexists('include/' + i):
     env.Append (CPPPATH = '#include/' + i)
 
-env.Append(LIBPATH = '.', CFLAGS='--std=c99 -Wall -pedantic -g')
+env.Append(LIBPATH = '.', CFLAGS='--std=c99 -Wall -pedantic')
+
+if debug:
+  env.Append(CFLAGS='-g')
 
 if standalone():
   print 'adjusting linker flags for using assembly atomic-libc'
@@ -93,7 +96,7 @@ import glob
 testsource = glob.glob('tests/*.c');
 
 tenv = env.Clone()
-tenv.Append(LIBS = ['atomic'], CFLAGS='-g')
+tenv.Append(LIBS = ['atomic'])
 
 for i in testsource:
   tenv.Program(i)

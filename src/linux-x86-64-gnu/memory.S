@@ -38,7 +38,7 @@
 
 #include <asm/unistd.h>
 #define _PAGESIZE         0x1000
-#define _PAGESIZE_INVERSE 0x0fff
+#define _PAGESIZE_INVERSE ~0x0fff
 
 .globl get_mem
 .globl free_mem
@@ -74,32 +74,32 @@ cmopsass:
    argument. after that, do the actual syscall that was prepared in advance.
    input length is expected to be in %rsi as well. */
         movq %rsi, %r11
-        and $_PAGESIZE_INVERSE, %rsi
-        cmp %r11, %rsi
-        je do_syscall
-        add $_PAGESIZE, %rsi
+        andq $_PAGESIZE_INVERSE, %rsi
+        cmpq %rsi, %r11
+        jz do_syscall
+        addq $_PAGESIZE, %rsi
 do_syscall:
         syscall
         cmp $0, %rax
         js negative_result
         leave
-        retq
+        ret
 negative_result:
         movq $0, %rax
         leave
-        retq
+        ret
 
 get_mem_chunk:
         pushq   %rbp
         movq    %rsp, %rbp
-        movq $_PAGESIZE, %rdi
+        movq $_PAGESIZE, %rsi
         jmp get_mem_innards
 get_mem:
         pushq   %rbp
         movq    %rsp, %rbp
+        movq %rdi, %rsi
 get_mem_innards:
         movq $__NR_mmap, %rax
-        movq %rdi, %rsi
         movq $0, %rdi /* pass 0-pointer as start address */
         movq $0x3, %rdx /* PROT_READ | PROT_WRITE */
         movq $0x22, %r10 /* MAP_ANON | MAP_PRIVATE */
@@ -131,10 +131,10 @@ resize_mem:
         movq $0x0, %r8
 
         movq %rdx, %r11
-        and $_PAGESIZE_INVERSE, %rdx
-        cmp %r11, %rdx
-        je cmopsass
-        add $_PAGESIZE, %rdx
+        andq $_PAGESIZE_INVERSE, %rdx
+        cmpq %rdx, %r11
+        jz cmopsass
+        addq $_PAGESIZE, %rdx
         jmp cmopsass
 
 mark_mem_ro:
