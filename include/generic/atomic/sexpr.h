@@ -117,8 +117,8 @@ const struct sexpr * const sx_nonexistent;
 #define nexp(sx)   (((sx) == sx_nonexistent)  || ((sx)->type == sxt_nonexistent))
 
 #define consp(sx)    ((sx)->type == sxt_cons)
-#define stringp(sx)  (((sx)->type == sxt_string) || ((sx)->type == sxt_inline_string))
-#define symbolp(sx)  (((sx)->type == sxt_symbol) || ((sx)->type == sxt_inline_symbol))
+#define stringp(sx)  ((sx)->type == sxt_string)
+#define symbolp(sx)  ((sx)->type == sxt_symbol)
 #define integerp(sx) ((sx)->type == sxt_integer)
 
 #define car(sx)        (((sx)->type == sxt_cons) ? (((struct sexpr_cons *)(sx))->car) : sx_nonexistent)
