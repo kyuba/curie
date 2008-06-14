@@ -53,30 +53,27 @@ enum sx_type {
   sxt_end_of_list = 8,
   sxt_end_of_file = 9,
   sxt_not_a_number = 10,
-  sxt_nonexistent = 11,
-  sxt_inline_string = 12,
-  sxt_inline_symbol = 13
+  sxt_nonexistent = 11
 };
-
-struct sexpr;
-
-#define MAX_SEXPR_INLINE_SIZE (sizeof(struct sexpr *) * 2)
 
 struct sexpr {
   enum sx_type type;
+};
 
-  union {
-    struct {
-	  struct sexpr *car;
-	  struct sexpr *cdr;
-	} cons;
+struct sexpr_integer {
+    enum sx_type type;
+    signed long long integer;
+};
 
-	const char *string;
+struct sexpr_cons {
+    enum sx_type type;
+    struct sexpr *car;
+    struct sexpr *cdr;
+};
 
-	signed long long integer;
-	
-	char inline_string[MAX_SEXPR_INLINE_SIZE];
-  } data;
+struct sexpr_string_or_symbol {
+    enum sx_type type;
+    char character_data[];
 };
 
 struct sexpr_io {
@@ -124,13 +121,11 @@ const struct sexpr * const sx_nonexistent;
 #define symbolp(sx)  (((sx)->type == sxt_symbol) || ((sx)->type == sxt_inline_symbol))
 #define integerp(sx) ((sx)->type == sxt_integer)
 
-#define car(sx) (((sx)->type == sxt_cons) ? ((sx)->data.cons.car) : sx_nonexistent)
-#define cdr(sx) (((sx)->type == sxt_cons) ? ((sx)->data.cons.cdr) : sx_nonexistent)
+#define car(sx)        (((sx)->type == sxt_cons) ? (((struct sexpr_cons *)(sx))->car) : sx_nonexistent)
+#define cdr(sx)        (((sx)->type == sxt_cons) ? (((struct sexpr_cons *)(sx))->cdr) : sx_nonexistent)
 
-#define sx_integer(sx) (((sx)->type == sxt_integer) ? ((sx)->data.integer) : -1)
-#define sx_string(sx)  (const char *)(((sx)->type == sxt_string)  ? ((sx)->data.string)  :\
-                                      (((sx)->type == sxt_inline_string) ? ((sx)->data.inline_string)  : "#nonexistent"))
-#define sx_symbol(sx)  (const char *)(((sx)->type == sxt_symbol)  ? ((sx)->data.string)  :\
-                                      (((sx)->type == sxt_inline_symbol) ? ((sx)->data.inline_string)  : "#nonexistent"))
+#define sx_integer(sx) (((sx)->type == sxt_integer) ? (((struct sexpr_integer *)(sx))->integer) : -1)
+#define sx_string(sx)  (const char *)(((sx)->type == sxt_string) ? (((struct sexpr_string_or_symbol *)(sx))->character_data) : "#nonexistent")
+#define sx_symbol(sx)  (const char *)(((sx)->type == sxt_symbol) ? (((struct sexpr_string_or_symbol *)(sx))->character_data) : "#nonexistent")
 
 #endif
