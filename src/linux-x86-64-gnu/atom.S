@@ -36,8 +36,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <asm/unistd.h>
-
 .globl  last_error_recoverable_p
         .data
         .type last_error_recoverable_p, @object
@@ -89,26 +87,26 @@ atomic_environment:
 _atomic_exit:
     pushq   %rbp
     movq    %rsp, %rbp
-    movq $__NR_exit, %rax
+    movq    $60, %rax /* sys_exit */
     jmp syscall_with_cleanup
 
 _atomic_read:
     pushq   %rbp
     movq    %rsp, %rbp
-    movq $__NR_read, %rax
+    movq $0, %rax /* sys_read */
     jmp syscall_with_cleanup
 
 _atomic_write:
     pushq   %rbp
     movq    %rsp, %rbp
-    movq $__NR_write, %rax
+    movq $1, %rax /* sys_write */
     jmp syscall_with_cleanup
 
 _atomic_open_read:
     pushq   %rbp
     movq    %rsp, %rbp
     /* %rdi is inherited from the callee */
-    movq $__NR_open, %rax
+    movq $2, %rax /* sys_open */
     movq $0x800, %rsi /* O_RDONLY | O_NONBLOCK */
     jmp syscall_with_cleanup
 
@@ -116,7 +114,7 @@ _atomic_open_write:
     pushq   %rbp
     movq    %rsp, %rbp
     /* %rdi is inherited from the callee */
-    movq $__NR_open, %rax
+    movq $2, %rax /* sys_open */
     movq $0x841, %rsi /* O_WRONLY | O_NONBLOCK | O_CREAT */
     movq $0x1b6, %rdx
     jmp syscall_with_cleanup
@@ -125,16 +123,23 @@ _atomic_close:
     pushq   %rbp
     movq    %rsp, %rbp
     /* %rdi is inherited from the callee */
-    movq $__NR_close, %rax
+    movq $3, %rax /* sys_close */
     jmp syscall_with_cleanup
 
 _atomic_create:
     pushq   %rbp
     movq    %rsp, %rbp
     /* %rdi is inherited from the callee */
-    movq $__NR_open, %rax
+    movq $2, %rax /* sys_open */
     movq %rsi, %rdx
     movq $0x841, %rsi /* O_WRONLY | O_NONBLOCK | O_CREAT */
+    jmp syscall_with_cleanup
+
+_atomic_kill:
+    pushq   %rbp
+    movq    %rsp, %rbp
+    /* %rdi and %si are inherited from the callee */
+    movq $62, %rax /* sys_kill */
     jmp syscall_with_cleanup
 
 syscall_with_cleanup:

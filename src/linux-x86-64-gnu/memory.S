@@ -36,7 +36,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <asm/unistd.h>
 #define _PAGESIZE         0x1000
 #define _PAGESIZE_INVERSE ~0x0fff
 
@@ -99,7 +98,7 @@ get_mem:
         movq    %rsp, %rbp
         movq %rdi, %rsi
 get_mem_innards:
-        movq $__NR_mmap, %rax
+        movq $9, %rax /* sys_mmap */
         movq $0, %rdi /* pass 0-pointer as start address */
         movq $0x3, %rdx /* PROT_READ | PROT_WRITE */
         movq $0x22, %r10 /* MAP_ANON | MAP_PRIVATE */
@@ -111,7 +110,7 @@ free_mem:
         pushq   %rbp
         movq    %rsp, %rbp
 
-        movq $__NR_munmap, %rax
+        movq $11, %rax /* sys_munmap */
         xor %rsi, %rdi
         xor %rdi, %rsi
         xor %rsi, %rdi
@@ -122,7 +121,7 @@ resize_mem:
         pushq   %rbp
         movq    %rsp, %rbp
 
-        movq $__NR_mremap, %rax
+        movq $25, %rax /* sys_mremap */
         xor %rsi, %rdi
         xor %rdi, %rsi
         xor %rsi, %rdi
@@ -141,7 +140,7 @@ mark_mem_ro:
         pushq   %rbp
         movq    %rsp, %rbp
 
-        movq $__NR_mprotect, %rax
+        movq $10, %rax /* sys_mprotect */
         xor %rsi, %rdi
         xor %rdi, %rsi
         xor %rsi, %rdi
@@ -153,7 +152,7 @@ mark_mem_rw:
         pushq   %rbp
         movq    %rsp, %rbp
 
-        movq $__NR_mprotect, %rax
+        movq $10, %rax /* sys_mprotect */
         xor %rsi, %rdi
         xor %rdi, %rsi
         xor %rsi, %rdi

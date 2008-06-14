@@ -36,8 +36,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <asm/unistd.h>
-
 .text
         .align 8
 
@@ -57,7 +55,7 @@ _start:
 
     call atomic_main
     movq %rax, %rdi
-    movq $__NR_exit, %rax
+    movq $60, %rax /* sys_exit */
     syscall
 
 #if defined(__ELF__)
