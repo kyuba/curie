@@ -89,15 +89,14 @@ negative_result:
         ret
 
 get_mem_chunk:
-        pushq   %rbp
-        movq    %rsp, %rbp
         movq $_PAGESIZE, %rsi
         jmp get_mem_innards
 get_mem:
-        pushq   %rbp
-        movq    %rsp, %rbp
         movq %rdi, %rsi
 get_mem_innards:
+        pushq   %rbp
+        movq    %rsp, %rbp
+
         movq $9, %rax /* sys_mmap */
         movq $0, %rdi /* pass 0-pointer as start address */
         movq $0x3, %rdx /* PROT_READ | PROT_WRITE */
@@ -136,19 +135,12 @@ resize_mem:
         addq $_PAGESIZE, %rdx
         jmp cmopsass
 
-mark_mem_ro:
-        pushq   %rbp
-        movq    %rsp, %rbp
-
-        movq $10, %rax /* sys_mprotect */
-        xor %rsi, %rdi
-        xor %rdi, %rsi
-        xor %rsi, %rdi
-
-        movq $0x1, %rdx
-        jmp cmopsass
-
 mark_mem_rw:
+        movq $0x3, %rdx
+        jmp mark_mem
+mark_mem_ro:
+        movq $0x1, %rdx
+mark_mem:
         pushq   %rbp
         movq    %rsp, %rbp
 
@@ -157,7 +149,6 @@ mark_mem_rw:
         xor %rdi, %rsi
         xor %rsi, %rdi
 
-        movq $0x3, %rdx
         jmp cmopsass
 
 #if defined(__ELF__)
