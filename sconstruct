@@ -1,8 +1,8 @@
 # LIBRARY FILES
-sourcefiles = [ 'atom', 'sexpr', 'io', 'memory-pool', 'memory', 'tree', 'exec',\
-                'progress', 'immutable', 'string' ]
+sourcefiles = [ 'bootstrap', 'atom', 'sexpr', 'io', 'memory-pool',
+                'memory', 'tree', 'exec', 'progress', 'immutable', 'string' ]
 
-needforstandalone = [ 'atom', 'memory' ]
+needforstandalone = [ 'atom', 'memory', 'bootstrap' ]
 
 
 
@@ -73,12 +73,12 @@ for i in paths:
   if fileexists('include/' + i):
     env.Append (CPPPATH = '#include/' + i)
 
-env.Append(LIBPATH = '.', CFLAGS='--std=c99 -Wall -pedantic')
+env.Append(LIBPATH = '.', CFLAGS='--std=c99 -Wall -pedantic -g')
 
 if standalone():
   print 'adjusting linker flags for using assembly atomic-libc'
   env.Append(CFLAGS = '-ffreestanding',
-             LINKFLAGS = '-static -nostdlib -nostartfiles -nodefaultlibs')
+             LINKFLAGS = '-static -nostdlib -nostartfiles -nodefaultlibs -u _start')
 else:
   print 'adjusting linker flags for using host-libc based atomic-libc'
 
@@ -93,7 +93,7 @@ import glob
 testsource = glob.glob('tests/*.c');
 
 tenv = env.Clone()
-tenv.Append(LIBS = ['atomic'])
+tenv.Append(LIBS = ['atomic'], CFLAGS='-g')
 
 for i in testsource:
   tenv.Program(i)

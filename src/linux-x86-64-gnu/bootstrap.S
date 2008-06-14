@@ -1,8 +1,8 @@
 /*
- *  nucleus.h
+ *  linux-x86-64-gnu/atomic-startup.S
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 26/05/2008.
+ *  Created by Magnus Deininger on 14/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,29 +36,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_NUCLEUS_H
-#define ATOMIC_NUCLEUS_H
+#include <asm/unistd.h>
 
-#ifdef __cplusplus
-extern "C" {
+.text
+
+.globl atomic_main
+        .type atomic_main,             @function
+.globl _start
+        .type _start,                  @function
+
+/* C-functions: */
+/* rdi rsi rdx rcx r8 r9 */
+/* kernel: */
+/* rdi rsi rdx r10 r8 r9 */
+
+_start:
+    pushq   %rbp
+    movq    %rsp, %rbp
+
+    call atomic_main
+    movq %rax, %rdi
+    movq $__NR_exit, %rax
+    syscall
+
+#if defined(__ELF__)
+          .section .note.GNU-stack,"",%progbits
 #endif
-  /*@noreturn@*/ void   _atomic_exit  (int status);
-  int    _atomic_read  (int fd, /*@out@*/ void *buf, unsigned int count);
-  int    _atomic_write (int fd, const void *buf, unsigned int count);
 
-  int    _atomic_open_read (const char *path);
-  int    _atomic_open_write (const char *path);
-  int    _atomic_create (const char *path, int mode);
-  int    _atomic_close (int fd);
-
-  int    _atomic_kill (int pid, int sig);
-
-  int atomic_main();
-
-  extern char last_error_recoverable_p;
-  extern void _start();
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* NUCLEUS_H */
