@@ -85,34 +85,24 @@ atomic_environment:
 /* rdi rsi rdx r10 r8 r9 */
 
 _atomic_exit:
-    pushq   %rbp
-    movq    %rsp, %rbp
     movq    $60, %rax /* sys_exit */
     jmp syscall_with_cleanup
 
 _atomic_read:
-    pushq   %rbp
-    movq    %rsp, %rbp
     movq $0, %rax /* sys_read */
     jmp syscall_with_cleanup
 
 _atomic_write:
-    pushq   %rbp
-    movq    %rsp, %rbp
     movq $1, %rax /* sys_write */
     jmp syscall_with_cleanup
 
 _atomic_open_read:
-    pushq   %rbp
-    movq    %rsp, %rbp
     /* %rdi is inherited from the callee */
     movq $2, %rax /* sys_open */
     movq $0x800, %rsi /* O_RDONLY | O_NONBLOCK */
     jmp syscall_with_cleanup
 
 _atomic_open_write:
-    pushq   %rbp
-    movq    %rsp, %rbp
     /* %rdi is inherited from the callee */
     movq $2, %rax /* sys_open */
     movq $0x841, %rsi /* O_WRONLY | O_NONBLOCK | O_CREAT */
@@ -120,15 +110,11 @@ _atomic_open_write:
     jmp syscall_with_cleanup
 
 _atomic_close:
-    pushq   %rbp
-    movq    %rsp, %rbp
     /* %rdi is inherited from the callee */
     movq $3, %rax /* sys_close */
     jmp syscall_with_cleanup
 
 _atomic_create:
-    pushq   %rbp
-    movq    %rsp, %rbp
     /* %rdi is inherited from the callee */
     movq $2, %rax /* sys_open */
     movq %rsi, %rdx
@@ -136,13 +122,14 @@ _atomic_create:
     jmp syscall_with_cleanup
 
 _atomic_kill:
-    pushq   %rbp
-    movq    %rsp, %rbp
     /* %rdi and %si are inherited from the callee */
     movq $62, %rax /* sys_kill */
     jmp syscall_with_cleanup
 
 syscall_with_cleanup:
+    pushq   %rbp
+    movq    %rsp, %rbp
+
     syscall
     cmp $0, %rax
     js negative_result
