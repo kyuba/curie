@@ -39,6 +39,7 @@
 #include <asm/unistd.h>
 
 .text
+        .align 8
 
 .globl atomic_main
         .type atomic_main,             @function
