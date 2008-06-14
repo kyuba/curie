@@ -80,18 +80,17 @@ struct sexpr_io {
   struct io *in, *out;
 };
 
-struct sexpr_io *sx_open_io(struct io *, struct io *);
-struct sexpr_io *sx_open_io_fd(int, int);
+/*@notnull@*/ struct sexpr_io *sx_open_io(/*@notnull@*/ struct io *, /*@notnull@*/ struct io *);
+/*@notnull@*/ struct sexpr_io *sx_open_io_fd(int, int);
 
 #define sx_open_stdio() sx_open_io_fd(0, 1)
 
-struct sexpr *sx_read(struct sexpr_io *);
-char sx_write(struct sexpr_io *, struct sexpr *);
-void sx_free(struct sexpr *);
+/*@notnull@*/ struct sexpr *sx_read(/*@notnull@*/ struct sexpr_io *);
+char sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ struct sexpr *);
 
-struct sexpr *sx_create(enum sx_type);
-struct sexpr *sx_create_string(const char *);
-struct sexpr *sx_create_symbol(const char *);
+/*@notnull@*/ struct sexpr *sx_create(enum sx_type);
+/*@notnull@*/ struct sexpr *sx_create_string(/*@notnull@*/ const char *);
+/*@notnull@*/ struct sexpr *sx_create_symbol(/*@notnull@*/ const char *);
 
 void sx_destroy(struct sexpr *);
 

@@ -39,6 +39,7 @@
 #include <atomic/immutable.h>
 #include <atomic/memory.h>
 #include <atomic/tree.h>
+#include <atomic/string.h>
 #include <atomic/int.h>
 
 #define IMMUTABLE_CHUNKSIZE (4096*2)
@@ -46,10 +47,6 @@
 /*@-onlytrans@*/
 /*@-nullinit@*/
 /*@-temptrans@*/
-
-/*@-shiftimplementation@*/
-/*@+charint@*/
-/* markos' string hash function requires these */
 
 /*@-usereleased@*/
 /* there is a false positive in the str_immutable_unaligned() function, because
@@ -63,99 +60,6 @@ static unsigned long immutable_data_space_left = 0;
 
 /*@notnull@*/ /*@dependent@*/ static struct tree *immutable_strings = (struct tree *)0;
 /*@notnull@*/ /*@dependent@*/ static struct tree *immutable_string_hashes = (struct tree *)0;
-
-/**** begin ***** markos' hashing function ************************************/
-
-#undef get16bits
-#if (defined(__GNUC__) && defined(__i386__)) || defined(__WATCOMC__) \
-  || defined(_MSC_VER) || defined (__BORLANDC__) || defined (__TURBOC__)
-#define get16bits(d) (*((const int_16 *) (d)))
-#endif
-
-#if !defined (get16bits)
-#define get16bits(d) ((((int_32)(((const int_8 *)(d))[1])) << 8)\
-                       +(int_32)(((const int_8 *)(d))[0]) )
-#endif
-
-// Taken from
-// http://graphics.stanford.edu/~seander/bithacks.html#ZeroInWord
-#define HAS_ZERO_BYTE(v) (~((((v & 0x7F7F7F7FUL) + 0x7F7F7F7FUL) | v) | 0x7F7F7F7FUL))
-
-// data is guarranteed to be 32-bit aligned)
-static int_32 str_hash(/*@notnull@*/ const char *data, /*@out@*/ unsigned long *len)
-{
-    int_32 hash = 0, tmp, lw, mask, *p32;
-    int rem = 0;
-    char *p = (char *) data;
-    *len = 0;
-
-    // this unrolls to better optimized code on most compilers
-    do {
-        p32 = (int_32 *) (p);
-        lw = *p32;
-        mask = (int_32)HAS_ZERO_BYTE(lw);
-        // if mask == 0 p32 has no zero in it
-        if (mask == 0) {
-            // Do the hash calculation
-            hash += get16bits(p);
-            tmp = (get16bits(p + 2) << 11) ^ hash;
-            hash = (hash << 16) ^ tmp;
-            hash += hash >> 11;
-            p += sizeof(int_32);
-            // Increase len as well
-            (*len)++;
-        }
-    } while (mask == 0);
-
-    // Now we've got out of the loop, because we hit a zero byte,
-    // find out which exactly
-    if (p[0] == '\0')
-        rem = 0;
-    if (p[1] == '\0')
-        rem = 1;
-    if (p[2] == '\0')
-        rem = 2;
-    if (p[3] == '\0')
-        rem = 3;
-
-    /*
-     * Handle end cases 
-     */
-    switch (rem) {
-    case 3:
-        hash += get16bits(p);
-        hash ^= hash << 16;
-        hash ^= p[2] << 18;
-        hash += hash >> 11;
-        break;
-    case 2:
-        hash += get16bits(p);
-        hash ^= hash << 11;
-        hash += hash >> 17;
-        break;
-    case 1:
-        hash += *data;
-        hash ^= hash << 10;
-        hash += hash >> 1;
-    }
-    // len was calculated in 4-byte tuples,
-    // multiply it by 4 to get the number in bytes
-    *len = (*len << 2) + rem;
-
-    /*
-     * Force "avalanching" of final 127 bits 
-     */
-    hash ^= hash << 3;
-    hash += hash >> 5;
-    hash ^= hash << 4;
-    hash += hash >> 17;
-    hash ^= hash << 25;
-    hash += hash >> 6;
-
-    return hash;
-}
-
-/**** end ******* markos' hashing function ************************************/
 
 const char *str_immutable_unaligned (const char * string) {
     unsigned int length;
