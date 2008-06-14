@@ -128,6 +128,7 @@ resize_mem:
         xor %rsi, %rdi
 
         movq $0x1, %r10
+        movq $0x0, %r8
 
         movq %rdx, %r11
         and $_PAGESIZE_INVERSE, %rdx
