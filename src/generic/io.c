@@ -195,7 +195,7 @@ enum io_result io_read(struct io *io)
 
 enum io_result io_commit (struct io *io)
 {
-    int rv, pos;
+    int rv = -1, pos;
     unsigned int i;
 
     switch (io->type) {
