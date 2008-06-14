@@ -60,7 +60,7 @@
 #define HAS_ZERO_BYTE(v) (~((((v & 0x7F7F7F7FUL) + 0x7F7F7F7FUL) | v) | 0x7F7F7F7FUL))
 
 // data is guarranteed to be 32-bit aligned)
-int_32 str_hash(/*@notnull@*/ const char *data, /*@out@*/ unsigned long *len)
+int_32 str_hash(const char *data, unsigned long *len)
 {
     int_32 hash = 0, tmp, lw, mask, *p32;
     int rem = 0;
