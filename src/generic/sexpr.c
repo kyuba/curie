@@ -142,6 +142,3 @@ void sx_destroy(struct sexpr *sexpr) {
             return;
     }
 }
-
-void *sx_list_map (struct sexpr *sexpr, void (*callback)(struct sexpr *, void *), void *p);
-struct sexpr *sx_list_fold (struct sexpr *sexpr, void (*callback)(struct sexpr *));
