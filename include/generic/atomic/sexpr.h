@@ -88,9 +88,10 @@ struct sexpr_io {
 /*@notnull@*/ struct sexpr *sx_read(/*@notnull@*/ struct sexpr_io *);
 char sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ struct sexpr *);
 
-/*@notnull@*/ struct sexpr *sx_create(enum sx_type);
-/*@notnull@*/ struct sexpr *sx_create_string(/*@notnull@*/ const char *);
-/*@notnull@*/ struct sexpr *sx_create_symbol(/*@notnull@*/ const char *);
+/*@notnull@*/ struct sexpr *sx_cons(struct sexpr *, struct sexpr *);
+/*@notnull@*/ struct sexpr *sx_make_integer(signed long long);
+/*@notnull@*/ struct sexpr *sx_make_string(/*@notnull@*/ const char *);
+/*@notnull@*/ struct sexpr *sx_make_symbol(/*@notnull@*/ const char *);
 
 void sx_destroy(struct sexpr *);
 
