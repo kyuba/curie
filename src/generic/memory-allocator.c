@@ -1,8 +1,8 @@
 /*
- *  memory-chunks.c
+ *  memory-allocator.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 08/06/2008.
+ *  Created by Magnus Deininger on 15/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,30 +36,5 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/memory.h"
-
-#define CHUNKSLOTS (int)(mem_chunk_size/sizeof(int))
-
-int atomic_main(void) {
-    int *chunk = (int *)get_mem_chunk(), i;
-
-    if (mem_chunk_size == 0) {
-        free_mem_chunk(chunk);
-        return 1;
-    }
-
-    for (i = 0; i < CHUNKSLOTS; i++) {
-        chunk[i] = i;
-    }
-
-    for (i = 0; i < CHUNKSLOTS; i++) {
-        if (chunk[i] != i) {
-            free_mem_chunk(chunk);
-            return 2;
-        }
-    }
-
-    free_mem_chunk(chunk);
-
-    return 0;
-}
+#include <atomic/memory.h>
+#include <atomic/tree.h>
