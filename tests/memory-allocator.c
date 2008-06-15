@@ -40,7 +40,7 @@
 
 #define MAXSIZE 2048
 
-int test_aalloc (unsigned long size) {
+unsigned int test_aalloc (unsigned int size) {
     unsigned int *p = (unsigned int *)aalloc (size * sizeof (int));
     unsigned int i;
 
@@ -49,13 +49,19 @@ int test_aalloc (unsigned long size) {
     }
 
     for (i = 0; i < size; i++) {
-        if (p[i] != i) return 1;
+        if (p[i] != i) {
+            afree (size * sizeof(int), (void *)p);
+            return 1;
+        }
     }
 
     p = (unsigned int *)arealloc (size * sizeof (int), p, size*sizeof (int)*2);
 
     for (i = 0; i < size; i++) {
-        if (p[i] != i) return 2;
+        if (p[i] != i) {
+            afree ((size * sizeof(int) *2), (void *)p);
+            return 2;
+        }
     }
 
     for (i = 0; i < (size*2); i++) {
@@ -63,7 +69,10 @@ int test_aalloc (unsigned long size) {
     }
 
     for (i = 0; i < (size*2); i++) {
-        if (p[i] != i) return 3;
+        if (p[i] != i) {
+            afree ((size * sizeof(int) *2), (void *)p);
+            return 3;
+        }
     }
 
     afree ((size * sizeof(int) *2), (void *)p);
