@@ -65,38 +65,8 @@ const struct sexpr * const sx_end_of_file = &_sx_end_of_file;
 const struct sexpr * const sx_not_a_number = &_sx_not_a_number;
 const struct sexpr * const sx_nonexistent = &_sx_nonexistent;
 
-/*@notnull@*/ struct memory_pool *sx_io_pool = (struct memory_pool *)0;
 /*@notnull@*/ struct memory_pool *sx_cons_pool = (struct memory_pool *)0;
 /*@notnull@*/ struct memory_pool *sx_int_pool = (struct memory_pool *)0;
-
-struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
-    struct sexpr_io *rv;
-
-    if (sx_io_pool == (struct memory_pool *)0) {
-        sx_io_pool = create_memory_pool (sizeof (struct sexpr_io));
-    }
-
-    rv = get_pool_mem (sx_io_pool);
-
-    rv->in = in;
-    rv->out = out;
-
-    return rv;
-}
-
-struct sexpr_io *sx_open_io_fd(int in, int out) {
-    return sx_open_io (io_open (in), io_open(out));
-}
-
-void sx_close_io (struct sexpr_io *io) {
-    io_close (io->in);
-    io_close (io->out);
-
-    free_pool_mem (io);
-}
-
-struct sexpr *sx_read(struct sexpr_io *io);
-char sx_write(struct sexpr_io *io, struct sexpr *sexpr);
 
 struct sexpr *cons(struct sexpr *sx_car, struct sexpr *sx_cdr) {
     struct sexpr_cons *rv;

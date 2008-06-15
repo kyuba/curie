@@ -1,5 +1,5 @@
 /*
- *  sexpr-library.c
+ *  sexpr-read-write.c
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 15/06/2008.
@@ -36,7 +36,42 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+#include <atomic/memory.h>
 #include <atomic/sexpr.h>
 
-void *sx_list_map (struct sexpr *sexpr, void (*callback)(struct sexpr *, void *), void *p);
-struct sexpr *sx_list_fold (struct sexpr *sexpr, void (*callback)(struct sexpr *));
+/*@-nullinit@*/
+/* need some sentinel values... */
+
+/*@-mustfreeonly@*/
+/* somehow can't seem to write initialisers without this... */
+
+/*@notnull@*/ struct memory_pool *sx_io_pool = (struct memory_pool *)0;
+
+struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
+    struct sexpr_io *rv;
+
+    if (sx_io_pool == (struct memory_pool *)0) {
+        sx_io_pool = create_memory_pool (sizeof (struct sexpr_io));
+    }
+
+    rv = get_pool_mem (sx_io_pool);
+
+    rv->in = in;
+    rv->out = out;
+
+    return rv;
+}
+
+struct sexpr_io *sx_open_io_fd(int in, int out) {
+    return sx_open_io (io_open (in), io_open(out));
+}
+
+void sx_close_io (struct sexpr_io *io) {
+    io_close (io->in);
+    io_close (io->out);
+
+    free_pool_mem (io);
+}
+
+struct sexpr *sx_read(struct sexpr_io *io);
+char sx_write(struct sexpr_io *io, struct sexpr *sexpr);

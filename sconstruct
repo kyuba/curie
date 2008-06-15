@@ -1,7 +1,7 @@
 # LIBRARY FILES
 sourcefiles = [ 'bootstrap', 'atom', 'sexpr', 'io', 'memory-pool',
                 'memory', 'tree', 'exec', 'progress', 'immutable', 'string',
-                'memory-allocator', 'sexpr-library' ]
+                'memory-allocator', 'sexpr-library', 'sexpr-read-write' ]
 
 needforstandalone = [ 'atom', 'memory', 'bootstrap' ]
 
