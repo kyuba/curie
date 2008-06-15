@@ -42,22 +42,22 @@
 #include <atomic/io.h>
 
 enum sx_type {
-  sxt_nil = 0,
-  sxt_false = 1,
-  sxt_true = 2,
-  sxt_integer = 3,
-  sxt_string = 4,
-  sxt_symbol = 5,
-  sxt_cons = 6,
-  sxt_empty_list = 7,
-  sxt_end_of_list = 8,
-  sxt_end_of_file = 9,
-  sxt_not_a_number = 10,
-  sxt_nonexistent = 11
+    sxt_nil = 0,
+    sxt_false = 1,
+    sxt_true = 2,
+    sxt_integer = 3,
+    sxt_string = 4,
+    sxt_symbol = 5,
+    sxt_cons = 6,
+    sxt_empty_list = 7,
+    sxt_end_of_list = 8,
+    sxt_end_of_file = 9,
+    sxt_not_a_number = 10,
+    sxt_nonexistent = 11
 };
 
 struct sexpr {
-  enum sx_type type;
+    enum sx_type type;
 };
 
 struct sexpr_integer {
@@ -67,8 +67,8 @@ struct sexpr_integer {
 
 struct sexpr_cons {
     enum sx_type type;
-    struct sexpr *car;
-    struct sexpr *cdr;
+    /*dependent*/ struct sexpr *car;
+    /*dependent*/ struct sexpr *cdr;
 };
 
 struct sexpr_string_or_symbol {
@@ -80,32 +80,34 @@ struct sexpr_io {
   struct io *in, *out;
 };
 
-/*@notnull@*/ struct sexpr_io *sx_open_io(/*@notnull@*/ struct io *, /*@notnull@*/ struct io *);
-/*@notnull@*/ struct sexpr_io *sx_open_io_fd(int, int);
+/*@notnull@*/ /*@only@*/ struct sexpr_io *sx_open_io(/*@notnull@*/ /*@only@*/ struct io *, /*@notnull@*/ /*@only@*/ struct io *);
+/*@notnull@*/ /*@only@*/ struct sexpr_io *sx_open_io_fd(int, int);
 
 #define sx_open_stdio() sx_open_io_fd(0, 1)
+
+void sx_close_io (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
 
 /*@notnull@*/ struct sexpr *sx_read(/*@notnull@*/ struct sexpr_io *);
 char sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ struct sexpr *);
 
-/*@notnull@*/ struct sexpr *sx_cons(struct sexpr *, struct sexpr *);
-/*@notnull@*/ struct sexpr *sx_make_integer(signed long long);
-/*@notnull@*/ struct sexpr *sx_make_string(/*@notnull@*/ const char *);
-/*@notnull@*/ struct sexpr *sx_make_symbol(/*@notnull@*/ const char *);
+/*@notnull@*/ /*@only@*/ struct sexpr *cons(/*dependent*/ struct sexpr *, /*dependent*/ struct sexpr *);
+/*@notnull@*/ /*@only@*/ struct sexpr *make_integer(signed long long);
+/*@notnull@*/ /*@only@*/ struct sexpr *make_string(/*@notnull@*/ const char *);
+/*@notnull@*/ /*@only@*/ struct sexpr *make_symbol(/*@notnull@*/ const char *);
 
-void sx_destroy(struct sexpr *);
+void sx_destroy(/*@notnull@*/ /*@only@*/ struct sexpr *);
 
 void *sx_list_map (struct sexpr *, void (*)(struct sexpr *, void *), void *);
 struct sexpr *sx_list_fold (struct sexpr *, void (*)(struct sexpr *));
 
-const struct sexpr * const sx_nil;
-const struct sexpr * const sx_false;
-const struct sexpr * const sx_true;
-const struct sexpr * const sx_empty_list;
-const struct sexpr * const sx_end_of_list;
-const struct sexpr * const sx_end_of_file;
-const struct sexpr * const sx_not_a_number;
-const struct sexpr * const sx_nonexistent;
+extern const struct sexpr * const sx_nil;
+extern const struct sexpr * const sx_false;
+extern const struct sexpr * const sx_true;
+extern const struct sexpr * const sx_empty_list;
+extern const struct sexpr * const sx_end_of_list;
+extern const struct sexpr * const sx_end_of_file;
+extern const struct sexpr * const sx_not_a_number;
+extern const struct sexpr * const sx_nonexistent;
 
 #define nilp(sx)   (((sx) == sx_nil)          || ((sx)->type == sxt_nil))
 #define truep(sx)  (((sx) == sx_true)         || ((sx)->type == sxt_true))
