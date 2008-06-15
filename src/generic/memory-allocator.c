@@ -74,6 +74,7 @@ void *aalloc   (unsigned long size) {
             tree_add_node_value (alloc_pools, msize, pool);
         }
 
+        optimise_memory_pool (pool);
         p = get_pool_mem (pool);
     } else {
         p = get_mem (msize);
