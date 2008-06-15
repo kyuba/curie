@@ -66,6 +66,11 @@ extern unsigned long int mem_chunk_size;
 
 #define ENTITY_ALIGNMENT (unsigned short)8
 
+/* requested sizes bigger than this cutoff will be allocated directly as memory
+   pages, sizes smaller than that will be allocated using a mempool */
+
+#define MALLOC_POOL_CUTOFF 4000
+
 typedef unsigned int bitmap[BITMAPMAPSIZE];
 
 struct memory_pool {
@@ -84,5 +89,9 @@ void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *);
 void free_pool_mem(/*@notnull@*/ /*@only@*/ void *);
 
 void optimise_memory_pool (/*@shared@*/ struct memory_pool *);
+
+void *aalloc   (unsigned long);
+void *arealloc (unsigned long, void *, unsigned long);
+void afree     (unsigned long, void *);
 
 #endif

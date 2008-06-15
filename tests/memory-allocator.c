@@ -1,5 +1,5 @@
 /*
- *  atomic-main.c
+ *  atomic-allocator.c
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 15/06/2008.
@@ -36,7 +36,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <atomic/memory.h>
+
+#define MAXSIZE 2048
+
+int test_aalloc (unsigned long size) {
+    unsigned int *p = (unsigned int *)aalloc (size * sizeof (int));
+    unsigned int i;
+
+    for (i = 0; i < size; i++) {
+        p[i] = i;
+    }
+
+    for (i = 0; i < size; i++) {
+        if (p[i] != i) return 1;
+    }
+
+    p = (unsigned int *)arealloc (size * sizeof (int), p, size*sizeof (int)*2);
+
+    for (i = 0; i < size; i++) {
+        if (p[i] != i) return 2;
+    }
+
+    for (i = 0; i < (size*2); i++) {
+        p[i] = i;
+    }
+
+    for (i = 0; i < (size*2); i++) {
+        if (p[i] != i) return 3;
+    }
+
+    afree (size * sizeof(int), (void *)p);
+
+    return 0;
+}
+
 int atomic_main(void) {
-/* test whether returning form main has the intended result */
+    unsigned int i;
+
+    for (i = 1; i < MAXSIZE; i++) {
+        unsigned int rv;
+
+        rv = test_aalloc(i * 2);
+        if (rv != 0) return (int)rv;
+    }
+
     return 0;
 }

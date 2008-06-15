@@ -38,3 +38,84 @@
 
 #include <atomic/memory.h>
 #include <atomic/tree.h>
+
+struct tree *alloc_pools = (struct tree *)0;
+
+static unsigned long calculate_aligned_size (unsigned long a) {
+    unsigned long r;
+
+    r = (unsigned long)(a & ~(ENTITY_ALIGNMENT - 1));
+    if (r != (unsigned long)a) {
+        r += ENTITY_ALIGNMENT;
+    }
+
+    return r;
+}
+
+void *aalloc   (unsigned long size) {
+    void *p;
+    unsigned long msize = calculate_aligned_size (size);
+
+    if (alloc_pools == (struct tree *)0) {
+        alloc_pools = tree_create();
+    }
+
+    if (msize < MALLOC_POOL_CUTOFF) {
+        struct tree_node *n = tree_get_node(alloc_pools, msize);
+        struct memory_pool *pool;
+
+        if (n != (struct tree_node *)0) {
+            pool = (struct memory_pool *)node_get_value (n);
+        } else {
+            pool = create_memory_pool (msize);
+            tree_add_node_value (alloc_pools, msize, pool);
+        }
+
+        p = get_pool_mem (pool);
+    } else {
+        p = get_mem (msize);
+    }
+
+    return p;
+}
+
+void *arealloc (unsigned long size, void *p, unsigned long new_size) {
+    unsigned long msize = calculate_aligned_size (size);
+    unsigned long mnew_size = calculate_aligned_size (new_size);
+
+    if (msize != mnew_size) {
+        if ((msize >= MALLOC_POOL_CUTOFF) &&
+            (mnew_size >= MALLOC_POOL_CUTOFF)) {
+            return resize_mem (msize, p, mnew_size);
+        } else {
+            int *new_location = (int *)aalloc(mnew_size),
+                *old_location = (int *)p;
+            int i = 0,
+                copysize = (int)((msize < mnew_size) ? msize : mnew_size);
+
+            copysize = (int)((copysize / sizeof(int))
+                             + (((copysize % sizeof(int)) == 0) ? 0 : 1));
+
+            for(; i < copysize; i++) {
+                /* copy in chunks of ints */
+                new_location[i] = old_location[i];
+            }
+
+            afree (msize, p);
+
+            return (void*)new_location;
+        }
+    }
+
+    return p;
+}
+
+void afree     (unsigned long size, void *p) {
+    unsigned long msize = calculate_aligned_size (size);
+
+    if (msize < MALLOC_POOL_CUTOFF) {
+        free_pool_mem (p);
+    } else {
+        free_mem (msize, p);
+    }
+}
