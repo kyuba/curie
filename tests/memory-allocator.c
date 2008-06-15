@@ -66,7 +66,7 @@ int test_aalloc (unsigned long size) {
         if (p[i] != i) return 3;
     }
 
-    afree (size * sizeof(int), (void *)p);
+    afree ((size * sizeof(int) *2), (void *)p);
 
     return 0;
 }
