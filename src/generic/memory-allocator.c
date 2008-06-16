@@ -42,7 +42,7 @@
 /*@-branchstate@*/
 /*@-mustfreefresh@*/
 
-/*@null@*/ struct tree *alloc_pools = (struct tree *)0;
+/*@null@*/ /*@only@*/ static struct tree *alloc_pools = (struct tree *)0;
 
 static unsigned long calculate_aligned_size (unsigned long a) {
     unsigned long r;

@@ -88,7 +88,7 @@ void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *);
 /*@notnull@*/ /*@only@*/ void *get_pool_mem(struct memory_pool *);
 void free_pool_mem(/*@notnull@*/ /*@only@*/ void *);
 
-void optimise_memory_pool (/*@shared@*/ struct memory_pool *);
+void optimise_memory_pool (struct memory_pool *);
 
 /*@notnull@*/ /*@only@*/ void *aalloc   (unsigned long);
 /*@notnull@*/ /*@only@*/ void *arealloc (unsigned long, /*@notnull@*/ /*@only@*/ /*@returned@*/ void *, unsigned long);

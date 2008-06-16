@@ -64,10 +64,10 @@ struct tree_node_pointer {
 /*@notnull@*/ /*@only@*/ struct tree * tree_create ();
 void tree_destroy (/*@notnull@*/ /*@only@*/ struct tree *);
 
-void tree_add_node (/*@dependent@*/ struct tree *, int_pointer);
-void tree_add_node_value (/*@dependent@*/ struct tree *, int_pointer, /*@dependent@*/ const void *);
+void tree_add_node (struct tree *, int_pointer);
+void tree_add_node_value (struct tree *, int_pointer, /*@dependent@*/ const void *);
 
-/*@null@*/ /*@dependent@*/ struct tree_node * tree_get_node (/*@notnull@*/ /*@dependent@*/ struct tree *, int_pointer);
+/*@null@*/ /*@dependent@*/ struct tree_node * tree_get_node (/*@notnull@*/ struct tree *, int_pointer);
 
 void tree_remove_node_specific (/*@dependent@*/ struct tree *, int_pointer, /*@null@*/ struct tree_node *);
 

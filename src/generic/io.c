@@ -50,7 +50,7 @@
    before assigning the new address, because there is no address in there
    when i get the chunk from get_pool_mem(). */
 
-/*@null@*/ struct memory_pool * io_pool = 0;
+/*@null@*/ /*@only@*/ static struct memory_pool * io_pool = 0;
 
 struct io *io_open (int fd)
 {

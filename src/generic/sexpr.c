@@ -65,8 +65,8 @@ const struct sexpr * const sx_end_of_file = &_sx_end_of_file;
 const struct sexpr * const sx_not_a_number = &_sx_not_a_number;
 const struct sexpr * const sx_nonexistent = &_sx_nonexistent;
 
-/*@notnull@*/ struct memory_pool *sx_cons_pool = (struct memory_pool *)0;
-/*@notnull@*/ struct memory_pool *sx_int_pool = (struct memory_pool *)0;
+/*@notnull@*/ /*@only@*/ static struct memory_pool *sx_cons_pool = (struct memory_pool *)0;
+/*@notnull@*/ /*@only@*/ static struct memory_pool *sx_int_pool = (struct memory_pool *)0;
 
 struct sexpr *cons(struct sexpr *sx_car, struct sexpr *sx_cdr) {
     struct sexpr_cons *rv;

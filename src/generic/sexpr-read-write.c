@@ -45,7 +45,7 @@
 /*@-mustfreeonly@*/
 /* somehow can't seem to write initialisers without this... */
 
-/*@notnull@*/ struct memory_pool *sx_io_pool = (struct memory_pool *)0;
+/*@notnull@*/ /*@only@*/ static struct memory_pool *sx_io_pool = (struct memory_pool *)0;
 
 struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
     struct sexpr_io *rv;

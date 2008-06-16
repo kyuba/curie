@@ -54,9 +54,9 @@
 /*@-temptrans@*/
 /*@-mustfreeonly@*/
 
-/*@notnull@*/ struct memory_pool *tree_root_pool = 0;
-/*@notnull@*/ struct memory_pool *tree_node_pool;
-/*@notnull@*/ struct memory_pool *tree_node_pointer_pool;
+/*@notnull@*/ /*@only@*/ static struct memory_pool *tree_root_pool = 0;
+/*@notnull@*/ /*@only@*/ static struct memory_pool *tree_node_pool;
+/*@notnull@*/ /*@only@*/ static struct memory_pool *tree_node_pointer_pool;
 
 struct tree * tree_create () {
     struct tree *tree;
