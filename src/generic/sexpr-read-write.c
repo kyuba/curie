@@ -73,5 +73,12 @@ void sx_close_io (struct sexpr_io *io) {
     free_pool_mem (io);
 }
 
-struct sexpr *sx_read(struct sexpr_io *io);
-char sx_write(struct sexpr_io *io, struct sexpr *sexpr);
+const struct sexpr *sx_read(struct sexpr_io *io) {
+    enum io_result r;
+
+    r = io_read(io->in);
+
+    return sx_nonexistent;
+}
+
+char sx_write(struct sexpr_io *io, const struct sexpr *sexpr);

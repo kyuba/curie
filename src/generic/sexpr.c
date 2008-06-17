@@ -83,7 +83,7 @@ const struct sexpr * const sx_nonexistent = &_sx_nonexistent;
 /*@notnull@*/ /*@only@*/ static struct tree *sx_string_tree = (struct tree *)0;
 /*@notnull@*/ /*@only@*/ static struct tree *sx_symbol_tree = (struct tree *)0;
 
-struct sexpr *cons(struct sexpr *sx_car, struct sexpr *sx_cdr) {
+const struct sexpr *cons(struct sexpr *sx_car, struct sexpr *sx_cdr) {
     struct sexpr_cons *rv;
 
     if (sx_cons_pool == (struct memory_pool *)0) {
@@ -96,10 +96,12 @@ struct sexpr *cons(struct sexpr *sx_car, struct sexpr *sx_cdr) {
     rv->car = sx_car;
     rv->cdr = sx_cdr;
 
-    return (struct sexpr*)rv;
+    rv->references = 1;
+
+    return (const struct sexpr*)rv;
 }
 
-struct sexpr *make_integer(signed long long number) {
+const struct sexpr *make_integer(signed long long number) {
     struct sexpr_integer *rv;
 
     if (sx_int_pool == (struct memory_pool *)0) {
@@ -108,13 +110,14 @@ struct sexpr *make_integer(signed long long number) {
 
     rv = get_pool_mem (sx_int_pool);
 
+    rv->references = 1;
     rv->type = sxt_integer;
     rv->integer = number;
 
-    return (struct sexpr*)rv;
+    return (const struct sexpr*)rv;
 }
 
-static struct sexpr *make_string_or_symbol (const char *string, char symbol) {
+static const struct sexpr *make_string_or_symbol (const char *string, char symbol) {
     struct sexpr_string_or_symbol *s;
     unsigned long len;
     unsigned int i;
@@ -140,14 +143,14 @@ static struct sexpr *make_string_or_symbol (const char *string, char symbol) {
 
     s->references = 1;
     s->type = (symbol == (char)1) ? sxt_symbol : sxt_string;
-    return (struct sexpr *)s;
+    return (const struct sexpr *)s;
 }
 
-struct sexpr *make_string(const char *string) {
+const struct sexpr *make_string(const char *string) {
     return make_string_or_symbol (string, (char)0);
 }
 
-struct sexpr *make_symbol(const char *symbol) {
+const struct sexpr *make_symbol(const char *symbol) {
     return make_string_or_symbol (symbol, (char)1);
 }
 

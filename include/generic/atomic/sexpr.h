@@ -94,13 +94,13 @@ struct sexpr_io {
 
 void sx_close_io (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
 
-/*@notnull@*/ struct sexpr *sx_read(/*@notnull@*/ struct sexpr_io *);
-char sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ struct sexpr *);
+/*@notnull@*/ const struct sexpr *sx_read(/*@notnull@*/ struct sexpr_io *);
+char sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ const struct sexpr *);
 
-/*@notnull@*/ /*@dependent@*/ struct sexpr *cons(/*dependent*/ struct sexpr *, /*dependent*/ struct sexpr *);
-/*@notnull@*/ /*@dependent@*/ struct sexpr *make_integer(signed long long);
-/*@notnull@*/ /*@dependent@*/ struct sexpr *make_string(/*@notnull@*/ const char *);
-/*@notnull@*/ /*@dependent@*/ struct sexpr *make_symbol(/*@notnull@*/ const char *);
+/*@notnull@*/ /*@dependent@*/ const struct sexpr *cons(/*dependent*/ struct sexpr *, /*dependent*/ struct sexpr *);
+/*@notnull@*/ /*@dependent@*/ const struct sexpr *make_integer(signed long long);
+/*@notnull@*/ /*@dependent@*/ const struct sexpr *make_string(/*@notnull@*/ const char *);
+/*@notnull@*/ /*@dependent@*/ const struct sexpr *make_symbol(/*@notnull@*/ const char *);
 
 void sx_destroy(/*@notnull@*/ /*@dependent@*/ struct sexpr *);
 
