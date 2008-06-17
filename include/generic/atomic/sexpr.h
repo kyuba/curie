@@ -58,21 +58,28 @@ enum sx_type {
 
 struct sexpr {
     enum sx_type type;
+    signed int references;
 };
 
 struct sexpr_integer {
     enum sx_type type;
+    signed int references;
+
     signed long long integer;
 };
 
 struct sexpr_cons {
     enum sx_type type;
+    signed int references;
+
     /*dependent*/ struct sexpr *car;
     /*dependent*/ struct sexpr *cdr;
 };
 
 struct sexpr_string_or_symbol {
     enum sx_type type;
+    signed int references;
+
     char character_data[];
 };
 
@@ -90,12 +97,12 @@ void sx_close_io (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
 /*@notnull@*/ struct sexpr *sx_read(/*@notnull@*/ struct sexpr_io *);
 char sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ struct sexpr *);
 
-/*@notnull@*/ /*@only@*/ struct sexpr *cons(/*dependent*/ struct sexpr *, /*dependent*/ struct sexpr *);
-/*@notnull@*/ /*@only@*/ struct sexpr *make_integer(signed long long);
-/*@notnull@*/ /*@only@*/ struct sexpr *make_string(/*@notnull@*/ const char *);
-/*@notnull@*/ /*@only@*/ struct sexpr *make_symbol(/*@notnull@*/ const char *);
+/*@notnull@*/ /*@dependent@*/ struct sexpr *cons(/*dependent*/ struct sexpr *, /*dependent*/ struct sexpr *);
+/*@notnull@*/ /*@dependent@*/ struct sexpr *make_integer(signed long long);
+/*@notnull@*/ /*@dependent@*/ struct sexpr *make_string(/*@notnull@*/ const char *);
+/*@notnull@*/ /*@dependent@*/ struct sexpr *make_symbol(/*@notnull@*/ const char *);
 
-void sx_destroy(/*@notnull@*/ /*@only@*/ struct sexpr *);
+void sx_destroy(/*@notnull@*/ /*@dependent@*/ struct sexpr *);
 
 void *sx_list_map (struct sexpr *, void (*)(struct sexpr *, void *), void *);
 struct sexpr *sx_list_fold (struct sexpr *, void (*)(struct sexpr *));

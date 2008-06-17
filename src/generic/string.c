@@ -37,6 +37,7 @@
  */
 
 #include <atomic/string.h>
+#include <atomic/memory.h>
 
 /*@-shiftimplementation@*/
 /*@+charint@*/
@@ -134,3 +135,32 @@ int_32 str_hash(const char *data, unsigned long *len)
 }
 
 /**** end ******* markos' hashing function ************************************/
+
+int_32 str_hash_unaligned(const char *string, unsigned long *len)
+{
+    unsigned int length;
+
+    for (length = 0; string[length] != (char)0; length++);
+    length++;
+
+    if (((length % 8) == 0) && ((((int_pointer)string) % 8) == 0)) {
+        /* must be suitably aligned */
+
+        return str_hash (string, len);
+    } else {
+        char *r;
+        unsigned int i;
+        int_32 rv = 0;
+
+        r = get_mem (length);
+        /* the return value of this is always suitable for our purposes. */
+
+        for (i = 0; string[i] != (char)0; i++) r[i] = string[i];
+
+        rv = str_hash (r, len);
+
+        free_mem (length, r);
+
+        return rv;
+    }
+}
