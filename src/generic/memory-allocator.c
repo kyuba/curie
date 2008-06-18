@@ -92,8 +92,8 @@ void *arealloc (unsigned long size, void *p, unsigned long new_size) {
             (mnew_size >= MALLOC_POOL_CUTOFF)) {
             return resize_mem (msize, p, mnew_size);
         } else {
-            int *new_location = (int *)aalloc(mnew_size),
-                *old_location = (int *)p;
+            unsigned int *new_location = (unsigned int *)aalloc(mnew_size),
+                         *old_location = (unsigned int *)p;
             int i = 0,
                 copysize = (int)((msize < mnew_size) ? msize : mnew_size);
 
