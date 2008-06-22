@@ -17,18 +17,20 @@ cctype='gnu'
 def normalise(str):
   return str.replace(' ', '').replace('_', '-')
 
-paths = [ normalise(ostype + '-' + arch + '-' + cctype + '/'),
-          normalise(ostype + '-' + arch + '/'),
-          normalise(ostype + '-' + cctype + '/'),
+paths = [ normalise(ostype + '/' + arch + '/' + cctype + '/'),
+          normalise(ostype + '/' + arch + '/'),
+          normalise(ostype + '/' + cctype + '/'),
           normalise(ostype + '/'),
-          normalise(arch + '-' + cctype + '/'),
+          normalise(arch + '/' + cctype + '/'),
           normalise(arch + '/'),
-          normalise('posix-' + arch + '-' + cctype + '/'),
+          normalise('posix-' + arch + '/' + cctype + '/'),
           normalise('posix-' + arch + '/'),
           normalise('posix-' + cctype + '/'),
           normalise('posix/'),
           normalise(cctype + '/'),
           'generic/' ]
+
+print 'max path: ' + normalise(ostype + '/' + arch + '/' + cctype + '/');
 
 codepreference = [ 'S', 's', 'c' ]
 
