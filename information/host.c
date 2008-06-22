@@ -1,5 +1,5 @@
 /*
- *  darwin-powermacintosh-gnu/memory.S
+ *  host.c
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 22/06/2008.
@@ -36,79 +36,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.data
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdio.h>
 
-#define _PAGESIZE         0x1000
-#define _PAGESIZE_INVERSE ~0x0fff
+int getpagesize(void);
 
-.globl _mem_chunk_size
-
-_mem_chunk_size:
-        .long _PAGESIZE
-
-.text
-        .align 8
-
-.globl _get_mem
-.globl _free_mem
-.globl _mark_mem_ro
-.globl _mark_mem_rw
-.globl _get_mem_chunk
-.globl _mem_chunk_size
-
-cmopsass:
-        mr      r11, r4
-
-        lis     r10, ha16(_PAGESIZE_INVERSE)
-        addi    r10, r10, lo16(_PAGESIZE_INVERSE)
-
-        and     r4, r4, r10
-        cmpw    r11, r4
-        beq     do_syscall
-		addi    r4, r4, _PAGESIZE 
-do_syscall:
-        sc
-        li      r3, 0
-        blr
-
-_get_mem_chunk:
-		li      r4, _PAGESIZE
-        b       get_mem_innards
-_get_mem:
-        mr      r4, r3
-get_mem_innards:
-        li      r0, 197 /* sys_mmap */
-        li      r3, 0 /* pass 0-pointer as start address */
-        li      r5, 3 /* PROT_READ | PROT_WRITE */
-        li      r6, 0x1002 /* MAP_ANON | MAP_PRIVATE */
-        li      r7, -1 /* fd is -1 */
-        li      r8, 0 /* offset should be irrelevant */
-        b       cmopsass
-
-_free_mem:
-        li      r0, 73 /* sys_munmap */
-
-        xor     r4, r4, r3
-        xor     r3, r3, r4
-        xor     r4, r4, r3
-
-        b       cmopsass
-
-_mark_mem_rw:
-        li      r5, 0x3
-        b       mark_mem
-_mark_mem_ro:
-        li      r5, 0x1
-mark_mem:
-        li      r0, 74 /* sys_mprotect */
-		
-		xor     r4, r4, r3
-		xor     r3, r3, r4
-		xor     r4, r4, r3
-
-        b       cmopsass
-
-#if defined(__ELF__)
-          .section .note.GNU-stack,"",%progbits
-#endif
-
+int main () {
+    fprintf (stdout, "pagesize: %i\n", getpagesize());
+}

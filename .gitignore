@@ -10,3 +10,7 @@ build
 
 tests/*
 !tests/*.c
+
+information/*
+!information/*.c
+

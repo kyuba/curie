@@ -5,7 +5,7 @@ sourcefiles = [ 'bootstrap', 'atom', 'sexpr', 'io', 'memory-pool',
 
 needforstandalone = [ 'atom', 'memory', 'bootstrap' ]
 
-debug = False
+debug = True
 optimise = True
 
 import os
@@ -87,6 +87,8 @@ if debug:
 if optimise:
   env.Append(CFLAGS='-O2')
 
+ienv = env.Clone()
+
 if standalone():
   print 'adjusting linker flags for using assembly atomic-libc'
   env.Append(CFLAGS = '-ffreestanding',
@@ -112,3 +114,7 @@ tenv.Append(LIBS = ['atomic'])
 
 for i in testsource:
   tenv.Program(i)
+
+infosource = glob.glob('information/*.c');
+for i in infosource:
+  ienv.Program(i)
