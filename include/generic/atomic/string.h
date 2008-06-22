@@ -45,5 +45,6 @@
 
 /* input MUST be 32-bit aligned. */
 int_32 str_hash(/*@notnull@*/ const char *data, /*@out@*/ unsigned long *len);
+int_32 str_hash_unaligned(const char *data, /*@out@*/ unsigned long *len);
 
 #endif

@@ -105,8 +105,14 @@ enum io_result io_write(struct io *io, char *data, unsigned int length)
 {
     unsigned int i, pos;
 
-    if (io->status == io_finalising)
-        return io_finalising;
+    if (io->fd == -1) {
+        io->status = io_unrecoverable_error;
+    }
+
+    if ((io->status == io_finalising) ||
+         (io->status == io_end_of_file) ||
+         (io->status == io_unrecoverable_error))
+        return io->status;
 
     if (io->type != iot_write) {
         io->position = 0;
@@ -140,8 +146,14 @@ enum io_result io_read(struct io *io)
 {
     int readrv;
 
-    if (io->status == io_finalising)
-        return io_finalising;
+    if (io->fd == -1) {
+        io->status = io_unrecoverable_error;
+    }
+
+    if ((io->status == io_finalising) ||
+        (io->status == io_end_of_file) ||
+        (io->status == io_unrecoverable_error))
+        return io->status;
 
     if (io->type != iot_read) {
         io->position = 0;
