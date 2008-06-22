@@ -59,6 +59,8 @@ def findsource(name):
       if fileexists(n):
         return n
 
+  return False
+
 def writepkgconfig():
   return False
 
@@ -96,6 +98,9 @@ sf = []
 
 for i in sourcefiles:
   sf += [ findsource(i) ]
+  n = findsource(i + '-highlevel');
+  if n:
+    sf += [ n ]
 
 env.StaticLibrary('atomic', sf)
 

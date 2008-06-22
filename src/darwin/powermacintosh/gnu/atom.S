@@ -116,14 +116,14 @@ negative_result:
 	beq     recoverable
 	li      r4, 0
     lis     r3, ha16(_last_error_recoverable_p)
-    addi    r3, r4,lo16(_last_error_recoverable_p)
+    addi    r3, r3,lo16(_last_error_recoverable_p)
 	stb     r4, 0(r3)
 	li      r3, -1
     blr
 recoverable:
 	li      r4, 1
     lis     r3, ha16(_last_error_recoverable_p)
-    addi    r3, r4,lo16(_last_error_recoverable_p)
+    addi    r3, r3,lo16(_last_error_recoverable_p)
 	stb     r4, 0(r3)
 	li      r3, -1
     blr
