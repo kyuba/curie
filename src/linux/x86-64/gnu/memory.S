@@ -110,11 +110,8 @@ free_mem:
         movq    %rsp, %rbp
 
         movq $11, %rax /* sys_munmap */
-        xor %rsi, %rdi
-        xor %rdi, %rsi
-        xor %rsi, %rdi
 
-        jmp cmopsass
+        jmp     xor_first_and_second_arg_sc
 
 resize_mem:
         pushq   %rbp
@@ -145,6 +142,8 @@ mark_mem:
         movq    %rsp, %rbp
 
         movq $10, %rax /* sys_mprotect */
+
+xor_first_and_second_arg_sc:
         xor %rsi, %rdi
         xor %rdi, %rsi
         xor %rsi, %rdi
