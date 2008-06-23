@@ -57,13 +57,13 @@ _mem_chunk_size:
 .globl _mem_chunk_size
 
 cmopsass:
-        mr      r11, r4
+        mr      r9, r4
 
         lis     r10, ha16(_PAGESIZE_INVERSE)
         addi    r10, r10, lo16(_PAGESIZE_INVERSE)
 
-        and     r4, r4, r10
-        cmpw    r11, r4
+        and     r4, r4, r9
+        cmpw    r9, r4
         beq     do_syscall
 		addi    r4, r4, _PAGESIZE 
 do_syscall:
