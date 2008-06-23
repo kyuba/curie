@@ -4,6 +4,7 @@
 *.a
 *.so
 temporary*
+benchmark-*
 
 .DS_Store
 
@@ -15,4 +16,7 @@ tests/*
 
 information/*
 !information/*.c
+
+benchmarks/*
+!benchmarks/*.c
 

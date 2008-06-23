@@ -116,9 +116,23 @@ testsource = glob.glob('tests/*.c');
 tenv = env.Clone()
 tenv.Append(LIBS = ['atomic'])
 
+penv = ienv.Clone()
+penv.Append(LIBS = ['atomic'])
+
 for i in testsource:
   tenv.Program(i)
 
 infosource = glob.glob('information/*.c');
 for i in infosource:
   ienv.Program(i)
+
+tenv.Program ('benchmarks/configure.c')
+
+infosource = glob.glob('benchmarks/posix-*.c');
+for i in infosource:
+  penv.Program(i)
+
+infosource = glob.glob('benchmarks/atomic-*.c');
+for i in infosource:
+  tenv.Program(i)
+
