@@ -93,6 +93,10 @@ if standalone():
   print 'adjusting linker flags for using assembly atomic-libc'
   env.Append(CFLAGS = '-ffreestanding',
              LINKFLAGS = '-static -nostdlib -nostartfiles -nodefaultlibs -u _start')
+
+  if ostype == 'darwin':
+    env.Append(CFLAGS = '-static',
+	           LINKFLAGS = '-e _start')
 else:
   print 'adjusting linker flags for using host-libc based atomic-libc'
 

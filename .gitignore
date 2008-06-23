@@ -5,6 +5,8 @@
 *.so
 temporary*
 
+.DS_Store
+
 *.xcodeproj
 build
 
