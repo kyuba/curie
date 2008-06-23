@@ -3,6 +3,7 @@
 *.os
 *.a
 *.so
+*.swp
 temporary*
 benchmark-*
 
