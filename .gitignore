@@ -22,4 +22,5 @@ information/*
 
 benchmarks/*
 !benchmarks/*.c
+!benchmarks/*.h
 

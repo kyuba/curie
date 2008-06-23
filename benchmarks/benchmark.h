@@ -39,8 +39,8 @@
 #if !defined (ATOMIC_BENCHMARK_H)
 #define ATOMIC_BENCHMARK_H
 
-#define RANDOM_INTEGERS      (1 << 16)
-#define RANDOM_INTEGERS_S    (1 << 16)
+#define RANDOM_INTEGERS      (1 << 12)
+#define RANDOM_INTEGERS_S    (1 << 12)
 #define RANDOM_INTEGERS_FILE "benchmark-random-integers"
 
 #define RANDOM_NUMBER_MIN_SIZE 1
