@@ -88,7 +88,7 @@ get_mem_innards:
 _free_mem:
         li      r0, 73 /* sys_munmap */
 
-        b       xor_first_and_second_arg_sc
+        b       swap_first_and_second_arg_sc
 
 _mark_mem_rw:
         li      r5, 0x3
@@ -98,10 +98,10 @@ _mark_mem_ro:
 mark_mem:
         li      r0, 74 /* sys_mprotect */
 
-xor_first_and_second_arg_sc:
-		xor     r4, r4, r3
-		xor     r3, r3, r4
-		xor     r4, r4, r3
+swap_first_and_second_arg_sc:
+        mr      r9, r4
+        mr      r4, r3
+        mr      r3, r9
 
         b       cmopsass
 

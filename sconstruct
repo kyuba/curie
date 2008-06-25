@@ -5,8 +5,8 @@ sourcefiles = [ 'bootstrap', 'atom', 'sexpr', 'io', 'memory-pool',
 
 needforstandalone = [ 'atom', 'memory', 'bootstrap' ]
 
-debug = False
-optimise = True
+debug = True
+optimise = not debug
 
 import os
 

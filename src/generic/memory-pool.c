@@ -101,27 +101,43 @@ void free_memory_pool (struct memory_pool *pool) {
     free_mem_chunk((void *)pool);
 }
 
-void *get_pool_mem(struct memory_pool *pool) {
+static void *get_pool_mem_inner(struct memory_pool *pool, struct memory_pool *frame) {
     unsigned int index = 0;
 
-    for (; index < pool->maxentities; index++) {
-        if (bitmap_isset(pool->map, index) == (unsigned char)0)
+    for (; index < frame->maxentities; index++) {
+        if (bitmap_isset(frame->map, index) == (unsigned char)0)
         {
-            char *pool_mem_start;
+            char *frame_mem_start;
 
-            bitmap_set(pool->map, index);
+            bitmap_set(frame->map, index);
 
-            pool_mem_start = (char *)pool + sizeof(struct memory_pool);
+            frame_mem_start = (char *)frame + sizeof(struct memory_pool);
 
-            return (void *)(pool_mem_start + (index * (pool->entitysize)));
+            if ((pool != frame) && (pool->next != (struct memory_pool *)0) && (pool->next != frame)) {
+                struct memory_pool *swap;
+
+                swap = frame->next;
+                frame->next = pool->next;
+                pool->next = frame;
+
+                if (swap != (struct memory_pool *)0)
+                while (frame->next != (struct memory_pool *)0) frame = frame->next;
+                frame->next = swap;
+            }
+
+            return (void *)(frame_mem_start + (index * (frame->entitysize)));
         }
     }
 
-    if (pool->next == (struct memory_pool *)0) {
-        pool->next = create_memory_pool (pool->entitysize);
+    if (frame->next == (struct memory_pool *)0) {
+        frame->next = create_memory_pool (frame->entitysize);
     }
 
-    return get_pool_mem(pool->next);
+    return get_pool_mem_inner(pool, frame->next);
+}
+
+void *get_pool_mem(struct memory_pool *pool) {
+    return get_pool_mem_inner(pool, pool);
 }
 
 void free_pool_mem(void *mem) {
