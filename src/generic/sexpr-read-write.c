@@ -38,6 +38,7 @@
 
 #include <atomic/memory.h>
 #include <atomic/sexpr.h>
+#include <atomic/io.h>
 
 /*@-nullinit@*/
 /* need some sentinel values... */
@@ -81,4 +82,100 @@ const struct sexpr *sx_read(struct sexpr_io *io) {
     return sx_nonexistent;
 }
 
-char sx_write(struct sexpr_io *io, const struct sexpr *sexpr);
+
+static void sx_write_string_or_symbol (struct io *io, const struct sexpr_string_or_symbol *sexpr) {
+    int i;
+
+    for (i = 0; sexpr->character_data[i] != 0; i++);
+
+    if (sexpr->type == sxt_string) {
+      (void)io_write (io, "\"", 1);
+      (void)io_write (io, sexpr->character_data, i);
+      (void)io_write (io, "\"", 1);
+    } else
+      (void)io_write (io, sexpr->character_data, i);
+}
+
+static void sx_write_cons (struct sexpr_io *io, const struct sexpr_cons *sexpr) {
+    (void)io_write (io->out, "(", 1);
+
+  retry:
+
+    sx_write (io, car(sexpr));
+    sexpr = (const struct sexpr_cons *)cdr ((const struct sexpr *)sexpr);
+
+    if (sexpr->type == sxt_cons) {
+        (void)io_write (io->out, " ", 1);
+        goto retry;
+    }
+
+    if (sexpr->type != sxt_end_of_list) {
+        (void)io_write (io->out, ". ", 2);
+        sx_write (io, (const struct sexpr *)sexpr);
+    }
+
+    (void)io_write (io->out, ")", 1);
+}
+
+static void sx_write_integer (struct io *io, const struct sexpr_integer *sexpr) {
+/*    char num [33];
+    signed long long i = sexpr->integer;
+    unsigned int j = 0;
+
+    do {
+       char s = '0' + (i % 10);
+
+       num[j] = s;
+
+       i = i / 10;
+       j++;
+    } while ((i != 0) && (j < 32));
+
+    num[j] = 0;
+
+    (void)io_write (io, num, j);*/
+}
+
+void sx_write(struct sexpr_io *io, const struct sexpr *sexpr) {
+    switch (sexpr->type) {
+        case sxt_symbol:
+        case sxt_string:
+            sx_write_string_or_symbol (io->out, (const struct sexpr_string_or_symbol *)sexpr);
+            break;
+
+        case sxt_cons:
+            sx_write_cons (io, (const struct sexpr_cons *)sexpr);
+            break;
+
+        case sxt_integer:
+            sx_write_integer (io->out, (const struct sexpr_integer *)sexpr);
+            break;
+
+        case sxt_nil:
+            (void)io_write (io->out, "#nil", 4);
+            break;
+        case sxt_false:
+            (void)io_write (io->out, "#f", 2);
+            break;
+        case sxt_true:
+            (void)io_write (io->out, "#t", 2);
+            break;
+        case sxt_empty_list:
+            (void)io_write (io->out, "()", 2);
+            break;
+        case sxt_end_of_list:
+            (void)io_write (io->out, "#eol", 4);
+            break;
+        case sxt_end_of_file:
+            (void)io_write (io->out, "#eof", 4);
+            break;
+        case sxt_not_a_number:
+            (void)io_write (io->out, "#nan", 4);
+            break;
+        case sxt_nonexistent:
+            (void)io_write (io->out, "#ne", 3);
+            break;
+    }
+
+    (void)io_write (io->out, "\n", 1);
+}

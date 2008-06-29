@@ -1,8 +1,8 @@
 /*
- *  io.h
+ *  sexpr-write.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 01/06/2008.
+ *  Created by Magnus Deininger on 29/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,54 +36,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_IO_H
-#define ATOMIC_IO_H
+#include "atomic/io.h"
+#include "atomic/sexpr.h"
 
-#define IO_CHUNKSIZE 4096
-
-enum io_type {
-  iot_undefined = 0,
-  iot_read = 1,
-  iot_write = 2
-};
-
-enum io_result {
-  io_undefined = 0,
-  io_end_of_file = 1,
-  io_changes = 2,
-  io_unrecoverable_error = 3,
-  io_no_change = 4,
-  io_complete = 5,
-  io_incomplete = 6,
-  io_finalising = 7
-};
-
-struct io {
-    int fd;
-    /*@notnull@*/ /*@only@*/ char *buffer;
-    /* can't use a fixed buffer since we might need to read (or write)
-       something larger */
-
-    enum io_type   type;
-    enum io_result status;
-
-    unsigned int position;
-    unsigned int length;
-    unsigned int cursor;
-    unsigned int buffersize;
-
-    /*@null@*/ void (*on_data_read) (struct io *);
-    /*@null@*/ void (*on_struct_deallocation) (struct io *);
-    /*@null@*/ /*@shared@*/ void *arbitrary;
-};
-
-/*@notnull@*/ /*@only@*/ struct io *io_open (int);
-/*@notnull@*/ /*@only@*/ struct io *io_open_read (const char *);
-/*@notnull@*/ /*@only@*/ struct io *io_open_write (const char *);
-enum io_result io_write(/*@notnull@*/ struct io *, const char *, unsigned int);
-enum io_result io_read(/*@notnull@*/ struct io *);
-enum io_result io_commit (/*@notnull@*/ struct io *);
-enum io_result io_finish (/*@notnull@*/ struct io *);
-void io_close (/*@notnull@*/ /*@only@*/ struct io *);
-
-#endif
+int atomic_main(void) {
+    struct io *out = io_open_write ("temporary-sexpr-data"), *in = io_open (0);
+	struct sexpr_io *io = sx_open_io (in, out);
+    struct sexpr *s = make_string ("hello world");
+	
+	sx_write (io, s);
+}

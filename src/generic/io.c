@@ -101,7 +101,7 @@ struct io *io_open_write (const char *path)
     return io;
 }
 
-enum io_result io_write(struct io *io, char *data, unsigned int length)
+enum io_result io_write(struct io *io, const char *data, unsigned int length)
 {
     unsigned int i, pos;
 
