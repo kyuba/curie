@@ -101,7 +101,7 @@ struct sexpr *cons(struct sexpr *sx_car, struct sexpr *sx_cdr) {
     return (struct sexpr*)rv;
 }
 
-struct sexpr *make_integer(signed long long number) {
+struct sexpr *make_integer(signed long number) {
     struct sexpr_integer *rv;
 
     if (sx_int_pool == (struct memory_pool *)0) {

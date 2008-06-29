@@ -121,13 +121,19 @@ static void sx_write_integer (struct io *io, const struct sexpr_integer *sexpr) 
     char num [33];
     signed long i = (signed long)sexpr->integer;
     unsigned int j = 0;
+    
+    if (i < 0) {
+       num[0] = '-';
+       j++;
+       i *= -1;
+    }
 
     do {
        char s = '0' + (i % 10);
 
        num[j] = s;
 
-       i = i / 10;
+       i /= 10;
        j++;
     } while ((i != 0) && (j < 32));
 

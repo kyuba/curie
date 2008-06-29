@@ -65,7 +65,7 @@ struct sexpr_integer {
     enum sx_type type;
     signed int references;
 
-    signed long long integer;
+    signed long integer;
 };
 
 struct sexpr_cons {
@@ -98,7 +98,7 @@ void sx_close_io (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
 void sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ const struct sexpr *);
 
 /*@notnull@*/ /*@dependent@*/ struct sexpr *cons(/*dependent*/ struct sexpr *, /*dependent*/ struct sexpr *);
-/*@notnull@*/ /*@dependent@*/ struct sexpr *make_integer(signed long long);
+/*@notnull@*/ /*@dependent@*/ struct sexpr *make_integer(signed long);
 /*@notnull@*/ /*@dependent@*/ struct sexpr *make_string(/*@notnull@*/ const char *);
 /*@notnull@*/ /*@dependent@*/ struct sexpr *make_symbol(/*@notnull@*/ const char *);
 
