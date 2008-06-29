@@ -7,7 +7,7 @@ needforstandalone = [ 'atom', 'memory', 'bootstrap' ]
 
 debug = False
 optimise = not debug
-useAssembly = True
+useAssembly = False
 
 import os
 

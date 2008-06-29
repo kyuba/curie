@@ -47,6 +47,8 @@
 /* turns out we need this here, because we actually implement memory management here,
    including functions that do do these thingamajigs */
 
+#define AUTOOPT_N 300
+
 static unsigned int bitmap_getslot(unsigned int b) {
     return (unsigned int)(b / BITSPERBITMAPENTITY);
 }
@@ -93,6 +95,8 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize) {
 
     pool->next = (struct memory_pool *)0;
 
+    pool->optimise_counter = AUTOOPT_N;
+
     return pool;
 }
 
@@ -137,6 +141,12 @@ static void *get_pool_mem_inner(struct memory_pool *pool, struct memory_pool *fr
 }
 
 void *get_pool_mem(struct memory_pool *pool) {
+    pool->optimise_counter--;
+    if (pool->optimise_counter == 0) {
+        pool->optimise_counter = AUTOOPT_N;
+        optimise_memory_pool (pool);
+    }
+
     return get_pool_mem_inner(pool, pool);
 }
 

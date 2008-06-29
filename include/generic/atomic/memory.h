@@ -76,6 +76,7 @@ typedef unsigned int bitmap[BITMAPMAPSIZE];
 struct memory_pool {
   unsigned long int entitysize;
   unsigned short maxentities;
+  unsigned short optimise_counter;
 
   bitmap map;
 

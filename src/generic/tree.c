@@ -90,10 +90,6 @@ void tree_destroy (struct tree *tree) {
     node_destroy (tree->root);
 
     free_pool_mem((void *)tree);
-
-    optimise_memory_pool (tree_root_pool);
-    optimise_memory_pool (tree_node_pool);
-    optimise_memory_pool (tree_node_pointer_pool);
 }
 
 static void tree_add_node_to_tree (/*@dependent@*/ struct tree *tree, /*@only@*/ struct tree_node *node, int_pointer key) {
@@ -217,11 +213,6 @@ void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_
 
             /* release the node's memory back into the pool */
             free_pool_mem((void *)cur);
-
-            /* try to optimise the node pools */
-            optimise_memory_pool (tree_node_pool);
-            optimise_memory_pool (tree_node_pointer_pool);
-
             return;
         }
 
