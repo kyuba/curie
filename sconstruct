@@ -7,6 +7,7 @@ needforstandalone = [ 'atom', 'memory', 'bootstrap' ]
 
 debug = False
 optimise = not debug
+useAssembly = True
 
 import os
 
@@ -32,7 +33,12 @@ paths = [ normalise(ostype + '/' + arch + '/' + cctype + '/'),
 
 print 'max path: ' + normalise(ostype + '/' + arch + '/' + cctype + '/');
 
-codepreference = [ 'S', 's', 'c' ]
+codepreference = []
+
+if useAssembly:
+  codepreference = [ 'S', 's' ]
+
+codepreference += [ 'c' ]
 
 def fileexists(name):
   try:
@@ -43,7 +49,10 @@ def fileexists(name):
 
 
 def haveasm(name):
-  global paths
+  global paths, useAssembly
+
+  if not useAssembly:
+    return False
 
   for i in paths:
     if fileexists('src/' + i + name + '.S') or fileexists('src/' + i + name + '.s'):
