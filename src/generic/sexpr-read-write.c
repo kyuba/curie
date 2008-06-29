@@ -118,8 +118,8 @@ static void sx_write_cons (struct sexpr_io *io, const struct sexpr_cons *sexpr) 
 }
 
 static void sx_write_integer (struct io *io, const struct sexpr_integer *sexpr) {
-/*    char num [33];
-    signed long long i = sexpr->integer;
+    char num [33];
+    signed long i = (signed long)sexpr->integer;
     unsigned int j = 0;
 
     do {
@@ -133,7 +133,7 @@ static void sx_write_integer (struct io *io, const struct sexpr_integer *sexpr) 
 
     num[j] = 0;
 
-    (void)io_write (io, num, j);*/
+    (void)io_write (io, num, j);
 }
 
 void sx_write(struct sexpr_io *io, const struct sexpr *sexpr) {
