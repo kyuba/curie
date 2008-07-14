@@ -119,30 +119,37 @@ static void sx_write_cons (struct sexpr_io *io, const struct sexpr_cons *sexpr) 
 
 static void sx_write_integer (struct io *io, const struct sexpr_integer *sexpr) {
     char num [33];
+    
+    int neg = 0;    
     signed long i = (signed long)sexpr->integer;
     unsigned int j = 0;
     
-    if (i < 0) {
-       num[0] = '-';
-       j++;
-       i *= -1;
-    }
-
+		if(i < 0) {
+			neg = 1;
+			i *= -1;
+		}
+		
     do {
-       char s = '0' + (i % 10);
+    	char s;
+    	s = '0' + (i % 10);
 
-       num[j] = s;
-
-       i /= 10;
+    	 num[31-j] = s;
+       
+     	 i /= 10;
        j++;
-    } while ((i != 0) && (j < 32));
+     } while	((i != 0) && (j < 31));
+    
+    if(neg) {
+    	num[31-j] = '-'; 
+			j++;
+    }	
+    num[32] = 0;
 
-    num[j] = 0;
-
-    (void)io_write (io, num, j);
+    (void)io_write (io, num+(32	-j), j+1);
 }
 
 void sx_write(struct sexpr_io *io, const struct sexpr *sexpr) {
+    
     switch (sexpr->type) {
         case sxt_symbol:
         case sxt_string:

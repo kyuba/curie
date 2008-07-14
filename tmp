@@ -1,0 +1,6 @@
+#!/bin/bash
+scons
+rm temporary-sexpr-data
+tests/sexpr-write
+cat temporary-sexpr-data
+
