@@ -74,13 +74,93 @@ void sx_close_io (struct sexpr_io *io) {
     free_pool_mem (io);
 }
 
+
+static const struct sexpr *sx_read_string(const char *buf, int len) {
+
+	int i = 0;
+	int cnt = 0;
+	char * str[len];
+		
+	do {
+		if(buf[i] == '\\') {
+			//escapes		
+		}
+		else {
+			str[cnt] = buf[i];
+		}
+		
+		i++;
+		cnt++;
+	} while ((buf[i] != '"') && (cnt < len-1));
+	str[cnt] = 0;
+	
+	const struct sexpr *retval = make_string((const char*) str);	
+	
+	return retval;
+}
+
+static const struct  sexpr *sx_read_integer (char *buf, int len) {
+	
+	int i = 0;
+	signed long nr = 0;
+	
+	int neg = 0;
+	
+	if((buf[0] == '-')) {
+	
+		neg = 1;
+		i++;	
+	}
+	
+	do {
+		nr += (long) buf[i];
+		nr *= 10;	
+		i++;
+	} while((buf[i] != ' ') && (buf[i] != '\t') && (buf[i] != '\n') && (buf[i] != ')') && i < len);
+	
+	if(neg) {
+		nr *= -1;
+	}
+	
+	const struct sexpr *retval = make_integer(nr);
+	return retval;
+}
+
 const struct sexpr *sx_read(struct sexpr_io *io) {
     enum io_result r;
 
     r = io_read(io->in);
-
-    return sx_nonexistent;
+		char* buf = io->in->buffer;
+		for(int i = 0; i < io->in->length; i++) {
+			switch(buf[i]) {
+				case '"':
+					return sx_read_string(buf, io->in->length);
+				break;
+				
+				case '(':
+				
+				break;
+			
+				case '#':
+			
+				break;
+			
+				default:
+					if((buf[i] >= '1' && buf[i] <= '9') || (buf[i] == '-')) {
+						return sx_read_integer(buf, io->in->length);
+					}
+				
+					if(buf[i] >= 'A' && buf[i] <= 'z') {
+						//symbol
+					}
+					
+					return sx_nonexistent; 
+				break;
+			}		
+		}
+		
 }
+
 
 
 static void sx_write_string_or_symbol (struct io *io, const struct sexpr_string_or_symbol *sexpr) {
