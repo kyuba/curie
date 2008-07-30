@@ -94,8 +94,8 @@ struct sexpr_io {
 
 void sx_close_io (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
 
-/*@notnull@*/ const struct sexpr *sx_read(/*@notnull@*/ struct sexpr_io *);
-void sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ const struct sexpr *);
+/*@notnull@*/ struct sexpr *sx_read(/*@notnull@*/ struct sexpr_io *);
+void sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ struct sexpr *);
 
 /*@notnull@*/ /*@dependent@*/ struct sexpr *cons(/*dependent*/ struct sexpr *, /*dependent*/ struct sexpr *);
 /*@notnull@*/ /*@dependent@*/ struct sexpr *make_integer(signed long);
@@ -107,14 +107,14 @@ void sx_destroy(/*@notnull@*/ /*@dependent@*/ struct sexpr *);
 void *sx_list_map (struct sexpr *, void (*)(struct sexpr *, void *), void *);
 struct sexpr *sx_list_fold (struct sexpr *, void (*)(struct sexpr *));
 
-extern const struct sexpr * const sx_nil;
-extern const struct sexpr * const sx_false;
-extern const struct sexpr * const sx_true;
-extern const struct sexpr * const sx_empty_list;
-extern const struct sexpr * const sx_end_of_list;
-extern const struct sexpr * const sx_end_of_file;
-extern const struct sexpr * const sx_not_a_number;
-extern const struct sexpr * const sx_nonexistent;
+extern struct sexpr * const sx_nil;
+extern struct sexpr * const sx_false;
+extern struct sexpr * const sx_true;
+extern struct sexpr * const sx_empty_list;
+extern struct sexpr * const sx_end_of_list;
+extern struct sexpr * const sx_end_of_file;
+extern struct sexpr * const sx_not_a_number;
+extern struct sexpr * const sx_nonexistent;
 
 #define nilp(sx)   (((sx) == sx_nil)          || ((sx)->type == sxt_nil))
 #define truep(sx)  (((sx) == sx_true)         || ((sx)->type == sxt_true))
