@@ -39,18 +39,17 @@
 #include "atomic/io.h"
 #include "atomic/sexpr.h"
 
-#define SX_TEST_STRING "nyuuuuuuuuuuuuuuuuuuuuuuuuuu!"
+#define SX_TEST_STRING "hello world!"
 #define SX_TEST_INTEGER (signed long long)1337
 #define SX_TEST_INTEGER2 (signed long long)-23
 
 int atomic_main(void) {
-    struct io *out = io_open_write ("temporary-sexpr-data"), *in = io_open (0);
+    struct io *out = io_open_write ("temporary-sexpr-write"), *in = io_open (0);
     struct sexpr_io *io = sx_open_io (in, out);
     struct sexpr *s = make_string (SX_TEST_STRING);
     struct sexpr *s1 = make_string (SX_TEST_STRING);
     struct sexpr *s2 = make_integer(SX_TEST_INTEGER);
     struct sexpr *list;
-    
 
     sx_write (io, s);
 
@@ -67,22 +66,20 @@ int atomic_main(void) {
     sx_write (io, s);
 
     sx_destroy (s);
-    
+
     list = cons(s1, s2);
-    
+
     sx_write(io, list);
-    
+
     sx_destroy(list);
-    
+
     list = cons(s1, cons(s2, sx_end_of_list));
-    
+
     sx_write(io, list);
-    
+
     sx_destroy(list);
-    
-    
 
     sx_close_io (io);
 
-    return 1; /* lib code is still hosed */
+    return 0;
 }

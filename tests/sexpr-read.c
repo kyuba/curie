@@ -43,18 +43,23 @@
 #include "atomic/io.h"
 #include "atomic/sexpr.h"
 
-#define SX_TEST_STRING "nyuuuuuuuuuuuuuuuuuuuuuuuuuu!"
-#define SX_TEST_INTEGER (signed long long)1337
-#define SX_TEST_INTEGER2 (signed long long)-23
-
 int atomic_main(void) {
-    struct io *out = io_open_write ("temporary-sexpr-data"), *in = io_open_read ("tests/test-data.sexpr");
-		    struct sexpr_io *io = sx_open_io (in, out);
-		struct sexpr* s;
-    
-    s = sx_read (io);
-    
-    sx_write(io, s);
+    struct io *out = io_open_write ("temporary-sexpr-read"),
+              *in = io_open_read ("tests/data/sexpr-read-test-data");
 
-    return 1; /* lib code is still hosed */
+    struct sexpr_io *io = sx_open_io (in, out);
+    struct sexpr* s;
+
+    do {
+        s = sx_read (io);
+        if (s == sx_end_of_file) {
+            sx_close_io (io);
+            return 0;
+        }
+
+        if (s != sx_nonexistent)
+            sx_write(io, s);
+    } while (1);
+
+    return 1;
 }

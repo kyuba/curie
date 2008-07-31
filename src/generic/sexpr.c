@@ -67,6 +67,7 @@ static const struct sexpr _sx_end_of_list = { .type = sxt_end_of_list, .referenc
 static const struct sexpr _sx_end_of_file = { .type = sxt_end_of_file, .references = -1 };
 static const struct sexpr _sx_not_a_number = { .type = sxt_not_a_number, .references = -1 };
 static const struct sexpr _sx_nonexistent = { .type = sxt_nonexistent, .references = -1 };
+static const struct sexpr _sx_dot = { .type = sxt_dot, .references = -1 };
 
 struct sexpr * const sx_nil = (struct sexpr * const)&_sx_nil;
 struct sexpr * const sx_false = (struct sexpr * const)&_sx_false;
@@ -76,6 +77,7 @@ struct sexpr * const sx_end_of_list = (struct sexpr * const)&_sx_end_of_list;
 struct sexpr * const sx_end_of_file = (struct sexpr * const)&_sx_end_of_file;
 struct sexpr * const sx_not_a_number = (struct sexpr * const)&_sx_not_a_number;
 struct sexpr * const sx_nonexistent = (struct sexpr * const)&_sx_nonexistent;
+struct sexpr * const sx_dot = (struct sexpr * const)&_sx_dot;
 
 /*@notnull@*/ /*@only@*/ static struct memory_pool *sx_cons_pool = (struct memory_pool *)0;
 /*@notnull@*/ /*@only@*/ static struct memory_pool *sx_int_pool = (struct memory_pool *)0;
@@ -187,4 +189,14 @@ void sx_destroy(struct sexpr *sexpr) {
         default:
             return;
     }
+}
+
+void sx_xref(struct sexpr *sexpr) {
+    if (sexpr->references == -1) return;
+    if (consp(sexpr)) {
+        sx_xref(car(sexpr));
+        sx_xref(cdr(sexpr));
+    }
+
+    sexpr->references += 1;
 }
