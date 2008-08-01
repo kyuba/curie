@@ -59,6 +59,8 @@ int atomic_main(void) {
 
         if (s != sx_nonexistent)
             sx_write(io, s);
+
+        sx_destroy(s);
     } while (1);
 
     return 1;
