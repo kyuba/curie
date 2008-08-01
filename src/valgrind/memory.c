@@ -57,6 +57,8 @@
 
 #include <valgrind/memcheck.h>
 
+#define ATOMIC_PAGE_SIZE 0x1000
+
 /*@only@*/ void *get_mem(unsigned long int);
 /*@only@*/ void *resize_mem(unsigned long int, /*@only@*/ void *, unsigned long int);
 void free_mem(unsigned long int, /*@only@*/void *);
@@ -67,15 +69,10 @@ void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
 
 static size_t get_multiple_of_pagesize(unsigned long int s)
 {
-    static unsigned long int pagesize = 0;
-
-    if (pagesize == 0)
-        pagesize = (unsigned long int)getpagesize();
-
-    if ((s % pagesize) == 0)
+    if ((s % ATOMIC_PAGE_SIZE) == 0)
         return (size_t)s;
     else
-        return (size_t)(((s / pagesize) + 1) * pagesize);
+        return (size_t)(((s / ATOMIC_PAGE_SIZE) + 1) * ATOMIC_PAGE_SIZE);
 }
 
 void *get_mem(unsigned long int size) {
