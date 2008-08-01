@@ -36,11 +36,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+#include <stdlib.h>
+
 extern char **atomic_argv;
 extern char **atomic_environment;
 int atomic_main();
+/*@noreturn@*/ void   _atomic_exit  (int status);
 
 /*@-maintype@*/
+
+void   _atomic_exit (int status)
+{
+    exit (status);
+}
 
 int   main (/*@unused@*/ int argc, char **argv, char **env)
 {

@@ -43,6 +43,8 @@
         .type atomic_main,             @function
 .globl _start
         .type _start,                  @function
+.globl	_atomic_exit
+        .type _atomic_exit,            @function
 
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */
@@ -55,6 +57,7 @@ _start:
 
     call atomic_main
     movq %rax, %rdi
+_atomic_exit:
     movq $60, %rax /* sys_exit */
     syscall
 

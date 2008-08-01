@@ -38,7 +38,6 @@
 
 #define _POSIX_SOURCE
 
-/*@noreturn@*/ void   _atomic_exit  (int status);
 int    _atomic_read  (int fd, /*@out@*/ void *buf, unsigned int count)
 /*@globals errno;@*/;
 int    _atomic_write (int fd, const void *buf, unsigned int count)
@@ -88,11 +87,6 @@ static void examine_error( void ) {
     default:
       last_error_recoverable_p = (char)0;
   }
-}
-
-void   _atomic_exit (int status)
-{
-    exit (status);
 }
 
 int    _atomic_read (int fd, void *buf, unsigned int count)

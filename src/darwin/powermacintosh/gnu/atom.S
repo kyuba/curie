@@ -54,7 +54,6 @@ _atomic_environment:
 .text
         .align 8
 
-.globl	__atomic_exit
 .globl  __atomic_read
 .globl  __atomic_write
 .globl  __atomic_open_read
@@ -67,10 +66,6 @@ _atomic_environment:
 /* r3+ ? */
 /* kernel: */
 /* r3 r4 r5 r6 r7 ... */
-
-__atomic_exit:
-    li      r0, 1 /* sys_exit */
-    b       syscall_with_cleanup
 
 __atomic_read:
     li      r0, 3 /* sys_read */

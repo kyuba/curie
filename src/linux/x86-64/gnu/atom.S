@@ -62,8 +62,6 @@ atomic_environment:
 .text
         .align 8
 
-.globl	_atomic_exit
-        .type _atomic_exit,            @function
 .globl  _atomic_read
         .type _atomic_read,            @function
 .globl  _atomic_write
@@ -83,10 +81,6 @@ atomic_environment:
 /* rdi rsi rdx rcx r8 r9 */
 /* kernel: */
 /* rdi rsi rdx r10 r8 r9 */
-
-_atomic_exit:
-    movq    $60, %rax /* sys_exit */
-    jmp syscall_with_cleanup
 
 _atomic_read:
     movq $0, %rax /* sys_read */
