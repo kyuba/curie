@@ -252,16 +252,23 @@ static struct sexpr *sx_read_cons (int *i, char *buf, int length) {
     struct sexpr *result = sx_end_of_list, *next;
 
     do {
-        switch (buf[j]) { /* skip all currently-leading whitespace */
-            case '\n':
-            case '\t':
-            case '\v':
-            case ' ':
-            case 0:
-                j++;
-                if (j >= length) return sx_nonexistent;
-                break;
-        }
+        do { /* skip all currently-leading whitespace */
+            switch (buf[j]) {
+                case '\n':
+                case '\t':
+                case '\v':
+                case ' ':
+                case 0:
+                    j++;
+                    if (j >= length) return sx_nonexistent;
+                    break;
+
+                default:
+                    goto done_skipping_whitespace;
+            }
+        } while (1);
+
+        done_skipping_whitespace:
 
         switch (buf[j]) {
             case ')':

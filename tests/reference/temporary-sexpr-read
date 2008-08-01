@@ -2,17 +2,18 @@
 ""
 "hello \"world\"!"
 23
+23
 -1337
 symbol1
 symbol2
 #nil
 #t
 #f
-#meow
+#nil
 (hello world !)
 (1 2 3)
 ()
-#eol
+()
 (1 2 . 3)
 (1 () 2 . 3)
 (1 () 2 . 3)
