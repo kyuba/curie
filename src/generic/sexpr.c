@@ -59,23 +59,23 @@
 /*@-mustfreefresh@*/
 /*@-onlytrans@*/
 
-static const struct sexpr const _sx_nil = { .type = sxt_nil, .references = -1 };
-static const struct sexpr const _sx_false = { .type = sxt_false, .references = -1 };
-static const struct sexpr const _sx_true = { .type = sxt_true, .references = -1 };
-static const struct sexpr const _sx_empty_list = { .type = sxt_empty_list, .references = -1 };
-static const struct sexpr const _sx_end_of_list = { .type = sxt_end_of_list, .references = -1 };
-static const struct sexpr const _sx_end_of_file = { .type = sxt_end_of_file, .references = -1 };
-static const struct sexpr const _sx_not_a_number = { .type = sxt_not_a_number, .references = -1 };
-static const struct sexpr const _sx_nonexistent = { .type = sxt_nonexistent, .references = -1 };
+static const struct sexpr _sx_nil = { .type = sxt_nil, .references = -1 };
+static const struct sexpr _sx_false = { .type = sxt_false, .references = -1 };
+static const struct sexpr _sx_true = { .type = sxt_true, .references = -1 };
+static const struct sexpr _sx_empty_list = { .type = sxt_empty_list, .references = -1 };
+static const struct sexpr _sx_end_of_list = { .type = sxt_end_of_list, .references = -1 };
+static const struct sexpr _sx_end_of_file = { .type = sxt_end_of_file, .references = -1 };
+static const struct sexpr _sx_not_a_number = { .type = sxt_not_a_number, .references = -1 };
+static const struct sexpr _sx_nonexistent = { .type = sxt_nonexistent, .references = -1 };
 
-const struct sexpr * const sx_nil = &_sx_nil;
-const struct sexpr * const sx_false = &_sx_false;
-const struct sexpr * const sx_true = &_sx_true;
-const struct sexpr * const sx_empty_list = &_sx_empty_list;
-const struct sexpr * const sx_end_of_list = &_sx_end_of_list;
-const struct sexpr * const sx_end_of_file = &_sx_end_of_file;
-const struct sexpr * const sx_not_a_number = &_sx_not_a_number;
-const struct sexpr * const sx_nonexistent = &_sx_nonexistent;
+struct sexpr * const sx_nil = (struct sexpr * const)&_sx_nil;
+struct sexpr * const sx_false = (struct sexpr * const)&_sx_false;
+struct sexpr * const sx_true = (struct sexpr * const)&_sx_true;
+struct sexpr * const sx_empty_list = (struct sexpr * const)&_sx_empty_list;
+struct sexpr * const sx_end_of_list = (struct sexpr * const)&_sx_end_of_list;
+struct sexpr * const sx_end_of_file = (struct sexpr * const)&_sx_end_of_file;
+struct sexpr * const sx_not_a_number = (struct sexpr * const)&_sx_not_a_number;
+struct sexpr * const sx_nonexistent = (struct sexpr * const)&_sx_nonexistent;
 
 /*@notnull@*/ /*@only@*/ static struct memory_pool *sx_cons_pool = (struct memory_pool *)0;
 /*@notnull@*/ /*@only@*/ static struct memory_pool *sx_int_pool = (struct memory_pool *)0;

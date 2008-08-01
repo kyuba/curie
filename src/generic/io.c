@@ -65,9 +65,8 @@ struct io *io_open (int fd)
     io->fd = fd;
     io->type = iot_undefined;
     io->status = io_undefined;
-    io->position = 0;
     io->length = 0;
-    io->cursor = 0;
+    io->position = 0;
     io->buffersize = IO_CHUNKSIZE;
 
     io->buffer = get_mem (IO_CHUNKSIZE);
@@ -101,6 +100,12 @@ struct io *io_open_write (const char *path)
     return io;
 }
 
+static void relocate_buffer_contents (struct io *io)
+{
+}
+
+#define relocate_buffer(io) if (io->position != 0) relocate_buffer_contents(io)
+
 enum io_result io_write(struct io *io, const char *data, unsigned int length)
 {
     unsigned int i, pos;
@@ -114,10 +119,11 @@ enum io_result io_write(struct io *io, const char *data, unsigned int length)
          (io->status == io_unrecoverable_error))
         return io->status;
 
-    if (io->type != iot_write) {
-        io->position = 0;
+    if (io->type == iot_write) {
+        relocate_buffer(io);
+    } else {
         io->length = 0;
-        io->cursor = 0;
+        io->position = 0;
 
         io->type = iot_write;
         io->status = io_undefined;
@@ -155,10 +161,11 @@ enum io_result io_read(struct io *io)
         (io->status == io_unrecoverable_error))
         return io->status;
 
-    if (io->type != iot_read) {
-        io->position = 0;
+    if (io->type == iot_read) {
+        relocate_buffer(io);
+    } else {
         io->length = 0;
-        io->cursor = 0;
+        io->position = 0;
 
         io->type = iot_read;
         io->status = io_undefined;

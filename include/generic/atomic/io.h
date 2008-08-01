@@ -67,9 +67,8 @@ struct io {
     enum io_type   type;
     enum io_result status;
 
-    unsigned int position;
     unsigned int length;
-    unsigned int cursor;
+    unsigned int position;
     unsigned int buffersize;
 
     /*@null@*/ void (*on_data_read) (struct io *);
