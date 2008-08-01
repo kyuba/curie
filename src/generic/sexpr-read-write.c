@@ -75,7 +75,7 @@ void sx_close_io (struct sexpr_io *io) {
 }
 
 
-static const struct sexpr *sx_read_string(const char *buf, int len) {
+static const struct sexpr *sx_read_string(const char *buf, int *len) {
 
 	int i = 0;
 	int cnt = 0;
@@ -91,13 +91,22 @@ static const struct sexpr *sx_read_string(const char *buf, int len) {
 		
 		i++;
 		cnt++;
-	} while ((buf[i] != '"') && (cnt < len-1));
+	} while ((buf[i] != '"'));
 	str[cnt] = 0;
 	
 	const struct sexpr *retval = make_string((const char*) str);	
 	
 	return retval;
 }
+
+static const struct sexpr *sx_read_symbol (char *buf, int len) {
+	
+}
+
+static const struct sexpr *sx_read_cons (char *buf, int len) {
+	
+}
+
 
 static const struct  sexpr *sx_read_integer (char *buf, int len) {
 	
@@ -138,11 +147,11 @@ const struct sexpr *sx_read(struct sexpr_io *io) {
 				break;
 				
 				case '(':
-				
+					return sx_read_cons(buf, io->in->length);
 				break;
 			
 				case '#':
-			
+					return sx_read_special(buf, io->in->length);
 				break;
 			
 				default:
@@ -152,6 +161,7 @@ const struct sexpr *sx_read(struct sexpr_io *io) {
 				
 					if(buf[i] >= 'A' && buf[i] <= 'z') {
 						//symbol
+						return sx_read_symbol(buf, io->in->length);
 					}
 					
 					return sx_nonexistent; 
