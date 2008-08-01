@@ -44,7 +44,6 @@
 #include "atomic/sexpr.h"
 
 int atomic_main(void) {
-
     struct io *out = io_open_write ("temporary-sexpr-read"),
               *in = io_open_read ("tests/data/sexpr-read-test-data");
 

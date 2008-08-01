@@ -87,6 +87,35 @@ void sx_close_io (struct sexpr_io *io) {
     free_pool_mem (io);
 }
 
+static struct sexpr *sx_read_string (int *i, char *buf, int length) {
+    int j = *i, k = 0;
+    char newstring [MAX_STRING_LENGTH];
+
+    do {
+        if (buf[j] == '"') {
+            /* closing ", end of string */
+            j++;
+            *i = j;
+            newstring[k] = 0;
+
+            /* return the newly created string */
+            return make_string (newstring);
+        } else if (buf[j] == '\\') {
+            /* literal inclusion of the next character... */
+            j++;
+            if (j >= length) return sx_nonexistent;
+        }
+
+        if (k < (MAX_STRING_LENGTH - 2)) {
+            /* make sure we still have enough room, then add the character */
+            newstring[k] = buf[j];
+            k++;
+        }
+        j++;
+    } while (j < length);
+
+    return sx_nonexistent;
+}
 
 static struct sexpr *sx_read_number (int *i, char *buf, int length) {
     int j = *i;
@@ -186,25 +215,17 @@ static struct sexpr *sx_read_symbol (int *i, char *buf, int length) {
                     k++;
                 }
         }
-<<<<<<< HEAD:src/generic/sexpr-read-write.c
-		
-		i++;
-		cnt++;
-	} while ((buf[i] != '"'));
-	str[cnt] = 0;
-        i++;
-        cnt++;
-    } while ((buf[i] != '"') && (cnt < len-1));
-    str[cnt] = 0;
-	
-    struct sexpr *retval = make_string((const char*) str);	
-	
-    return retval;
+
+        j++;
+    } while (j < length);
+
+    return sx_nonexistent;
 }
 
 static struct sexpr *sx_read_cons_finalise (struct sexpr *oreverse) {
     struct sexpr *result = sx_end_of_list;
     struct sexpr *reverse = oreverse;
+
     while (consp(reverse)) {
         struct sexpr *ncar = car (reverse);
         if (dotp (ncar)) {
@@ -305,24 +326,6 @@ struct sexpr *sx_read(struct sexpr_io *io) {
     int i, length;
     struct sexpr *result = sx_nonexistent;
 
-<<<<<<< HEAD:src/generic/sexpr-read-write.c
-    r = io_read(io->in);
-    char* buf = io->in->buffer;
-    for(int i = 0; i < io->in->length; i++) {
-        switch(buf[i]) {
-            case '"':
-                return sx_read_string(buf, io->in->length);
-                break;
-				
-            case '(':
-				
-                break;
-				case '#':
-					return sx_read_special(buf, io->in->length);
-				break;
-            case '#':
-			
-=======
     do {
         r = io_read (io->in);
         i = io->in->position;
@@ -342,16 +345,6 @@ struct sexpr *sx_read(struct sexpr_io *io) {
                 /* whitespace characters */
                 break;
             default:
-                if((buf[i] >= '1' && buf[i] <= '9') || (buf[i] == '-')) {
-                    return sx_read_integer(buf, io->in->length);
-                }
-				
-                if(buf[i] >= 'A' && buf[i] <= 'z') {
-						//symbol
-						return sx_read_symbol(buf, io->in->length);
-					}
-                }
-					
                 /* update current position, so the whitespace will be removed
                    next time around. */
                 io->in->position = i;
@@ -383,7 +376,7 @@ struct sexpr *sx_read(struct sexpr_io *io) {
     return result;
 }
 
-*/
+
 
 static void sx_write_string_or_symbol (struct io *io, struct sexpr_string_or_symbol *sexpr) {
     int i, j;
