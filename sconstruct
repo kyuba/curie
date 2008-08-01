@@ -182,5 +182,6 @@ infosource = glob.glob('benchmarks/atomic-*.c');
 for i in infosource:
   tenv.Program(i)
 
-env.Install(os.environ['PKG_CONFIG_PATH'], 'atomic-libc.pc')	
-env.Alias('pkg-config', os.environ['PKG_CONFIG_PATH'])
+if 'PKG_CONFIG_PATH' in os.environ:
+  env.Install(os.environ['PKG_CONFIG_PATH'], 'atomic-libc.pc')	
+  env.Alias('pkg-config', os.environ['PKG_CONFIG_PATH'])
