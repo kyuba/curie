@@ -75,7 +75,7 @@ void sx_close_io (struct sexpr_io *io) {
 
     free_pool_mem (io);
 }
-
+/*
 
 static struct sexpr *sx_read_string(const char *buf, int len) {
 
@@ -181,7 +181,7 @@ struct sexpr *sx_read(struct sexpr_io *io) {
 		
 }
 
-
+*/
 
 static void sx_write_string_or_symbol (struct io *io, struct sexpr_string_or_symbol *sexpr) {
     int i;

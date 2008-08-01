@@ -52,9 +52,9 @@ int atomic_main(void) {
 		    struct sexpr_io *io = sx_open_io (in, out);
 		struct sexpr* s;
     
-    s = sx_read (io);
+   // s = sx_read (io);
     
-    sx_write(io, s);
+    //sx_write(io, s);
 
     return 1; /* lib code is still hosed */
 }

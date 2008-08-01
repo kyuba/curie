@@ -15,6 +15,8 @@ arch=os.uname()[4].lower()
 ostype=os.uname()[0].lower()
 cctype='gnu'
 
+
+
 def normalise(str):
   return str.replace(' ', '').replace('_', '-')
 
@@ -106,8 +108,33 @@ if standalone():
   if ostype == 'darwin':
     env.Append(CFLAGS = '-static',
 	           LINKFLAGS = '-e _start')
+ 
 else:
   print 'adjusting linker flags for using host-libc based atomic-libc'
+
+# adjust linker/compiler flags in pkgconfig file
+
+file = open('./atomic-libc.pc', "r")
+
+lines = file.readlines()
+
+file.close()
+
+file = open('./atomic-libc.pc', "w")
+
+mod = []
+for l in lines:
+	s = ""
+	if "Libs:" in l:
+		s = 'Libs: -l ' + str(env['LINKFLAGS'])  + '\n'
+	elif "Cflags" in l:
+		s = 'Cflags: ' + str(env['CFLAGS']) + '\n'
+	else:
+		s = str(l)
+	file.write(s)
+
+file.close()
+
 
 sf = []
 
@@ -135,7 +162,7 @@ infosource = glob.glob('information/*.c');
 for i in infosource:
   ienv.Program(i)
 
-tenv.Program ('benchmarks/configure.c')
+foo = tenv.Program ('benchmarks/configure.c')
 
 infosource = glob.glob('benchmarks/posix-*.c');
 for i in infosource:
@@ -145,3 +172,5 @@ infosource = glob.glob('benchmarks/atomic-*.c');
 for i in infosource:
   tenv.Program(i)
 
+env.Install(os.environ['PKG_CONFIG_PATH'], 'atomic-libc.pc')	
+env.Alias('pkg-config', os.environ['PKG_CONFIG_PATH'])
