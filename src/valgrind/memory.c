@@ -57,14 +57,10 @@
 
 #include <valgrind/memcheck.h>
 
-int getpagesize(void);
-
 /*@only@*/ void *get_mem(unsigned long int);
 /*@only@*/ void *resize_mem(unsigned long int, /*@only@*/ void *, unsigned long int);
 void free_mem(unsigned long int, /*@only@*/void *);
-unsigned long int mem_chunk_size = 0;
-/*@only@*/ void *get_mem_chunk()
-  /*globals mem_chunk_size;*/;
+/*@only@*/ void *get_mem_chunk();
 
 void mark_mem_ro (unsigned long int, /*@notnull@*/ void *);
 void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
@@ -150,10 +146,7 @@ void free_mem(unsigned long int size, void *location) {
 }
 
 void *get_mem_chunk() {
-    /* get smallest multiple of the pagesize */
-    if (mem_chunk_size == 0) mem_chunk_size = (unsigned long int)get_multiple_of_pagesize(1);
-
-    return get_mem(mem_chunk_size);
+    return get_mem(ATOMIC_PAGE_SIZE);
 }
 
 void mark_mem_ro (unsigned long int size, /*@notnull@*/ void *location) {

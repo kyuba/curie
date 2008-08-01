@@ -41,11 +41,6 @@
 #define _PAGESIZE         0x1000
 #define _PAGESIZE_INVERSE ~0x0fff
 
-.globl _mem_chunk_size
-
-_mem_chunk_size:
-        .long _PAGESIZE
-
 .text
         .align 8
 
@@ -54,7 +49,6 @@ _mem_chunk_size:
 .globl _mark_mem_ro
 .globl _mark_mem_rw
 .globl _get_mem_chunk
-.globl _mem_chunk_size
 
 cmopsass:
         mr      r9, r4

@@ -10,6 +10,6 @@ Version:
 URL:
 Requires:
 Conflicts:
-Libs: -latomic $__RPATH
-Cflags: --std=c99 -Wall -pedantic -g -O2
+Libs: -latomic $__RPATH -static -nostdlib -nostartfiles -nodefaultlibs -u _start
+Cflags: --std=c99 -Wall -pedantic -O2 -ffreestanding
    

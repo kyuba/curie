@@ -90,7 +90,7 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize) {
 
     pool->entitysize = r;
 
-    pool->maxentities = (unsigned short)((mem_chunk_size - sizeof(struct memory_pool)) / pool->entitysize);
+    pool->maxentities = (unsigned short)((ATOMIC_PAGE_SIZE - sizeof(struct memory_pool)) / pool->entitysize);
 
     for (i = 0; i < BITMAPMAPSIZE; i++) {
         pool->map[i] = 0;
@@ -159,9 +159,9 @@ void free_pool_mem(void *mem) {
 /* actually we /can/ derive the start address of a pool frame using an
    address that points into the pool...
    this is because get_mem_chunk() is supposed to use an address that is
-   pagesize-aligned and mem_chunk_size should be the pagesize. */
+   pagesize-aligned. */
 
-    struct memory_pool *pool = (struct memory_pool *)(((int_pointer)(mem)) & (~(mem_chunk_size - 1)));
+    struct memory_pool *pool = (struct memory_pool *)(((int_pointer)(mem)) & (~(ATOMIC_PAGE_SIZE - 1)));
     char *pool_mem_start = (char *)pool + sizeof(struct memory_pool);
 
     unsigned int index = (unsigned int)(((char*)mem - pool_mem_start) / pool->entitysize);

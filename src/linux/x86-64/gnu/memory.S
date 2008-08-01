@@ -45,7 +45,6 @@
 .globl mark_mem_ro
 .globl mark_mem_rw
 .globl get_mem_chunk
-.globl mem_chunk_size
 
 .type get_mem,                 @function
 .type free_mem,                @function
@@ -53,12 +52,6 @@
 .type mark_mem_ro,             @function
 .type mark_mem_rw,             @function
 .type get_mem_chunk,           @function
-
-.type mem_chunk_size,          @object
-.size mem_chunk_size, 8
-
-mem_chunk_size:
-        .quad _PAGESIZE
 
 .text
         .align 8

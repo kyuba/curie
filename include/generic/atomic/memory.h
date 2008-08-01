@@ -48,12 +48,10 @@ void free_mem(unsigned long int, /*@notnull@*/ /*@only@*/void *);
 void mark_mem_ro (unsigned long int, /*@notnull@*/ void *);
 void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
 
-extern unsigned long int mem_chunk_size;
+/*@notnull@*/ /*@only@*/ void *get_mem_chunk();
 
-/*@notnull@*/ /*@only@*/ void *get_mem_chunk()
-  /*globals mem_chunk_size;*/;
-
-#define free_mem_chunk(p) free_mem(mem_chunk_size, p)
+#define ATOMIC_PAGE_SIZE 0x1000
+#define free_mem_chunk(p) free_mem(ATOMIC_PAGE_SIZE, p)
 
 /* memory-pool.c */
 
