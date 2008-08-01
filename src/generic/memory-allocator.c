@@ -44,6 +44,12 @@
 
 /*@null@*/ /*@only@*/ static struct tree *alloc_pools = (struct tree *)0;
 
+/* pools themselves actually do this optimisation, but we use a lot of
+   different pools, so this is a cleanup that may help */
+#define OPTIMISE_THRESHOLD 500
+
+static unsigned int optimise_threshold = OPTIMISE_THRESHOLD;
+
 static unsigned long calculate_aligned_size (unsigned long a) {
     unsigned long r;
 
@@ -113,11 +119,21 @@ void *arealloc (unsigned long size, void *p, unsigned long new_size) {
     return p;
 }
 
+static void pool_tree_optimiser(struct tree_node *node, void *unused) {
+    struct memory_pool *pool = (struct memory_pool *)node_get_value (node);
+    optimise_memory_pool(pool);
+}
+
 void afree     (unsigned long size, void *p) {
     unsigned long msize = calculate_aligned_size (size);
 
     if (msize < MALLOC_POOL_CUTOFF) {
         free_pool_mem (p);
+        optimise_threshold--;
+        if (optimise_threshold == 0) {
+            optimise_threshold = OPTIMISE_THRESHOLD;
+            tree_map(alloc_pools, pool_tree_optimiser, (void*)0);
+        }
     } else {
         free_mem (msize, p);
     }

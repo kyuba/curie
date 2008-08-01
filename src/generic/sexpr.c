@@ -142,6 +142,7 @@ static struct sexpr *make_string_or_symbol (const char *string, char symbol) {
     for (i = 0; string[i] != (char)0; i++) {
         s->character_data[i] = string[i];
     }
+    s->character_data[i] = (char)0;
 
     s->references = 1;
     s->type = (symbol == (char)1) ? sxt_symbol : sxt_string;

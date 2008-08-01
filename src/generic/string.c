@@ -157,6 +157,11 @@ int_32 str_hash_unaligned(const char *string, unsigned long *len)
 
         for (i = 0; string[i] != (char)0; i++) r[i] = string[i];
 
+        do {
+            r[i] = 0;
+            i++;
+        } while (i < (length + (8-(length % 8))));
+
         rv = str_hash (r, len);
 
         free_mem (length, r);

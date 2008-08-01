@@ -80,6 +80,10 @@ const char *str_immutable_unaligned (const char * string) {
                                  our purposes. */
 
         for (i = 0; string[i] != (char)0; i++) r[i] = string[i];
+        do {
+            r[i] = 0;
+            i++;
+        } while (i < (length + (8-(length % 8))));
 
         rv = str_immutable (r);
 

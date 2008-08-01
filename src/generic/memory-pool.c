@@ -106,8 +106,8 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize) {
 }
 
 void free_memory_pool (struct memory_pool *pool) {
-    if (pool->next) free_memory_pool (pool->next);
-    free_mem_chunk((void *)pool);
+    if (pool->next != ((void *)0)) free_memory_pool (pool->next);
+    free_mem_chunk((struct memory_pool *)pool);
 }
 
 static void *get_pool_mem_inner(struct memory_pool *pool, struct memory_pool *frame) {
@@ -123,15 +123,15 @@ static void *get_pool_mem_inner(struct memory_pool *pool, struct memory_pool *fr
             frame_mem_start = (char *)frame + sizeof(struct memory_pool);
 
             if ((pool != frame) && (pool->next != (struct memory_pool *)0) && (pool->next != frame)) {
-                struct memory_pool *swap;
+                struct memory_pool *cursor = pool->next;
 
-                swap = frame->next;
+                while (cursor->next != frame) {
+                    cursor = cursor->next;
+                }
+
+                cursor->next = frame->next;
                 frame->next = pool->next;
                 pool->next = frame;
-
-                if (swap != (struct memory_pool *)0)
-                while (frame->next != (struct memory_pool *)0) frame = frame->next;
-                frame->next = swap;
             }
 
             return (void *)(frame_mem_start + (index * (frame->entitysize)));
@@ -177,11 +177,10 @@ void optimise_memory_pool(struct memory_pool *pool) {
         last = cursor;
         cursor = cursor->next;
 
-        while ((cursor != (struct memory_pool *)0) &&
-               (bitmap_isempty(cursor->map) == (unsigned char)1)) {
+        if (bitmap_isempty(cursor->map) == (unsigned char)1) {
             last->next = cursor->next;
             free_mem_chunk((void *)cursor);
-            cursor = last->next;
+            cursor = last;
         }
     }
 }
