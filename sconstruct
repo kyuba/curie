@@ -6,8 +6,10 @@ sourcefiles = [ 'bootstrap', 'atom', 'sexpr', 'io', 'memory-pool',
 needforstandalone = [ 'atom', 'memory', 'bootstrap' ]
 
 debug = False
-optimise = not debug
+optimise = True
 useAssembly = True
+
+debugMemory = False
 
 import os
 
@@ -26,12 +28,20 @@ paths = [ normalise(ostype + '/' + arch + '/' + cctype + '/'),
           normalise(ostype + '/'),
           normalise(arch + '/' + cctype + '/'),
           normalise(arch + '/'),
-          normalise('posix-' + arch + '/' + cctype + '/'),
-          normalise('posix-' + arch + '/'),
-          normalise('posix-' + cctype + '/'),
+          normalise('posix/' + arch + '/' + cctype + '/'),
+          normalise('posix/' + arch + '/'),
+          normalise('posix/' + cctype + '/'),
           normalise('posix/'),
           normalise(cctype + '/'),
           'generic/' ]
+
+if debugMemory:
+  useAssembly = False
+  debug = True
+  paths = [ 'valgrind/' ] + paths;
+
+if debug:
+  paths = [ 'debug/' ] + paths;
 
 print 'max path: ' + normalise(ostype + '/' + arch + '/' + cctype + '/');
 
@@ -124,14 +134,14 @@ file = open('./atomic-libc.pc', "w")
 
 mod = []
 for l in lines:
-	s = ""
-	if "Libs:" in l:
-		s = 'Libs: -l ' + str(env['LINKFLAGS'])  + '\n'
-	elif "Cflags" in l:
-		s = 'Cflags: ' + str(env['CFLAGS']) + '\n'
-	else:
-		s = str(l)
-	file.write(s)
+  s = ""
+  if "Libs:" in l:
+    s = 'Libs: -latomic ' + str(env['LINKFLAGS'])  + '\n'
+  elif "Cflags" in l:
+    s = 'Cflags: ' + str(env['CFLAGS']) + '\n'
+  else:
+    s = str(l)
+  file.write(s)
 
 file.close()
 

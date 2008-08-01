@@ -81,6 +81,7 @@ static unsigned char bitmap_isempty(bitmap m) {
 struct memory_pool *create_memory_pool (unsigned long int entitysize) {
     struct memory_pool *pool = get_mem_chunk();
     unsigned short r;
+    unsigned int i;
 
     r = (unsigned short)(entitysize & ~(ENTITY_ALIGNMENT - 1));
     if (r != (unsigned short)entitysize) {
@@ -90,6 +91,10 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize) {
     pool->entitysize = r;
 
     pool->maxentities = (unsigned short)((mem_chunk_size - sizeof(struct memory_pool)) / pool->entitysize);
+
+    for (i = 0; i < BITMAPMAPSIZE; i++) {
+        pool->map[i] = 0;
+    }
 
     if (pool->maxentities > BITMAPMAXBLOCKENTRIES) pool->maxentities = BITMAPMAXBLOCKENTRIES;
 
