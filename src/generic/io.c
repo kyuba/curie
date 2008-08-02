@@ -106,7 +106,7 @@ static void relocate_buffer_contents (struct io *io)
 
 #define relocate_buffer(io) if (io->position != 0) relocate_buffer_contents(io)
 
-enum io_result io_write(struct io *io, const char *data, unsigned int length)
+enum io_result io_collect(struct io *io, const char *data, unsigned int length)
 {
     unsigned int i, pos;
 
@@ -145,7 +145,14 @@ enum io_result io_write(struct io *io, const char *data, unsigned int length)
 
     io->length += length;
 
-    return io_commit(io);
+    return io_incomplete;
+}
+
+enum io_result io_write(struct io *io, const char *data, unsigned int length)
+{
+    enum io_result r = io_collect (io, data, length);
+    if (r == io_incomplete) return io_commit(io);
+    else return r;
 }
 
 enum io_result io_read(struct io *io)

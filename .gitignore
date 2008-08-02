@@ -16,6 +16,9 @@ build
 
 tests/*
 !tests/*.c
+!tests/data
+!tests/reference
+!tests/reference/*
 
 information/*
 !information/*.c

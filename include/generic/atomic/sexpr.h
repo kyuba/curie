@@ -53,7 +53,8 @@ enum sx_type {
     sxt_end_of_list = 8,
     sxt_end_of_file = 9,
     sxt_not_a_number = 10,
-    sxt_nonexistent = 11
+    sxt_nonexistent = 11,
+    sxt_dot = 12
 };
 
 struct sexpr {
@@ -103,6 +104,7 @@ void sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ struct sexpr *);
 /*@notnull@*/ /*@dependent@*/ struct sexpr *make_symbol(/*@notnull@*/ const char *);
 
 void sx_destroy(/*@notnull@*/ /*@dependent@*/ struct sexpr *);
+void sx_xref(/*@notnull@*/ /*@dependent@*/ struct sexpr *);
 
 void *sx_list_map (struct sexpr *, void (*)(struct sexpr *, void *), void *);
 struct sexpr *sx_list_fold (struct sexpr *, void (*)(struct sexpr *));
@@ -115,15 +117,17 @@ extern struct sexpr * const sx_end_of_list;
 extern struct sexpr * const sx_end_of_file;
 extern struct sexpr * const sx_not_a_number;
 extern struct sexpr * const sx_nonexistent;
+extern struct sexpr * const sx_dot;
 
-#define nilp(sx)   (((sx) == sx_nil)          || ((sx)->type == sxt_nil))
-#define truep(sx)  (((sx) == sx_true)         || ((sx)->type == sxt_true))
-#define falsep(sx) (((sx) == sx_false)        || ((sx)->type == sxt_false))
-#define emptyp(sx) (((sx) == sx_empty_list)   || ((sx)->type == sxt_empty_list))
-#define eolp(sx)   (((sx) == sx_end_of_list)  || ((sx)->type == sxt_end_of_list))
-#define eofp(sx)   (((sx) == sx_end_of_file)  || ((sx)->type == sxt_end_of_file))
-#define nanp(sx)   (((sx) == sx_not_a_number) || ((sx)->type == sxt_not_a_number))
-#define nexp(sx)   (((sx) == sx_nonexistent)  || ((sx)->type == sxt_nonexistent))
+#define nilp(sx)   (((struct sexpr *)(sx) == sx_nil)          || ((sx)->type == sxt_nil))
+#define truep(sx)  (((struct sexpr *)(sx) == sx_true)         || ((sx)->type == sxt_true))
+#define falsep(sx) (((struct sexpr *)(sx) == sx_false)        || ((sx)->type == sxt_false))
+#define emptyp(sx) (((struct sexpr *)(sx) == sx_empty_list)   || ((sx)->type == sxt_empty_list))
+#define eolp(sx)   (((struct sexpr *)(sx) == sx_end_of_list)  || ((sx)->type == sxt_end_of_list))
+#define eofp(sx)   (((struct sexpr *)(sx) == sx_end_of_file)  || ((sx)->type == sxt_end_of_file))
+#define nanp(sx)   (((struct sexpr *)(sx) == sx_not_a_number) || ((sx)->type == sxt_not_a_number))
+#define nexp(sx)   (((struct sexpr *)(sx) == sx_nonexistent)  || ((sx)->type == sxt_nonexistent))
+#define dotp(sx)   (((struct sexpr *)(sx) == sx_dot)          || ((sx)->type == sxt_dot))
 
 #define consp(sx)    ((sx)->type == sxt_cons)
 #define stringp(sx)  ((sx)->type == sxt_string)

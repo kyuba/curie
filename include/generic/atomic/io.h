@@ -80,6 +80,7 @@ struct io {
 /*@notnull@*/ /*@only@*/ struct io *io_open_read (const char *);
 /*@notnull@*/ /*@only@*/ struct io *io_open_write (const char *);
 enum io_result io_write(/*@notnull@*/ struct io *, const char *, unsigned int);
+enum io_result io_collect(/*@notnull@*/ struct io *, const char *, unsigned int);
 enum io_result io_read(/*@notnull@*/ struct io *);
 enum io_result io_commit (/*@notnull@*/ struct io *);
 enum io_result io_finish (/*@notnull@*/ struct io *);
