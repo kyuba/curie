@@ -110,7 +110,9 @@ if optimise:
   env.Append(CFLAGS='-O2', LINKFLAGS='-Wl,-s')
 
 if optimiseLinking:
-  env.Append(LINKFLAGS='-Wl,-x -Wl,-z,noexecstack -Wl,-z,norelro -Wl,--gc-sections -Wl,--sort-common')
+  env.Append(LINKFLAGS='-Wl,-x -Wl,--gc-sections -Wl,--sort-common')
+  if ostype != 'darwin':
+    env.Append(LINKFLAGS='-Wl,-z,noexecstack -Wl,-z,norelro')
 
 ienv = env.Clone()
 
