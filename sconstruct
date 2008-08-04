@@ -106,7 +106,7 @@ if debug:
   env.Append(CFLAGS='-g')
 
 if optimise:
-  env.Append(CFLAGS='-O2')
+  env.Append(CFLAGS='-O2', LINKFLAGS='-s')
 
 ienv = env.Clone()
 
@@ -117,8 +117,8 @@ if standalone():
 
   if ostype == 'darwin':
     env.Append(CFLAGS = '-static',
-	           LINKFLAGS = '-e _start')
- 
+               LINKFLAGS = '-e _start')
+
 else:
   print 'adjusting linker flags for using host-libc based atomic-libc'
 
