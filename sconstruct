@@ -12,7 +12,7 @@ noasm = []
 debug = False
 optimise = True
 optimiseLinking = True
-useAssembly = True
+useAssembly = False
 
 debugMemory = False
 
@@ -21,6 +21,9 @@ import os
 arch=os.uname()[4].lower()
 ostype=os.uname()[0].lower()
 cctype='gnu'
+
+pkgconfigpath = '/usr/lib/pkgconfig/'
+# os.environ['PKG_CONFIG_PATH']
 
 ##############
 try:
@@ -44,6 +47,10 @@ paths = [ normalise(ostype + '/' + arch + '/' + cctype + '/'),
           normalise('posix/'),
           normalise(cctype + '/'),
           'generic/' ]
+
+if debug:
+  optimiseLinking = False
+  optimise = False
 
 if debugMemory:
   useAssembly = False
@@ -206,5 +213,7 @@ for i in infosource:
   tenv.Program(i)
 
 if 'PKG_CONFIG_PATH' in os.environ:
-  env.Install(os.environ['PKG_CONFIG_PATH'], 'atomic-libc.pc')	
-  env.Alias('pkg-config', os.environ['PKG_CONFIG_PATH'])
+  env.Install(pkgconfigpath, 'build/atomic-libc.pc')	
+  env.Alias('pkg-config', pkgconfigpath)
+
+env.Alias('install', [ 'pkg-config' ])

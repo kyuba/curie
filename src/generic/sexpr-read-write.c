@@ -326,6 +326,10 @@ struct sexpr *sx_read(struct sexpr_io *io) {
         length = io->in->length;
     } while ((r == io_changes) && (length < MAX_READ_THRESHOLD));
 
+    if (length == 0) {
+        return sx_nonexistent;
+    }
+
     buf = io->in->buffer;
 
     /* remove leading whitespace */
@@ -351,6 +355,9 @@ struct sexpr *sx_read(struct sexpr_io *io) {
 
     /* check that there actually /is/ something to parse, bail if not */
     if (i == length) {
+        io->in->length = 0;
+        io->in->position = 0;
+
         switch (io->in->status) {
             case io_end_of_file:
             case io_unrecoverable_error:

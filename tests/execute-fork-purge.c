@@ -1,8 +1,8 @@
 /*
- *  network-loop.c
+ *  execute-fork-purge.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 06/08/2008.
+ *  Created by Magnus Deininger on 07/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,62 +36,87 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/network.h"
+#include "atomic/exec.h"
 #include "atomic/sexpr.h"
 
 #define TEST_STRING_1 "hello-world!"
 #define TEST_STRING_2 "hello \"world\"!"
 
 int a_main(void) {
-    struct io *in, *out;
-    struct sexpr_io *io, *stdio;
-    struct sexpr *i, *t1, *t2;
+    struct exec_context *context;
+    struct exec_call *call;
     int rv = 0;
+    struct sexpr *i,
+                 *t1 = make_symbol (TEST_STRING_1),
+                 *t2 = make_string (TEST_STRING_2),
+                 *t3 = make_symbol ("success");
+    struct sexpr_io *io, *stdio;
 
-    net_open_loop(&in, &out);
+    call = create_exec_call();
+    call->options |= EXEC_CALL_PURGE;
+    context = execute(call);
 
-    io = sx_open_io(in, out);
     stdio = sx_open_stdio();
 
-    t1 = make_symbol(TEST_STRING_1);
-    t2 = make_string(TEST_STRING_2);
+    switch (context->pid) {
+        case -1:
+            sx_write (stdio, (i = make_symbol ("failure")));
+            sx_destroy (i);
+            return 1;
+        case 0:
+            {
+                do {
+                    i = sx_read(stdio);
+                } while (i == sx_nonexistent);
 
-    sx_write (io, t1);
-    sx_write (io, t2);
-    while (io_commit (io->out) != io_complete);
+                rv |= ((i == t1) ? 0 : 1) << 1;
+                sx_destroy(i);
 
-    /* test transmission of a single symbol*/
-    do {
-        i = sx_read (io);
-    } while (i == sx_nonexistent);
+                do {
+                    i = sx_read(stdio);
+                } while (i == sx_nonexistent);
 
-    rv |= ((t1 == i) ? 0 : 1) << 1;
+                rv |= ((i == t2) ? 0 : 1) << 2;
+                sx_destroy(i);
 
-    sx_destroy (i);
+                i = sx_read(stdio);
+                rv |= ((i == sx_nonexistent) ? 0 : 1) << 3;
+                sx_destroy(i);
+            }
 
-    /* test transmission of a single string */
+            break;
+        default:
+            {
+                io = sx_open_io (context->in, context->out);
 
-    while (io_commit (io->out) == io_incomplete);
-    do {
-        i = sx_read (io);
-    } while (i == sx_nonexistent);
+                sx_write (io, t1);
+                sx_write (io, t2);
 
-    rv |= ((i == t2) ? 0 : 1) << 2;
+                while (io_commit (io->out) == io_incomplete);
 
-    sx_destroy (i);
+                do {
+                    i = sx_read(io);
+                } while (i == sx_nonexistent);
 
-    i = sx_read (io);
-    rv |= ((i == sx_nonexistent) ? 0 : 1) << 3;
+                rv |= ((i == t3) ? 0 : 1) << 4;
+                sx_destroy(i);
+            }
 
-    if (rv != 0) {
-        sx_write (stdio, (i = make_symbol("test-failed")));
-    } else {
-        sx_write (stdio, (i = make_symbol("test-succeeded")));
+            break;
     }
 
-    sx_destroy (i);
+    if (rv != 0) {
+        sx_write (stdio, (i = make_symbol ("failure")));
+        sx_destroy (i);
+        sx_write (stdio, (i = make_integer (rv)));
+        sx_destroy (i);
+    } else {
+        sx_write (stdio, t3);
+    }
+
     sx_destroy (t1);
     sx_destroy (t2);
+    sx_destroy (t3);
 
     sx_close_io (io);
     sx_close_io (stdio);

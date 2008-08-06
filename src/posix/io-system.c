@@ -137,3 +137,10 @@ int   a_kill (int pid, int sig)
     if (rv < 0) examine_error();
     return rv;
 }
+
+int   a_dup (int ofd, int nfd)
+{
+    int rv = dup2 (ofd, nfd);
+    if (rv < 0) examine_error();
+    return rv;
+}

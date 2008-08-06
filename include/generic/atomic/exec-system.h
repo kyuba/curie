@@ -40,6 +40,6 @@
 #define ATOMIC_EXEC_SYSTEM_H
 
 int a_fork();
-void a_exec(char *image, char **argv, char **env);
+void a_exec(const char *image, char **argv, char **env);
 
 #endif

@@ -51,6 +51,7 @@ extern "C" {
   int    a_close (int fd);
 
   int    a_kill (int pid, int sig);
+  int    a_dup (int ofd, int nfd);
 
   extern char last_error_recoverable_p;
 #ifdef __cplusplus

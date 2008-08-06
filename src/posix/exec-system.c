@@ -46,3 +46,7 @@ int a_fork() {
     int r = (int)fork();
     return r;
 }
+
+void a_exec(const char *image, char **argv, char **env) {
+    (void)execve(image, argv, env);
+}

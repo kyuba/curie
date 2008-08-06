@@ -98,12 +98,17 @@ struct io *io_open_write (const char *path)
 
 static void relocate_buffer_contents (struct io *io)
 {
-    unsigned int i;
-    io->length -= io->position;
-    for (i = 0; i < io->length; i++) {
-        io->buffer[i] = io->buffer[(io->position + i)];
+    if (io->position >= io->length) {
+        io->length = 0;
+        io->position = 0;
+    } else {
+        unsigned int i;
+        io->length -= io->position;
+        for (i = 0; i < io->length; i++) {
+            io->buffer[i] = io->buffer[(io->position + i)];
+        }
+        io->position = 0;
     }
-    io->position = 0;
 }
 
 #define relocate_buffer(io) if (io->position != 0) relocate_buffer_contents(io)

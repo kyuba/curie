@@ -42,6 +42,7 @@
 #include <atomic/io.h>
 
 #define EXEC_CALL_NO_IO 0x0001
+#define EXEC_CALL_PURGE 0x0002
 
 struct exec_context {
   int pid;
