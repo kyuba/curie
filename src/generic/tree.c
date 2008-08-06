@@ -39,7 +39,6 @@
 #include <atomic/memory.h>
 #include <atomic/tree.h>
 
-/*@-nullinit@*/
 /*@-noeffect@*/
 /* the map function does actually not have a visible effect from this file's
    POV, however it really does serve a purpose. */

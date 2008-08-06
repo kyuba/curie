@@ -41,9 +41,6 @@
 #include <atomic/string.h>
 #include <atomic/tree.h>
 
-/*@-nullinit@*/
-/* need some sentinel values... */
-
 /*@-mustfreeonly@*/
 /* somehow can't seem to write initialisers without this... */
 
@@ -58,6 +55,7 @@
 /*@-freshtrans@*/
 /*@-mustfreefresh@*/
 /*@-onlytrans@*/
+/*@-sharedtrans@*/
 
 static const struct sexpr _sx_nil = { .type = sxt_nil, .references = -1 };
 static const struct sexpr _sx_false = { .type = sxt_false, .references = -1 };

@@ -76,6 +76,6 @@ void tree_remove_node_specific (/*@dependent@*/ struct tree *, int_pointer, /*@n
 #define tree_remove_node(t,k) tree_remove_node_specific(t, k, (struct tree_node *)0)
 #define node_get_value(node) ((struct tree_node_pointer *)node)->value
 
-void tree_map (struct tree *, void (*)(struct tree_node *, void *), void *);
+void tree_map (struct tree *, void (*)(struct tree_node *, void *), /*@null@*/ void *);
 
 #endif

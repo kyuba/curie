@@ -45,7 +45,6 @@
 #define IMMUTABLE_CHUNKSIZE (4096*2)
 
 /*@-onlytrans@*/
-/*@-nullinit@*/
 /*@-temptrans@*/
 
 /*@-usereleased@*/
