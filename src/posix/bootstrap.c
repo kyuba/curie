@@ -40,12 +40,12 @@
 
 extern char **atomic_argv;
 extern char **atomic_environment;
-int atomic_main();
-/*@noreturn@*/ void   _atomic_exit  (int status);
+int a_main();
+/*@noreturn@*/ void   a_exit  (int status);
 
 /*@-maintype@*/
 
-void   _atomic_exit (int status)
+void   a_exit (int status)
 {
     exit (status);
 }
@@ -57,6 +57,6 @@ int   main (/*@unused@*/ int argc, char **argv, char **env)
     atomic_argv = argv;
     atomic_environment = env;
 
-    rv = atomic_main();
+    rv = a_main();
     return rv;
 }

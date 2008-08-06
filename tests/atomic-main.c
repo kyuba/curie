@@ -36,7 +36,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-int atomic_main(void) {
+int a_main(void) {
 /* test whether returning form main has the intended result */
     return 0;
 }

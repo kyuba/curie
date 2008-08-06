@@ -36,14 +36,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/nucleus.h"
+#include "atomic/main.h"
 
 /*@-unreachable@*/
 /* this annotiation makes sure to inhibit the warning on the 'return 1'
-   statement, because we intend to test _atomic_exit() to behave correctly. */
+   statement, because we intend to test a_exit() to behave correctly. */
 
-int atomic_main(void) {
-/* test the _atomic_exit() call */
-    _atomic_exit(0);
+int a_main(void) {
+/* test the a_exit() call */
+    a_exit(0);
     return 1;
 }

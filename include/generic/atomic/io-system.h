@@ -1,8 +1,8 @@
 /*
- *  exec.c
+ *  io-system.h
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 03/06/2008.
+ *  Created by Magnus Deininger on 26/05/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,6 +36,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/io-system.h>
-#include <atomic/memory.h>
-#include <atomic/io.h>
+#ifndef ATOMIC_IO_SYSTEM_H
+#define ATOMIC_IO_SYSTEM_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  int    a_read  (int fd, /*@out@*/ void *buf, unsigned int count);
+  int    a_write (int fd, const void *buf, unsigned int count);
+
+  int    a_open_read (const char *path);
+  int    a_open_write (const char *path);
+  int    a_create (const char *path, int mode);
+  int    a_close (int fd);
+
+  int    a_kill (int pid, int sig);
+
+  extern char last_error_recoverable_p;
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* ATOMIC_IO_SYSTEM_H */

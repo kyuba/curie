@@ -40,12 +40,12 @@
         .align 8
 
 .globl _start
-.globl _atomic_main
-.globl	__atomic_exit
+.globl _a_main
+.globl	_a_exit
 
 _start:
-        bl      _atomic_main
-__atomic_exit:
+        bl      _a_main
+_a_exit:
         li      r0, 1
 ; r3 should contain the return value of main, so we're good
         sc

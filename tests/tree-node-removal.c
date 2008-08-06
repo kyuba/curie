@@ -140,7 +140,7 @@ static unsigned int test_tree_node_removal(unsigned int keys) {
     return 0;
 }
 
-int atomic_main(void) {
+int a_main(void) {
     unsigned int i;
 
     for (i = 1; i < MAXKEYNUM; i++) {

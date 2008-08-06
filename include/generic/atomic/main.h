@@ -1,5 +1,5 @@
 /*
- *  nucleus.h
+ *  main.h
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 26/05/2008.
@@ -36,30 +36,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_NUCLEUS_H
-#define ATOMIC_NUCLEUS_H
+#ifndef ATOMIC_MAIN_H
+#define ATOMIC_MAIN_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-  /*@noreturn@*/ void   _atomic_exit  (int status);
-  int    _atomic_read  (int fd, /*@out@*/ void *buf, unsigned int count);
-  int    _atomic_write (int fd, const void *buf, unsigned int count);
+  /*@noreturn@*/ void   a_exit  (int status);
 
-  int    _atomic_open_read (const char *path);
-  int    _atomic_open_write (const char *path);
-  int    _atomic_create (const char *path, int mode);
-  int    _atomic_close (int fd);
+  int a_main();
 
-  int    _atomic_kill (int pid, int sig);
-
-  int atomic_main();
-
-  extern char last_error_recoverable_p;
   extern char **atomic_argv;
   extern char **atomic_environment;
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* NUCLEUS_H */
+#endif /* ATOMIC_MAIN_H */

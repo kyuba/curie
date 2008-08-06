@@ -43,7 +43,7 @@
 #define SX_TEST_INTEGER (signed long long)1337
 #define SX_TEST_INTEGER2 (signed long long)-23
 
-int atomic_main(void) {
+int a_main(void) {
     struct io *out = io_open_write ("temporary-sexpr-write"), *in = io_open (0);
     struct sexpr_io *io = sx_open_io (in, out);
     struct sexpr *s = make_string (SX_TEST_STRING);

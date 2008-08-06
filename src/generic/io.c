@@ -36,7 +36,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include <atomic/nucleus.h>
+#include <atomic/io-system.h>
 #include <atomic/io.h>
 #include <atomic/memory.h>
 
@@ -82,7 +82,7 @@ struct io *io_open (int fd)
 
 struct io *io_open_read (const char *path)
 {
-    int fd = _atomic_open_read (path);
+    int fd = a_open_read (path);
     struct io *io = io_open(fd);
 
     io->type = iot_read;
@@ -92,7 +92,7 @@ struct io *io_open_read (const char *path)
 
 struct io *io_open_write (const char *path)
 {
-    int fd = _atomic_open_write (path);
+    int fd = a_open_write (path);
     struct io *io = io_open(fd);
 
     io->type = iot_write;
@@ -188,7 +188,7 @@ enum io_result io_read(struct io *io)
         io->buffersize = newsize;
     }
 
-    readrv = _atomic_read(io->fd, (io->buffer + io->length), IO_CHUNKSIZE);
+    readrv = a_read(io->fd, (io->buffer + io->length), IO_CHUNKSIZE);
 
     if (readrv < 0) /* potential error */
     {
@@ -197,7 +197,7 @@ enum io_result io_read(struct io *io)
             return io_no_change;
         } else { /* source is dead, close the fd */
             io->status = io_unrecoverable_error;
-            (void)_atomic_close (io->fd);
+            (void)a_close (io->fd);
             io->fd = -1;
             return io_unrecoverable_error;
         }
@@ -206,7 +206,7 @@ enum io_result io_read(struct io *io)
     if (readrv == 0) /* end-of-file */
     {
         io->status = io_end_of_file;
-        (void)_atomic_close (io->fd);
+        (void)a_close (io->fd);
         io->fd = -1;
         return io_end_of_file;
     }
@@ -230,7 +230,7 @@ enum io_result io_commit (struct io *io)
         case iot_read:
             return io_read(io);
         case iot_write:
-            rv = _atomic_write(io->fd, io->buffer, io->length);
+            rv = a_write(io->fd, io->buffer, io->length);
             break;
     }
 
@@ -241,7 +241,7 @@ enum io_result io_commit (struct io *io)
             return io_no_change;
         } else { /* target is dead, close the fd */
             io->status = io_unrecoverable_error;
-            (void)_atomic_close (io->fd);
+            (void)a_close (io->fd);
             io->fd = -1;
             return io_unrecoverable_error;
         }
@@ -250,7 +250,7 @@ enum io_result io_commit (struct io *io)
     if (rv == 0) /* end-of-file */
     {
         io->status = io_end_of_file;
-        (void)_atomic_close (io->fd);
+        (void)a_close (io->fd);
         io->fd = -1;
         return io_end_of_file;
     }
@@ -290,7 +290,7 @@ void io_close (struct io *io)
     }
 
     if (io->fd >= 0)
-        (void)_atomic_close (io->fd);
+        (void)a_close (io->fd);
 
     if (io->on_struct_deallocation)
         io->on_struct_deallocation(io);

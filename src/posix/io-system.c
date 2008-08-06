@@ -38,24 +38,24 @@
 
 #define _POSIX_SOURCE
 
-int    _atomic_read  (int fd, /*@out@*/ void *buf, unsigned int count)
+int    a_read  (int fd, /*@out@*/ void *buf, unsigned int count)
 /*@globals errno;@*/;
-int    _atomic_write (int fd, const void *buf, unsigned int count)
-/*@globals errno;@*/;
-
-int    _atomic_open_read (const char *path)
-/*@globals errno;@*/;
-int    _atomic_open_write (const char *path)
-/*@globals errno;@*/;
-int    _atomic_create (const char *path, int mode)
-/*@globals errno;@*/;
-int    _atomic_close (int fd)
+int    a_write (int fd, const void *buf, unsigned int count)
 /*@globals errno;@*/;
 
-int    _atomic_kill (int pid, int sig)
+int    a_open_read (const char *path)
+/*@globals errno;@*/;
+int    a_open_write (const char *path)
+/*@globals errno;@*/;
+int    a_create (const char *path, int mode)
+/*@globals errno;@*/;
+int    a_close (int fd)
 /*@globals errno;@*/;
 
-int atomic_main();
+int    a_kill (int pid, int sig)
+/*@globals errno;@*/;
+
+int a_main();
 /*@null@*/ char **atomic_argv = (char **)0;
 /*@null@*/ char **atomic_environment = (char **)0;
 
@@ -89,53 +89,53 @@ static void examine_error( void ) {
   }
 }
 
-int    _atomic_read (int fd, void *buf, unsigned int count)
+int    a_read (int fd, void *buf, unsigned int count)
 {
     int rv = (int)read(fd, buf, (size_t)count);
     if (rv < 0) examine_error();
     return rv;
 }
 
-int    _atomic_write (int fd, const void *buf, unsigned int count)
+int    a_write (int fd, const void *buf, unsigned int count)
 {
     int rv = (int)write(fd, buf, (size_t)count);
     if (rv < 0) examine_error();
     return rv;
 }
 
-int    _atomic_open_read (const char *path)
+int    a_open_read (const char *path)
 {
     int rv = open(path, O_RDONLY | O_NONBLOCK);
     if (rv < 0) examine_error();
     return rv;
 }
 
-int    _atomic_open_write (const char *path)
+int    a_open_write (const char *path)
 {
     int rv = open(path, O_WRONLY | O_NONBLOCK | O_CREAT, 0666);
     if (rv < 0) examine_error();
     return rv;
 }
 
-int    _atomic_create (const char *path, int mode)
+int    a_create (const char *path, int mode)
 {
     int rv = open(path, O_WRONLY | O_NONBLOCK | O_CREAT, (mode_t)mode);
     if (rv < 0) examine_error();
     return rv;
 }
 
-int    _atomic_close (int fd)
+int    a_close (int fd)
 {
     int rv = close (fd);
     if (rv < 0) {
         examine_error();
 
-        if (last_error_recoverable_p == (char)1) return _atomic_close (fd);
+        if (last_error_recoverable_p == (char)1) return a_close (fd);
     }
     return rv;
 }
 
-int   _atomic_kill (int pid, int sig)
+int   a_kill (int pid, int sig)
 {
     int rv = kill ((pid_t)pid, sig);
     if (rv < 0) examine_error();

@@ -45,7 +45,7 @@
 #define CHUNKSIZE2 (int)((2*64*1024)+3) /* wee bit meaner this way */
 #define CHUNKSLOTS2 (int)(CHUNKSIZE2/sizeof(int))
 
-int atomic_main(void) {
+int a_main(void) {
     int *chunk = (int *)get_mem(CHUNKSIZE);
 	int i;
 

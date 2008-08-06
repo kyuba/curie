@@ -39,12 +39,12 @@
 .text
         .align 8
 
-.globl atomic_main
-        .type atomic_main,             @function
+.globl a_main
+        .type a_main,             @function
 .globl _start
         .type _start,                  @function
-.globl	_atomic_exit
-        .type _atomic_exit,            @function
+.globl	a_exit
+        .type a_exit,            @function
 
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */
@@ -55,9 +55,9 @@ _start:
     pushq   %rbp
     movq    %rsp, %rbp
 
-    call atomic_main
+    call a_main
     movq %rax, %rdi
-_atomic_exit:
+a_exit:
     movq $60, %rax /* sys_exit */
     syscall
 

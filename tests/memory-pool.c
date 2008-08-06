@@ -86,7 +86,7 @@ static unsigned int test_pool(unsigned int poolentitysize, unsigned int usepoole
     return rv;
 }
 
-int atomic_main(void) {
+int a_main(void) {
     unsigned int i, j;
 
     for (i = 1; i < MAXSIZE; i++) {

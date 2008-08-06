@@ -62,60 +62,60 @@ atomic_environment:
 .text
         .align 8
 
-.globl  _atomic_read
-        .type _atomic_read,            @function
-.globl  _atomic_write
-        .type _atomic_write,           @function
-.globl  _atomic_open_read
-        .type _atomic_open_read,       @function
-.globl  _atomic_open_write
-        .type _atomic_open_write,      @function
-.globl  _atomic_create
-        .type _atomic_create,          @function
-.globl  _atomic_close
-        .type _atomic_close,           @function
-.globl  _atomic_kill
-        .type _atomic_kill,            @function
+.globl  a_read
+        .type a_read,            @function
+.globl  a_write
+        .type a_write,           @function
+.globl  a_open_read
+        .type a_open_read,       @function
+.globl  a_open_write
+        .type a_open_write,      @function
+.globl  a_create
+        .type a_create,          @function
+.globl  a_close
+        .type a_close,           @function
+.globl  a_kill
+        .type a_kill,            @function
 
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */
 /* kernel: */
 /* rdi rsi rdx r10 r8 r9 */
 
-_atomic_read:
+a_read:
     movq $0, %rax /* sys_read */
     jmp syscall_with_cleanup
 
-_atomic_write:
+a_write:
     movq $1, %rax /* sys_write */
     jmp syscall_with_cleanup
 
-_atomic_open_read:
+a_open_read:
     /* %rdi is inherited from the callee */
     movq $2, %rax /* sys_open */
     movq $0x800, %rsi /* O_RDONLY | O_NONBLOCK */
     jmp syscall_with_cleanup
 
-_atomic_open_write:
+a_open_write:
     /* %rdi is inherited from the callee */
     movq $2, %rax /* sys_open */
     movq $0x841, %rsi /* O_WRONLY | O_NONBLOCK | O_CREAT */
     movq $0x1b6, %rdx
     jmp syscall_with_cleanup
 
-_atomic_close:
+a_close:
     /* %rdi is inherited from the callee */
     movq $3, %rax /* sys_close */
     jmp syscall_with_cleanup
 
-_atomic_create:
+a_create:
     /* %rdi is inherited from the callee */
     movq $2, %rax /* sys_open */
     movq %rsi, %rdx
     movq $0x841, %rsi /* O_WRONLY | O_NONBLOCK | O_CREAT */
     jmp syscall_with_cleanup
 
-_atomic_kill:
+a_kill:
     /* %rdi and %si are inherited from the callee */
     movq $62, %rax /* sys_kill */
     jmp syscall_with_cleanup

@@ -36,39 +36,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/nucleus.h"
+#include "atomic/io-system.h"
 
 #define TESTDATA       "TEST-DATA"
 #define TESTDATA_SIZE  (int)(sizeof(TESTDATA)-1)
 
-int atomic_main(void) {
-/* test the _atomic_create() and _atomic_close() functions */
+int a_main(void) {
+/* test the a_create() and a_close() functions */
     int fd, i, j;
     char buffer[TESTDATA_SIZE];
 
-    fd = _atomic_create ("temporary-atomic-test-data", 0660);
+    fd = a_create ("temporary-atomic-test-data", 0660);
     if (fd < 0) return 1;
 
-    i = _atomic_close(fd);
+    i = a_close(fd);
     if (i < 0) return 2;
 
-/* test the _atomic_write() and _atomic_open_write() functions */
-    fd = _atomic_open_write ("temporary-atomic-test-data");
+/* test the a_write() and a_open_write() functions */
+    fd = a_open_write ("temporary-atomic-test-data");
     if (fd < 0) return 3;
 
-    i = _atomic_write(fd, TESTDATA, (unsigned int)TESTDATA_SIZE);
+    i = a_write(fd, TESTDATA, (unsigned int)TESTDATA_SIZE);
     if (i < 0) return 4;
     if (i != TESTDATA_SIZE) return 5;
 
 /* close file descriptor */
-    i = _atomic_close(fd);
+    i = a_close(fd);
     if (i < 0) return 6;
 
-/* test the _atomic_read() and _atomic_open_read() functions */
-    fd = _atomic_open_read ("temporary-atomic-test-data");
+/* test the a_read() and a_open_read() functions */
+    fd = a_open_read ("temporary-atomic-test-data");
     if (fd < 0) return 7;
 
-    i = _atomic_read (fd, buffer, (unsigned int)TESTDATA_SIZE);
+    i = a_read (fd, buffer, (unsigned int)TESTDATA_SIZE);
     if (i < 0) return 8;
     if (i != TESTDATA_SIZE) return 9;
 

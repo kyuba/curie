@@ -1,9 +1,9 @@
 # LIBRARY FILES
-sourcefiles = [ 'bootstrap', 'atom', 'sexpr', 'io', 'memory-pool',
+sourcefiles = [ 'bootstrap', 'io-system', 'sexpr', 'io', 'memory-pool',
                 'memory', 'tree', 'exec', 'progress', 'immutable', 'string',
                 'memory-allocator', 'sexpr-library', 'sexpr-read-write' ]
 
-needforstandalone = [ 'atom', 'memory', 'bootstrap' ]
+needforstandalone = [ 'io-system', 'memory', 'bootstrap' ]
 
 debug = False
 optimise = True

@@ -39,64 +39,64 @@
 .data
 
 .globl _last_error_recoverable_p
-.globl _atomic_argv
-.globl _atomic_environment
+.globl a_argv
+.globl a_environment
 
 _last_error_recoverable_p:
         .byte 1
 
-_atomic_argv:
+a_argv:
         .long 0x0
 
-_atomic_environment:
+a_environment:
         .long 0x0
 
 .text
         .align 8
 
-.globl  __atomic_read
-.globl  __atomic_write
-.globl  __atomic_open_read
-.globl  __atomic_open_write
-.globl  __atomic_create
-.globl  __atomic_close
-.globl  __atomic_kill
+.globl  _a_read
+.globl  _a_write
+.globl  _a_open_read
+.globl  _a_open_write
+.globl  _a_create
+.globl  _a_close
+.globl  _a_kill
 
 /* C-functions: */
 /* r3+ ? */
 /* kernel: */
 /* r3 r4 r5 r6 r7 ... */
 
-__atomic_read:
+_a_read:
     li      r0, 3 /* sys_read */
     b       syscall_with_cleanup
 
-__atomic_write:
+_a_write:
     li      r0, 4 /* sys_write */
     b       syscall_with_cleanup
 
-__atomic_open_read:
+_a_open_read:
     li      r0, 5 /* sys_open */
     li      r4, 0x4 /* O_RDONLY | O_NONBLOCK */
     b       syscall_with_cleanup
 
-__atomic_open_write:
+_a_open_write:
     li      r0, 5 /* sys_open */
     li      r4, 0x205 /* O_WRONLY | O_NONBLOCK | O_CREAT */
     li      r5, 0x1b6
     b       syscall_with_cleanup
 
-__atomic_close:
+_a_close:
     li      r0, 6 /* sys_close */
     b       syscall_with_cleanup
 
-__atomic_create:
+_a_create:
     li      r0, 5 /* sys_open */
     mr      r5, r4
     li      r4, 0x205 /* O_WRONLY | O_NONBLOCK | O_CREAT */
     b       syscall_with_cleanup
 
-__atomic_kill:
+_a_kill:
     li      r0, 37 /* sys_kill */
     b       syscall_with_cleanup
 

@@ -68,7 +68,7 @@ int generate_random_integers_file() {
     return 0;
 }
 
-int atomic_main () {
+int a_main () {
     return generate_random_integers_file();
 }
 

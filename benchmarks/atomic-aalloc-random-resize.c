@@ -145,7 +145,7 @@ int test_aalloc_random_sizes_resize () {
     return rv;
 }
 
-int atomic_main() {
+int a_main() {
     int r;
 
     if ((r = read_random_integers_file()) != 0) return r;
