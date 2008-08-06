@@ -4,8 +4,9 @@ splint_params='-Iinclude/generic -export-local'
 splint_params_posix='+posixstrictlib'
 splint_params_atomic='+nolib'
 
-splint ${splint_params} ${splint_params_atomic} $(find ./include ./src \( -name "*.c" -o -name "*.h" \) -a \! \( -path "./src/posix/io-system.c" -o -path "./src/posix/memory.c" \))
+splint ${splint_params} ${splint_params_atomic} $(find ./include ./src \( -name "*.c" -o -name "*.h" \) -a \! \( -path "./src/posix/io-system.c" -o -path "./src/posix/memory.c" -o -path "./src/valgrind/memory.c" \))
 splint ${splint_params} ${splint_params_posix} src/posix/*.c
+splint ${splint_params} ${splint_params_posix} src/valgrind/*.c
 
 for i in tests/*.c; do
   splint ${splint_params} ${splint_params_atomic} "${i}"

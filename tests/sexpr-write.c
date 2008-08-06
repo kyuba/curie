@@ -40,8 +40,8 @@
 #include "atomic/sexpr.h"
 
 #define SX_TEST_STRING "hello world!"
-#define SX_TEST_INTEGER (signed long long)1337
-#define SX_TEST_INTEGER2 (signed long long)-23
+#define SX_TEST_INTEGER (signed long int)1337
+#define SX_TEST_INTEGER2 (signed long int)-23
 
 int a_main(void) {
     struct io *out = io_open_write ("temporary-sexpr-write"), *in = io_open (0);

@@ -95,7 +95,7 @@ struct sexpr_io {
 
 void sx_close_io (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
 
-/*@notnull@*/ struct sexpr *sx_read(/*@notnull@*/ struct sexpr_io *);
+/*@notnull@*/ /*@dependent@*/ struct sexpr *sx_read(/*@notnull@*/ struct sexpr_io *);
 void sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ struct sexpr *);
 
 /*@notnull@*/ /*@dependent@*/ struct sexpr *cons(/*dependent*/ struct sexpr *, /*dependent*/ struct sexpr *);

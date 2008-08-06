@@ -72,14 +72,22 @@ void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
 typedef unsigned int bitmap[BITMAPMAPSIZE];
 
 struct memory_pool {
-  unsigned long int entitysize;
-  unsigned short maxentities;
-  unsigned short optimise_counter;
+    unsigned long int entitysize;
+    unsigned short maxentities;
+    unsigned short optimise_counter;
 
-  bitmap map;
+    /*@null@*/ /*@shared@*/ struct memory_pool *next;
 
-  /*@null@*/ /*@shared@*/ struct memory_pool *next;
+    bitmap map;
 };
+
+#define MEMORY_POOL_INITIALISER(size) {\
+  .entitysize = (((size) & ~(ENTITY_ALIGNMENT - 1)) +\
+                (((size) & ~(ENTITY_ALIGNMENT - 1)) > 0 ? ENTITY_ALIGNMENT : 0)), \
+  .maxentities = 0, \
+  .optimise_counter = 300, \
+  .map = {~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0}, \
+  .next = (struct memory_pool *)0 }
 
 /*@notnull@*/ /*@only@*/ struct memory_pool *create_memory_pool (unsigned long int entitysize);
 void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *);

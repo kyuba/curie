@@ -57,18 +57,15 @@
 #define MAX_SYMBOL_LENGTH 385
 #define MAX_NUMBER_LENGTH 33
 
-/*@notnull@*/ /*@only@*/ static struct memory_pool *sx_io_pool = (struct memory_pool *)0;
+static struct memory_pool sx_io_pool = MEMORY_POOL_INITIALISER(sizeof (struct sexpr_io));
+
 static void sx_write_dispatch (struct sexpr_io *io, struct sexpr *sexpr);
 static struct sexpr *sx_read_dispatch (int *i, char *buf, int length);
 
 struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
     struct sexpr_io *rv;
 
-    if (sx_io_pool == (struct memory_pool *)0) {
-        sx_io_pool = create_memory_pool (sizeof (struct sexpr_io));
-    }
-
-    rv = get_pool_mem (sx_io_pool);
+    rv = get_pool_mem (&sx_io_pool);
 
     rv->in = in;
     rv->out = out;

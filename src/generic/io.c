@@ -50,17 +50,13 @@
    before assigning the new address, because there is no address in there
    when i get the chunk from get_pool_mem(). */
 
-/*@null@*/ /*@only@*/ static struct memory_pool * io_pool = 0;
+static struct memory_pool io_pool = MEMORY_POOL_INITIALISER(sizeof(struct io));
 
 struct io *io_open (int fd)
 {
     struct io *io = 0;
 
-    if (io_pool == 0) {
-        io_pool = create_memory_pool ((unsigned int)sizeof(struct io));
-    }
-
-    io = get_pool_mem(io_pool);
+    io = get_pool_mem(&io_pool);
 
     io->fd = fd;
     io->type = iot_undefined;
@@ -100,7 +96,7 @@ struct io *io_open_write (const char *path)
     return io;
 }
 
-static void relocate_buffer_contents (struct io *io)
+static void relocate_buffer_contents (/*@unused@*/ struct io *io)
 {
 }
 

@@ -42,7 +42,7 @@
 /*@-branchstate@*/
 /*@-mustfreefresh@*/
 
-/*@null@*/ /*@only@*/ static struct tree *alloc_pools = (struct tree *)0;
+static struct tree alloc_pools = TREE_INITIALISER;
 
 /* pools themselves actually do this optimisation, but we use a lot of
    different pools, so this is a cleanup that may help */
@@ -65,19 +65,15 @@ void *aalloc   (unsigned long size) {
     void *p;
     unsigned long msize = calculate_aligned_size (size);
 
-    if (alloc_pools == (struct tree *)0) {
-        alloc_pools = tree_create();
-    }
-
     if (msize < MALLOC_POOL_CUTOFF) {
-        struct tree_node *n = tree_get_node(alloc_pools, msize);
+        struct tree_node *n = tree_get_node(&alloc_pools, msize);
         struct memory_pool *pool;
 
         if (n != (struct tree_node *)0) {
             pool = (struct memory_pool *)node_get_value (n);
         } else {
             pool = create_memory_pool (msize);
-            tree_add_node_value (alloc_pools, msize, pool);
+            tree_add_node_value (&alloc_pools, msize, pool);
         }
 
         p = get_pool_mem (pool);
@@ -119,7 +115,7 @@ void *arealloc (unsigned long size, void *p, unsigned long new_size) {
     return p;
 }
 
-static void pool_tree_optimiser(struct tree_node *node, void *unused) {
+static void pool_tree_optimiser(struct tree_node *node, /*@unused@*/ void *p) {
     struct memory_pool *pool = (struct memory_pool *)node_get_value (node);
     optimise_memory_pool(pool);
 }
@@ -132,7 +128,7 @@ void afree     (unsigned long size, void *p) {
         optimise_threshold--;
         if (optimise_threshold == 0) {
             optimise_threshold = OPTIMISE_THRESHOLD;
-            tree_map(alloc_pools, pool_tree_optimiser, (void*)0);
+            tree_map(&alloc_pools, pool_tree_optimiser, (void*)0);
         }
     } else {
         free_mem (msize, p);

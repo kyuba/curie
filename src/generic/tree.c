@@ -54,20 +54,14 @@
 /*@-temptrans@*/
 /*@-mustfreeonly@*/
 
-/*@notnull@*/ /*@only@*/ static struct memory_pool *tree_root_pool = 0;
-/*@notnull@*/ /*@only@*/ static struct memory_pool *tree_node_pool;
-/*@notnull@*/ /*@only@*/ static struct memory_pool *tree_node_pointer_pool;
+static struct memory_pool tree_root_pool = MEMORY_POOL_INITIALISER(sizeof (struct tree));
+static struct memory_pool tree_node_pool = MEMORY_POOL_INITIALISER(sizeof (struct tree_node));
+static struct memory_pool tree_node_pointer_pool = MEMORY_POOL_INITIALISER(sizeof (struct tree_node_pointer));
 
 struct tree * tree_create () {
     struct tree *tree;
 
-    if (tree_root_pool == 0) {
-        tree_root_pool = create_memory_pool (sizeof (struct tree));
-        tree_node_pool = create_memory_pool (sizeof (struct tree_node));
-        tree_node_pointer_pool = create_memory_pool (sizeof (struct tree_node_pointer));
-    }
-
-    tree = (struct tree *)get_pool_mem(tree_root_pool);
+    tree = (struct tree *)get_pool_mem(&tree_root_pool);
 
     tree->root = (struct tree_node *)0;
 
@@ -122,13 +116,13 @@ static void tree_add_node_to_tree (/*@dependent@*/ struct tree *tree, /*@only@*/
 }
 
 void tree_add_node (struct tree *tree, int_pointer key) {
-    struct tree_node *node = (struct tree_node *)get_pool_mem(tree_node_pool);
+    struct tree_node *node = (struct tree_node *)get_pool_mem(&tree_node_pool);
 
     tree_add_node_to_tree (tree, node, key);
 }
 
 void tree_add_node_value (struct tree *tree, int_pointer key, const void *value) {
-    struct tree_node_pointer *node = (struct tree_node_pointer *)get_pool_mem(tree_node_pointer_pool);
+    struct tree_node_pointer *node = (struct tree_node_pointer *)get_pool_mem(&tree_node_pointer_pool);
 
     node->value = value;
 

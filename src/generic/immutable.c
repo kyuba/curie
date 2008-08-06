@@ -58,8 +58,8 @@
 static unsigned long immutable_data_size = 0;
 static unsigned long immutable_data_space_left = 0;
 
-/*@notnull@*/ /*@dependent@*/ static struct tree *immutable_strings = (struct tree *)0;
-/*@notnull@*/ /*@dependent@*/ static struct tree *immutable_string_hashes = (struct tree *)0;
+static struct tree immutable_strings = TREE_INITIALISER;
+static struct tree immutable_string_hashes = TREE_INITIALISER;
 
 const char *str_immutable_unaligned (const char * string) {
     unsigned int length;
@@ -81,7 +81,7 @@ const char *str_immutable_unaligned (const char * string) {
 
         for (i = 0; string[i] != (char)0; i++) r[i] = string[i];
         do {
-            r[i] = 0;
+            r[i] = (char)0;
             i++;
         } while (i < (length + (8-(length % 8))));
 
@@ -102,10 +102,7 @@ const char *str_immutable (const char * string) {
     /* the compiler should put static strings into read-only storage... */
     if (string[0] == (char)0) return (const char *)"";
 
-    if (immutable_strings == (struct tree *)0) {
-        immutable_strings = tree_create();
-        immutable_string_hashes = tree_create();
-    } else if (tree_get_node (immutable_strings, (int_pointer)string) != (struct tree_node *)0) {
+    if (tree_get_node (&immutable_strings, (int_pointer)string) != (struct tree_node *)0) {
         return string;
     }
 
@@ -113,7 +110,7 @@ const char *str_immutable (const char * string) {
 
     stringlength++; /* add an extra character for the terminating 0 */
 
-    n = tree_get_node (immutable_string_hashes, hash);
+    n = tree_get_node (&immutable_string_hashes, hash);
     if (n != (struct tree_node *)0) {
         rv = (const char *)node_get_value (n);
     }
@@ -121,9 +118,9 @@ const char *str_immutable (const char * string) {
     if (rv == (const char *)0) {
         rv = immutable (string, stringlength);
 
-        tree_add_node (immutable_strings, (int_pointer)rv);
+        tree_add_node (&immutable_strings, (int_pointer)rv);
 
-        tree_add_node_value (immutable_string_hashes, hash, (const void *)rv);
+        tree_add_node_value (&immutable_string_hashes, hash, (const void *)rv);
     }
 
     return rv;

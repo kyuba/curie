@@ -53,6 +53,7 @@ int a_main(void) {
     do {
         s = sx_read (io);
         if (s == sx_end_of_file) {
+            sx_destroy(s);
             sx_close_io (io);
             return 0;
         }
@@ -61,7 +62,9 @@ int a_main(void) {
             sx_write(io, s);
 
         sx_destroy(s);
-    } while (1);
+    } while (1==1);
+
+    sx_close_io (io);
 
     return 1;
 }

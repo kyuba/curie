@@ -61,6 +61,8 @@ struct tree_node_pointer {
     /*@dependent@*/ const void *value;
 };
 
+#define TREE_INITIALISER { .root = (struct tree_node *)0 }
+
 /*@notnull@*/ /*@only@*/ struct tree * tree_create ();
 void tree_destroy (/*@notnull@*/ /*@only@*/ struct tree *);
 

@@ -79,20 +79,16 @@ struct sexpr * const sx_not_a_number = (struct sexpr * const)&_sx_not_a_number;
 struct sexpr * const sx_nonexistent = (struct sexpr * const)&_sx_nonexistent;
 struct sexpr * const sx_dot = (struct sexpr * const)&_sx_dot;
 
-/*@notnull@*/ /*@only@*/ static struct memory_pool *sx_cons_pool = (struct memory_pool *)0;
-/*@notnull@*/ /*@only@*/ static struct memory_pool *sx_int_pool = (struct memory_pool *)0;
+static struct memory_pool sx_cons_pool = MEMORY_POOL_INITIALISER(sizeof (struct sexpr_cons));
+static struct memory_pool sx_int_pool = MEMORY_POOL_INITIALISER(sizeof (struct sexpr_integer));
 
-/*@notnull@*/ /*@only@*/ static struct tree *sx_string_tree = (struct tree *)0;
-/*@notnull@*/ /*@only@*/ static struct tree *sx_symbol_tree = (struct tree *)0;
+static struct tree sx_string_tree = TREE_INITIALISER;
+static struct tree sx_symbol_tree = TREE_INITIALISER;
 
 struct sexpr *cons(struct sexpr *sx_car, struct sexpr *sx_cdr) {
     struct sexpr_cons *rv;
 
-    if (sx_cons_pool == (struct memory_pool *)0) {
-        sx_cons_pool = create_memory_pool (sizeof (struct sexpr_cons));
-    }
-
-    rv = get_pool_mem (sx_cons_pool);
+    rv = get_pool_mem (&sx_cons_pool);
 
     rv->type = sxt_cons;
     rv->car = sx_car;
@@ -106,11 +102,7 @@ struct sexpr *cons(struct sexpr *sx_car, struct sexpr *sx_cdr) {
 struct sexpr *make_integer(signed long number) {
     struct sexpr_integer *rv;
 
-    if (sx_int_pool == (struct memory_pool *)0) {
-        sx_int_pool = create_memory_pool (sizeof (struct sexpr_integer));
-    }
-
-    rv = get_pool_mem (sx_int_pool);
+    rv = get_pool_mem (&sx_int_pool);
 
     rv->references = 1;
     rv->type = sxt_integer;
@@ -126,12 +118,7 @@ static struct sexpr *make_string_or_symbol (const char *string, char symbol) {
     int_32 hash = str_hash_unaligned (string, &len);
     struct tree_node *n;
 
-    if (sx_string_tree == (struct tree *)0) {
-        sx_string_tree = tree_create();
-        sx_symbol_tree = tree_create();
-    }
-
-    if ((n = tree_get_node ((symbol == (char)1) ? sx_symbol_tree : sx_string_tree, (int_pointer)hash))) {
+    if ((n = tree_get_node ((symbol == (char)1) ? &sx_symbol_tree : &sx_string_tree, (int_pointer)hash))) {
         s = (struct sexpr_string_or_symbol *)node_get_value (n);
         (s->references)++;
         return (struct sexpr *)s;
