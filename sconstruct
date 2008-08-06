@@ -12,7 +12,7 @@ noasm = []
 debug = False
 optimise = True
 optimiseLinking = True
-useAssembly = False
+useAssembly = True
 
 debugMemory = False
 
