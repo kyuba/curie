@@ -39,8 +39,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-extern char **atomic_argv;
-extern char **atomic_environment;
+char **atomic_argv;
+char **atomic_environment;
 int a_main();
 /*@noreturn@*/ void   a_exit  (int status);
 
