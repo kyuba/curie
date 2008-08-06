@@ -22,7 +22,12 @@ arch=os.uname()[4].lower()
 ostype=os.uname()[0].lower()
 cctype='gnu'
 
-
+##############
+try:
+  os.mkdir ('build')
+  print ('build directory created')
+except:
+  print ('build directory existed')
 
 def normalise(str):
   return str.replace(' ', '').replace('_', '-')
@@ -148,7 +153,7 @@ lines = file.readlines()
 
 file.close()
 
-file = open('./atomic-libc.pc', "w")
+file = open('./build/atomic-libc.pc', "w")
 
 mod = []
 for l in lines:
