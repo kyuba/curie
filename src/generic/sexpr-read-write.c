@@ -381,7 +381,7 @@ static void sx_write_string_or_symbol (struct io *io, /*@shared@*/ struct sexpr_
             (void)io_collect (io, "\"", 1);
             /* TODO: this is actually super-inefficient... but it works */
             for (j = 0; j < i; j++) {
-                if (sexpr->character_data[j] == '"') {
+                if ((sexpr->character_data[j] == '"') || (sexpr->character_data[j] == '\\')) {
                     (void)io_collect (io, "\\", 1);
                 }
                 (void)io_collect (io, sexpr->character_data + j, 1);

@@ -53,7 +53,7 @@ struct exec_context {
 };
 
 struct exec_call {
-  int options;
+  unsigned int options;
   char **command;
   char **environment;
 
@@ -62,7 +62,6 @@ struct exec_call {
 };
 
 struct exec_call *create_exec_call ();
-struct exec_call *create_exec_call_ce (char *command, char **environment);
 void free_exec_call (struct exec_call *);
 
 struct exec_context *execute(struct exec_call *);

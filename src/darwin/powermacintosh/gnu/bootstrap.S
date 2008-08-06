@@ -39,6 +39,15 @@
 .text
         .align 8
 
+.globl _atomic_argv
+.globl _atomic_environment
+
+_atomic_argv:
+        .long 0x0
+
+_atomic_environment:
+        .long 0x0
+
 .globl _start
 .globl _a_main
 .globl	_a_exit

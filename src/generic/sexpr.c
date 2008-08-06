@@ -124,6 +124,8 @@ static struct sexpr *make_string_or_symbol (const char *string, char symbol) {
 
     s = aalloc (sizeof (struct sexpr_string_or_symbol) + len + 1);
 
+    tree_add_node_value ((symbol == (char)1) ? &sx_symbol_tree : &sx_string_tree, (int_pointer)hash, s);
+
     for (i = 0; string[i] != (char)0; i++) {
         s->character_data[i] = string[i];
     }
@@ -166,9 +168,17 @@ void sx_destroy(struct sexpr *sexpr) {
         case sxt_string:
         case sxt_symbol:
             {
-                unsigned int length = 0;
-                while (((struct sexpr_string_or_symbol *)sexpr)->character_data[length] != (char)0) length++;
-                length++;
+                unsigned long length = 0;
+                int_32 hash;
+
+                hash = str_hash_unaligned (((struct sexpr_string_or_symbol *)sexpr)->character_data, &length);
+
+                if (sexpr->type == sxt_string) {
+                    tree_remove_node(&sx_string_tree, (int_pointer)hash);
+                } else {
+                    tree_remove_node(&sx_symbol_tree, (int_pointer)hash);
+                }
+
                 afree ((sizeof (struct sexpr_string_or_symbol) + length), sexpr);
             }
             return;

@@ -46,6 +46,20 @@
 .globl	a_exit
         .type a_exit,            @function
 
+.globl atomic_argv
+.type atomic_argv, @object
+        .size atomic_argv, 8
+
+atomic_argv:
+        .quad 0x0
+
+.globl atomic_environment
+.type atomic_environment, @object
+        .size atomic_environment, 8
+
+atomic_environment:
+        .quad 0x0
+
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */
 /* kernel: */

@@ -1,8 +1,8 @@
 /*
- *  exec.c
+ *  network-loop.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 03/06/2008.
+ *  Created by Magnus Deininger on 06/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,49 +36,65 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/io-system.h>
-#include <atomic/memory.h>
-#include <atomic/io.h>
-#include <atomic/exec.h>
-#include <atomic/exec-system.h>
-#include <atomic/network.h>
+#include "atomic/network.h"
+#include "atomic/sexpr.h"
 
-static struct memory_pool
-  exec_call_pool = MEMORY_POOL_INITIALISER(sizeof(struct exec_call)),
-  exec_context_pool = MEMORY_POOL_INITIALISER(sizeof(struct exec_context));
+#define TEST_STRING_1 "hello-world!"
+#define TEST_STRING_2 "hello \"world\"!"
 
-struct exec_call *create_exec_call () {
-    struct exec_call *call = (struct exec_call *)get_pool_mem(&exec_call_pool);
+int a_main(void) {
+    struct io *in, *out;
+    struct sexpr_io *io, *stdio;
+    struct sexpr *i, *t1, *t2;
+    int rv = 0;
 
-    call->options = 0;
-    call->command = (char **)0;
-    call->environment = (char **)0;
+    net_open_loop(&in, &out);
 
-    call->on_death = (void (*) (struct exec_context *))0;
-    call->arbitrary = (void *)0;
+    io = sx_open_io(in, out);
+    stdio = sx_open_stdio();
 
-    return call;
-}
+    t1 = make_symbol(TEST_STRING_1);
+    t2 = make_string(TEST_STRING_2);
 
-void free_exec_call (struct exec_call *call) {
-    free_pool_mem ((void *)call);
-}
+    sx_write (io, t1);
+    sx_write (io, t2);
+    while (io_commit (io->out) != io_complete);
 
-struct exec_context *execute(struct exec_call *call) {
-    struct exec_context *context =
-        (struct exec_context *)get_pool_mem(&exec_context_pool);
-    int pid;
+    /* test transmission of a single symbol*/
+    do {
+        i = sx_read (io);
+    } while (i == sx_nonexistent);
 
-    if (!(call->options & EXEC_CALL_NO_IO)) {
-        net_open_loop(&(context->in), &(context->out));
+    rv |= ((t1 == i) ? 0 : 1) << 1;
+
+    sx_destroy (i);
+
+    /* test transmission of a single string */
+
+    while (io_commit (io->out) == io_incomplete);
+    do {
+        i = sx_read (io);
+    } while (i == sx_nonexistent);
+
+    rv |= ((i == t2) ? 0 : 1) << 2;
+
+    sx_destroy (i);
+
+    i = sx_read (io);
+    rv |= ((i == sx_nonexistent) ? 0 : 1) << 3;
+
+    if (rv != 0) {
+        sx_write (stdio, (i = make_string("test failed")));
     } else {
-        context->in = (struct io *)0;
-        context->out = (struct io *)0;
+        sx_write (stdio, (i = make_string("test succeeded")));
     }
 
-    pid = a_fork();
+    sx_destroy (i);
+    sx_destroy (t1);
+    sx_destroy (t2);
 
-    free_exec_call(call);
+    sx_close_io (io);
+    sx_close_io (stdio);
 
-    return context;
+    return rv;
 }

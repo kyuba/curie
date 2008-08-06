@@ -39,17 +39,8 @@
 .data
 
 .globl _last_error_recoverable_p
-.globl a_argv
-.globl a_environment
-
 _last_error_recoverable_p:
         .byte 1
-
-a_argv:
-        .long 0x0
-
-a_environment:
-        .long 0x0
 
 .text
         .align 8

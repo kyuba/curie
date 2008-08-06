@@ -1,8 +1,8 @@
 /*
- *  exec.c
+ *  network.h
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 03/06/2008.
+ *  Created by Magnus Deininger on 06/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,49 +36,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/io-system.h>
-#include <atomic/memory.h>
+#ifndef ATOMIC_NETWORK_H
+#define ATOMIC_NETWORK_H
+
 #include <atomic/io.h>
-#include <atomic/exec.h>
-#include <atomic/exec-system.h>
-#include <atomic/network.h>
 
-static struct memory_pool
-  exec_call_pool = MEMORY_POOL_INITIALISER(sizeof(struct exec_call)),
-  exec_context_pool = MEMORY_POOL_INITIALISER(sizeof(struct exec_context));
+struct net_socket_listener
+{
+    int socket;
 
-struct exec_call *create_exec_call () {
-    struct exec_call *call = (struct exec_call *)get_pool_mem(&exec_call_pool);
+    void (*on_connect)(struct net_socket_listener *, struct io *);
+    void *arbitrary;
+};
 
-    call->options = 0;
-    call->command = (char **)0;
-    call->environment = (char **)0;
+void net_open_loop (struct io **in, struct io **out);
+struct io *net_open_socket (/*@notnull@*/ const char *path);
 
-    call->on_death = (void (*) (struct exec_context *))0;
-    call->arbitrary = (void *)0;
+/*@shared@*/ struct net_socket_listener *net_open_socket_listener (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct net_socket_listener *, struct io *), /*@null@*/ void *arbitrary);
 
-    return call;
-}
+void net_close_socket_listener (/*@shared@*/ struct net_socket_listener *listener);
 
-void free_exec_call (struct exec_call *call) {
-    free_pool_mem ((void *)call);
-}
-
-struct exec_context *execute(struct exec_call *call) {
-    struct exec_context *context =
-        (struct exec_context *)get_pool_mem(&exec_context_pool);
-    int pid;
-
-    if (!(call->options & EXEC_CALL_NO_IO)) {
-        net_open_loop(&(context->in), &(context->out));
-    } else {
-        context->in = (struct io *)0;
-        context->out = (struct io *)0;
-    }
-
-    pid = a_fork();
-
-    free_exec_call(call);
-
-    return context;
-}
+#endif

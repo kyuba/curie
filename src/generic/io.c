@@ -96,8 +96,14 @@ struct io *io_open_write (const char *path)
     return io;
 }
 
-static void relocate_buffer_contents (/*@unused@*/ struct io *io)
+static void relocate_buffer_contents (struct io *io)
 {
+    unsigned int i;
+    io->length -= io->position;
+    for (i = 0; i < io->length; i++) {
+        io->buffer[i] = io->buffer[(io->position + i)];
+    }
+    io->position = 0;
 }
 
 #define relocate_buffer(io) if (io->position != 0) relocate_buffer_contents(io)
@@ -226,6 +232,7 @@ enum io_result io_commit (struct io *io)
         case iot_read:
             return io_read(io);
         case iot_write:
+            if (io->length == 0) return io_complete;
             rv = a_write(io->fd, io->buffer, io->length);
             break;
     }

@@ -1,9 +1,13 @@
 # LIBRARY FILES
-sourcefiles = [ 'bootstrap', 'io-system', 'sexpr', 'io', 'memory-pool',
-                'memory', 'tree', 'exec', 'progress', 'immutable', 'string',
-                'memory-allocator', 'sexpr-library', 'sexpr-read-write' ]
+sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'progress',
+                'immutable', 'string', 'memory-allocator', 'sexpr-library',
+                'sexpr-read-write', 'network' ]
 
-needforstandalone = [ 'io-system', 'memory', 'bootstrap' ]
+needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
+                      'exec-system' ]
+
+sourcefiles += needforstandalone
+noasm = []
 
 debug = False
 optimise = True
@@ -47,11 +51,12 @@ if debug:
 print 'max path: ' + normalise(ostype + '/' + arch + '/' + cctype + '/');
 
 codepreference = []
+codepreferencenoasm = [ 'c' ]
 
 if useAssembly:
   codepreference = [ 'S', 's' ]
 
-codepreference += [ 'c' ]
+codepreference += codepreferencenoasm
 
 def fileexists(name):
   try:
@@ -74,12 +79,18 @@ def haveasm(name):
   return False
 
 def findsource(name):
-  global codepreference, paths
+  global codepreference, paths, noasm
   for l in paths:
-    for i in codepreference:
-      n = 'src/' + l + name + '.' + i
-      if fileexists(n):
-        return n
+    if name in noasm:
+      for i in codepreferencenoasm:
+        n = 'src/' + l + name + '.' + i
+        if fileexists(n):
+          return n
+    else:
+      for i in codepreference:
+        n = 'src/' + l + name + '.' + i
+        if fileexists(n):
+          return n
 
   return False
 
@@ -127,6 +138,7 @@ if standalone():
 
 else:
   print 'adjusting linker flags for using host-libc based atomic-libc'
+  noasm += [ 'bootstrap' ]
 
 # adjust linker/compiler flags in pkgconfig file
 
