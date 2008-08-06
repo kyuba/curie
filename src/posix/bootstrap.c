@@ -37,6 +37,7 @@
  */
 
 #include <stdlib.h>
+#include <unistd.h>
 
 extern char **atomic_argv;
 extern char **atomic_environment;

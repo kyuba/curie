@@ -55,10 +55,6 @@ int    a_close (int fd)
 int    a_kill (int pid, int sig)
 /*@globals errno;@*/;
 
-int a_main();
-/*@null@*/ char **atomic_argv = (char **)0;
-/*@null@*/ char **atomic_environment = (char **)0;
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
