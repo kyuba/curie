@@ -132,3 +132,29 @@ struct exec_context *execute(struct exec_call *call) {
 
     return context;
 }
+
+void check_exec_context (struct exec_context *context) {
+    int i;
+
+    switch (context->pid) {
+        case 0:
+            return;
+        case -1:
+            if (context->on_death != (void (*) (struct exec_context *))0)
+                context->on_death (context);
+            free_pool_mem ((void *)context);
+            return;
+        default:
+            if (a_wait (context->pid, &i) != wr_running) {
+                context->exitstatus = i;
+            } else {
+                if (context->on_death != (void (*) (struct exec_context *))0)
+                    context->on_death (context);
+
+                if (context->in) io_close (context->in);
+                if (context->out) io_close (context->out);
+                free_pool_mem ((void *)context);
+            }
+            return;
+    }
+}

@@ -59,7 +59,7 @@ int a_main(void) {
     stdio = sx_open_stdio();
 
     switch (context->pid) {
-        case -1:
+        case -1: /* only way this would fail ... */
             sx_write (stdio, (i = make_symbol ("failure")));
             sx_destroy (i);
             return 1;
@@ -100,6 +100,8 @@ int a_main(void) {
 
                 rv |= ((i == t3) ? 0 : 1) << 4;
                 sx_destroy(i);
+
+                sx_close_io (io);
             }
 
             break;
@@ -118,8 +120,9 @@ int a_main(void) {
     sx_destroy (t2);
     sx_destroy (t3);
 
-    sx_close_io (io);
     sx_close_io (stdio);
+
+    check_exec_context (context);
 
     return rv;
 }

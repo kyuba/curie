@@ -46,6 +46,7 @@
 
 struct exec_context {
   int pid;
+  int exitstatus;
   struct io *in;
   struct io *out;
 
@@ -66,5 +67,6 @@ struct exec_call *create_exec_call ();
 void free_exec_call (struct exec_call *);
 
 struct exec_context *execute(struct exec_call *);
+void check_exec_context (struct exec_context *);
 
 #endif

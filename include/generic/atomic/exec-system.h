@@ -39,7 +39,14 @@
 #ifndef ATOMIC_EXEC_SYSTEM_H
 #define ATOMIC_EXEC_SYSTEM_H
 
+enum wait_return {
+    wr_running = 0,
+    wr_exited = 1,
+    wr_killed = 2
+};
+
 int a_fork();
+enum wait_return a_wait(int pid, int *status);
 void a_exec(const char *image, char **argv, char **env);
 
 #endif

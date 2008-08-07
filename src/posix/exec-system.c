@@ -41,9 +41,27 @@
 #include <atomic/exec-system.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 int a_fork() {
     int r = (int)fork();
+    return r;
+}
+
+enum wait_return a_wait(int pid, int *status) {
+    int st;
+    enum wait_return r;
+
+    waitpid(pid, &st, WNOHANG);
+    if (WIFEXITED(st)) {
+        r = wr_exited;
+        *status = WEXITSTATUS(st);
+    } else if (WIFSIGNALED(st)) {
+        r = wr_killed;
+    } else {
+        r = wr_running;
+    }
+
     return r;
 }
 
