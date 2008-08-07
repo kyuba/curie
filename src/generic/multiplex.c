@@ -1,5 +1,5 @@
 /*
- *  progress.h
+ *  multiplex.c
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 03/06/2008.
@@ -36,9 +36,51 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_PROGRESS_H
-#define ATOMIC_PROGRESS_H
+#include <atomic/multiplex.h>
+#include <atomic/multiplex-system.h>
 
-void progress ();
+static struct multiplex_functions *mx_func_list =
+    (struct multiplex_functions *)0;
 
-#endif
+void multiplex () {
+    struct multiplex_functions *cur = mx_func_list;
+    int rnum = 0, wnum = 0;
+
+    for (cur = mx_func_list;
+         cur != (struct multiplex_functions *)0;
+         cur = cur->next) {
+        cur->count (&rnum, &wnum);
+    }
+
+    int rfds[rnum], wfds[wnum];
+
+    for (cur = mx_func_list;
+         cur != (struct multiplex_functions *)0;
+         cur = cur->next) {
+        cur->augment (rfds, &rnum, wfds, &wnum);
+    }
+
+    a_select_with_fds (rfds, rnum, wfds, wnum);
+
+    for (cur = mx_func_list;
+         cur != (struct multiplex_functions *)0;
+         cur = cur->next) {
+        cur->callback (rfds, rnum, wfds, wnum);
+    }
+}
+
+void multiplex_add (struct multiplex_functions *mx) {
+    mx->next = mx_func_list;
+    mx_func_list = mx;
+}
+
+/* TODO: implement the following functions */
+
+void multiplex_io ();
+void multiplex_process ();
+void multiplex_signals ();
+void multiplex_sexpr ();
+
+void multiplex_add_io (struct io *);
+void multiplex_add_process (struct exec_context *);
+void multiplex_add_sexpr (struct sexpr_io *);

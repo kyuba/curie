@@ -1,10 +1,10 @@
 # LIBRARY FILES
-sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'progress',
+sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
                 'immutable', 'string', 'memory-allocator', 'sexpr-library',
                 'sexpr-read-write', 'network' ]
 
 needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
-                      'exec-system' ]
+                      'exec-system', 'multiplex-system' ]
 
 sourcefiles += needforstandalone
 noasm = []
