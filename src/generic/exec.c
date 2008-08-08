@@ -147,7 +147,6 @@ void check_exec_context (struct exec_context *context) {
         default:
             if (a_wait (context->pid, &i) != wr_running) {
                 context->exitstatus = i;
-            } else {
                 if (context->on_death != (void (*) (struct exec_context *))0)
                     context->on_death (context);
 
