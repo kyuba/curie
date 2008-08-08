@@ -39,9 +39,7 @@
 #include "atomic/io.h"
 #include "atomic/multiplex.h"
 
-static void mx_on_read(struct sexpr *sx, void *wx) {
-    struct sexpr_io *io = (struct sexpr_io *)wx;
-
+static void mx_on_read(struct sexpr *sx, struct sexpr_io *io, void *n) {
     if (sx != sx_end_of_file) sx_write (io, sx);
 }
 
@@ -52,7 +50,7 @@ int a_main(void) {
 
     multiplex_sexpr();
 
-    multiplex_add_sexpr (io, mx_on_read, (void *)io);
+    multiplex_add_sexpr (io, mx_on_read, (void *)0);
 
     while (multiplex() == mx_ok);
 

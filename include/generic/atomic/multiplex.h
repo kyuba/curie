@@ -67,7 +67,7 @@ void multiplex_sexpr ();
 
 void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void *d);
 void multiplex_add_process (struct exec_context *context, void (*on_death)(struct exec_context *, void *), void *d);
-void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(struct sexpr *, void *), void *d);
+void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(struct sexpr *, struct sexpr_io *, void *), void *d);
 
 #define multiplex_add_io_no_callback(w) multiplex_add_io ((w), (void (*)(struct io *, void *))0, (void *)0);
 
