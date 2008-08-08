@@ -39,27 +39,26 @@
 #include "atomic/io.h"
 #include "atomic/multiplex.h"
 
-struct io *w;
+static void mx_on_read(struct io *io, void *wx) {
+    struct io *w = (struct io *)wx;
 
-static void mx_on_read(struct io *io) {
-    io_read (io);
     io_write (w, io->buffer, io->length);
     io->position = io->length;
 }
 
 int a_main(void) {
-    struct io *r = io_open_read("tests/reference/temporary-multiplexer-test-data");
-
-    w = io_open_write("temporary-multiplexer-test-data");
+    struct io *r = io_open_read("tests/reference/temporary-multiplexer-test-data"),
+              *w = io_open_write("temporary-multiplexer-test-data");
 
     multiplex_io();
 
-    multiplex_add_io (r, mx_on_read);
-    multiplex_add_io (w, (void (*)(struct io *))0);
+    multiplex_add_io (r, mx_on_read, (void *)w);
+    multiplex_add_io_no_callback(w);
 
     while (multiplex() == mx_ok);
 
     io_close (w);
+    io_close (r);
 
     return 0;
 }

@@ -51,7 +51,8 @@ static struct multiplex_functions mx_functions = {
 
 struct io_list {
     struct io *io;
-    void (*on_read)(struct io *);
+    void (*on_read)(struct io *, void *);
+    void *data;
     struct io_list *next;
 };
 
@@ -142,7 +143,9 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
                 case iot_read:
                     for (i = 0; i < r; i++) {
                         if (rs[i] == fd) {
-                            l->on_read (l->io);
+                            io_read (l->io);
+                            if (l->on_read != (void (*)(struct io *, void *))0)
+                                l->on_read (l->io, l->data);
                         }
                     }
                     break;
@@ -174,11 +177,12 @@ void multiplex_io () {
     }
 }
 
-void multiplex_add_io (struct io *io, void (*on_read)(struct io *)) {
+void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void *data) {
     struct io_list *list_element = get_pool_mem (&list_pool);
     list_element->next = list;
     list = list_element;
 
     list_element->io = io;
     list_element->on_read = on_read;
+    list_element->data = data;
 }

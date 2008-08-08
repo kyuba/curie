@@ -39,14 +39,13 @@
 #include <atomic/multiplex.h>
 #include <atomic/memory.h>
 
-struct io_list {
+struct io_element {
     struct sexpr_io *io;
-    void (*on_read)(struct sexpr *);
-    struct io_list *next;
+    void (*on_read)(struct sexpr *, void *);
+    void *data;
 };
 
-static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct io_list));
-static struct io_list *list = (struct io_list *)0;
+static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct io_element));
 
 void multiplex_sexpr () {
     static char installed = (char)0;
@@ -57,12 +56,23 @@ void multiplex_sexpr () {
     }
 }
 
+static void mx_on_read (struct io *r, void *d) {
+    struct io_element *element = (struct io_element *)d;
+    struct sexpr *sx = sx_read (element->io);
 
-void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(struct sexpr *)) {
-    struct io_list *list_element = get_pool_mem (&list_pool);
-    list_element->next = list;
-    list = list_element;
+    while (sx != sx_nonexistent) {
+        element->on_read (sx, element->data);
+        sx = sx_read (element->io);
+    }
+}
 
-    list_element->io = io;
-    list_element->on_read = on_read;
+void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(struct sexpr *, void *), void *data) {
+    struct io_element *element = get_pool_mem (&list_pool);
+
+    element->io = io;
+    element->on_read = on_read;
+    element->data = data;
+
+    multiplex_add_io (io->in, mx_on_read, (void *)element);
+    multiplex_add_io_no_callback(io->out);
 }

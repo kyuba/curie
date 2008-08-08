@@ -1,8 +1,8 @@
 /*
- *  multiplex.h
+ *  multiplex-sexpr.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 03/06/2008.
+ *  Created by Magnus Deininger on 08/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,39 +36,27 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MULTIPLEX_H
-#define ATOMIC_MULTIPLEX_H
+#include "atomic/io.h"
+#include "atomic/multiplex.h"
 
-#include <atomic/io.h>
-#include <atomic/sexpr.h>
-#include <atomic/exec.h>
+static void mx_on_read(struct sexpr *sx, void *wx) {
+    struct sexpr_io *io = (struct sexpr_io *)wx;
 
-struct multiplex_functions {
-    void (*count)(int *, int *);
-    void (*augment)(int *, int *, int *, int *);
-    void (*callback)(int *, int, int *, int);
+    if (sx != sx_end_of_file) sx_write (io, sx);
+}
 
-    struct multiplex_functions *next;
-};
+int a_main(void) {
+    struct io *r = io_open_read("tests/data/sexpr-read-test-data"),
+              *w = io_open_write("temporary-multiplexer-sexpr-test-data");
+    struct sexpr_io *io = sx_open_io (r, w);
 
-enum multiplex_result {
-    mx_ok = 0,
-    mx_nothing_to_do = 1
-};
+    multiplex_sexpr();
 
-enum multiplex_result multiplex ();
+    multiplex_add_sexpr (io, mx_on_read, (void *)io);
 
-void multiplex_add (struct multiplex_functions *);
+    while (multiplex() == mx_ok);
 
-void multiplex_io ();
-void multiplex_process ();
-void multiplex_signal ();
-void multiplex_sexpr ();
+    sx_close_io (io);
 
-void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void *d);
-void multiplex_add_process (struct exec_context *context, void (*on_death)(struct exec_context *, void *), void *d);
-void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(struct sexpr *, void *), void *d);
-
-#define multiplex_add_io_no_callback(w) multiplex_add_io ((w), (void (*)(struct io *, void *))0, (void *)0);
-
-#endif
+    return 0;
+}

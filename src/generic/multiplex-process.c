@@ -41,7 +41,8 @@
 
 struct io_list {
     struct exec_context *context;
-    void (*on_death)(struct exec_context *);
+    void (*on_death)(struct exec_context *, void *);
+    void *data;
     struct io_list *next;
 };
 
@@ -58,11 +59,12 @@ void multiplex_process () {
     }
 }
 
-void multiplex_add_process (struct exec_context *context, void (*on_death)(struct exec_context *)) {
+void multiplex_add_process (struct exec_context *context, void (*on_death)(struct exec_context *, void *), void *data) {
     struct io_list *list_element = get_pool_mem (&list_pool);
     list_element->next = list;
     list = list_element;
 
     list_element->context = context;
     list_element->on_death = on_death;
+    list_element->data = data;
 }
