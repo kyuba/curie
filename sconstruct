@@ -1,7 +1,8 @@
 # LIBRARY FILES
 sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
                 'immutable', 'string', 'memory-allocator', 'sexpr-library',
-                'sexpr-read-write', 'network' ]
+                'sexpr-read-write', 'network', 'multiplex-io',
+                'multiplex-sexpr', 'multiplex-process', 'multiplex-signal' ]
 
 needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
                       'exec-system', 'multiplex-system' ]
@@ -12,7 +13,7 @@ noasm = []
 debug = False
 optimise = True
 optimiseLinking = True
-useAssembly = True
+useAssembly = False
 
 debugMemory = False
 
@@ -48,16 +49,14 @@ paths = [ normalise(ostype + '/' + arch + '/' + cctype + '/'),
           normalise(cctype + '/'),
           'generic/' ]
 
-if debug:
-  optimiseLinking = False
-  optimise = False
-
 if debugMemory:
   useAssembly = False
   debug = True
   paths = [ 'valgrind/' ] + paths;
 
 if debug:
+  optimiseLinking = False
+  optimise = False
   paths = [ 'debug/' ] + paths;
 
 print 'max path: ' + normalise(ostype + '/' + arch + '/' + cctype + '/');

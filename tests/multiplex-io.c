@@ -1,8 +1,8 @@
 /*
- *  multiplex-system.h
+ *  multiplex-io.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 07/08/2008.
+ *  Created by Magnus Deininger on 08/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,10 +36,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MULTIPLEX_SYSTEM_H
-#define ATOMIC_MULTIPLEX_SYSTEM_H
+#include "atomic/io.h"
+#include "atomic/multiplex.h"
 
-void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum);
-void a_set_signal_handler (int signal, void (*handler)(int));
+struct io *w;
 
-#endif
+static void mx_on_read(struct io *io) {
+    io_read (io);
+    io_write (w, io->buffer, io->length);
+    io->position = io->length;
+}
+
+int a_main(void) {
+    struct io *r = io_open_read("tests/reference/temporary-multiplexer-test-data");
+
+    w = io_open_write("temporary-multiplexer-test-data");
+
+    multiplex_io();
+
+    multiplex_add_io (r, mx_on_read);
+    multiplex_add_io (w, (void (*)(struct io *))0);
+
+    while (multiplex() == mx_ok);
+
+    io_close (w);
+
+    return 0;
+}

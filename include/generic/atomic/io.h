@@ -70,10 +70,6 @@ struct io {
     unsigned int length;
     unsigned int position;
     unsigned int buffersize;
-
-    /*@null@*/ void (*on_data_read) (struct io *);
-    /*@null@*/ void (*on_struct_deallocation) (struct io *);
-    /*@null@*/ /*@shared@*/ void *arbitrary;
 };
 
 /*@notnull@*/ /*@only@*/ struct io *io_open (int);

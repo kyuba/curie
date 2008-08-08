@@ -51,17 +51,22 @@ struct multiplex_functions {
     struct multiplex_functions *next;
 };
 
-void multiplex ();
+enum multiplex_result {
+    mx_ok = 0,
+    mx_nothing_to_do = 1
+};
+
+enum multiplex_result multiplex ();
 
 void multiplex_add (struct multiplex_functions *);
 
 void multiplex_io ();
 void multiplex_process ();
-void multiplex_signals ();
+void multiplex_signal ();
 void multiplex_sexpr ();
 
-void multiplex_add_io (struct io *);
-void multiplex_add_process (struct exec_context *);
-void multiplex_add_sexpr (struct sexpr_io *);
+void multiplex_add_io (struct io *io, void (*on_read)(struct io *));
+void multiplex_add_process (struct exec_context *context, void (*on_death)(struct exec_context *));
+void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(struct sexpr *));
 
 #endif

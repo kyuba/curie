@@ -42,7 +42,7 @@
 static struct multiplex_functions *mx_func_list =
     (struct multiplex_functions *)0;
 
-void multiplex () {
+enum multiplex_result multiplex () {
     struct multiplex_functions *cur = mx_func_list;
     int rnum = 0, wnum = 0;
 
@@ -52,20 +52,29 @@ void multiplex () {
         cur->count (&rnum, &wnum);
     }
 
-    int rfds[rnum], wfds[wnum];
+    if ((rnum == 0) && (wnum == 0)) {
+        return mx_nothing_to_do;
+    } else {
+        int rfds[rnum], wfds[wnum];
 
-    for (cur = mx_func_list;
-         cur != (struct multiplex_functions *)0;
-         cur = cur->next) {
-        cur->augment (rfds, &rnum, wfds, &wnum);
-    }
+        for (cur = mx_func_list;
+             cur != (struct multiplex_functions *)0;
+             cur = cur->next) {
+            rnum = 0;
+            wnum = 0;
 
-    a_select_with_fds (rfds, rnum, wfds, wnum);
+            cur->augment (rfds, &rnum, wfds, &wnum);
+        }
 
-    for (cur = mx_func_list;
-         cur != (struct multiplex_functions *)0;
-         cur = cur->next) {
-        cur->callback (rfds, rnum, wfds, wnum);
+        a_select_with_fds (rfds, rnum, wfds, wnum);
+
+        for (cur = mx_func_list;
+             cur != (struct multiplex_functions *)0;
+             cur = cur->next) {
+            cur->callback (rfds, rnum, wfds, wnum);
+        }
+
+        return mx_ok;
     }
 }
 
@@ -73,14 +82,3 @@ void multiplex_add (struct multiplex_functions *mx) {
     mx->next = mx_func_list;
     mx_func_list = mx;
 }
-
-/* TODO: implement the following functions */
-
-void multiplex_io ();
-void multiplex_process ();
-void multiplex_signals ();
-void multiplex_sexpr ();
-
-void multiplex_add_io (struct io *);
-void multiplex_add_process (struct exec_context *);
-void multiplex_add_sexpr (struct sexpr_io *);

@@ -67,12 +67,6 @@ struct io *io_open (int fd)
 
     io->buffer = get_mem (IO_CHUNKSIZE);
 
-    /* splint bitches about this one, claiming i'd cast it to int... */
-    io->on_data_read = (void (*)(struct io *))0;
-    io->on_struct_deallocation = (void (*)(struct io *))0;
-
-    io->arbitrary = (void *)0;
-
     return io;
 }
 
@@ -220,9 +214,6 @@ enum io_result io_read(struct io *io)
 
     io->length += readrv;
 
-    if (io->on_data_read)
-        io->on_data_read (io);
-
     return io_changes;
 }
 
@@ -299,9 +290,6 @@ void io_close (struct io *io)
 
     if (io->fd >= 0)
         (void)a_close (io->fd);
-
-    if (io->on_struct_deallocation)
-        io->on_struct_deallocation(io);
 
     free_mem(io->buffersize, io->buffer);
     free_pool_mem ((void *)io);
