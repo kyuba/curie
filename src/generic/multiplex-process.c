@@ -38,6 +38,7 @@
 
 #include <atomic/multiplex.h>
 #include <atomic/memory.h>
+#include <atomic/signal.h>
 
 struct io_list {
     struct exec_context *context;

@@ -62,7 +62,6 @@ void multiplex_add (struct multiplex_functions *);
 
 void multiplex_io ();
 void multiplex_process ();
-void multiplex_signal ();
 void multiplex_sexpr ();
 
 void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void *d);

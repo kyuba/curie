@@ -5,7 +5,7 @@ sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
                 'multiplex-sexpr', 'multiplex-process', 'multiplex-signal' ]
 
 needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
-                      'exec-system', 'multiplex-system' ]
+                      'exec-system', 'multiplex-system', 'signal-system' ]
 
 sourcefiles += needforstandalone
 noasm = []

@@ -1,8 +1,8 @@
 /*
- *  network.c
+ *  signal-system.h
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 06/08/2008.
+ *  Created by Magnus Deininger on 08/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,22 +36,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/network.h>
-#include <atomic/network-system.h>
+#ifndef ATOMIC_MULTIPLEX_SYSTEM_H
+#define ATOMIC_MULTIPLEX_SYSTEM_H
 
-void net_open_loop (struct io **in, struct io **out) {
-    enum io_result r;
-    int fds[2];
+#include <atomic/signal.h>
 
-    r = a_open_loop (fds);
-    if (r == io_unrecoverable_error) {
-        fds[0] = -1;
-        fds[1] = -1;
-    }
+void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signal));
+void a_kill (enum signal signal, int pid);
+int a_getpid ();
 
-    *in = io_open (fds[0]);
-    *out = io_open (fds[1]);
-
-    (*in)->type = iot_read;
-    (*out)->type = iot_write;
-}
+#endif

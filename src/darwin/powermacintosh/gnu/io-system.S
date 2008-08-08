@@ -51,7 +51,6 @@ _last_error_recoverable_p:
 .globl  _a_open_write
 .globl  _a_create
 .globl  _a_close
-.globl  _a_kill
 
 /* C-functions: */
 /* r3+ ? */
@@ -85,10 +84,6 @@ _a_create:
     li      r0, 5 /* sys_open */
     mr      r5, r4
     li      r4, 0x205 /* O_WRONLY | O_NONBLOCK | O_CREAT */
-    b       syscall_with_cleanup
-
-_a_kill:
-    li      r0, 37 /* sys_kill */
     b       syscall_with_cleanup
 
 syscall_with_cleanup:

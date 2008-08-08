@@ -50,7 +50,6 @@ extern "C" {
   int    a_create (const char *path, int mode);
   int    a_close (int fd);
 
-  int    a_kill (int pid, int sig);
   int    a_dup (int ofd, int nfd);
 
   extern char last_error_recoverable_p;

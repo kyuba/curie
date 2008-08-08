@@ -40,7 +40,6 @@
 
 #include <atomic/multiplex-system.h>
 #include <sys/select.h>
-#include <signal.h>
 
 void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum) {
     fd_set rset, wset;
@@ -82,15 +81,4 @@ void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum) {
             }
         }
     }
-}
-
-void a_set_signal_handler (int signal, void (*handler)(int)) {
-    struct sigaction action;
-
-    sigemptyset(&(action.sa_mask));
-
-    action.sa_handler = handler;
-    action.sa_flags = 0;
-
-    sigaction (signal, &action, (void *)0);
 }

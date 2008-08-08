@@ -1,8 +1,8 @@
 /*
- *  network.c
+ *  multiplex-signal.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 06/08/2008.
+ *  Created by Magnus Deininger on 08/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,22 +36,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/network.h>
-#include <atomic/network-system.h>
+#include "atomic/multiplex.h"
+#include "atomic/signal.h"
+#include "atomic/main.h"
 
-void net_open_loop (struct io **in, struct io **out) {
-    enum io_result r;
-    int fds[2];
+static void mx_sig_usr1(enum signal signal, void *wx) {
+    a_exit (0);
+}
 
-    r = a_open_loop (fds);
-    if (r == io_unrecoverable_error) {
-        fds[0] = -1;
-        fds[1] = -1;
-    }
+int a_main(void) {
+    multiplex_signal();
 
-    *in = io_open (fds[0]);
-    *out = io_open (fds[1]);
+    multiplex_add_signal (sig_usr1, mx_sig_usr1, (void *)0);
+    send_signal_self (sig_usr1);
 
-    (*in)->type = iot_read;
-    (*out)->type = iot_write;
+    while (multiplex() == mx_ok);
+
+    return 1;
 }

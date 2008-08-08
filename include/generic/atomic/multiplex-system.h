@@ -40,6 +40,5 @@
 #define ATOMIC_MULTIPLEX_SYSTEM_H
 
 void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum);
-void a_set_signal_handler (int signal, void (*handler)(int));
 
 #endif

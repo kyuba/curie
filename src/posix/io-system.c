@@ -52,9 +52,6 @@ int    a_create (const char *path, int mode)
 int    a_close (int fd)
 /*@globals errno;@*/;
 
-int    a_kill (int pid, int sig)
-/*@globals errno;@*/;
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -128,13 +125,6 @@ int    a_close (int fd)
 
         if (last_error_recoverable_p == (char)1) return a_close (fd);
     }
-    return rv;
-}
-
-int   a_kill (int pid, int sig)
-{
-    int rv = kill ((pid_t)pid, sig);
-    if (rv < 0) examine_error();
     return rv;
 }
 

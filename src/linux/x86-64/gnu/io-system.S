@@ -59,8 +59,6 @@ last_error_recoverable_p:
         .type a_create,          @function
 .globl  a_close
         .type a_close,           @function
-.globl  a_kill
-        .type a_kill,            @function
 .globl  a_dup
         .type a_dup,             @function
 
@@ -100,11 +98,6 @@ a_create:
     movq $2, %rax /* sys_open */
     movq %rsi, %rdx
     movq $0x841, %rsi /* O_WRONLY | O_NONBLOCK | O_CREAT */
-    jmp syscall_with_cleanup
-
-a_kill:
-    /* %rdi and %si are inherited from the callee */
-    movq $62, %rax /* sys_kill */
     jmp syscall_with_cleanup
 
 a_dup:

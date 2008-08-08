@@ -37,13 +37,91 @@
  */
 
 #include <atomic/multiplex.h>
-#include <atomic/multiplex-system.h>
+#include <atomic/signal.h>
+#include <atomic/signal-system.h>
+#include <atomic/network.h>
+#include <atomic/tree.h>
+#include <atomic/memory.h>
+
+struct handler {
+    enum signal signal;
+    void (*handler)(enum signal, void *);
+    void *data;
+    struct handler *next;
+};
+
+static struct handler *signal_handlers = (struct handler *)0;
+
+static void invoke (enum signal signal) {
+    struct handler *h = signal_handlers;
+
+    while (h != (struct signal_handlers *)0) {
+        if (h->signal == signal) {
+            h->handler (signal, h->data);
+        }
+
+        h = h->next;
+    }
+}
+
+static void queue_on_read (struct io *qin, void *notused) {
+    int position = qin->position / sizeof(enum signal),
+        length = qin->length / sizeof(enum signal);
+
+    enum signal *buffer = (enum signal *)qin->buffer;
+
+    while (position < length) {
+        invoke (buffer[position]);
+
+        position++;
+    }
+
+    qin->position = position * sizeof(enum signal);
+}
+
+static struct io *signal_queue_out;
+
+static void generic_signal_handler (enum signal signal) {
+    io_write (signal_queue_out, (char *)&signal, sizeof(enum signal));
+}
 
 void multiplex_signal () {
     static char installed = (char)0;
 
     if (installed == (char)0) {
+        static struct io *signal_queue_in;
+        int i;
+
         multiplex_io();
+
+        for (i = 0; i < SIGNAL_MAX_NUM; i++) {
+            a_set_signal_handler ((enum signal)i, generic_signal_handler);
+        }
+
+        net_open_loop (&signal_queue_in, &signal_queue_out);
+
+        multiplex_add_io (signal_queue_in, queue_on_read, (void *)0);
+        multiplex_add_io_no_callback (signal_queue_out);
+
         installed = (char)1;
     }
+}
+
+void multiplex_add_signal (enum signal signal, void (*handler)(enum signal, void *), void *data) {
+    struct handler *element = aalloc (sizeof(struct handler));
+
+    element->signal = signal;
+    element->data = data;
+    element->handler = handler;
+
+    element->next = signal_handlers;
+    signal_handlers = element;
+}
+
+void send_signal (enum signal signal, int pid) {
+    a_kill (signal, pid);
+}
+
+void send_signal_self (enum signal signal) {
+    a_kill (signal, a_getpid());
 }
