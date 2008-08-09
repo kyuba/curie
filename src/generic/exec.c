@@ -56,9 +56,6 @@ struct exec_call *create_exec_call () {
     call->command = (char **)0;
     call->environment = (char **)0;
 
-    call->on_death = (void (*) (struct exec_context *))0;
-    call->arbitrary = (void *)0;
-
     return call;
 }
 
@@ -130,7 +127,13 @@ struct exec_context *execute(struct exec_call *call) {
 
     free_exec_call(call);
 
+    context->status = ps_running;
+
     return context;
+}
+
+void free_exec_context (struct exec_context *context) {
+    free_pool_mem ((void *)context);
 }
 
 void check_exec_context (struct exec_context *context) {
@@ -138,21 +141,13 @@ void check_exec_context (struct exec_context *context) {
 
     switch (context->pid) {
         case 0:
-            return;
         case -1:
-            if (context->on_death != (void (*) (struct exec_context *))0)
-                context->on_death (context);
-            free_pool_mem ((void *)context);
             return;
         default:
-            if (a_wait (context->pid, &i) != wr_running) {
+            if ((context->status == ps_running) &&
+                (a_wait (context->pid, &i) != wr_running)) {
                 context->exitstatus = i;
-                if (context->on_death != (void (*) (struct exec_context *))0)
-                    context->on_death (context);
-
-                if (context->in) io_close (context->in);
-                if (context->out) io_close (context->out);
-                free_pool_mem ((void *)context);
+                context->status = ps_terminated;
             }
             return;
     }

@@ -90,8 +90,13 @@ enum signal {
     sig_winch = 36   /* window resize */
 };
 
+enum signal_callback_result {
+    scr_keep = 0,
+    scr_ditch = 1
+};
+
 void multiplex_signal ();
-void multiplex_add_signal (enum signal signal, void (*handler)(enum signal, void *), void *data);
+void multiplex_add_signal (enum signal signal, enum signal_callback_result (*handler)(enum signal, void *), void *data);
 
 void send_signal (enum signal signal, int pid);
 void send_signal_self (enum signal signal);

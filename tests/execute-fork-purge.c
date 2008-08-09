@@ -122,7 +122,11 @@ int a_main(void) {
 
     sx_close_io (stdio);
 
-    check_exec_context (context);
+    if (context->pid > 0) {
+        while (context->status == ps_running)
+            check_exec_context (context);
+    }
+    free_exec_context (context);
 
     return rv;
 }

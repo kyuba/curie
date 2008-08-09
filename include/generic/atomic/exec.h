@@ -44,23 +44,23 @@
 #define EXEC_CALL_NO_IO 0x0001
 #define EXEC_CALL_PURGE 0x0002
 
+enum process_status {
+    ps_running = 0,
+    ps_terminated = 1
+};
+
 struct exec_context {
   int pid;
   int exitstatus;
+  enum process_status status;
   struct io *in;
   struct io *out;
-
-  void (*on_death) (struct exec_context *);
-  void *arbitrary;
 };
 
 struct exec_call {
   unsigned int options;
   char **command;
   char **environment;
-
-  void (*on_death) (struct exec_context *);
-  void *arbitrary;
 };
 
 struct exec_call *create_exec_call ();
@@ -68,5 +68,6 @@ void free_exec_call (struct exec_call *);
 
 struct exec_context *execute(struct exec_call *);
 void check_exec_context (struct exec_context *);
+void free_exec_context (struct exec_context *context);
 
 #endif

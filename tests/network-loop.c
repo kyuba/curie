@@ -84,9 +84,9 @@ int a_main(void) {
     rv |= ((i == sx_nonexistent) ? 0 : 1) << 3;
 
     if (rv != 0) {
-        sx_write (stdio, (i = make_symbol("test-failed")));
+        sx_write (stdio, (i = make_symbol("failure")));
     } else {
-        sx_write (stdio, (i = make_symbol("test-succeeded")));
+        sx_write (stdio, (i = make_symbol("success")));
     }
 
     sx_destroy (i);

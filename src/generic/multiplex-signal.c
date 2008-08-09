@@ -45,7 +45,7 @@
 
 struct handler {
     enum signal signal;
-    void (*handler)(enum signal, void *);
+    enum signal_callback_result (*handler)(enum signal, void *);
     void *data;
     struct handler *next;
 };
@@ -53,13 +53,24 @@ struct handler {
 static struct handler *signal_handlers = (struct handler *)0;
 
 static void invoke (enum signal signal) {
-    struct handler *h = signal_handlers;
+    struct handler *h = signal_handlers, *hp = (struct handler *)0;
 
-    while (h != (struct signal_handlers *)0) {
-        if (h->signal == signal) {
-            h->handler (signal, h->data);
+    while (h != (struct handler *)0) {
+        if ((h->signal == signal) &&
+            (h->handler (signal, h->data) == scr_ditch)) {
+            if (hp == (struct handler *)0) {
+                signal_handlers = h->next;
+                afree (sizeof(struct handler), (void *)h);
+                h = signal_handlers;
+            } else {
+                hp->next = h->next;
+                afree (sizeof(struct handler), (void *)h);
+                h = hp->next;
+            }
+            continue;
         }
 
+        hp = h;
         h = h->next;
     }
 }
@@ -107,7 +118,7 @@ void multiplex_signal () {
     }
 }
 
-void multiplex_add_signal (enum signal signal, void (*handler)(enum signal, void *), void *data) {
+void multiplex_add_signal (enum signal signal, enum signal_callback_result (*handler)(enum signal, void *), void *data) {
     struct handler *element = aalloc (sizeof(struct handler));
 
     element->signal = signal;

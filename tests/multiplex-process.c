@@ -2,7 +2,7 @@
  *  multiplex-process.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 07/08/2008.
+ *  Created by Magnus Deininger on 10/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,48 +36,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/multiplex.h>
-#include <atomic/memory.h>
-#include <atomic/signal.h>
+#include "atomic/multiplex.h"
+#include "atomic/exec.h"
+#include "atomic/main.h"
 
-struct exec_cx {
+static void mx_on_death(struct exec_context *cx, void *d) {
+    if (cx->exitstatus == 4)
+        a_exit (0);
+
+    a_exit (2);
+}
+
+int a_main(void) {
     struct exec_context *context;
-    void (*on_death)(struct exec_context *, void *);
-    void *data;
-};
+    struct exec_call *call;
 
-static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct exec_cx));
+    multiplex_process();
 
-static enum signal_callback_result sig_chld_signal_handler(enum signal signal, void *e) {
-    struct exec_cx *cx = (struct exec_cx *)e;
+    call = create_exec_call();
+    call->options |= EXEC_CALL_NO_IO;
+    context = execute(call);
 
-    if (cx->context->status == ps_running) {
-        check_exec_context (cx->context);
-        if (cx->context->status == ps_terminated) {
-            cx->on_death (cx->context, cx->data);
-            free_pool_mem((void *)cx);
-            return scr_ditch;
-        }
+    if (context->pid < 0) {
+        return 3;
+    } else if (context->pid == 0) {
+        return 4;
     }
 
-    return scr_keep;
-}
+    multiplex_add_process(context, mx_on_death, (void *)0);
 
-void multiplex_process () {
-    static char installed = (char)0;
+    while (multiplex() == mx_ok);
 
-    if (installed == (char)0) {
-        multiplex_signal();
-        installed = (char)1;
-    }
-}
-
-void multiplex_add_process (struct exec_context *context, void (*on_death)(struct exec_context *, void *), void *data) {
-    struct exec_cx *element = get_pool_mem (&list_pool);
-
-    element->context = context;
-    element->on_death = on_death;
-    element->data = data;
-
-    multiplex_add_signal (sig_chld, sig_chld_signal_handler, (void *)element);
+    return 1;
 }
