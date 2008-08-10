@@ -62,7 +62,7 @@ void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum) {
 
     r = select(highest + 1, &rset, &wset, (fd_set *)0, (void *)0);
 
-    if (r < 0) {
+    if (r <= 0) {
         for (i = 0; i < rnum; i++) {
             rfds[i] = -1;
         }

@@ -36,8 +36,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#define _POSIX_SOURCE
-
 #include <atomic/multiplex-system.h>
 
 int __a_select (int, void *, void *);
@@ -90,7 +88,7 @@ void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum) {
 
     r = __a_select(highest + 1, (void *)&rset, (void *)&wset);
 
-    if (r < 0) {
+    if (r <= 0) {
         for (i = 0; i < rnum; i++) {
             rfds[i] = -1;
         }

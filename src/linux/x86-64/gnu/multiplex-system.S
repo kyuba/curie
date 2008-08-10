@@ -51,18 +51,12 @@ __a_select:
     pushq   %rbp
     movq    %rsp, %rbp
 
-    movq $23, %rax /* sys_read */
+    movq $23, %rax /* sys_select */
     /* %rdi, %rsi and %rdx are inherited */
     movq $0, %r10 /* no tertiary fdset */
     movq $0, %r8 /* no timeout */
 
     syscall
-    cmp $0, %rax
-    js negative_result
-    leave
-    ret
-negative_result:
-    movq $-1, %rax
     leave
     ret
 

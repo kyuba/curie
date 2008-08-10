@@ -93,7 +93,7 @@ static void queue_on_read (struct io *qin, void *notused) {
 static struct io *signal_queue_out;
 
 static void generic_signal_handler (enum signal signal) {
-    io_write (signal_queue_out, (char *)&signal, sizeof(enum signal));
+    io_collect (signal_queue_out, (char *)&signal, sizeof(enum signal));
 }
 
 void multiplex_signal () {

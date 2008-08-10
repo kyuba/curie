@@ -1,8 +1,8 @@
 /*
- *  multiplex-signal.c
+ *  linux-x86-64-gnu/signal-system.S
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 08/08/2008.
+ *  Created by Magnus Deininger on 10/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,24 +36,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/multiplex.h"
-#include "atomic/signal.h"
-#include "atomic/main.h"
+.text
+        .align 8
 
-#include <stdio.h>
+.globl  __a_set_signal_handler
+        .type __a_set_signal_handler, @function
+.globl  a_getpid
+        .type a_getpid,          @function
+.globl  __a_send_signal
+        .type __a_send_signal,   @function
 
-static enum signal_callback_result mx_sig_usr1(enum signal signal, void *wx) {
-    a_exit (0);
-    return scr_ditch;
-}
+.globl  __a_sigreturn
+        .type __a_sigreturn,     @function
 
-int a_main(void) {
-    multiplex_signal();
+/* C-functions: */
+/* rdi rsi rdx rcx r8 r9 */
+/* kernel: */
+/* rdi rsi rdx r10 r8 r9 */
 
-    multiplex_add_signal (sig_usr1, mx_sig_usr1, (void *)0);
-    send_signal_self (sig_usr1);
+__a_set_signal_handler:
+    pushq   %rbp
+    movq    %rsp, %rbp
 
-    while (multiplex() == mx_ok);
+    movq $13, %rax /* sys_sigaction */
+    /* %rdi and %rsi are inherited */
+    movq $0, %rdx /* don't care about the old handler */
+    movq $8, %r10 /* sizeof(sigset_t) */
 
-    return 1;
-}
+    syscall
+    leave
+    ret
+
+__a_send_signal:
+    pushq   %rbp
+    movq    %rsp, %rbp
+
+    movq $62, %rax /* sys_kill */
+    syscall
+    leave
+    ret
+
+a_getpid:
+    pushq   %rbp
+    movq    %rsp, %rbp
+
+    movq $39, %rax /* sys_getpid */
+    syscall
+    leave
+    ret
+
+__a_sigreturn:
+    movq $15, %rax /* sys_sigreturn */
+    syscall
+    ret
+
+#if defined(__ELF__)
+          .section .note.GNU-stack,"",%progbits
+#endif
+
