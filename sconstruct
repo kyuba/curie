@@ -114,11 +114,16 @@ def writepkgconfig():
 def standalone():
   global needforstandalone
 
+  result = True
+
   for i in needforstandalone:
     if not haveasm(i):
-      return False
+      print 'missing assembly code: ' + i
+      result = False
+    else:
+      print 'have assembly code: ' + i
 
-  return True
+  return result
 
 env = Environment()
 
