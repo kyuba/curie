@@ -61,6 +61,8 @@ last_error_recoverable_p:
         .type a_close,           @function
 .globl  a_dup
         .type a_dup,             @function
+.globl  a_dup_n
+        .type a_dup_n,           @function
 
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */
@@ -103,6 +105,10 @@ a_create:
 a_dup:
     /* %rdi and %si are inherited from the callee */
     movq $33, %rax /* sys_dup2 */
+    jmp syscall_with_cleanup
+
+a_dup_n:
+    movq $32, %rax /* sys_dup */
     jmp syscall_with_cleanup
 
 syscall_with_cleanup:

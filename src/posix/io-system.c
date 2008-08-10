@@ -134,3 +134,10 @@ int   a_dup (int ofd, int nfd)
     if (rv < 0) examine_error();
     return rv;
 }
+
+int   a_dup_n (int fd)
+{
+    int rv = dup (fd);
+    if (rv < 0) examine_error();
+    return rv;
+}

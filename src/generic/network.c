@@ -36,8 +36,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <atomic/multiplex.h>
+#include <atomic/memory.h>
 #include <atomic/network.h>
 #include <atomic/network-system.h>
+
+struct net_socket_listener
+{
+    int socket;
+    void (*on_connect)(struct io *, struct io *, void *);
+    void *data;
+    struct net_socket_listener *next;
+};
+
+static void mx_f_count(int *r, int *w);
+static void mx_f_augment(int *rs, int *r, int *ws, int *w);
+static void mx_f_callback(int *rs, int r, int *ws, int w);
+
+static struct multiplex_functions mx_functions = {
+    .count = mx_f_count,
+    .augment = mx_f_augment,
+    .callback = mx_f_callback
+};
+
+static void mx_f_count(int *r, int *w) {
+}
+
+static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
+}
+
+static void mx_f_callback(int *rs, int r, int *ws, int w) {
+}
+
+static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct net_socket_listener));
+static struct net_socket_listener *list = (struct net_socket_listener *)0;
 
 void net_open_loop (struct io **in, struct io **out) {
     enum io_result r;
@@ -55,3 +87,8 @@ void net_open_loop (struct io **in, struct io **out) {
     (*in)->type = iot_read;
     (*out)->type = iot_write;
 }
+
+void net_open_socket (/*@notnull@*/ const char *path, struct io **in, struct io **out);
+
+void multiplex_network();
+/*@shared@*/ struct multiplex_add_socket *net_open_socket_listener (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *), /*@null@*/ void *data);

@@ -41,19 +41,11 @@
 
 #include <atomic/io.h>
 
-struct net_socket_listener
-{
-    int socket;
-
-    void (*on_connect)(struct net_socket_listener *, struct io *);
-    void *arbitrary;
-};
-
 void net_open_loop (struct io **in, struct io **out);
-struct io *net_open_socket (/*@notnull@*/ const char *path);
 
-/*@shared@*/ struct net_socket_listener *net_open_socket_listener (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct net_socket_listener *, struct io *), /*@null@*/ void *arbitrary);
+void net_open_socket (/*@notnull@*/ const char *path, struct io **in, struct io **out);
 
-void net_close_socket_listener (/*@shared@*/ struct net_socket_listener *listener);
+void multiplex_network();
+/*@shared@*/ struct multiplex_add_socket *net_open_socket_listener (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *), /*@null@*/ void *data);
 
 #endif
