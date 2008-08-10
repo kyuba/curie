@@ -1,8 +1,8 @@
 /*
- *  network-system.c
+ *  network-system-highlevel.c
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 06/08/2008.
+ *  Created by Magnus Deininger on 10/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -40,16 +40,20 @@
 
 #include <atomic/network-system.h>
 #include <atomic/io-system.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 
-#include <unistd.h>
+#include <linux/un.h>
 
-#include <sys/un.h>
-#include <errno.h>
+int __a_unix_socketpair (int [2]);
+int __a_accept (int);
+
+int __a_unix_socket ();
+int __a_bind (int, void *, int);
+
+int __a_listen (int);
+int __a_connect (int, void *, int);
 
 enum io_result a_open_loop(int result[2]) {
-    int r = socketpair(AF_UNIX, SOCK_STREAM, 0, result);
+    int r = __a_unix_socketpair(result);
 
     if (r < 0) {
         return io_unrecoverable_error;
@@ -66,7 +70,7 @@ enum io_result a_open_socket(int *result, const char *path) {
     struct sockaddr_un addr_un;
     char *tc = (char *)&(addr_un);
 
-    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+    if ((fd = __a_unix_socket()) < 0) {
         return io_unrecoverable_error;
     }
 
@@ -77,7 +81,7 @@ enum io_result a_open_socket(int *result, const char *path) {
         addr_un.sun_path[i] = path[i];
     }
 
-    if (connect(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) == -1) {
+    if (__a_connect(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) < 0) {
         a_close (fd);
         return io_unrecoverable_error;
     }
@@ -94,7 +98,7 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
 
     a_unlink(path);
 
-    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+    if ((fd = __a_unix_socket()) < 0) {
         return io_unrecoverable_error;
     }
 
@@ -105,12 +109,12 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
         addr_un.sun_path[i] = path[i];
     }
 
-    if (bind(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) == -1) {
+    if (__a_bind(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) < 0) {
         a_close (fd);
         return io_unrecoverable_error;
     }
 
-    if (listen(fd, 32) == -1) {
+    if (__a_listen(fd) == -1) {
         a_close (fd);
         return io_unrecoverable_error;
     }
@@ -120,20 +124,11 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
     return io_complete;
 }
 
+
 enum io_result a_accept_socket(int *result, int fd) {
-    int rfd = accept (fd, (struct sockaddr *)0, (socklen_t *)0);
-    if (rfd < 0) {
-        switch (errno) {
-            case EINTR:
-            case EAGAIN:
-#if EWOULDBLOCK && (EWOULDBLOCK != EAGAIN)
-            case EWOULDBLOCK:
-#endif
-                return io_incomplete;
-            default:
-                return io_unrecoverable_error;
-        }
-    }
+    int rfd = __a_accept (fd);
+    if (rfd == -1) return io_unrecoverable_error;
+    if (rfd == -2) return io_incomplete;
 
     *result = rfd;
     return io_complete;

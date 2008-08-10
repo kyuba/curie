@@ -52,7 +52,7 @@ static signal_handler signal_handlers[(SIGNAL_MAX_NUM+1)];
 
 int __a_set_signal_handler (int, void *);
 int __a_send_signal (int, int);
-int __a_sigreturn ();
+void __a_sigreturn ();
 
 static enum signal signum2signal (int signum) {
     switch (signum) {
