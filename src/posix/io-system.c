@@ -59,6 +59,7 @@ int    a_close (int fd)
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 #include <errno.h>
 
@@ -138,6 +139,12 @@ int   a_dup (int ofd, int nfd)
 int   a_dup_n (int fd)
 {
     int rv = dup (fd);
+    if (rv < 0) examine_error();
+    return rv;
+}
+
+int   a_make_nonblocking (int fd) {
+    int rv = fcntl(fd, F_SETFL, O_NONBLOCK);
     if (rv < 0) examine_error();
     return rv;
 }

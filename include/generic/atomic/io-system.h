@@ -53,6 +53,8 @@ extern "C" {
   int    a_dup (int ofd, int nfd);
   int    a_dup_n (int fd);
 
+  int    a_make_nonblocking (int fd);
+
   extern char last_error_recoverable_p;
 #ifdef __cplusplus
 }

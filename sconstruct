@@ -78,9 +78,12 @@ def fileexists(name):
 
 
 def haveasm(name):
-  global paths, useAssembly
+  global paths, useAssembly, noasm
 
   if not useAssembly:
+    return False
+
+  if name in noasm:
     return False
 
   for i in paths:
@@ -179,9 +182,10 @@ sf = []
 
 for i in sourcefiles:
   sf += [ findsource(i) ]
-  n = findsource(i + '-highlevel');
-  if n:
-    sf += [ n ]
+  if haveasm(i):
+    n = findsource(i + '-highlevel');
+    if n:
+      sf += [ n ]
 
 env.StaticLibrary('atomic', sf)
 

@@ -39,6 +39,7 @@
 #include <atomic/memory.h>
 #include <atomic/sexpr.h>
 #include <atomic/io.h>
+#include <atomic/io-system.h>
 
 /*@-mustfreeonly@*/
 /* somehow can't seem to write initialisers without this... */
@@ -71,6 +72,8 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
 }
 
 struct sexpr_io *sx_open_io_fd(int in, int out) {
+    a_make_nonblocking(in);
+    a_make_nonblocking(out);
     return sx_open_io (io_open (in), io_open(out));
 }
 

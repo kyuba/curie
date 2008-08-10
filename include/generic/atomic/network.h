@@ -46,6 +46,6 @@ void net_open_loop (struct io **in, struct io **out);
 void net_open_socket (/*@notnull@*/ const char *path, struct io **in, struct io **out);
 
 void multiplex_network();
-/*@shared@*/ struct multiplex_add_socket *net_open_socket_listener (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *), /*@null@*/ void *data);
+/*@shared@*/ void multiplex_add_socket (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *), /*@null@*/ void *data);
 
 #endif

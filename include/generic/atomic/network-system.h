@@ -42,5 +42,8 @@
 #include <atomic/io.h>
 
 enum io_result a_open_loop(int result[2]);
+enum io_result a_open_socket(int *result, const char *path);
+enum io_result a_open_listen_socket(int *result, const char *path);
+enum io_result a_accept_socket(int *result, int fd);
 
 #endif

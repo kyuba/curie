@@ -40,6 +40,7 @@
 #include <atomic/memory.h>
 #include <atomic/network.h>
 #include <atomic/network-system.h>
+#include <atomic/io-system.h>
 
 struct net_socket_listener
 {
@@ -48,6 +49,9 @@ struct net_socket_listener
     void *data;
     struct net_socket_listener *next;
 };
+
+static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct net_socket_listener));
+static struct net_socket_listener *list = (struct net_socket_listener *)0;
 
 static void mx_f_count(int *r, int *w);
 static void mx_f_augment(int *rs, int *r, int *ws, int *w);
@@ -60,23 +64,93 @@ static struct multiplex_functions mx_functions = {
 };
 
 static void mx_f_count(int *r, int *w) {
+    struct net_socket_listener *l = list;
+
+    while (l != (struct net_socket_listener *)0) {
+        if (l->socket >= 0) {
+            (*r) += 1;
+        }
+
+        l = l->next;
+    }
 }
 
 static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
+    struct net_socket_listener *l = list;
+
+    while (l != (struct net_socket_listener *)0) {
+        if (l->socket >= 0) {
+            int i, j = (*r);
+
+            for (i = 0; i < j; i++) {
+                if (rs[i] == l->socket) goto next;
+            }
+            rs[i] = l->socket;
+            (*r) += 1;
+        }
+
+        next:
+        l = l->next;
+    }
 }
 
 static void mx_f_callback(int *rs, int r, int *ws, int w) {
+    struct net_socket_listener *l = list, *p = (struct net_socket_listener *)0;
+
+    while (l != (struct net_socket_listener *)0) {
+        next:
+
+        if (l->socket >= 0) {
+            int i;
+
+            for (i = 0; i < r; i++) {
+                if (rs[i] == l->socket) {
+                    int fdr, fdw;
+                    struct io *in, *out;
+                    enum io_result r;
+                    if ((r = a_accept_socket (&fdr, l->socket)) == io_complete) {
+                        fdw = a_dup_n (fdr);
+                        if (fdw >= 0) {
+                            a_make_nonblocking (fdr);
+                            a_make_nonblocking (fdw);
+
+                            in = io_open (fdr);
+                            out = io_open (fdw);
+
+                            l->on_connect(in, out, l->data);
+                        } else {
+                            a_close (fdr);
+                        }
+                    } else if (r == io_unrecoverable_error) {
+                        a_close (r);
+                        if (p == (struct net_socket_listener *)0) {
+                            list = l->next;
+                            free_pool_mem (l);
+                            l = list->next;
+                        } else {
+                            p->next = l->next;
+                            free_pool_mem (l);
+                            l = p->next;
+                        }
+
+                        if (l != (struct net_socket_listener *)0)
+                            goto next;
+                        else
+                            return;
+                    }
+                }
+            }
+        }
+
+        p = l;
+        l = l->next;
+    }
 }
 
-static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct net_socket_listener));
-static struct net_socket_listener *list = (struct net_socket_listener *)0;
-
 void net_open_loop (struct io **in, struct io **out) {
-    enum io_result r;
     int fds[2];
 
-    r = a_open_loop (fds);
-    if (r == io_unrecoverable_error) {
+    if (a_open_loop (fds) == io_unrecoverable_error) {
         fds[0] = -1;
         fds[1] = -1;
     }
@@ -88,7 +162,43 @@ void net_open_loop (struct io **in, struct io **out) {
     (*out)->type = iot_write;
 }
 
-void net_open_socket (/*@notnull@*/ const char *path, struct io **in, struct io **out);
+void net_open_socket (/*@notnull@*/ const char *path, struct io **in, struct io **out) {
+    int fdr, fdw;
 
-void multiplex_network();
-/*@shared@*/ struct multiplex_add_socket *net_open_socket_listener (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *), /*@null@*/ void *data);
+    if ((a_open_socket(&fdr, path) == io_complete) &&
+        (fdw = a_dup_n (fdr), fdw >= 0)) {
+        a_make_nonblocking (fdr);
+        a_make_nonblocking (fdw);
+    } else {
+        a_close (fdr);
+        fdr = -1;
+        fdw = -1;
+    }
+
+    (*in) = io_open (fdr);
+    (*out) = io_open (fdw);
+}
+
+void multiplex_network() {
+    static char installed = (char)0;
+
+    if (installed == (char)0) {
+        multiplex_add (&mx_functions);
+        installed = (char)1;
+    }
+}
+
+/*@shared@*/ void multiplex_add_socket (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *), /*@null@*/ void *data) {
+    int fd;
+
+    if (a_open_listen_socket (&fd, path) == io_complete) {
+        struct net_socket_listener *l = get_pool_mem (&list_pool);
+
+        l->socket = fd;
+        l->on_connect = on_connect;
+        l->data = data;
+
+        l->next = list;
+        list = l;
+    }
+}

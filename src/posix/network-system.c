@@ -39,11 +39,15 @@
 #define _POSIX_SOURCE
 
 #include <atomic/network-system.h>
+#include <atomic/io-system.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
 #include <unistd.h>
 #include <fcntl.h>
+
+#include <sys/un.h>
+#include <errno.h>
 
 enum io_result a_open_loop(int result[2]) {
     int r = socketpair(AF_UNIX, SOCK_STREAM, 0, result);
@@ -51,9 +55,85 @@ enum io_result a_open_loop(int result[2]) {
     if (r < 0) {
         return io_unrecoverable_error;
     } else {
-        fcntl(result[0], F_SETFL, O_NONBLOCK);
-        fcntl(result[1], F_SETFL, O_NONBLOCK);
+        a_make_nonblocking (result[0]);
+        a_make_nonblocking (result[1]);
     }
 
+    return io_complete;
+}
+
+enum io_result a_open_socket(int *result, const char *path) {
+    int fd, i;
+    struct sockaddr_un addr_un;
+    char *tc = (char *)&(addr_un);
+
+    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+        return io_unrecoverable_error;
+    }
+
+    for (i = 0; i < sizeof(struct sockaddr_un); i++) { tc[i] = (char)0; }
+
+    addr_un.sun_family = AF_UNIX;
+    for (i = 0; (i < (sizeof(addr_un.sun_path)-1)) && (path[i] != (char)0); i++) {
+        addr_un.sun_path[i] = path[i];
+    }
+
+    if (connect(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) == -1) {
+        a_close (fd);
+        return io_unrecoverable_error;
+    }
+
+    *result = fd;
+
+    return io_complete;
+}
+
+enum io_result a_open_listen_socket(int *result, const char *path) {
+    int fd, i;
+    struct sockaddr_un addr_un;
+    char *tc = (char *)&(addr_un);
+
+    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+        return io_unrecoverable_error;
+    }
+
+    for (i = 0; i < sizeof(struct sockaddr_un); i++) { tc[i] = (char)0; }
+
+    addr_un.sun_family = AF_UNIX;
+    for (i = 0; (i < (sizeof(addr_un.sun_path)-1)) && (path[i] != (char)0); i++) {
+        addr_un.sun_path[i] = path[i];
+    }
+
+    if (bind(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) == -1) {
+        a_close (fd);
+        return io_unrecoverable_error;
+    }
+
+    if (listen(fd, 32) == -1) {
+        a_close (fd);
+        return io_unrecoverable_error;
+    }
+
+    *result = fd;
+
+    return io_complete;
+}
+
+enum io_result a_accept_socket(int *result, int fd) {
+    int rfd = accept (fd, (struct sockaddr *)0, (socklen_t *)0);
+    if (rfd < 0) {
+        switch (errno) {
+            case EINTR:
+            case EAGAIN:
+#if EWOULDBLOCK && (EWOULDBLOCK != EAGAIN)
+            case EWOULDBLOCK:
+#endif
+                return io_incomplete;
+            default:
+                return io_unrecoverable_error;
+        }
+    }
+
+    *result = rfd;
     return io_complete;
 }
