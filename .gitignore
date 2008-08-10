@@ -5,6 +5,7 @@
 *.so
 *.swp
 temporary*
+test-socket*
 benchmark-*
 
 *.out.*

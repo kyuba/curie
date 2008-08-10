@@ -129,22 +129,28 @@ int    a_close (int fd)
     return rv;
 }
 
-int   a_dup (int ofd, int nfd)
+int    a_dup (int ofd, int nfd)
 {
     int rv = dup2 (ofd, nfd);
     if (rv < 0) examine_error();
     return rv;
 }
 
-int   a_dup_n (int fd)
+int    a_dup_n (int fd)
 {
     int rv = dup (fd);
     if (rv < 0) examine_error();
     return rv;
 }
 
-int   a_make_nonblocking (int fd) {
+int    a_make_nonblocking (int fd) {
     int rv = fcntl(fd, F_SETFL, O_NONBLOCK);
+    if (rv < 0) examine_error();
+    return rv;
+}
+
+int    a_unlink (const char *path) {
+    int rv = unlink(path);
     if (rv < 0) examine_error();
     return rv;
 }

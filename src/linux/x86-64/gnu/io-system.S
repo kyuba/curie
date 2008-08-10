@@ -65,6 +65,8 @@ last_error_recoverable_p:
         .type a_dup_n,           @function
 .globl  a_make_nonblocking
         .type a_make_nonblocking,@function
+.globl  a_unlink
+        .type a_unlink,          @function
 
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */
@@ -114,10 +116,13 @@ a_dup_n:
     jmp syscall_with_cleanup
 
 a_make_nonblocking:
-    movq $72, %rax /* sys_dup */
+    movq $72, %rax /* sys_fcntl */
     movq $4, %rsi /* F_SETFL */
     movq $0x800, %rdx /* O_NONBLOCK */
+    jmp syscall_with_cleanup
 
+a_unlink:
+    movq $87, %rax /* sys_unlink */
 
 syscall_with_cleanup:
     pushq   %rbp

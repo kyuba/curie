@@ -55,6 +55,8 @@ extern "C" {
 
   int    a_make_nonblocking (int fd);
 
+  int    a_unlink (const char *path);
+
   extern char last_error_recoverable_p;
 #ifdef __cplusplus
 }

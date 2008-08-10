@@ -57,13 +57,17 @@ enum multiplex_result multiplex () {
     } else {
         int rfds[rnum], wfds[wnum];
 
+        rnum = 0;
+        wnum = 0;
+
         for (cur = mx_func_list;
              cur != (struct multiplex_functions *)0;
              cur = cur->next) {
-            rnum = 0;
-            wnum = 0;
-
             cur->augment (rfds, &rnum, wfds, &wnum);
+        }
+
+        if ((rnum == 0) && (wnum == 0)) {
+            return mx_nothing_to_do;
         }
 
         a_select_with_fds (rfds, rnum, wfds, wnum);

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-rm -f temporary*
+rm -f temporary* test-socket*
 
 tests=0;
 files=0;

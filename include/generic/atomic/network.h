@@ -40,12 +40,18 @@
 #define ATOMIC_NETWORK_H
 
 #include <atomic/io.h>
+#include <atomic/sexpr.h>
 
 void net_open_loop (struct io **in, struct io **out);
 
 void net_open_socket (/*@notnull@*/ const char *path, struct io **in, struct io **out);
 
 void multiplex_network();
-/*@shared@*/ void multiplex_add_socket (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *), /*@null@*/ void *data);
+void multiplex_add_socket (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *), /*@null@*/ void *data);
+
+void multiplex_add_socket_listener_sx (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct sexpr_io *, void *), /*@null@*/ void *data);
+
+struct sexpr_io *sx_open_socket (const char *path);
+void multiplex_add_socket_sx (const char *path, void (*on_read)(struct sexpr *, struct sexpr_io *, void *), void *d);
 
 #endif

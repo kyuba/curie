@@ -93,6 +93,8 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
     struct sockaddr_un addr_un;
     char *tc = (char *)&(addr_un);
 
+    a_unlink(path);
+
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         return io_unrecoverable_error;
     }

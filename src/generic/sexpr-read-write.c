@@ -68,6 +68,9 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
     rv->in = in;
     rv->out = out;
 
+    in->type = iot_read;
+    out->type = iot_write;
+
     return rv;
 }
 

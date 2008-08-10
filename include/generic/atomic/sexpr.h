@@ -109,6 +109,8 @@ void sx_xref(/*@notnull@*/ /*@shared@*/ struct sexpr *);
 void *sx_list_map (struct sexpr *, void (*)(struct sexpr *, void *), void *);
 struct sexpr *sx_list_fold (struct sexpr *, void (*)(struct sexpr *));
 
+struct sexpr *equalp (struct sexpr *, struct sexpr *);
+
 extern struct sexpr * const sx_nil;
 extern struct sexpr * const sx_false;
 extern struct sexpr * const sx_true;
