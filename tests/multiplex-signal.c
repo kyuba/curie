@@ -40,8 +40,6 @@
 #include "atomic/signal.h"
 #include "atomic/main.h"
 
-#include <stdio.h>
-
 static enum signal_callback_result mx_sig_usr1(enum signal signal, void *wx) {
     a_exit (0);
     return scr_ditch;
