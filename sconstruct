@@ -10,7 +10,7 @@ needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
 sourcefiles += needforstandalone
 noasm = []
 
-debug = False
+debug = True
 optimise = True
 optimiseLinking = True
 useAssembly = True

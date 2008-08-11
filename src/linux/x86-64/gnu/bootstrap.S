@@ -36,29 +36,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.text
-        .align 8
-
-.globl a_main
-        .type a_main,             @function
-.globl _start
-        .type _start,                  @function
-.globl	a_exit
-        .type a_exit,            @function
-
 .globl atomic_argv
-.type atomic_argv, @object
+        .data
+        .type atomic_argv, @object
         .size atomic_argv, 8
 
 atomic_argv:
         .quad 0x0
 
 .globl atomic_environment
-.type atomic_environment, @object
+        .data
+        .type atomic_environment, @object
         .size atomic_environment, 8
 
 atomic_environment:
         .quad 0x0
+
+.text
+        .align 8
+
+.globl a_main
+        .type a_main,             @function
+.globl _start
+        .type _start,             @function
+.globl	a_exit
+        .type a_exit,             @function
+
 
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */
@@ -66,14 +69,59 @@ atomic_environment:
 /* rdi rsi rdx r10 r8 r9 */
 
 _start:
-    pushq   %rbp
-    movq    %rsp, %rbp
+/* parse argv */
+        popq    %rbx
+        inc     %rbx
+        movq    $8, %rax
+        mulq    %rbx
 
-    call a_main
-    movq %rax, %rdi
+        movq    %rax, %rdi
+
+        call    aalloc
+
+        movq    %rax, atomic_argv(%rip)
+
+redo_argv:
+        popq    %rcx
+        movq    %rcx, (%rax)
+        cmpq    $0x0, %rcx
+        jz      argv_done
+        addq    $8, %rax
+
+        jmp     redo_argv
+
+argv_done:
+
+/* parse envp */
+        movq    $0x1000, %rdi
+
+        call    get_mem
+
+        movq    %rax, atomic_environment(%rip)
+        movq    $0x1fe, %r11
+
+redo_environment:
+        popq    %rcx
+        movq    %rcx, (%rax)
+        cmpq    $0x0, %rcx
+        jz      environment_done
+
+        addq    $8, %rax
+
+        dec     %r11
+        jz      environment_done_prematurely
+
+        jmp     redo_environment
+
+environment_done_prematurely:
+        movq    $0, (%rax)
+environment_done:
+
+        call a_main
+        movq %rax, %rdi
 a_exit:
-    movq $60, %rax /* sys_exit */
-    syscall
+        movq $60, %rax /* sys_exit */
+        syscall
 
 #if defined(__ELF__)
           .section .note.GNU-stack,"",%progbits
