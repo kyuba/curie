@@ -1,3 +1,5 @@
+import os
+
 # LIBRARY FILES
 sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
                 'immutable', 'string', 'memory-allocator', 'sexpr-library',
@@ -10,18 +12,59 @@ needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
 sourcefiles += needforstandalone
 noasm = []
 
-debug = False
-optimise = True
-optimiseLinking = True
-useAssembly = True
+# OPTIONS
 
-debugMemory = False
+opts = Options()
+opts.Add(BoolOption('debug', 'build with debug information', False))
+opts.Add(BoolOption('debugMemory', 'use alternative code fragments that will work with valgrind', False))
+opts.Add(BoolOption('optimise', 'default optimisations', True))
+opts.Add(BoolOption('optimiseLinking', 'special linker optimisations', True))
+opts.Add(BoolOption('useAssembly', 'use assembler code (usually to bypass the default C library)', True))
 
-import os
+opts.Add('arch', 'target architecture', os.uname()[4].lower())
+opts.Add('computerVendor', 'computer vendor', 'unknown')
+opts.Add('ostype', 'OS type', os.uname()[0].lower())
+opts.Add('cctype', 'toolchain type', 'gnu')
 
-arch=os.uname()[4].lower()
-ostype=os.uname()[0].lower()
-cctype='gnu'
+if 'CFLAGS' in os.environ:
+  opts.Add('cflags', 'additional compiler flags', os.environ['CFLAGS'])
+else:
+  opts.Add('cflags', 'additional compiler flags', '')
+
+if 'LDFLAGS' in os.environ:
+  opts.Add('ldflags', 'additional linker flags', os.environ['LDFLAGS'])
+else:
+  opts.Add('ldflags', 'additional linker flags', '')
+
+if 'CHOST' in os.environ:
+  opts.Add('targetCHOST', 'target CHOST', os.environ['CHOST'])
+else:
+  opts.Add('targetCHOST', 'additional linker flags',
+    ARGUMENTS.get('arch', os.uname()[4].lower()) + '-' +
+    ARGUMENTS.get('computerVendor', 'unknown') + '-' +
+    ARGUMENTS.get('ostype', os.uname()[0].lower()) + '-' +
+    ARGUMENTS.get('cctype', 'gnu'))
+
+
+env = Environment(options = opts)
+env.Append (CFLAGS = env['cflags'])
+env.Append (LINKFLAGS = env['ldflags'])
+
+Help(opts.GenerateHelpText(env))
+
+debug           = env['debug']
+optimise        = env['optimise']
+optimiseLinking = env['optimiseLinking']
+useAssembly     = env['useAssembly']
+
+debugMemory     = env['debugMemory']
+
+# ACTUAL SCRIPT
+
+arch            = env['arch']
+computerVendor  = env['computerVendor']
+ostype          = env['ostype']
+cctype          = env['cctype']
 
 pkgconfigpath = '/usr/lib/pkgconfig/'
 # os.environ['PKG_CONFIG_PATH']
@@ -36,7 +79,8 @@ except:
 def normalise(str):
   return str.replace(' ', '').replace('_', '-')
 
-paths = [ normalise(ostype + '/' + arch + '/' + cctype + '/'),
+paths = [ normalise(ostype + '/' + computerVendor + '/' + arch + '/' + cctype + '/'),
+          normalise(ostype + '/' + arch + '/' + cctype + '/'),
           normalise(ostype + '/' + arch + '/'),
           normalise(ostype + '/' + cctype + '/'),
           normalise(ostype + '/'),
@@ -124,8 +168,6 @@ def standalone():
       print 'have assembly code: ' + i
 
   return result
-
-env = Environment()
 
 for i in paths:
   if fileexists('include/' + i):
@@ -220,8 +262,8 @@ infosource = glob.glob('benchmarks/atomic-*.c');
 for i in infosource:
   tenv.Program(i)
 
-if 'PKG_CONFIG_PATH' in os.environ:
-  env.Install(pkgconfigpath, 'build/atomic-libc.pc')	
-  env.Alias('pkg-config', pkgconfigpath)
+
+env.Install(pkgconfigpath, 'build/atomic-libc.pc')	
+env.Alias('pkg-config', pkgconfigpath)
 
 env.Alias('install', [ 'pkg-config' ])
