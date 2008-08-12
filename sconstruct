@@ -79,31 +79,57 @@ except:
 def normalise(str):
   return str.replace(' ', '').replace('_', '-')
 
-paths = [ normalise(ostype + '/' + computerVendor + '/' + arch + '/' + cctype + '/'),
-          normalise(ostype + '/' + arch + '/' + cctype + '/'),
-          normalise(ostype + '/' + arch + '/'),
-          normalise(ostype + '/' + cctype + '/'),
-          normalise(ostype + '/'),
-          normalise(arch + '/' + cctype + '/'),
-          normalise(arch + '/'),
-          normalise('posix/' + arch + '/' + cctype + '/'),
-          normalise('posix/' + arch + '/'),
-          normalise('posix/' + cctype + '/'),
-          normalise('posix/'),
-          normalise(cctype + '/'),
-          'generic/' ]
+
+def pathPermutateVendor(prefix):
+  global computerVendor
+  return [ normalise(prefix + computerVendor + '/'),
+           normalise(prefix) ]
+
+def pathPermutateCC(prefix):
+  global cctype
+  return pathPermutateVendor(prefix + cctype + '/') +\
+         pathPermutateVendor(prefix)
+
+def pathPermutateArch(prefix):
+  global arch
+  return pathPermutateCC(prefix + arch + '/') +\
+         pathPermutateCC(prefix)
+
+def pathPermutateOS(prefix):
+  global ostype
+  return pathPermutateArch(prefix + ostype + '/') +\
+         pathPermutateArch(prefix) +\
+         pathPermutateArch(prefix + 'posix/') +\
+         pathPermutateArch(prefix + 'generic/')
+
+def pathPermutateValgrind(prefix):
+  global debugMemory
+  if debugMemory:
+    return pathPermutateOS(prefix + 'valgrind/') + pathPermutateOS(prefix)
+  else:
+    return pathPermutateOS(prefix)
+
+def pathPermutateDebug():
+  global debug
+  if debug:
+    return pathPermutateValgrind('debug/') + pathPermutateValgrind('')
+  else:
+    return pathPermutateValgrind('')
+
+def pathPermutate():
+  return pathPermutateDebug()
 
 if debugMemory:
   useAssembly = False
   debug = True
-  paths = [ 'valgrind/' ] + paths;
 
 if debug:
   optimiseLinking = False
   optimise = False
-  paths = [ 'debug/' ] + paths;
 
-print 'max path: ' + normalise(ostype + '/' + arch + '/' + cctype + '/');
+paths = pathPermutate()
+
+print 'max path: ' + normalise(ostype + '/' + arch + '/' + cctype + '/' + computerVendor + '/');
 
 codepreference = []
 codepreferencenoasm = [ 'c' ]
@@ -171,7 +197,7 @@ def standalone():
 
 for i in paths:
   if fileexists('include/' + i):
-    env.Append (CPPPATH = '#include/' + i)
+    env.Append (CPPPATH = [ '#include/' + i ])
 
 env.Append(LIBPATH = '.', CFLAGS='--std=c99 -Wall -pedantic')
 
