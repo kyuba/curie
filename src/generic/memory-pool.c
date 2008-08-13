@@ -163,7 +163,7 @@ void free_pool_mem(void *mem) {
    this is because get_mem_chunk() is supposed to use an address that is
    pagesize-aligned. */
 
-    struct memory_pool *pool = (struct memory_pool *)(((int_pointer)(mem)) & (~(ATOMIC_PAGE_SIZE - 1)));
+    struct memory_pool *pool = (struct memory_pool *)((((int_pointer)(((int_pointer)mem)) / ATOMIC_PAGE_SIZE)) * ATOMIC_PAGE_SIZE);
     char *pool_mem_start = (char *)pool + sizeof(struct memory_pool);
 
     unsigned int index = (unsigned int)(((char*)mem - pool_mem_start) / pool->entitysize);
