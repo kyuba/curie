@@ -82,8 +82,7 @@ struct memory_pool {
 };
 
 #define MEMORY_POOL_INITIALISER(size) {\
-  .entitysize = (((size) & ~(ENTITY_ALIGNMENT - 1)) +\
-                (((size) & ~(ENTITY_ALIGNMENT - 1)) > 0 ? ENTITY_ALIGNMENT : 0)), \
+  .entitysize = (size), \
   .maxentities = 0, \
   .optimise_counter = 300, \
   .map = {~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0}, \
