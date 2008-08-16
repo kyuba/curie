@@ -1,8 +1,8 @@
 /*
- *  darwin-powermacintosh-gnu/io-system.S
+ *  linux-ppc-gnu/io-system.S
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 22/06/2008.
+ *  Created by Magnus Deininger on 16/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -38,78 +38,98 @@
 
 .data
 
-.globl _last_error_recoverable_p
-_last_error_recoverable_p:
-        .byte 1
+.globl last_error_recoverable_p
+last_error_recoverable_p:
+        .zero 1
 
 .text
         .align 8
 
-.globl  _a_read
-.globl  _a_write
-.globl  _a_open_read
-.globl  _a_open_write
-.globl  _a_create
-.globl  _a_close
+.globl  a_read
+.globl  a_write
+.globl  a_open_read
+.globl  a_open_write
+.globl  a_create
+.globl  a_close
+.globl  a_dup
+.globl  a_dup_n
+.globl  a_make_nonblocking
+.globl  a_unlink
 
 /* C-functions: */
 /* r3+ ? */
 /* kernel: */
-/* r3 r4 r5 r6 r7 ... */
+/* r3 r4 r5 r6 r7 ... ? */
 
-_a_read:
-    li      r0, 3 /* sys_read */
+a_read:
+    li      0, 3 /* sys_read */
     b       syscall_with_cleanup
 
-_a_write:
-    li      r0, 4 /* sys_write */
+a_write:
+    li      0, 4 /* sys_write */
     b       syscall_with_cleanup
 
-_a_open_read:
-    li      r0, 5 /* sys_open */
-    li      r4, 0x4 /* O_RDONLY | O_NONBLOCK */
+a_open_read:
+    li      0, 5 /* sys_open */
+    li      4, 0x800 /* O_RDONLY | O_NONBLOCK */
     b       syscall_with_cleanup
 
-_a_open_write:
-    li      r0, 5 /* sys_open */
-    li      r4, 0x205 /* O_WRONLY | O_NONBLOCK | O_CREAT */
-    li      r5, 0x1b6
+a_open_write:
+    li      0, 5 /* sys_open */
+    li      4, 0x841 /* O_WRONLY | O_NONBLOCK | O_CREAT */
+    li      5, 0x1b6
     b       syscall_with_cleanup
 
-_a_close:
-    li      r0, 6 /* sys_close */
+a_close:
+    li      0, 6 /* sys_close */
     b       syscall_with_cleanup
 
-_a_create:
-    li      r0, 5 /* sys_open */
-    mr      r5, r4
-    li      r4, 0x205 /* O_WRONLY | O_NONBLOCK | O_CREAT */
+a_create:
+    li      0, 5 /* sys_open */
+    mr      5, 4
+    li      4, 0x841 /* O_WRONLY | O_NONBLOCK | O_CREAT */
     b       syscall_with_cleanup
+
+a_dup:
+    li      0, 63 /* sys_dup2 */
+    b       syscall_with_cleanup
+
+a_dup_n:
+    li      0, 41 /* sys_dup */
+    b       syscall_with_cleanup
+
+a_make_nonblocking:
+    li      0, 55 /* sys_fcntl */
+    li      4, 4 /* F_SETFL */
+    li      5, 0x800 /* O_NONBLOCK */
+    b       syscall_with_cleanup
+
+a_unlink:
+    li      0, 10 /* sys_unlink */
 
 syscall_with_cleanup:
     sc
-    b       negative_result /* system call failed */
-    blr                     /* system call succeeded */
+    cmpwi   3, 0
+    blt     negative_result
+    blr
 negative_result:
-    cmpwi   r3, 35 /* EAGAIN, as well as EWOULDBLOCK */
-	beq     recoverable
-    cmpwi   r3, 4 /* EINTR */
-	beq     recoverable
-	li      r4, 0
-    lis     r3, ha16(_last_error_recoverable_p)
-    addi    r3, r3,lo16(_last_error_recoverable_p)
-	stb     r4, 0(r3)
-	li      r3, -1
+    cmpwi   3, -11 /* EAGAIN, as well as EWOULDBLOCK */
+    beq     recoverable
+    cmpwi   3, -4 /* EINTR */
+    beq     recoverable
+    li      4, 0
+    lis     3, last_error_recoverable_p@ha
+    stb     4, last_error_recoverable_p@l(3)
+    li      3, -1
     blr
 recoverable:
-	li      r4, 1
-    lis     r3, ha16(_last_error_recoverable_p)
-    addi    r3, r3,lo16(_last_error_recoverable_p)
-	stb     r4, 0(r3)
-	li      r3, -1
+    li      4, 1
+    lis     3, last_error_recoverable_p@ha
+    stb     4, last_error_recoverable_p@l(3)
+    li      3, -1
     blr
 
 #if defined(__ELF__)
-          .section .note.GNU-stack,"",%progbits
+/*          .section .note.GNU-stack,"",%progbits */
 #endif
 

@@ -1,5 +1,5 @@
 /*
- *  linux-x86-64-gnu/atom.S
+ *  linux-x86-64-gnu/io-system.S
  *  atomic-libc
  *
  *  Created by Magnus Deininger on 27/05/2008.
