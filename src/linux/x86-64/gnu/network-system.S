@@ -37,22 +37,18 @@
  */
 
 .globl __a_unix_socketpair
-    .type __a_unix_socketpair,     @function
-
 .globl __a_accept
-    .type __a_accpt,               @function
-
 .globl __a_unix_socket
-    .type __a_unix_socket,         @function
-
 .globl __a_listen
-    .type __a_listen,              @function
-
 .globl __a_connect
-    .type __a_connect,             @function
-
 .globl __a_bind
-    .type __a_bind,                @function
+
+.type __a_unix_socketpair,         @function
+.type __a_accept,                  @function
+.type __a_unix_socket,             @function
+.type __a_listen,                  @function
+.type __a_connect,                 @function
+.type __a_bind,                    @function
 
 .text
         .align 8
@@ -108,7 +104,7 @@ __a_bind:
         pushq   %rbp
         movq    %rsp, %rbp
 
-        movq    $49, %rax /* sys_connect */
+        movq    $49, %rax /* sys_bind */
 
         jmp syscall_check
 
