@@ -69,18 +69,18 @@ int a_main(void) {
                     i = sx_read(stdio);
                 } while (i == sx_nonexistent);
 
-                rv |= ((i == t1) ? 0 : 1) << 1;
+                rv |= (equalp(i, t1) ? 0 : 1) << 1;
                 sx_destroy(i);
 
                 do {
                     i = sx_read(stdio);
                 } while (i == sx_nonexistent);
 
-                rv |= ((i == t2) ? 0 : 1) << 2;
+                rv |= (equalp(i, t2) ? 0 : 1) << 2;
                 sx_destroy(i);
 
                 i = sx_read(stdio);
-                rv |= ((i == sx_nonexistent) ? 0 : 1) << 3;
+                rv |= (equalp(i, sx_nonexistent) ? 0 : 1) << 3;
                 sx_destroy(i);
             }
 
@@ -98,7 +98,8 @@ int a_main(void) {
                     i = sx_read(io);
                 } while (i == sx_nonexistent);
 
-                rv |= ((i == t3) ? 0 : 1) << 4;
+                rv |= (equalp(i, t3) ? 0 : 1) << 4;
+                sx_write (stdio, i);
                 sx_destroy(i);
 
                 sx_close_io (io);
