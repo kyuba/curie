@@ -38,7 +38,6 @@
 
 #include <atomic/main.h>
 #include <atomic/memory.h>
-#include <atomic/immutable.h>
 
 char ** __do_startup (char **y, int argc, int envc) {
     int i, j;
@@ -48,7 +47,7 @@ char ** __do_startup (char **y, int argc, int envc) {
 
     for (i = 1, j = 0; y[i] != (char *)0; i++) {
         if (y[i][0] != (char)0) {
-            atomic_argv[j] = str_immutable_unaligned(y[i]);
+            atomic_argv[j] = y[i];
             j++;
         }
     }
@@ -56,7 +55,7 @@ char ** __do_startup (char **y, int argc, int envc) {
 
     for (i++, j = 0; y[i] != (char *)0; i++) {
         if (y[i][0] != (char)0) {
-            atomic_environment[j] = str_immutable_unaligned(y[i]);
+            atomic_environment[j] = y[i];
             j++;
         }
     }
