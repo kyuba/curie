@@ -41,6 +41,9 @@
 #include <atomic/network-system.h>
 #include <atomic/io-system.h>
 
+#define _ASM_POWERPC_SOCKET_H
+#define _LINUX_WAIT_H
+
 #include <linux/net.h>
 #include <linux/un.h>
 

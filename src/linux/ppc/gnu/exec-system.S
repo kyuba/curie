@@ -1,8 +1,8 @@
 /*
- *  linux-x86-64-gnu/exec-system.S
+ *  linux-ppc-gnu/exec-system.S
  *  atomic-libc
  *
- *  Created by Magnus Deininger on 10/08/2008.
+ *  Created by Magnus Deininger on 17/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -47,71 +47,50 @@
 .type a_exec,                    @function
 .type a_wait,                    @function
 
-/* C-functions: */
-/* rdi rsi rdx rcx r8 r9 */
-/* kernel: */
-/* rdi rsi rdx r10 r8 r9 */
-
 a_fork:
-    pushq   %rbp
-    movq    %rsp, %rbp
-
-    movq $57, %rax /* sys_fork */
-
-    syscall
-    leave
-    ret
+        li      0, 2 /* sys_fork */
+        sc
+        blr
 
 a_exec:
-    pushq   %rbp
-    movq    %rsp, %rbp
-
-    movq $59, %rax /* sys_execve */
-
-    syscall
-    leave
-    ret
+        li      0, 11 /* sys_execve */
+        sc
+        blr
 
 a_wait:
-    pushq   %rbp
-    movq    %rsp, %rbp
+        li      0, 114 /* sys_wait4 */
+        mr      15, 3
+        mr      16, 4
+        li      5, 1 /* WNOHNANG */
+        li      6, 0 /* we don't care about the rusage field */
 
-    movq $61, %rax /* sys_wait4 */
-    movq $1, %rdx /* WNOHNANG */
-    movq $0, %r10 /* we don't care about the rusage field */
+        sc
 
-    syscall
+        cmpw    3, 15 /* see if the return value is the pid we passed */
+        beq     wait_examine
 
-    cmp %rax, %rdi /* see if the return value is the pid we passed */
-    jz wait_examine
-
-    movq $0, %rax /* wr_running */
-    leave
-    ret
+        li      3, 0 /* wr_running */
+        blr
 
 wait_examine:
-    movl (%rsi), %eax
-    and $0x7f, %eax
-    jz exited_normally /* normal exit if that mask is 0 */
+        l       3, 0(16)
+        andi.   3, 3, 0x7f
+        beq     exited_normally /* normal exit if that mask is 0 */
 
-    movq $2, %rax /* wr_killed */
-    leave
-    ret
+        li      3, 2 /* wr_killed */
+        blr
 
 exited_normally:
-    pushq %rbx
+        l       3, 0(16)
+        li      4, 0
 
-    movl (%rsi), %eax
-    xor %rbx, %rbx
+        rotrwi  3, 3, 8 /* use the high-order bits of the lower 16 bits only */
+        andi.   3, 3, 0x7f
 
-    movb  %ah, %bl /* use the high-order bits of the lower 16 bits only */
-    movl %ebx, (%rsi)
+        stw     3, 0(16)
 
-    popq %rbx
-
-    movq $1, %rax /* wr_exited */
-    leave
-    ret
+        li      3, 1 /* wr_exited */
+        blr
 
 
 #if defined(__ELF__)
