@@ -245,23 +245,26 @@ static void sig_invoker (int signum) {
 }
 
 void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signal)) {
-    struct sigaction action;
-    unsigned int *actioncharptr = (unsigned int *)&action, i;
+    union {
+        struct sigaction action;
+        unsigned int actionui[sizeof (struct sigaction) / sizeof(unsigned int)];
+    } x;
+    unsigned int i;
     int signum = signal2signum (signal);
 
     if (signum == sig_unused) return;
 
-    for (i = 0; i < (sizeof (action) / sizeof(unsigned int)); i++) {
-        actioncharptr[i] = 0;
+    for (i = 0; i < (sizeof (x.action) / sizeof(unsigned int)); i++) {
+        x.actionui[i] = 0;
     }
 
-    action.sa_handler = sig_invoker;
-    action.sa_restorer = __a_sigreturn;
-    action.sa_flags = SA_RESTORER;
+    x.action.sa_handler = sig_invoker;
+    x.action.sa_restorer = __a_sigreturn;
+    x.action.sa_flags = SA_RESTORER;
 
     signal_handlers[signal] = handler;
 
-    __a_set_signal_handler (signum, (void *)&action);
+    __a_set_signal_handler (signum, (void *)&(x.action));
 }
 
 void a_kill (enum signal signal, int pid) {
