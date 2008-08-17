@@ -9,6 +9,11 @@ sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
 needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
                       'exec-system', 'multiplex-system', 'signal-system' ]
 
+installheaders = [ 'atomic/exec', 'atomic/main', 'atomic/sexpr',
+                   'atomic/memory', 'atomic/immutable', 'atomic/multiplex',
+                   'atomic/signal', 'atomic/string', 'atomic/tree',
+                   'atomic/network', 'atomic/int', 'atomic/io' ]
+
 sourcefiles += needforstandalone
 noasm = []
 
@@ -25,6 +30,10 @@ opts.Add('arch', 'target architecture', os.uname()[4].lower())
 opts.Add('computerVendor', 'computer vendor', 'unknown')
 opts.Add('ostype', 'OS type', os.uname()[0].lower())
 opts.Add('cctype', 'toolchain type', 'gnu')
+
+opts.Add('libdir', 'libdir base name (i.e. lib, lib32, lib64, etc)', 'lib')
+opts.Add('prefix', 'prefix (static libs are fine in /usr)', '/usr/')
+opts.Add('destdir', 'extra installation prefix', '')
 
 if 'CFLAGS' in os.environ:
   opts.Add('cflags', 'additional compiler flags', os.environ['CFLAGS'])
@@ -66,7 +75,12 @@ computerVendor  = env['computerVendor']
 ostype          = env['ostype']
 cctype          = env['cctype']
 
-pkgconfigpath = '/usr/lib/pkgconfig/'
+
+# install directories
+
+libdir          = env['destdir'] + env['prefix'] + env['libdir'] + '/'
+pkgconfigpath   = libdir + 'pkgconfig/'
+includedir      = env['destdir'] + env['prefix'] + 'include/atomic/'
 # os.environ['PKG_CONFIG_PATH']
 
 ##############
@@ -178,6 +192,15 @@ def findsource(name):
 
   return False
 
+def findheader(name):
+  global paths
+  for l in paths:
+    n = 'include/' + l + name + '.h'
+    if fileexists(n):
+      return n
+
+  return False
+
 def writepkgconfig():
   return False
 
@@ -260,7 +283,9 @@ for i in sourcefiles:
     if n:
       sf += [ n ]
 
-env.StaticLibrary('atomic', sf)
+x = env.StaticLibrary('atomic', sf)
+env.Alias ('library', x)
+env.Install (libdir, x)
 
 import glob
 testsource = glob.glob('tests/*.c');
@@ -289,7 +314,12 @@ for i in infosource:
   tenv.Program(i)
 
 
-env.Install(pkgconfigpath, 'build/atomic-libc.pc')	
+for i in installheaders:
+  x = findheader(i)
+  if x:
+    env.Install (includedir, x);
+
+env.Install(pkgconfigpath, 'build/atomic-libc.pc')
 env.Alias('pkg-config', pkgconfigpath)
 
-env.Alias('install', [ 'pkg-config' ])
+env.Alias('install', [ 'pkg-config', libdir, includedir ])
