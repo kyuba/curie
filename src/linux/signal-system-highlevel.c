@@ -246,11 +246,16 @@ static void sig_invoker (int signum) {
 
 void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signal)) {
     struct sigaction action;
+    unsigned int *actioncharptr = (unsigned int *)&action, i;
     int signum = signal2signum (signal);
+
     if (signum == sig_unused) return;
 
+    for (i = 0; i < (sizeof (action) / sizeof(unsigned int)); i++) {
+        actioncharptr[i] = 0;
+    }
+
     action.sa_handler = sig_invoker;
-    action.sa_mask = 0;
     action.sa_restorer = __a_sigreturn;
     action.sa_flags = SA_RESTORER;
 
