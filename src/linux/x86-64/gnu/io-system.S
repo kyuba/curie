@@ -48,25 +48,26 @@ last_error_recoverable_p:
         .align 8
 
 .globl  a_read
-        .type a_read,            @function
 .globl  a_write
-        .type a_write,           @function
 .globl  a_open_read
-        .type a_open_read,       @function
 .globl  a_open_write
-        .type a_open_write,      @function
 .globl  a_create
-        .type a_create,          @function
 .globl  a_close
-        .type a_close,           @function
 .globl  a_dup
-        .type a_dup,             @function
 .globl  a_dup_n
-        .type a_dup_n,           @function
 .globl  a_make_nonblocking
-        .type a_make_nonblocking,@function
 .globl  a_unlink
-        .type a_unlink,          @function
+
+.type a_read,                    @function
+.type a_write,                   @function
+.type a_open_read,               @function
+.type a_open_write,              @function
+.type a_create,                  @function
+.type a_close,                   @function
+.type a_dup,                     @function
+.type a_dup_n,                   @function
+.type a_make_nonblocking,        @function
+.type a_unlink,                  @function
 
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */

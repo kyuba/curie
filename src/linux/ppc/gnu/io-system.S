@@ -56,6 +56,17 @@ last_error_recoverable_p:
 .globl  a_make_nonblocking
 .globl  a_unlink
 
+.type a_read,                    @function
+.type a_write,                   @function
+.type a_open_read,               @function
+.type a_open_write,              @function
+.type a_create,                  @function
+.type a_close,                   @function
+.type a_dup,                     @function
+.type a_dup_n,                   @function
+.type a_make_nonblocking,        @function
+.type a_unlink,                  @function
+
 /* C-functions: */
 /* r3+ ? */
 /* kernel: */
