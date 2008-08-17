@@ -1,3 +1,48 @@
-pplox, kthxbai!
+NOTE:
+  This is version one of this library; It has been tested with the included
+  test-suite on a number of systems of differing architectures as well as
+  different operating systems. However, there hasn't been any large-scale field
+  testing just yet, nor has there been any extensive code review.
 
-(see http://wiki.kyuba.org/ for more details)
+  Also, library documentation is still scarce, that's planned for v2 or v3.
+
+NOTE.2:
+  Please take note of the library licence (the COPYING file), as well as the
+  credits (the CREDITS file).
+
+Compilation:
+  Make sure you have scons installed, then:
+
+    $ scons library
+
+  This will compile the library itself; if you also want test cases and the
+  helper programme, use this:
+
+    $ scons
+
+  A number of compilation options are available if you run into issues. To see
+  them, use:
+
+    $ scons --help
+
+Installation:
+  use this command to install regularly (usually into /usr):
+
+    $ scons install
+
+  To add an installation-only prefix, use:
+
+    $ scons destdir=/some/prefix install
+
+Testing:
+  Please help by giving this library's test suite a shot:
+
+    $ scons
+    $ ./run-tests
+
+  When running this suite, please take note of the memory use with a tool like
+  top. Afterwards, just send the output of the ./run-tests command to
+  <magnus.deininger@student.uni-tuebingen.de>, or drop by on IRC
+
+CONTACT:
+  Best bet is IRC: freenode #kyuba

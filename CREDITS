@@ -1,7 +1,11 @@
+== SPONSORING ==
+ * special thanks to Codex (http://www.codex.gr/) for providing sponsoring, as
+   well as certain pieces of code and help with algorithmical issues.
+
 == VALGRIND ==
-* file "src/valgrind/memory.c" ONLY:
-  - this file has special extra code to instruct the excellent memory debug
-    suite 'valgrind' on how to detect bad pointer access, since we're not using
-    the standard malloc/free allocation scheme.
-    this code is /only/ used if the library was compiled in debugMemory=True
-    mode
+ * file "src/valgrind/memory.c" ONLY:
+   - this file has special extra code to instruct the excellent memory debug
+     suite 'valgrind' on how to detect bad pointer access, since we're not using
+     the standard malloc/free allocation scheme.
+     this code is /only/ used if the library was compiled in debugMemory=True
+     mode
