@@ -1,15 +1,8 @@
-   	
-prefix=.  # this defines a variable
-exec_prefix=${prefix}  # defining another variable in terms of the first
-libdir=${exec_prefix}/lib
-includedir=${prefix}/include
-
-Name: atomic-libc                 
-Description: minimal libc for kyuba
-Version: 
-URL:
+Name: atomic-libc
+Description: minimalistic, sexpr-based, non-posix(!) libc
+Version: 1
+URL: http://kyuba.org/
 Requires:
 Conflicts:
-Libs: -latomic $__RPATH -Wl,-s -Wl,-x -Wl,--gc-sections -Wl,--sort-common -Wl,-z,noexecstack -Wl,-z,norelro
-Cflags: --std=c99 -Wall -pedantic -O2
-   
+Libs:
+Cflags:
