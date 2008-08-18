@@ -7,6 +7,7 @@ files=0;
 
 failed=0;
 failedfiles=0;
+rv=0;
 
 echo ";; running tests"
 
@@ -40,3 +41,7 @@ echo ";; file check completed"
 echo ";; ---- test summary ----"
 echo ";; tests: ran $tests tests, $failed of them failed";
 echo ";; files: checked $files files, $failedfiles of them failed verification";
+
+let "rv = $failedfiles + $failed";
+
+test "$rv" -eq "0"
