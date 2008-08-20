@@ -1,6 +1,6 @@
 /*
  *  sexpr-write.c
- *  curie-libc
+ *  libcurie
  *
  *  Created by Magnus Deininger on 29/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.

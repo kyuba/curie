@@ -1,6 +1,6 @@
 /*
  *  tree-value.c
- *  curie-libc
+ *  libcurie
  *
  *  Split from tests/tree.c by Magnus Deininger on 12/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.

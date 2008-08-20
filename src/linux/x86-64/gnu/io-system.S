@@ -1,6 +1,6 @@
 /*
  *  linux-x86-64-gnu/io-system.S
- *  curie-libc
+ *  libcurie
  *
  *  Created by Magnus Deininger on 27/05/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.

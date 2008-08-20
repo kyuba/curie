@@ -1,6 +1,6 @@
 /*
  *  memory.c
- *  curie-libc
+ *  libcurie
  *
  *  this is a valgrind/memcheck-aware version of the posix memory.c file.
  *

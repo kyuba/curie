@@ -1,6 +1,6 @@
 /*
  *  sexpr-read.c
- *  curie-libc
+ *  libcurie
  *
  *  Created by Nadja Klein on 14/07/2008
  * 

@@ -238,7 +238,7 @@ if optimiseLinking:
 ienv = env.Clone()
 
 if standalone():
-  print 'adjusting linker flags for using assembly curie-libc'
+  print 'adjusting linker flags for using assembly libcurie'
   env.Append(CFLAGS = '-ffreestanding',
              LINKFLAGS = '-static -nostdlib -nostartfiles -nodefaultlibs -u _start')
 
@@ -247,18 +247,18 @@ if standalone():
                LINKFLAGS = '-e _start')
 
 else:
-  print 'adjusting linker flags for using host-libc based curie-libc'
+  print 'adjusting linker flags for using host-libc based libcurie'
   noasm += [ 'bootstrap' ]
 
 # adjust linker/compiler flags in pkgconfig file
 
-file = open('./curie-libc.pc', "r")
+file = open('./libcurie.pc', "r")
 
 lines = file.readlines()
 
 file.close()
 
-file = open('./build/curie-libc.pc', "w")
+file = open('./build/libcurie.pc', "w")
 
 mod = []
 for l in lines:
@@ -319,7 +319,7 @@ for i in installheaders:
   if x:
     env.Install (includedir, x);
 
-env.Install(pkgconfigpath, 'build/curie-libc.pc')
+env.Install(pkgconfigpath, 'build/libcurie.pc')
 env.Alias('pkg-config', pkgconfigpath)
 
 env.Alias('install', [ 'pkg-config', libdir, includedir ])

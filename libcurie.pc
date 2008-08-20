@@ -1,4 +1,4 @@
-Name: curie-libc
+Name: libcurie
 Description: minimalistic, sexpr-based, non-posix(!) libc
 Version: 1
 URL: http://kyuba.org/
