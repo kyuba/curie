@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MULTIPLEX_SYSTEM_H
-#define ATOMIC_MULTIPLEX_SYSTEM_H
+#ifndef LIBCURIE_MULTIPLEX_SYSTEM_H
+#define LIBCURIE_MULTIPLEX_SYSTEM_H
 
 void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum);
 

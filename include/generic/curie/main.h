@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MAIN_H
-#define ATOMIC_MAIN_H
+#ifndef LIBCURIE_MAIN_H
+#define LIBCURIE_MAIN_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,4 +52,4 @@ extern "C" {
 }
 #endif
 
-#endif /* ATOMIC_MAIN_H */
+#endif /* LIBCURIE_MAIN_H */

@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_INT_H
-#define ATOMIC_INT_H
+#ifndef LIBCURIE_INT_H
+#define LIBCURIE_INT_H
 
 /* NOTE: this file is rather platform/architecture specific, so this header file
          may need porting, depending on the target architecture. for this very

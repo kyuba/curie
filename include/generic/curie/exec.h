@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_EXEC_H
-#define ATOMIC_EXEC_H
+#ifndef LIBCURIE_EXEC_H
+#define LIBCURIE_EXEC_H
 
 #include <curie/io.h>
 

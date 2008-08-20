@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_NETWORK_H
-#define ATOMIC_NETWORK_H
+#ifndef LIBCURIE_NETWORK_H
+#define LIBCURIE_NETWORK_H
 
 #include <curie/io.h>
 #include <curie/sexpr.h>

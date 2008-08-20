@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_TREE_H
-#define ATOMIC_TREE_H
+#ifndef LIBCURIE_TREE_H
+#define LIBCURIE_TREE_H
 
 #include <curie/int.h>
 

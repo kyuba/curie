@@ -93,7 +93,7 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize) {
 
     pool->entitysize = r;
 
-    pool->maxentities = (unsigned short)((ATOMIC_PAGE_SIZE - sizeof(struct memory_pool)) / pool->entitysize);
+    pool->maxentities = (unsigned short)((LIBCURIE_PAGE_SIZE - sizeof(struct memory_pool)) / pool->entitysize);
 
     for (i = 0; i < BITMAPMAPSIZE; i++) {
         pool->map[i] = 0;
@@ -163,7 +163,7 @@ void free_pool_mem(void *mem) {
    this is because get_mem_chunk() is supposed to use an address that is
    pagesize-aligned. */
 
-    struct memory_pool *pool = (struct memory_pool *)((((int_pointer)(((int_pointer)mem)) / ATOMIC_PAGE_SIZE)) * ATOMIC_PAGE_SIZE);
+    struct memory_pool *pool = (struct memory_pool *)((((int_pointer)(((int_pointer)mem)) / LIBCURIE_PAGE_SIZE)) * LIBCURIE_PAGE_SIZE);
     char *pool_mem_start = (char *)pool + sizeof(struct memory_pool);
 
     unsigned int index = (unsigned int)(((char*)mem - pool_mem_start) / pool->entitysize);

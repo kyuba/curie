@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_SIGNAL_H
-#define ATOMIC_SIGNAL_H
+#ifndef LIBCURIE_SIGNAL_H
+#define LIBCURIE_SIGNAL_H
 
 #include <curie/multiplex.h>
 

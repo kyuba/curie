@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MULTIPLEX_H
-#define ATOMIC_MULTIPLEX_H
+#ifndef LIBCURIE_MULTIPLEX_H
+#define LIBCURIE_MULTIPLEX_H
 
 #include <curie/io.h>
 #include <curie/sexpr.h>

@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_IO_SYSTEM_H
-#define ATOMIC_IO_SYSTEM_H
+#ifndef LIBCURIE_IO_SYSTEM_H
+#define LIBCURIE_IO_SYSTEM_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,4 +62,4 @@ extern "C" {
 }
 #endif
 
-#endif /* ATOMIC_IO_SYSTEM_H */
+#endif /* LIBCURIE_IO_SYSTEM_H */

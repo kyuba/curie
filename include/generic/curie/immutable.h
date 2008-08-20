@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_IMMUTABLE_H
-#define ATOMIC_IMMUTABLE_H
+#ifndef LIBCURIE_IMMUTABLE_H
+#define LIBCURIE_IMMUTABLE_H
 
 /* making immutable copies of strings may help reduce the likelihood of
    memory leaks by making sure all immutable copies only exist exactly once

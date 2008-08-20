@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MEMORY_H
-#define ATOMIC_MEMORY_H
+#ifndef LIBCURIE_MEMORY_H
+#define LIBCURIE_MEMORY_H
 
 /* memory.c */
 
@@ -50,8 +50,8 @@ void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
 
 /*@notnull@*/ /*@only@*/ void *get_mem_chunk();
 
-#define ATOMIC_PAGE_SIZE 0x1000
-#define free_mem_chunk(p) free_mem(ATOMIC_PAGE_SIZE, p)
+#define LIBCURIE_PAGE_SIZE 0x1000
+#define free_mem_chunk(p) free_mem(LIBCURIE_PAGE_SIZE, p)
 
 /* memory-pool.c */
 
