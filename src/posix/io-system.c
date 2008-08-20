@@ -1,5 +1,5 @@
 /*
- *  atom.c
+ *  io-system.c
  *  libcurie
  *
  *  Created by Magnus Deininger on 27/05/2008.
