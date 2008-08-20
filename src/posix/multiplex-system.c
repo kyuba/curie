@@ -1,6 +1,6 @@
 /*
  *  multiplex-system.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 07/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -38,7 +38,7 @@
 
 #define _POSIX_SOURCE
 
-#include <atomic/multiplex-system.h>
+#include <curie/multiplex-system.h>
 #include <sys/select.h>
 
 void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum) {

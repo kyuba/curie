@@ -1,6 +1,6 @@
 /*
  *  bootstrap.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 14/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -39,8 +39,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-char **atomic_argv;
-char **atomic_environment;
+char **curie_argv;
+char **curie_environment;
 int a_main();
 /*@noreturn@*/ void   a_exit  (int status);
 
@@ -55,8 +55,8 @@ int   main (/*@unused@*/ int argc, char **argv, char **env)
 {
     int rv;
 
-    atomic_argv = argv;
-    atomic_environment = env;
+    curie_argv = argv;
+    curie_environment = env;
 
     rv = a_main();
     return rv;

@@ -1,6 +1,6 @@
 /*
  *  signal-system.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 08/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -38,8 +38,8 @@
 
 #define _POSIX_SOURCE
 
-#include <atomic/signal.h>
-#include <atomic/signal-system.h>
+#include <curie/signal.h>
+#include <curie/signal-system.h>
 #include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>

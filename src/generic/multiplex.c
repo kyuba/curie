@@ -1,6 +1,6 @@
 /*
  *  multiplex.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 03/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/multiplex.h>
-#include <atomic/multiplex-system.h>
+#include <curie/multiplex.h>
+#include <curie/multiplex-system.h>
 
 static struct multiplex_functions *mx_func_list =
     (struct multiplex_functions *)0;

@@ -1,6 +1,6 @@
 /*
  *  sexpr-library.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 15/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,7 +36,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include <atomic/sexpr.h>
+#include <curie/sexpr.h>
 
 void *sx_list_map (struct sexpr *sexpr, void (*callback)(struct sexpr *, void *), void *p);
 struct sexpr *sx_list_fold (struct sexpr *sexpr, void (*callback)(struct sexpr *));

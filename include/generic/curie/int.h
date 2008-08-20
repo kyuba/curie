@@ -1,8 +1,8 @@
 /*
- *  immutable.h
- *  atomic-libc
+ *  int.h
+ *  curie-libc
  *
- *  Created by Magnus Deininger on 10/06/2008.
+ *  Created by Magnus Deininger on 12/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,33 +36,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_IMMUTABLE_H
-#define ATOMIC_IMMUTABLE_H
+#ifndef ATOMIC_INT_H
+#define ATOMIC_INT_H
 
-/* making immutable copies of strings may help reduce the likelihood of
-   memory leaks by making sure all immutable copies only exist exactly once
-   in the process space, as well as prevent improper access to these strings
-   (such as inadvertedly modifying them */
+/* NOTE: this file is rather platform/architecture specific, so this header file
+         may need porting, depending on the target architecture. for this very
+         purpose, the build system is capable of feeding the compiler with
+         appropriate path information to allow overrides in the include/
+         directory.
+         this means, instead of mucking with wickedass macromagic, just add
+         an appropriate directory under include/ and copy this file there. */
 
-/*@notnull@*/ /*@observer@*/ const char *str_immutable (/*@notnull@*/ /*@returned@*/ const char *);
+/* longs should be the same length as pointers, really... we'll see compiler
+   warnings if it ain't anyway, but the long<>pointer size thing holds true on
+   the platforms that are of most concern to me, so it should be good enough. */
+typedef unsigned long int_pointer;
 
-/* similarly, non-string data should be storable in this way, so here we go. */
+/* an astounishing lot of machines use 32-bit ints ... */
+typedef unsigned int int_32;
 
-/*@notnull@*/ /*@observer@*/ const void *immutable (/*@notnull@*/ /*@returned@*/ const void *, unsigned long);
+/* ... and 16-bit shorts ... */
+typedef unsigned short int_16;
 
-/* this function is used to force locking of all the current pages that are used
-   to store new immutable data. the idea is that if you know you wont be storing
-   (much) new stuff anytime soon, you can call this function and immediately get
-   the memory protection effect. */
-
-void lock_immutable_pages ( void );
-
-/* the str_immutable() function expects its parameter to be aligned to an 8-byte
-   boundary, as well as zero-padded to the next 8-byte boundary, unless its a
-   previous return value of itself. this function is a bit of a helper to ensure
-   these alignment-constraints in case you dont know if your input meets these
-   criteria. */
-
-/*@notnull@*/ /*@observer@*/ const char *str_immutable_unaligned (/*@notnull@*/ /*@returned@*/ const char *);
+/* ... and 8-bit chars. */
+typedef unsigned char int_8;
 
 #endif

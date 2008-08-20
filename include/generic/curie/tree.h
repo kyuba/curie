@@ -1,8 +1,8 @@
 /*
- *  signal-system.h
- *  atomic-libc
+ *  tree.h
+ *  curie-libc
  *
- *  Created by Magnus Deininger on 08/08/2008.
+ *  Created by Magnus Deininger on 01/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,13 +36,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MULTIPLEX_SYSTEM_H
-#define ATOMIC_MULTIPLEX_SYSTEM_H
+#ifndef ATOMIC_TREE_H
+#define ATOMIC_TREE_H
 
-#include <atomic/signal.h>
+#include <curie/int.h>
 
-void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signal));
-void a_kill (enum signal signal, int pid);
-int a_getpid ();
+struct tree {
+    /*@null@*/ /*@owned@*/ struct tree_node * root;
+};
+
+struct tree_node {
+    /*@null@*/ /*@owned@*/ struct tree_node * left;
+    /*@null@*/ /*@owned@*/ struct tree_node * right;
+
+    int_pointer key;
+};
+
+struct tree_node_pointer {
+    /*@null@*/ /*@owned@*/ struct tree_node * left;
+    /*@null@*/ /*@owned@*/ struct tree_node * right;
+
+    int_pointer key;
+
+    /*@dependent@*/ const void *value;
+};
+
+#define TREE_INITIALISER { .root = (struct tree_node *)0 }
+
+/*@notnull@*/ /*@only@*/ struct tree * tree_create ();
+void tree_destroy (/*@notnull@*/ /*@only@*/ struct tree *);
+
+void tree_add_node (struct tree *, int_pointer);
+void tree_add_node_value (struct tree *, int_pointer, /*@dependent@*/ const void *);
+
+/*@null@*/ /*@dependent@*/ struct tree_node * tree_get_node (/*@notnull@*/ struct tree *, int_pointer);
+
+void tree_remove_node_specific (/*@dependent@*/ struct tree *, int_pointer, /*@null@*/ struct tree_node *);
+
+#define tree_remove_node(t,k) tree_remove_node_specific(t, k, (struct tree_node *)0)
+#define node_get_value(node) ((struct tree_node_pointer *)node)->value
+
+void tree_map (struct tree *, void (*)(struct tree_node *, void *), /*@null@*/ void *);
 
 #endif

@@ -1,6 +1,6 @@
 /*
  *  multiplex-signal.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 07/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,12 +36,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/multiplex.h>
-#include <atomic/signal.h>
-#include <atomic/signal-system.h>
-#include <atomic/network.h>
-#include <atomic/tree.h>
-#include <atomic/memory.h>
+#include <curie/multiplex.h>
+#include <curie/signal.h>
+#include <curie/signal-system.h>
+#include <curie/network.h>
+#include <curie/tree.h>
+#include <curie/memory.h>
 
 struct handler {
     enum signal signal;

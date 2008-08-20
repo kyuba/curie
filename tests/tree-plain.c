@@ -1,6 +1,6 @@
 /*
  *  tree-plain.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Split from tests/tree.c by Magnus Deininger on 12/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,7 +36,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/tree.h"
+#include "curie/tree.h"
 
 #define MAXKEYNUM 2048
 

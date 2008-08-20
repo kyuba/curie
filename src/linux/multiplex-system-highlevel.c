@@ -1,6 +1,6 @@
 /*
  *  multiplex-system-highlevel.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 10/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,7 +36,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include <atomic/multiplex-system.h>
+#include <curie/multiplex-system.h>
 
 int __a_select (int, void *, void *);
 

@@ -1,6 +1,6 @@
 /*
  *  sexpr-read-write.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 15/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,10 +36,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include <atomic/memory.h>
-#include <atomic/sexpr.h>
-#include <atomic/io.h>
-#include <atomic/io-system.h>
+#include <curie/memory.h>
+#include <curie/sexpr.h>
+#include <curie/io.h>
+#include <curie/io-system.h>
 
 /*@-mustfreeonly@*/
 /* somehow can't seem to write initialisers without this... */

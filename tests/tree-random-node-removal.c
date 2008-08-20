@@ -1,6 +1,6 @@
 /*
  *  tree-random-node-removal.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 08/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/tree.h"
-#include "atomic/io.h"
+#include "curie/tree.h"
+#include "curie/io.h"
 
 #define MAXKEYNUM 4096
 

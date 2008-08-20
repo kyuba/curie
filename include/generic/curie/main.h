@@ -1,8 +1,8 @@
 /*
- *  io.h
- *  atomic-libc
+ *  main.h
+ *  curie-libc
  *
- *  Created by Magnus Deininger on 01/06/2008.
+ *  Created by Magnus Deininger on 26/05/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,50 +36,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_IO_H
-#define ATOMIC_IO_H
+#ifndef ATOMIC_MAIN_H
+#define ATOMIC_MAIN_H
 
-#define IO_CHUNKSIZE 4096
-
-enum io_type {
-  iot_undefined = 0,
-  iot_read = 1,
-  iot_write = 2
-};
-
-enum io_result {
-  io_undefined = 0,
-  io_end_of_file = 1,
-  io_changes = 2,
-  io_unrecoverable_error = 3,
-  io_no_change = 4,
-  io_complete = 5,
-  io_incomplete = 6,
-  io_finalising = 7
-};
-
-struct io {
-    int fd;
-    /*@notnull@*/ /*@only@*/ char *buffer;
-    /* can't use a fixed buffer since we might need to read (or write)
-       something larger */
-
-    enum io_type   type;
-    enum io_result status;
-
-    unsigned int length;
-    unsigned int position;
-    unsigned int buffersize;
-};
-
-/*@notnull@*/ /*@only@*/ struct io *io_open (int);
-/*@notnull@*/ /*@only@*/ struct io *io_open_read (const char *);
-/*@notnull@*/ /*@only@*/ struct io *io_open_write (const char *);
-enum io_result io_write(/*@notnull@*/ struct io *, const char *, unsigned int);
-enum io_result io_collect(/*@notnull@*/ struct io *, const char *, unsigned int);
-enum io_result io_read(/*@notnull@*/ struct io *);
-enum io_result io_commit (/*@notnull@*/ struct io *);
-enum io_result io_finish (/*@notnull@*/ struct io *);
-void io_close (/*@notnull@*/ /*@only@*/ struct io *);
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+  /*@noreturn@*/ void   a_exit  (int status);
+
+  int a_main();
+
+  extern char **curie_argv;
+  extern char **curie_environment;
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* ATOMIC_MAIN_H */

@@ -1,6 +1,6 @@
 /*
  *  signal.h
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 08/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -39,7 +39,7 @@
 #ifndef ATOMIC_SIGNAL_H
 #define ATOMIC_SIGNAL_H
 
-#include <atomic/multiplex.h>
+#include <curie/multiplex.h>
 
 #define SIGNAL_MAX_NUM sig_winch
 

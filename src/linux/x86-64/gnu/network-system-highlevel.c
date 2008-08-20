@@ -1,6 +1,6 @@
 /*
  *  network-system-highlevel.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 10/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -38,8 +38,8 @@
 
 #define _POSIX_SOURCE
 
-#include <atomic/network-system.h>
-#include <atomic/io-system.h>
+#include <curie/network-system.h>
+#include <curie/io-system.h>
 
 #include <linux/un.h>
 

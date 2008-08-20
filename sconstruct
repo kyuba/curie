@@ -9,10 +9,10 @@ sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
 needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
                       'exec-system', 'multiplex-system', 'signal-system' ]
 
-installheaders = [ 'atomic/exec', 'atomic/main', 'atomic/sexpr',
-                   'atomic/memory', 'atomic/immutable', 'atomic/multiplex',
-                   'atomic/signal', 'atomic/string', 'atomic/tree',
-                   'atomic/network', 'atomic/int', 'atomic/io' ]
+installheaders = [ 'curie/exec', 'curie/main', 'curie/sexpr',
+                   'curie/memory', 'curie/immutable', 'curie/multiplex',
+                   'curie/signal', 'curie/string', 'curie/tree',
+                   'curie/network', 'curie/int', 'curie/io' ]
 
 sourcefiles += needforstandalone
 noasm = []
@@ -80,7 +80,7 @@ cctype          = env['cctype']
 
 libdir          = env['destdir'] + env['prefix'] + env['libdir'] + '/'
 pkgconfigpath   = libdir + 'pkgconfig/'
-includedir      = env['destdir'] + env['prefix'] + 'include/atomic/'
+includedir      = env['destdir'] + env['prefix'] + 'include/curie/'
 # os.environ['PKG_CONFIG_PATH']
 
 ##############
@@ -238,7 +238,7 @@ if optimiseLinking:
 ienv = env.Clone()
 
 if standalone():
-  print 'adjusting linker flags for using assembly atomic-libc'
+  print 'adjusting linker flags for using assembly curie-libc'
   env.Append(CFLAGS = '-ffreestanding',
              LINKFLAGS = '-static -nostdlib -nostartfiles -nodefaultlibs -u _start')
 
@@ -247,24 +247,24 @@ if standalone():
                LINKFLAGS = '-e _start')
 
 else:
-  print 'adjusting linker flags for using host-libc based atomic-libc'
+  print 'adjusting linker flags for using host-libc based curie-libc'
   noasm += [ 'bootstrap' ]
 
 # adjust linker/compiler flags in pkgconfig file
 
-file = open('./atomic-libc.pc', "r")
+file = open('./curie-libc.pc', "r")
 
 lines = file.readlines()
 
 file.close()
 
-file = open('./build/atomic-libc.pc', "w")
+file = open('./build/curie-libc.pc', "w")
 
 mod = []
 for l in lines:
   s = ""
   if "Libs:" in l:
-    s = 'Libs: -latomic ' + str(env['LINKFLAGS'])  + '\n'
+    s = 'Libs: -lcurie ' + str(env['LINKFLAGS'])  + '\n'
   elif "Cflags" in l:
     s = 'Cflags: ' + str(env['CFLAGS']) + '\n'
   else:
@@ -283,7 +283,7 @@ for i in sourcefiles:
     if n:
       sf += [ n ]
 
-x = env.StaticLibrary('atomic', sf)
+x = env.StaticLibrary('curie', sf)
 env.Alias ('library', x)
 env.Install (libdir, x)
 
@@ -291,10 +291,10 @@ import glob
 testsource = glob.glob('tests/*.c');
 
 tenv = env.Clone()
-tenv.Append(LIBS = ['atomic'])
+tenv.Append(LIBS = ['curie'])
 
 penv = ienv.Clone()
-penv.Append(LIBS = ['atomic'])
+penv.Append(LIBS = ['curie'])
 
 for i in testsource:
   tenv.Program(i)
@@ -309,7 +309,7 @@ infosource = glob.glob('benchmarks/posix-*.c');
 for i in infosource:
   penv.Program(i)
 
-infosource = glob.glob('benchmarks/atomic-*.c');
+infosource = glob.glob('benchmarks/curie-*.c');
 for i in infosource:
   tenv.Program(i)
 
@@ -319,7 +319,7 @@ for i in installheaders:
   if x:
     env.Install (includedir, x);
 
-env.Install(pkgconfigpath, 'build/atomic-libc.pc')
+env.Install(pkgconfigpath, 'build/curie-libc.pc')
 env.Alias('pkg-config', pkgconfigpath)
 
 env.Alias('install', [ 'pkg-config', libdir, includedir ])

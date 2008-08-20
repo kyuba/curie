@@ -1,6 +1,6 @@
 /*
  *  signal-system-highlevel.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 10/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,9 +36,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include <atomic/signal.h>
-#include <atomic/signal-system.h>
-#include <atomic/int.h>
+#include <curie/signal.h>
+#include <curie/signal-system.h>
+#include <curie/int.h>
 
 typedef unsigned long size_t;
 

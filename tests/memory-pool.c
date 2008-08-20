@@ -1,6 +1,6 @@
 /*
  *  memory-pool.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 08/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -39,7 +39,7 @@
 /*@-usedef@*/
 /*@-unqualifiedtrans@*/
 
-#include "atomic/memory.h"
+#include "curie/memory.h"
 
 #define MAXSIZE 23
 #define MAXENTITIES 1026

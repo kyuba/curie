@@ -1,6 +1,6 @@
 /*
  *  immutable.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 10/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/string.h>
-#include <atomic/memory.h>
+#include <curie/string.h>
+#include <curie/memory.h>
 
 /*@-shiftimplementation@*/
 /*@+charint@*/

@@ -1,8 +1,8 @@
 /*
- *  string.h
- *  atomic-libc
+ *  network.h
+ *  curie-libc
  *
- *  Created by Magnus Deininger on 14/06/2008.
+ *  Created by Magnus Deininger on 06/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,15 +36,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_STRING_H
-#define ATOMIC_STRING_H
+#ifndef ATOMIC_NETWORK_H
+#define ATOMIC_NETWORK_H
 
-#include <atomic/int.h>
+#include <curie/io.h>
+#include <curie/sexpr.h>
 
-/* kudos to markos for this one */
+void net_open_loop (struct io **in, struct io **out);
 
-/* input MUST be 32-bit aligned. */
-int_32 str_hash(/*@notnull@*/ const char *data, /*@out@*/ unsigned long *len);
-int_32 str_hash_unaligned(const char *data, /*@out@*/ unsigned long *len);
+void net_open_socket (/*@notnull@*/ const char *path, struct io **in, struct io **out);
+
+void multiplex_network();
+void multiplex_add_socket (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *), /*@null@*/ void *data);
+
+void multiplex_add_socket_listener_sx (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct sexpr_io *, void *), /*@null@*/ void *data);
+
+struct sexpr_io *sx_open_socket (const char *path);
+void multiplex_add_socket_sx (const char *path, void (*on_read)(struct sexpr *, struct sexpr_io *, void *), void *d);
 
 #endif

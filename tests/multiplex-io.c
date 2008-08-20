@@ -1,6 +1,6 @@
 /*
  *  multiplex-io.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 08/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/io.h"
-#include "atomic/multiplex.h"
+#include "curie/io.h"
+#include "curie/multiplex.h"
 
 static void mx_on_read(struct io *io, void *wx) {
     struct io *w = (struct io *)wx;

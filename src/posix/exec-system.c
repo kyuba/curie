@@ -1,6 +1,6 @@
 /*
  *  exec-system.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 06/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -38,7 +38,7 @@
 
 #define _POSIX_SOURCE
 
-#include <atomic/exec-system.h>
+#include <curie/exec-system.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>

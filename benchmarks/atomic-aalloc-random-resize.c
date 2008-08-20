@@ -1,6 +1,6 @@
 /*
- *  benchmarks/atomic-aalloc-random-resize.c
- *  atomic-libc
+ *  benchmarks/curie-aalloc-random-resize.c
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 23/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,9 +36,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/io.h>
+#include <curie/io.h>
 #include "benchmark.h"
-#include <atomic/memory.h>
+#include <curie/memory.h>
 
 unsigned int random_numbers[RANDOM_INTEGERS_S];
 

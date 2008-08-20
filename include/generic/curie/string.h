@@ -1,8 +1,8 @@
 /*
- *  exec.h
- *  atomic-libc
+ *  string.h
+ *  curie-libc
  *
- *  Created by Magnus Deininger on 03/06/2008.
+ *  Created by Magnus Deininger on 14/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,38 +36,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_EXEC_H
-#define ATOMIC_EXEC_H
+#ifndef ATOMIC_STRING_H
+#define ATOMIC_STRING_H
 
-#include <atomic/io.h>
+#include <curie/int.h>
 
-#define EXEC_CALL_NO_IO 0x0001
-#define EXEC_CALL_PURGE 0x0002
+/* kudos to markos for this one */
 
-enum process_status {
-    ps_running = 0,
-    ps_terminated = 1
-};
-
-struct exec_context {
-  int pid;
-  int exitstatus;
-  enum process_status status;
-  struct io *in;
-  struct io *out;
-};
-
-struct exec_call {
-  unsigned int options;
-  char **command;
-  char **environment;
-};
-
-struct exec_call *create_exec_call ();
-void free_exec_call (struct exec_call *);
-
-struct exec_context *execute(struct exec_call *);
-void check_exec_context (struct exec_context *);
-void free_exec_context (struct exec_context *context);
+/* input MUST be 32-bit aligned. */
+int_32 str_hash(/*@notnull@*/ const char *data, /*@out@*/ unsigned long *len);
+int_32 str_hash_unaligned(const char *data, /*@out@*/ unsigned long *len);
 
 #endif

@@ -1,6 +1,6 @@
 /*
  *  sexpr.h
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 01/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -39,7 +39,7 @@
 #ifndef ATOMIC_SEXPR_H
 #define ATOMIC_SEXPR_H
 
-#include <atomic/io.h>
+#include <curie/io.h>
 
 enum sx_type {
     sxt_nil = 0,

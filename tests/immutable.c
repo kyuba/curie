@@ -1,6 +1,6 @@
 /*
  *  immutable.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 14/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,7 +36,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/immutable.h"
+#include "curie/immutable.h"
 
 #define STRING1 "hello world"
 #define STRING1_LENGTH (unsigned int)(sizeof(STRING1)-1)

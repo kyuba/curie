@@ -1,6 +1,6 @@
 /*
  *  linux-ppc-gnu/bootstrap.S
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 17/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -38,13 +38,13 @@
 
 .data
 
-.globl atomic_argv
-.globl atomic_environment
+.globl curie_argv
+.globl curie_environment
 
-atomic_argv:
+curie_argv:
         .long 0x0
 
-atomic_environment:
+curie_environment:
         .long 0x0
 
 .globl _start
@@ -87,10 +87,10 @@ _2:
         b       _4
 
 _3:
-        lis     16, atomic_argv@ha
-        stw     4, atomic_argv@l(16)
-        lis     16, atomic_environment@ha
-        stw     5, atomic_environment@l(16)
+        lis     16, curie_argv@ha
+        stw     4, curie_argv@l(16)
+        lis     16, curie_environment@ha
+        stw     5, curie_environment@l(16)
 
 _4:
         addi    1, 1, -16

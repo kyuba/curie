@@ -1,6 +1,6 @@
 /*
  *  multiplex-signal.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 08/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,9 +36,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/multiplex.h"
-#include "atomic/signal.h"
-#include "atomic/main.h"
+#include "curie/multiplex.h"
+#include "curie/signal.h"
+#include "curie/main.h"
 
 static enum signal_callback_result mx_sig_usr1(enum signal signal, void *wx) {
     a_exit (0);

@@ -1,6 +1,6 @@
 /*
  *  io.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 01/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,9 +36,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include <atomic/io-system.h>
-#include <atomic/io.h>
-#include <atomic/memory.h>
+#include <curie/io-system.h>
+#include <curie/io.h>
+#include <curie/memory.h>
 
 /*@-castfcnptr@*/
 /* somehow that test didn't work properly on my box... ah well */

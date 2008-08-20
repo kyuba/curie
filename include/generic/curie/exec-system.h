@@ -1,6 +1,6 @@
 /*
- *  network.h
- *  atomic-libc
+ *  exec-system.h
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 06/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,22 +36,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_NETWORK_H
-#define ATOMIC_NETWORK_H
+#ifndef ATOMIC_EXEC_SYSTEM_H
+#define ATOMIC_EXEC_SYSTEM_H
 
-#include <atomic/io.h>
-#include <atomic/sexpr.h>
+enum wait_return {
+    wr_running = 0,
+    wr_exited = 1,
+    wr_killed = 2
+};
 
-void net_open_loop (struct io **in, struct io **out);
-
-void net_open_socket (/*@notnull@*/ const char *path, struct io **in, struct io **out);
-
-void multiplex_network();
-void multiplex_add_socket (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *), /*@null@*/ void *data);
-
-void multiplex_add_socket_listener_sx (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct sexpr_io *, void *), /*@null@*/ void *data);
-
-struct sexpr_io *sx_open_socket (const char *path);
-void multiplex_add_socket_sx (const char *path, void (*on_read)(struct sexpr *, struct sexpr_io *, void *), void *d);
+int a_fork();
+enum wait_return a_wait(int pid, int *status);
+void a_exec(const char *image, char **argv, char **env);
 
 #endif

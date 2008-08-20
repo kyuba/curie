@@ -1,6 +1,6 @@
 /*
  *  read-write.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 08/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,7 +36,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/io-system.h"
+#include "curie/io-system.h"
 
 #define TESTDATA       "TEST-DATA"
 #define TESTDATA_SIZE  (int)(sizeof(TESTDATA)-1)
@@ -46,14 +46,14 @@ int a_main(void) {
     int fd, i, j;
     char buffer[TESTDATA_SIZE];
 
-    fd = a_create ("temporary-atomic-test-data", 0660);
+    fd = a_create ("temporary-curie-test-data", 0660);
     if (fd < 0) return 1;
 
     i = a_close(fd);
     if (i < 0) return 2;
 
 /* test the a_write() and a_open_write() functions */
-    fd = a_open_write ("temporary-atomic-test-data");
+    fd = a_open_write ("temporary-curie-test-data");
     if (fd < 0) return 3;
 
     i = a_write(fd, TESTDATA, (unsigned int)TESTDATA_SIZE);
@@ -65,7 +65,7 @@ int a_main(void) {
     if (i < 0) return 6;
 
 /* test the a_read() and a_open_read() functions */
-    fd = a_open_read ("temporary-atomic-test-data");
+    fd = a_open_read ("temporary-curie-test-data");
     if (fd < 0) return 7;
 
     i = a_read (fd, buffer, (unsigned int)TESTDATA_SIZE);

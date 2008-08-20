@@ -1,8 +1,8 @@
 /*
- *  int.h
- *  atomic-libc
+ *  exec.h
+ *  curie-libc
  *
- *  Created by Magnus Deininger on 12/06/2008.
+ *  Created by Magnus Deininger on 03/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,29 +36,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_INT_H
-#define ATOMIC_INT_H
+#ifndef ATOMIC_EXEC_H
+#define ATOMIC_EXEC_H
 
-/* NOTE: this file is rather platform/architecture specific, so this header file
-         may need porting, depending on the target architecture. for this very
-         purpose, the build system is capable of feeding the compiler with
-         appropriate path information to allow overrides in the include/
-         directory.
-         this means, instead of mucking with wickedass macromagic, just add
-         an appropriate directory under include/ and copy this file there. */
+#include <curie/io.h>
 
-/* longs should be the same length as pointers, really... we'll see compiler
-   warnings if it ain't anyway, but the long<>pointer size thing holds true on
-   the platforms that are of most concern to me, so it should be good enough. */
-typedef unsigned long int_pointer;
+#define EXEC_CALL_NO_IO 0x0001
+#define EXEC_CALL_PURGE 0x0002
 
-/* an astounishing lot of machines use 32-bit ints ... */
-typedef unsigned int int_32;
+enum process_status {
+    ps_running = 0,
+    ps_terminated = 1
+};
 
-/* ... and 16-bit shorts ... */
-typedef unsigned short int_16;
+struct exec_context {
+  int pid;
+  int exitstatus;
+  enum process_status status;
+  struct io *in;
+  struct io *out;
+};
 
-/* ... and 8-bit chars. */
-typedef unsigned char int_8;
+struct exec_call {
+  unsigned int options;
+  char **command;
+  char **environment;
+};
+
+struct exec_call *create_exec_call ();
+void free_exec_call (struct exec_call *);
+
+struct exec_context *execute(struct exec_call *);
+void check_exec_context (struct exec_context *);
+void free_exec_context (struct exec_context *context);
 
 #endif

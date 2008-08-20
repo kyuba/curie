@@ -1,6 +1,6 @@
 /*
  *  network-loop.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 06/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/network.h"
-#include "atomic/sexpr.h"
+#include "curie/network.h"
+#include "curie/sexpr.h"
 
 #define TEST_STRING_1 "hello-world!"
 #define TEST_STRING_2 "hello \"world\"!"

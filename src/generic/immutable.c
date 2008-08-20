@@ -1,6 +1,6 @@
 /*
  *  immutable.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 10/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,11 +36,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/immutable.h>
-#include <atomic/memory.h>
-#include <atomic/tree.h>
-#include <atomic/string.h>
-#include <atomic/int.h>
+#include <curie/immutable.h>
+#include <curie/memory.h>
+#include <curie/tree.h>
+#include <curie/string.h>
+#include <curie/int.h>
 
 #define IMMUTABLE_CHUNKSIZE (4096*2)
 

@@ -1,6 +1,6 @@
 /*
  *  multiplex-network.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 10/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,10 +36,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/multiplex.h"
-#include "atomic/network.h"
-#include "atomic/exec.h"
-#include "atomic/main.h"
+#include "curie/multiplex.h"
+#include "curie/network.h"
+#include "curie/exec.h"
+#include "curie/main.h"
 
 static void mx_on_death(struct exec_context *cx, void *d) {
     a_exit (2);

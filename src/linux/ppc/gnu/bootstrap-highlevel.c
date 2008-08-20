@@ -1,6 +1,6 @@
 /*
  *  linux-ppc-gnu/bootstrap-highlevel.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 17/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,30 +36,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/main.h>
-#include <atomic/memory.h>
+#include <curie/main.h>
+#include <curie/memory.h>
 
 char ** __do_startup (char **y, int argc, int envc) {
     int i, j;
 
-    atomic_argv = get_mem ((argc + 1) * sizeof (char *));
-    atomic_environment = get_mem ((envc + 1) * sizeof (char *));
+    curie_argv = get_mem ((argc + 1) * sizeof (char *));
+    curie_environment = get_mem ((envc + 1) * sizeof (char *));
 
     for (i = 1, j = 0; y[i] != (char *)0; i++) {
         if (y[i][0] != (char)0) {
-            atomic_argv[j] = y[i];
+            curie_argv[j] = y[i];
             j++;
         }
     }
-    atomic_argv[j] = (char *)0;
+    curie_argv[j] = (char *)0;
 
     for (i++, j = 0; y[i] != (char *)0; i++) {
         if (y[i][0] != (char)0) {
-            atomic_environment[j] = y[i];
+            curie_environment[j] = y[i];
             j++;
         }
     }
-    atomic_environment[j] = (char *)0;
+    curie_environment[j] = (char *)0;
 
     return y;
 }

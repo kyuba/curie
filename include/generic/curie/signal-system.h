@@ -1,8 +1,8 @@
 /*
- *  network-system.h
- *  atomic-libc
+ *  signal-system.h
+ *  curie-libc
  *
- *  Created by Magnus Deininger on 06/08/2008.
+ *  Created by Magnus Deininger on 08/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,14 +36,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_NETWORK_SYSTEM_H
-#define ATOMIC_NETWORK_SYSTEM_H
+#ifndef ATOMIC_MULTIPLEX_SYSTEM_H
+#define ATOMIC_MULTIPLEX_SYSTEM_H
 
-#include <atomic/io.h>
+#include <curie/signal.h>
 
-enum io_result a_open_loop(int result[2]);
-enum io_result a_open_socket(int *result, const char *path);
-enum io_result a_open_listen_socket(int *result, const char *path);
-enum io_result a_accept_socket(int *result, int fd);
+void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signal));
+void a_kill (enum signal signal, int pid);
+int a_getpid ();
 
 #endif

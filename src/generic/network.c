@@ -1,6 +1,6 @@
 /*
  *  network.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 06/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,11 +36,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/multiplex.h>
-#include <atomic/memory.h>
-#include <atomic/network.h>
-#include <atomic/network-system.h>
-#include <atomic/io-system.h>
+#include <curie/multiplex.h>
+#include <curie/memory.h>
+#include <curie/network.h>
+#include <curie/network-system.h>
+#include <curie/io-system.h>
 
 struct net_socket_listener
 {

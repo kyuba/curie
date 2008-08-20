@@ -1,6 +1,6 @@
 /*
  *  exec.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 03/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,12 +36,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/io-system.h>
-#include <atomic/memory.h>
-#include <atomic/io.h>
-#include <atomic/exec.h>
-#include <atomic/exec-system.h>
-#include <atomic/network.h>
+#include <curie/io-system.h>
+#include <curie/memory.h>
+#include <curie/io.h>
+#include <curie/exec.h>
+#include <curie/exec-system.h>
+#include <curie/network.h>
 
 #define MAXFD 1024
 

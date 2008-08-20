@@ -1,6 +1,6 @@
 /*
  *  linux-x86-64-gnu/memory.S
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 14/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.

@@ -1,6 +1,6 @@
 /*
  *  linux-x86-64-gnu/bootstrap.S
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 14/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,20 +36,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.globl atomic_argv
+.globl curie_argv
         .data
-        .type atomic_argv, @object
-        .size atomic_argv, 8
+        .type curie_argv, @object
+        .size curie_argv, 8
 
-atomic_argv:
+curie_argv:
         .quad 0x0
 
-.globl atomic_environment
+.globl curie_environment
         .data
-        .type atomic_environment, @object
-        .size atomic_environment, 8
+        .type curie_environment, @object
+        .size curie_environment, 8
 
-atomic_environment:
+curie_environment:
         .quad 0x0
 
 .text
@@ -79,7 +79,7 @@ _start:
 
         call    aalloc
 
-        movq    %rax, atomic_argv(%rip)
+        movq    %rax, curie_argv(%rip)
 
 redo_argv:
         popq    %rcx
@@ -97,7 +97,7 @@ argv_done:
 
         call    get_mem
 
-        movq    %rax, atomic_environment(%rip)
+        movq    %rax, curie_environment(%rip)
         movq    $0x1fe, %r11
 
 redo_environment:

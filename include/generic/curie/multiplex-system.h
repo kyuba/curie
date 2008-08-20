@@ -1,8 +1,8 @@
 /*
- *  multiplex.h
- *  atomic-libc
+ *  multiplex-system.h
+ *  curie-libc
  *
- *  Created by Magnus Deininger on 03/06/2008.
+ *  Created by Magnus Deininger on 07/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,38 +36,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MULTIPLEX_H
-#define ATOMIC_MULTIPLEX_H
+#ifndef ATOMIC_MULTIPLEX_SYSTEM_H
+#define ATOMIC_MULTIPLEX_SYSTEM_H
 
-#include <atomic/io.h>
-#include <atomic/sexpr.h>
-#include <atomic/exec.h>
-
-struct multiplex_functions {
-    void (*count)(int *, int *);
-    void (*augment)(int *, int *, int *, int *);
-    void (*callback)(int *, int, int *, int);
-
-    struct multiplex_functions *next;
-};
-
-enum multiplex_result {
-    mx_ok = 0,
-    mx_nothing_to_do = 1
-};
-
-enum multiplex_result multiplex ();
-
-void multiplex_add (struct multiplex_functions *);
-
-void multiplex_io ();
-void multiplex_process ();
-void multiplex_sexpr ();
-
-void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void *d);
-void multiplex_add_process (struct exec_context *context, void (*on_death)(struct exec_context *, void *), void *d);
-void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(struct sexpr *, struct sexpr_io *, void *), void *d);
-
-#define multiplex_add_io_no_callback(w) multiplex_add_io ((w), (void (*)(struct io *, void *))0, (void *)0);
+void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum);
 
 #endif

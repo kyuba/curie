@@ -1,8 +1,8 @@
 /*
- *  tree.h
- *  atomic-libc
+ *  immutable.h
+ *  curie-libc
  *
- *  Created by Magnus Deininger on 01/06/2008.
+ *  Created by Magnus Deininger on 10/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,46 +36,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_TREE_H
-#define ATOMIC_TREE_H
+#ifndef ATOMIC_IMMUTABLE_H
+#define ATOMIC_IMMUTABLE_H
 
-#include <atomic/int.h>
+/* making immutable copies of strings may help reduce the likelihood of
+   memory leaks by making sure all immutable copies only exist exactly once
+   in the process space, as well as prevent improper access to these strings
+   (such as inadvertedly modifying them */
 
-struct tree {
-    /*@null@*/ /*@owned@*/ struct tree_node * root;
-};
+/*@notnull@*/ /*@observer@*/ const char *str_immutable (/*@notnull@*/ /*@returned@*/ const char *);
 
-struct tree_node {
-    /*@null@*/ /*@owned@*/ struct tree_node * left;
-    /*@null@*/ /*@owned@*/ struct tree_node * right;
+/* similarly, non-string data should be storable in this way, so here we go. */
 
-    int_pointer key;
-};
+/*@notnull@*/ /*@observer@*/ const void *immutable (/*@notnull@*/ /*@returned@*/ const void *, unsigned long);
 
-struct tree_node_pointer {
-    /*@null@*/ /*@owned@*/ struct tree_node * left;
-    /*@null@*/ /*@owned@*/ struct tree_node * right;
+/* this function is used to force locking of all the current pages that are used
+   to store new immutable data. the idea is that if you know you wont be storing
+   (much) new stuff anytime soon, you can call this function and immediately get
+   the memory protection effect. */
 
-    int_pointer key;
+void lock_immutable_pages ( void );
 
-    /*@dependent@*/ const void *value;
-};
+/* the str_immutable() function expects its parameter to be aligned to an 8-byte
+   boundary, as well as zero-padded to the next 8-byte boundary, unless its a
+   previous return value of itself. this function is a bit of a helper to ensure
+   these alignment-constraints in case you dont know if your input meets these
+   criteria. */
 
-#define TREE_INITIALISER { .root = (struct tree_node *)0 }
-
-/*@notnull@*/ /*@only@*/ struct tree * tree_create ();
-void tree_destroy (/*@notnull@*/ /*@only@*/ struct tree *);
-
-void tree_add_node (struct tree *, int_pointer);
-void tree_add_node_value (struct tree *, int_pointer, /*@dependent@*/ const void *);
-
-/*@null@*/ /*@dependent@*/ struct tree_node * tree_get_node (/*@notnull@*/ struct tree *, int_pointer);
-
-void tree_remove_node_specific (/*@dependent@*/ struct tree *, int_pointer, /*@null@*/ struct tree_node *);
-
-#define tree_remove_node(t,k) tree_remove_node_specific(t, k, (struct tree_node *)0)
-#define node_get_value(node) ((struct tree_node_pointer *)node)->value
-
-void tree_map (struct tree *, void (*)(struct tree_node *, void *), /*@null@*/ void *);
+/*@notnull@*/ /*@observer@*/ const char *str_immutable_unaligned (/*@notnull@*/ /*@returned@*/ const char *);
 
 #endif

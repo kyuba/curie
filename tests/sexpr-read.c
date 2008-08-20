@@ -1,6 +1,6 @@
 /*
  *  sexpr-read.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Nadja Klein on 14/07/2008
  * 
@@ -40,8 +40,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/io.h"
-#include "atomic/sexpr.h"
+#include "curie/io.h"
+#include "curie/sexpr.h"
 
 int a_main(void) {
     struct io *out = io_open_write ("temporary-sexpr-read"),

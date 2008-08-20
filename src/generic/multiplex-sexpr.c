@@ -1,6 +1,6 @@
 /*
  *  multiplex-sexpr.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 07/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/multiplex.h>
-#include <atomic/memory.h>
+#include <curie/multiplex.h>
+#include <curie/memory.h>
 
 struct io_element {
     struct sexpr_io *io;

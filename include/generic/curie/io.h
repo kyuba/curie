@@ -1,8 +1,8 @@
 /*
- *  io-system.h
- *  atomic-libc
+ *  io.h
+ *  curie-libc
  *
- *  Created by Magnus Deininger on 26/05/2008.
+ *  Created by Magnus Deininger on 01/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,30 +36,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_IO_SYSTEM_H
-#define ATOMIC_IO_SYSTEM_H
+#ifndef ATOMIC_IO_H
+#define ATOMIC_IO_H
 
-#ifdef __cplusplus
-extern "C" {
+#define IO_CHUNKSIZE 4096
+
+enum io_type {
+  iot_undefined = 0,
+  iot_read = 1,
+  iot_write = 2
+};
+
+enum io_result {
+  io_undefined = 0,
+  io_end_of_file = 1,
+  io_changes = 2,
+  io_unrecoverable_error = 3,
+  io_no_change = 4,
+  io_complete = 5,
+  io_incomplete = 6,
+  io_finalising = 7
+};
+
+struct io {
+    int fd;
+    /*@notnull@*/ /*@only@*/ char *buffer;
+    /* can't use a fixed buffer since we might need to read (or write)
+       something larger */
+
+    enum io_type   type;
+    enum io_result status;
+
+    unsigned int length;
+    unsigned int position;
+    unsigned int buffersize;
+};
+
+/*@notnull@*/ /*@only@*/ struct io *io_open (int);
+/*@notnull@*/ /*@only@*/ struct io *io_open_read (const char *);
+/*@notnull@*/ /*@only@*/ struct io *io_open_write (const char *);
+enum io_result io_write(/*@notnull@*/ struct io *, const char *, unsigned int);
+enum io_result io_collect(/*@notnull@*/ struct io *, const char *, unsigned int);
+enum io_result io_read(/*@notnull@*/ struct io *);
+enum io_result io_commit (/*@notnull@*/ struct io *);
+enum io_result io_finish (/*@notnull@*/ struct io *);
+void io_close (/*@notnull@*/ /*@only@*/ struct io *);
+
 #endif
-  int    a_read  (int fd, /*@out@*/ void *buf, unsigned int count);
-  int    a_write (int fd, const void *buf, unsigned int count);
-
-  int    a_open_read (const char *path);
-  int    a_open_write (const char *path);
-  int    a_create (const char *path, int mode);
-  int    a_close (int fd);
-
-  int    a_dup (int ofd, int nfd);
-  int    a_dup_n (int fd);
-
-  int    a_make_nonblocking (int fd);
-
-  int    a_unlink (const char *path);
-
-  extern char last_error_recoverable_p;
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* ATOMIC_IO_SYSTEM_H */

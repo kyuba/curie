@@ -1,6 +1,6 @@
 /*
- *  exec-system.h
- *  atomic-libc
+ *  network-system.h
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 06/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,17 +36,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_EXEC_SYSTEM_H
-#define ATOMIC_EXEC_SYSTEM_H
+#ifndef ATOMIC_NETWORK_SYSTEM_H
+#define ATOMIC_NETWORK_SYSTEM_H
 
-enum wait_return {
-    wr_running = 0,
-    wr_exited = 1,
-    wr_killed = 2
-};
+#include <curie/io.h>
 
-int a_fork();
-enum wait_return a_wait(int pid, int *status);
-void a_exec(const char *image, char **argv, char **env);
+enum io_result a_open_loop(int result[2]);
+enum io_result a_open_socket(int *result, const char *path);
+enum io_result a_open_listen_socket(int *result, const char *path);
+enum io_result a_accept_socket(int *result, int fd);
 
 #endif

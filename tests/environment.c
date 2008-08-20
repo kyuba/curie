@@ -1,6 +1,6 @@
 /*
  *  environment.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 11/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,30 +36,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <atomic/main.h>
+#include <curie/main.h>
 
 #define ARGV0 "./tests/environment"
 
 int a_main(void) {
     unsigned int i;
 
-    if (atomic_argv == (char **)0)
+    if (curie_argv == (char **)0)
         return 1;
 
-    for (i = 0; (atomic_argv[0][i] == ARGV0[i]) &&
+    for (i = 0; (curie_argv[0][i] == ARGV0[i]) &&
                 (ARGV0[i] != (char)0); i++);
 
     if (ARGV0[i] != (char)0) return 3;
 
-    if (atomic_environment == (char **)0)
+    if (curie_environment == (char **)0)
         return 2;
 
-    for (i = 0; atomic_environment[i] != (char *)0; i++) {
-        if ((atomic_environment[i][0] == 'P') &&
-            (atomic_environment[i][1] == 'A') &&
-            (atomic_environment[i][2] == 'T') &&
-            (atomic_environment[i][3] == 'H') &&
-            (atomic_environment[i][4] == '=')) {
+    for (i = 0; curie_environment[i] != (char *)0; i++) {
+        if ((curie_environment[i][0] == 'P') &&
+            (curie_environment[i][1] == 'A') &&
+            (curie_environment[i][2] == 'T') &&
+            (curie_environment[i][3] == 'H') &&
+            (curie_environment[i][4] == '=')) {
 
             return 0;
         }

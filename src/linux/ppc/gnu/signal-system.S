@@ -1,6 +1,6 @@
 /*
  *  linux-ppc-gnu/signal-system.S
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 17/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.

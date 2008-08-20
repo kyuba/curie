@@ -1,6 +1,6 @@
 /*
  *  exit.c
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 08/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
@@ -36,7 +36,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "atomic/main.h"
+#include "curie/main.h"
 
 /*@-unreachable@*/
 /* this annotiation makes sure to inhibit the warning on the 'return 1'

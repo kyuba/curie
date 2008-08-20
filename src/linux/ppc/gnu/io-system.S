@@ -1,6 +1,6 @@
 /*
  *  linux-ppc-gnu/io-system.S
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 16/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.

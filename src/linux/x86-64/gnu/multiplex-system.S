@@ -1,6 +1,6 @@
 /*
  *  linux-x86-64-gnu/multiplex-system.S
- *  atomic-libc
+ *  curie-libc
  *
  *  Created by Magnus Deininger on 10/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
