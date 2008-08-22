@@ -52,6 +52,9 @@
    the platforms that are of most concern to me, so it should be good enough. */
 typedef unsigned long int_pointer;
 
+/* this is either 64 bits or we can't get anything that long anyway */
+typedef unsigned long long int_64;
+
 /* an astounishing lot of machines use 32-bit ints ... */
 typedef unsigned int int_32;
 
