@@ -56,6 +56,8 @@ struct io *io_open (int fd)
 {
     struct io *io = 0;
 
+    a_make_nonblocking (fd);
+
     io = get_pool_mem(&io_pool);
 
     io->fd = fd;

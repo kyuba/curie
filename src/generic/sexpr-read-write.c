@@ -74,12 +74,6 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
     return rv;
 }
 
-struct sexpr_io *sx_open_io_fd(int in, int out) {
-    a_make_nonblocking(in);
-    a_make_nonblocking(out);
-    return sx_open_io (io_open (in), io_open(out));
-}
-
 void sx_close_io (struct sexpr_io *io) {
     io_close (io->in);
     io_close (io->out);

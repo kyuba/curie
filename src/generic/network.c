@@ -111,9 +111,6 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
                     if ((r = a_accept_socket (&fdr, l->socket)) == io_complete) {
                         fdw = a_dup_n (fdr);
                         if (fdw >= 0) {
-                            a_make_nonblocking (fdr);
-                            a_make_nonblocking (fdw);
-
                             in = io_open (fdr);
                             out = io_open (fdw);
 
@@ -167,8 +164,6 @@ void net_open_socket (/*@notnull@*/ const char *path, struct io **in, struct io 
 
     if ((a_open_socket(&fdr, path) == io_complete) &&
         (fdw = a_dup_n (fdr), fdw >= 0)) {
-        a_make_nonblocking (fdr);
-        a_make_nonblocking (fdw);
     } else {
         a_close (fdr);
         fdr = -1;

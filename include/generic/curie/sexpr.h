@@ -89,8 +89,8 @@ struct sexpr_io {
 };
 
 /*@notnull@*/ /*@only@*/ struct sexpr_io *sx_open_io(/*@notnull@*/ /*@only@*/ struct io *, /*@notnull@*/ /*@only@*/ struct io *);
-/*@notnull@*/ /*@only@*/ struct sexpr_io *sx_open_io_fd(int, int);
 
+#define sx_open_io_fd(in,out) sx_open_io (io_open ((in)), io_open((out)))
 #define sx_open_stdio() sx_open_io_fd(0, 1)
 
 void sx_close_io (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
