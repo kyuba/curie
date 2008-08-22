@@ -237,18 +237,26 @@ if optimiseLinking:
 
 ienv = env.Clone()
 
+cflagsx=''
+linkx=''
+
 if standalone():
   print 'adjusting linker flags for using assembly libcurie'
+  cflagsx += '-ffreestanding'
+  linkx   += '-static -nostdlib -nostartfiles -nodefaultlibs -u _start'
   env.Append(CFLAGS = '-ffreestanding',
              LINKFLAGS = '-static -nostdlib -nostartfiles -nodefaultlibs -u _start')
 
   if ostype == 'darwin':
-    env.Append(CFLAGS = '-static',
-               LINKFLAGS = '-e _start')
+    cflagsx += '-static'
+    linkx   += '-e _start'
 
 else:
   print 'adjusting linker flags for using host-libc based libcurie'
   noasm += [ 'bootstrap' ]
+
+env.Append(CFLAGS = cflagsx,
+           LINKFLAGS = linkx)
 
 # adjust linker/compiler flags in pkgconfig file
 
@@ -264,9 +272,9 @@ mod = []
 for l in lines:
   s = ""
   if "Libs:" in l:
-    s = 'Libs: -lcurie ' + str(env['LINKFLAGS'])  + '\n'
+    s = 'Libs: -lcurie ' + linkx  + '\n'
   elif "Cflags" in l:
-    s = 'Cflags: ' + str(env['CFLAGS']) + '\n'
+    s = 'Cflags: ' + cflagsx + '\n'
   else:
     s = str(l)
   file.write(s)
