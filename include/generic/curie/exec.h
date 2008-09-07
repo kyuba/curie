@@ -36,6 +36,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \defgroup ProgrammeExecution Programme Execution
+ *
+ *  Functions to execute a different process or to fork the current one.
+ *
+ *  @{
+ */
+
 /*! \file
  *  \brief Programme Execution
  *
@@ -48,9 +55,9 @@
 
 #include <curie/io.h>
 
-/*! \brief Flag for exec_call->options: Do not create a stdio Connection */
+/*! \brief Flag for exec_call::options: Do not create a stdio Connection */
 #define EXEC_CALL_NO_IO 0x0001
-/*! \brief Flag for exec_call->options: Purge open File Descriptors */
+/*! \brief Flag for exec_call::options: Purge open File Descriptors */
 #define EXEC_CALL_PURGE 0x0002
 
 /*! \brief Description of a Process's Status */
@@ -148,3 +155,5 @@ void check_exec_context (struct exec_context *context);
 void free_exec_context (struct exec_context *context);
 
 #endif
+
+/*! @} */
