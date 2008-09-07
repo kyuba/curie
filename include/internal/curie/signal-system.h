@@ -36,6 +36,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \internal
+ *
+ * @{
+ */
+
+/*! \file
+ *  \brief Glue Code Header for signal.h
+ *
+ */
+
 #ifndef LIBCURIE_MULTIPLEX_SYSTEM_H
 #define LIBCURIE_MULTIPLEX_SYSTEM_H
 
@@ -46,3 +56,5 @@ void a_kill (enum signal signal, int pid);
 int a_getpid ();
 
 #endif
+
+/*! @} */

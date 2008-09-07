@@ -36,6 +36,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \internal
+ *
+ * @{
+ */
+
+/*! \file
+ *  \brief Glue Code Header for network.h
+ *
+ */
+
 #ifndef LIBCURIE_NETWORK_SYSTEM_H
 #define LIBCURIE_NETWORK_SYSTEM_H
 
@@ -47,3 +57,5 @@ enum io_result a_open_listen_socket(int *result, const char *path);
 enum io_result a_accept_socket(int *result, int fd);
 
 #endif
+
+/*! @} */

@@ -36,9 +36,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \internal
+ *
+ * @{
+ */
+
+/*! \file
+ *  \brief Glue Code Header for multiplex.h
+ *
+ */
+
 #ifndef LIBCURIE_MULTIPLEX_SYSTEM_H
 #define LIBCURIE_MULTIPLEX_SYSTEM_H
 
 void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum);
 
 #endif
+
+/*! @} */

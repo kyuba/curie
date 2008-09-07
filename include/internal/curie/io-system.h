@@ -36,6 +36,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \internal
+ *
+ * @{
+ */
+
+/*! \file
+ *  \brief Glue Code Header for io.h
+ *
+ */
+
 #ifndef LIBCURIE_IO_SYSTEM_H
 #define LIBCURIE_IO_SYSTEM_H
 
@@ -63,3 +73,5 @@ extern "C" {
 #endif
 
 #endif /* LIBCURIE_IO_SYSTEM_H */
+
+/*! @} */
