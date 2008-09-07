@@ -9,9 +9,8 @@ sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
 needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
                       'exec-system', 'multiplex-system', 'signal-system' ]
 
-installheaders = [ 'curie/exec', 'curie/main', 'curie/sexpr',
-                   'curie/memory', 'curie/immutable', 'curie/multiplex',
-                   'curie/signal', 'curie/string', 'curie/tree',
+installheaders = [ 'curie/exec', 'curie/main', 'curie/sexpr', 'curie/memory',
+                   'curie/multiplex', 'curie/signal', 'curie/tree',
                    'curie/network', 'curie/int', 'curie/io' ]
 
 sourcefiles += needforstandalone
