@@ -1,5 +1,5 @@
 /*
- *  immutable.c
+ *  string.c
  *  libcurie
  *
  *  Created by Magnus Deininger on 10/06/2008.

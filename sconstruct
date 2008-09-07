@@ -2,7 +2,7 @@ import os
 
 # LIBRARY FILES
 sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
-                'immutable', 'string', 'memory-allocator', 'sexpr-library',
+                'string', 'memory-allocator', 'sexpr-library',
                 'sexpr-read-write', 'network', 'multiplex-io',
                 'multiplex-sexpr', 'multiplex-process', 'multiplex-signal' ]
 
