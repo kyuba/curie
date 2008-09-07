@@ -126,9 +126,12 @@ def pathPermutateValgrind(prefix):
 def pathPermutateDebug():
   global debug
   if debug:
-    return pathPermutateValgrind('debug/') + pathPermutateValgrind('')
+    return pathPermutateValgrind('debug/') + \
+           pathPermutateValgrind('internal/') + \
+           pathPermutateValgrind('')
   else:
-    return pathPermutateValgrind('')
+    return pathPermutateValgrind('internal/') + \
+           pathPermutateValgrind('')
 
 def pathPermutate():
   return pathPermutateDebug()

@@ -1,0 +1,156 @@
+.TH "include/generic/curie/exec.h" 2c "7 Sep 2008" "Version 2" "Curie" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+include/generic/curie/exec.h \- Programme Execution. 
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <curie/io.h>\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBexec_context\fP"
+.br
+.RI "\fIProgramme Execution Context. \fP"
+.ti -1c
+.RI "struct \fBexec_call\fP"
+.br
+.RI "\fIProgramme Execution Parameters. \fP"
+.in -1c
+.SS "Defines"
+
+.in +1c
+.ti -1c
+.RI "#define \fBEXEC_CALL_NO_IO\fP   0x0001"
+.br
+.RI "\fIFlag for exec_call->options: Do not create a stdio Connection. \fP"
+.ti -1c
+.RI "#define \fBEXEC_CALL_PURGE\fP   0x0002"
+.br
+.RI "\fIFlag for exec_call->options: Purge open File Descriptors. \fP"
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBprocess_status\fP { \fBps_running\fP =  0, \fBps_terminated\fP =  1 }"
+.br
+.RI "\fIDescription of a Process's Status. \fP"
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "struct \fBexec_call\fP * \fBcreate_exec_call\fP ()"
+.br
+.RI "\fIInitialise an \fBexec_call\fP Structure. \fP"
+.ti -1c
+.RI "void \fBfree_exec_call\fP (struct \fBexec_call\fP *call)"
+.br
+.RI "\fIFree an \fBexec_call\fP Structure. \fP"
+.ti -1c
+.RI "struct \fBexec_context\fP * \fBexecute\fP (struct \fBexec_call\fP *call)"
+.br
+.RI "\fIExecute a new Process. \fP"
+.ti -1c
+.RI "void \fBcheck_exec_context\fP (struct \fBexec_context\fP *context)"
+.br
+.RI "\fIUpdate an \fBexec_context\fP Structure. \fP"
+.ti -1c
+.RI "void \fBfree_exec_context\fP (struct \fBexec_context\fP *context)"
+.br
+.RI "\fIFree an \fBexec_context\fP Structure. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Programme Execution. 
+
+Functions from this header are used to execute other programmes and to query a child process's status. 
+.SH "Define Documentation"
+.PP 
+.SS "#define EXEC_CALL_NO_IO   0x0001"
+.PP
+Flag for exec_call->options: Do not create a stdio Connection. 
+.PP
+.SS "#define EXEC_CALL_PURGE   0x0002"
+.PP
+Flag for exec_call->options: Purge open File Descriptors. 
+.PP
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBprocess_status\fP"
+.PP
+Description of a Process's Status. 
+.PP
+\fBEnumerator: \fP
+.in +1c
+.TP
+\fB\fIps_running \fP\fP
+Process is still running. 
+.TP
+\fB\fIps_terminated \fP\fP
+Process has terminated. 
+.SH "Function Documentation"
+.PP 
+.SS "void check_exec_context (struct \fBexec_context\fP * context)"
+.PP
+Update an \fBexec_context\fP Structure. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcontext\fP The context to update.
+.RE
+.PP
+This function will basically perform a wait() on the child process described with the given context. 
+.SS "struct \fBexec_call\fP* create_exec_call ()\fC [read]\fP"
+.PP
+Initialise an \fBexec_call\fP Structure. 
+.PP
+\fBReturns:\fP
+.RS 4
+A new \fBexec_call\fP structure. 
+.RE
+.PP
+
+.SS "struct \fBexec_context\fP* execute (struct \fBexec_call\fP * call)\fC [read]\fP"
+.PP
+Execute a new Process. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcall\fP The structure with parameters of what to execute. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A new \fBexec_context\fP.
+.RE
+.PP
+After calling this function, the given call structure will be invalid. 
+.SS "void free_exec_call (struct \fBexec_call\fP * call)"
+.PP
+Free an \fBexec_call\fP Structure. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcall\fP The call to free.
+.RE
+.PP
+This funtion should rarely be needed, as \fBexecute()\fP will already free the memory associated with its parameter. 
+.SS "void free_exec_context (struct \fBexec_context\fP * context)"
+.PP
+Free an \fBexec_context\fP Structure. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcontext\fP The context to free.
+.RE
+.PP
+This should only be called after context->status has the value ps_terminated as after the context has been freed, it is impossible for the process to perform a wait on that child process. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Curie from the source code.

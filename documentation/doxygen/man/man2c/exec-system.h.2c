@@ -1,0 +1,65 @@
+.TH "include/internal/curie/exec-system.h" 2c "7 Sep 2008" "Version 2" "Curie" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+include/internal/curie/exec-system.h \- Glue Code Header for \fBexec.h\fP. 
+.SH SYNOPSIS
+.br
+.PP
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBwait_return\fP { \fBwr_running\fP =  0, \fBwr_exited\fP =  1, \fBwr_killed\fP =  2 }"
+.br
+.RI "\fIGeneralised Return Status Codes. \fP"
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int \fBa_fork\fP ()"
+.br
+.RI "\fIWrapper for the fork() System Call. \fP"
+.ti -1c
+.RI "enum \fBwait_return\fP \fBa_wait\fP (int pid, int *status)"
+.br
+.RI "\fIWrapper for the wait4() System Call. \fP"
+.ti -1c
+.RI "void \fBa_exec\fP (const char *image, char **argv, char **env)"
+.br
+.RI "\fIWrapper for the execve() System Call. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Glue Code Header for \fBexec.h\fP. 
+
+.PP
+\fBFor internal use only.\fP
+.RS 4
+.RE
+.PP
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBwait_return\fP"
+.PP
+Generalised Return Status Codes. 
+.PP
+.SH "Function Documentation"
+.PP 
+.SS "void a_exec (const char * image, char ** argv, char ** env)"
+.PP
+Wrapper for the execve() System Call. 
+.PP
+.SS "int a_fork ()"
+.PP
+Wrapper for the fork() System Call. 
+.PP
+.SS "enum \fBwait_return\fP a_wait (int pid, int * status)"
+.PP
+Wrapper for the wait4() System Call. 
+.PP
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Curie from the source code.

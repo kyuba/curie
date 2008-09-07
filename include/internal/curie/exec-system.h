@@ -36,17 +36,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \file
+ *  \brief Glue Code Header for exec.h
+ *  \internal
+ *
+ */
+
 #ifndef LIBCURIE_EXEC_SYSTEM_H
 #define LIBCURIE_EXEC_SYSTEM_H
 
+/*! \brief Generalised Return Status Codes */
 enum wait_return {
     wr_running = 0,
     wr_exited = 1,
     wr_killed = 2
 };
 
+/*! \brief Wrapper for the fork() System Call */
 int a_fork();
+
+/*! \brief Wrapper for the wait4() System Call */
 enum wait_return a_wait(int pid, int *status);
+
+/*! \brief Wrapper for the execve() System Call */
 void a_exec(const char *image, char **argv, char **env);
 
 #endif
