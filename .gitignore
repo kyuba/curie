@@ -28,3 +28,4 @@ benchmarks/*
 !benchmarks/*.c
 !benchmarks/*.h
 
+documentation/doxygen
