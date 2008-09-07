@@ -36,6 +36,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \file
+ *  \brief Process Multiplexer
+ *
+ *  Multiplex events from different sources, such as I/O reads and writes.
+ */
+
 #ifndef LIBCURIE_MULTIPLEX_H
 #define LIBCURIE_MULTIPLEX_H
 

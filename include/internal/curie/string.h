@@ -36,6 +36,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \internal
+ *
+ *  @{
+ */
+
+/*! \file
+ *  \brief String Handling
+ *
+ *  Helper functions to deal with strings.
+ */
+
 #ifndef LIBCURIE_STRING_H
 #define LIBCURIE_STRING_H
 
@@ -48,3 +59,5 @@ int_32 str_hash(/*@notnull@*/ const char *data, /*@out@*/ unsigned long *len);
 int_32 str_hash_unaligned(const char *data, /*@out@*/ unsigned long *len);
 
 #endif
+
+/*! @} */

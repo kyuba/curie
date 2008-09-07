@@ -36,6 +36,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \file
+ *  \brief S-expressions
+ *
+ *  Functions to parse, write and otherwise handle symbolic expressions, as used
+ *  in lisp-like programming languages.
+ */
+
 #ifndef LIBCURIE_SEXPR_H
 #define LIBCURIE_SEXPR_H
 
@@ -57,11 +64,16 @@ enum sx_type {
     sxt_dot = 12
 };
 
+/*! \brief Generic Sexprs
+ */
 struct sexpr {
     enum sx_type type;
     signed int references;
 };
 
+/*! \brief Sexpr with an Integer Payload
+ *  \internal
+ */
 struct sexpr_integer {
     enum sx_type type;
     signed int references;
@@ -69,6 +81,9 @@ struct sexpr_integer {
     signed long integer;
 };
 
+/*! \brief A Pair of Sexprs
+ *  \internal
+ */
 struct sexpr_cons {
     enum sx_type type;
     signed int references;
@@ -77,6 +92,9 @@ struct sexpr_cons {
     /*@shared@*/ struct sexpr *cdr;
 };
 
+/*! \brief Sexpr with a String or Symbol Payload
+ *  \internal
+ */
 struct sexpr_string_or_symbol {
     enum sx_type type;
     signed int references;

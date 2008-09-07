@@ -36,32 +36,53 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \file
+ *  \brief Specific-length integers
+ */
+/*  This file is rather platform/architecture specific, so this header file
+ *  may need porting, depending on the target architecture. for this very
+ *  purpose, the build system is capable of feeding the compiler with
+ *  appropriate path information to allow overrides in the include/ directory.
+ *  this means, instead of mucking with wickedass macromagic, just add an
+ *  appropriate directory under include/ and copy this file there.
+ *
+ *  This specific file is the generic version which so far seems to work across
+ *  all the tested targets.
+ */
+
 #ifndef LIBCURIE_INT_H
 #define LIBCURIE_INT_H
 
-/* NOTE: this file is rather platform/architecture specific, so this header file
-         may need porting, depending on the target architecture. for this very
-         purpose, the build system is capable of feeding the compiler with
-         appropriate path information to allow overrides in the include/
-         directory.
-         this means, instead of mucking with wickedass macromagic, just add
-         an appropriate directory under include/ and copy this file there. */
-
-/* longs should be the same length as pointers, really... we'll see compiler
-   warnings if it ain't anyway, but the long<>pointer size thing holds true on
-   the platforms that are of most concern to me, so it should be good enough. */
+/*! \brief Unsigned Integer with the Length as a Pointer */
+/*
+ * Longs should be the same length as pointers, really... we'll see compiler
+ * warnings if it ain't anyway, but the long<>pointer size thing holds true on
+ * the platforms that are of most concern to me, so it should be good enough.
+ */
 typedef unsigned long int_pointer;
 
-/* this is either 64 bits or we can't get anything that long anyway */
+/*! \brief Unsigned Integer with a Length of at least 64 Bits */
+/*
+ * This is either 64 bits or we can't get anything that long anyway
+ */
 typedef unsigned long long int_64;
 
-/* an astounishing lot of machines use 32-bit ints ... */
+/*! \brief Unsigned Integer with a Length of at least 32 Bits */
+/*
+ * An astounishing lot of machines use 32-bit ints ...
+ */
 typedef unsigned int int_32;
 
-/* ... and 16-bit shorts ... */
+/*! \brief Unsigned Integer with a Length of at least 16 Bits */
+/*
+ * ... and 16-bit shorts ...
+ */
 typedef unsigned short int_16;
 
-/* ... and 8-bit chars. */
+/*! \brief Unsigned Integer with a Length of at least 8 Bits */
+/*
+ * ... and 8-bit chars.
+ */
 typedef unsigned char int_8;
 
 #endif

@@ -36,6 +36,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \file
+ *  \brief Main Function
+ *
+ *  This header declares the a_main() function for libcure applications. It also
+ *  has random, rarely-used functions.
+ */
+
 #ifndef LIBCURIE_MAIN_H
 #define LIBCURIE_MAIN_H
 

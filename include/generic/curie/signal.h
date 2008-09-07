@@ -36,6 +36,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \file
+ *  \brief Signal Handling
+ *
+ *  Platform-independent handling of process signals, such as segmentation
+ *  faults or termination requests.
+ */
+
 #ifndef LIBCURIE_SIGNAL_H
 #define LIBCURIE_SIGNAL_H
 

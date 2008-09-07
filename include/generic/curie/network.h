@@ -36,6 +36,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \file
+ *  \brief Networking
+ *
+ *  Basic networking using local unix sockets.
+ */
+
 #ifndef LIBCURIE_NETWORK_H
 #define LIBCURIE_NETWORK_H
 

@@ -36,6 +36,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \file
+ *  \brief Basic BSTs
+ *
+ *  Binary search trees are used by parts of the library code itself, and they
+ *  are generally needed by a good deal of applications. The functions from this
+ *  header file implement a small subset of the useful functions on BSTs.
+ */
+
 #ifndef LIBCURIE_TREE_H
 #define LIBCURIE_TREE_H
 

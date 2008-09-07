@@ -36,6 +36,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \file
+ *  \brief Memory Management
+ *
+ *  Functions to allocate and deallocate memory.
+ */
+
 #ifndef LIBCURIE_MEMORY_H
 #define LIBCURIE_MEMORY_H
 

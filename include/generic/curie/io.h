@@ -36,6 +36,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \file
+ *  \brief File I/O
+ *
+ *  Functions from this header file provide basic file in- and output
+ *  operations.
+ */
+
 #ifndef LIBCURIE_IO_H
 #define LIBCURIE_IO_H
 
