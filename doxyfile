@@ -159,7 +159,7 @@ RTF_EXTENSIONS_FILE    =
 #---------------------------------------------------------------------------
 GENERATE_MAN           = YES
 MAN_OUTPUT             = man
-MAN_EXTENSION          = .c
+MAN_EXTENSION          = .2
 MAN_LINKS              = NO
 #---------------------------------------------------------------------------
 # configuration options related to the XML output
