@@ -55,6 +55,10 @@
 
 #include <curie/io.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*! \brief Flag for exec_call::options: Do not create a stdio Connection */
 #define EXEC_CALL_NO_IO 0x0001
 /*! \brief Flag for exec_call::options: Purge open File Descriptors */
@@ -116,6 +120,12 @@ struct exec_call {
     char **environment;
 };
 
+/*! \namespace exec
+ *  \brief X
+ *
+ * @{
+ */
+
 /*! \brief Initialise an exec_call Structure
  *  \return A new exec_call structure.
  */
@@ -128,6 +138,8 @@ struct exec_call *create_exec_call ();
  *  memory associated with its parameter.
  */
 void free_exec_call (struct exec_call *call);
+
+/*! @} */
 
 /*! \brief Execute a new Process
  *  \param[in] call The structure with parameters of what to execute.
@@ -153,6 +165,10 @@ void check_exec_context (struct exec_context *context);
  *  perform a wait on that child process.
  */
 void free_exec_context (struct exec_context *context);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -48,6 +48,10 @@
 
 #include <curie/multiplex.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define SIGNAL_MAX_NUM sig_winch
 
 enum signal {
@@ -107,5 +111,9 @@ void multiplex_add_signal (enum signal signal, enum signal_callback_result (*han
 
 void send_signal (enum signal signal, int pid);
 void send_signal_self (enum signal signal);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -6,6 +6,8 @@ sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
                 'sexpr-read-write', 'network', 'multiplex-io',
                 'multiplex-sexpr', 'multiplex-process', 'multiplex-signal' ]
 
+sourcefilespp = [ 'main' ]
+
 needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
                       'exec-system', 'multiplex-system', 'signal-system' ]
 
@@ -148,7 +150,7 @@ paths = pathPermutate()
 print 'max path: ' + normalise(ostype + '/' + arch + '/' + cctype + '/' + computerVendor + '/');
 
 codepreference = []
-codepreferencenoasm = [ 'c' ]
+codepreferencenoasm = [ 'c', 'c++' ]
 
 if useAssembly:
   codepreference = [ 'S', 's' ]
@@ -253,6 +255,9 @@ if standalone():
     cflagsx += '-static'
     linkx   += '-e _start'
 
+  if cctype == 'gnu':
+    sourcefilespp += [ 'personality' ]
+
 else:
   print 'adjusting linker flags for using host-libc based libcurie'
   noasm += [ 'bootstrap' ]
@@ -283,6 +288,7 @@ for l in lines:
 
 file.close()
 
+#### actual compilation bit
 
 sf = []
 
@@ -296,6 +302,21 @@ for i in sourcefiles:
 x = env.StaticLibrary('curie', sf)
 env.Alias ('library', x)
 env.Install (libdir, x)
+
+sf = []
+
+for i in sourcefilespp:
+  sf += [ findsource(i) ]
+  if haveasm(i):
+    n = findsource(i + '-highlevel');
+    if n:
+      sf += [ n ]
+
+x = env.StaticLibrary('curie++', sf)
+env.Alias ('library++', x)
+env.Install (libdir, x)
+
+# test cases, etc
 
 import glob
 testsource = glob.glob('tests/*.c');
@@ -329,7 +350,7 @@ for i in installheaders:
   if x:
     env.Install (includedir, x);
 
-env.Install(pkgconfigpath, 'build/libcurie.pc')
+env.Install(pkgconfigpath, [ 'build/libcurie.pc', 'libcurie++.pc' ])
 env.Alias('pkg-config', pkgconfigpath)
 
 env.Alias('install', [ 'pkg-config', libdir, includedir ])

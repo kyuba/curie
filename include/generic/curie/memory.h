@@ -45,6 +45,10 @@
 #ifndef LIBCURIE_MEMORY_H
 #define LIBCURIE_MEMORY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* memory.c */
 
 /*@notnull@*/ /*@only@*/ void *get_mem(unsigned long int);
@@ -105,5 +109,9 @@ void optimise_memory_pool (struct memory_pool *);
 /*@notnull@*/ /*@only@*/ void *aalloc   (unsigned long);
 /*@notnull@*/ /*@only@*/ void *arealloc (unsigned long, /*@notnull@*/ /*@only@*/ /*@returned@*/ void *, unsigned long);
 void afree     (unsigned long, /*@notnull@*/ /*@only@*/ void *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -46,6 +46,10 @@
 #ifndef LIBCURIE_IO_H
 #define LIBCURIE_IO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define IO_CHUNKSIZE 4096
 
 enum io_type {
@@ -88,5 +92,9 @@ enum io_result io_read(/*@notnull@*/ struct io *);
 enum io_result io_commit (/*@notnull@*/ struct io *);
 enum io_result io_finish (/*@notnull@*/ struct io *);
 void io_close (/*@notnull@*/ /*@only@*/ struct io *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

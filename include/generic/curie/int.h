@@ -53,6 +53,10 @@
 #ifndef LIBCURIE_INT_H
 #define LIBCURIE_INT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*! \brief Unsigned Integer with the Length as a Pointer */
 /*
  * Longs should be the same length as pointers, really... we'll see compiler
@@ -84,5 +88,9 @@ typedef unsigned short int_16;
  * ... and 8-bit chars.
  */
 typedef unsigned char int_8;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

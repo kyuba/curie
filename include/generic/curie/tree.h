@@ -49,6 +49,10 @@
 
 #include <curie/int.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct tree {
     /*@null@*/ /*@owned@*/ struct tree_node * root;
 };
@@ -85,5 +89,9 @@ void tree_remove_node_specific (/*@dependent@*/ struct tree *, int_pointer, /*@n
 #define node_get_value(node) ((struct tree_node_pointer *)node)->value
 
 void tree_map (struct tree *, void (*)(struct tree_node *, void *), /*@null@*/ void *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

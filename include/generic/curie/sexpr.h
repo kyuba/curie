@@ -48,6 +48,10 @@
 
 #include <curie/io.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum sx_type {
     sxt_nil = 0,
     sxt_false = 1,
@@ -160,5 +164,9 @@ extern struct sexpr * const sx_dot;
 #define sx_integer(sx) (((sx)->type == sxt_integer) ? (((struct sexpr_integer *)(sx))->integer) : -1)
 #define sx_string(sx)  (const char *)(((sx)->type == sxt_string) ? (((struct sexpr_string_or_symbol *)(sx))->character_data) : "#nonexistent")
 #define sx_symbol(sx)  (const char *)(((sx)->type == sxt_symbol) ? (((struct sexpr_string_or_symbol *)(sx))->character_data) : "#nonexistent")
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

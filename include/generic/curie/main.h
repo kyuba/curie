@@ -49,12 +49,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  /*@noreturn@*/ void   a_exit  (int status);
 
-  int a_main();
+/*@noreturn@*/ void   a_exit  (int status);
 
-  extern char **curie_argv;
-  extern char **curie_environment;
+int a_main();
+
+extern char **curie_argv;
+extern char **curie_environment;
+
 #ifdef __cplusplus
 }
 #endif
