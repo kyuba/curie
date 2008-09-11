@@ -256,19 +256,19 @@ cflagsx=''
 linkx=''
 
 if standalone():
-  print 'adjusting linker flags for using assembly libcurie'
+  print 'linker configuration: freestanding'
   cflagsx += '-ffreestanding'
   linkx   += '-static -nostdlib -nostartfiles -nodefaultlibs -u _start'
-  env.Append(CFLAGS = '-ffreestanding',
-             LINKFLAGS = '-static -nostdlib -nostartfiles -nodefaultlibs -u _start')
 
   if ostype == 'darwin':
     cflagsx += '-static'
     linkx   += '-e _start'
 
 else:
-  print 'adjusting linker flags for using host-libc based libcurie'
+  print 'linker configuration: hosted'
   noasm += [ 'bootstrap' ]
+  cflagsx += '-ffreestanding'
+  linkx   += '-nodefaultlibs -lc'
 
 env.Append(CFLAGS = cflagsx,
            LINKFLAGS = linkx)
