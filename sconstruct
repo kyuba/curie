@@ -18,6 +18,9 @@ installheaders = [ # C headers
                    # C++ headers
                    'curie++/int.h' ]
 
+installheaderspp = [ # C++ headers
+                     'curie++/int.h' ]
+
 sourcefiles += needforstandalone
 noasm = []
 
@@ -91,6 +94,7 @@ cctype          = env['cctype']
 libdir          = env['destdir'] + env['prefix'] + env['libdir'] + '/'
 pkgconfigpath   = libdir + 'pkgconfig/'
 includedir      = env['destdir'] + env['prefix'] + 'include/curie/'
+includedirpp    = env['destdir'] + env['prefix'] + 'include/curie++/'
 # os.environ['PKG_CONFIG_PATH']
 
 ##############
@@ -364,6 +368,11 @@ for i in installheaders:
   x = findheader(i)
   if x:
     env.Install (includedir, x);
+
+for i in installheaderspp:
+  x = findheader(i)
+  if x:
+    env.Install (includedirpp, x);
 
 env.Install(pkgconfigpath, [ 'build/libcurie.pc', 'libcurie++.pc' ])
 env.Alias('pkg-config', pkgconfigpath)
