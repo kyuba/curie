@@ -86,13 +86,34 @@ cctype          = env['cctype']
 
 
 def scanexec(file):
-  return os.spawnlp(os.P_WAIT, file, file, '-dumpmachine') == 0
+#  return os.spawnlp(os.P_WAIT, file, file, '--version') == 0
+  f = os.popen(file + ' --version', 'r')
+  if f:
+    if f.close() == None:
+      print 'have ' + file
+      return True
+
+  print 'missing ' + file
+  return False
 
 if scanexec (env['targetCHOST'] + '-gcc'):
   env['CC'] = env['targetCHOST'] + '-gcc';
+  env['LINK'] = env['targetCHOST'] + '-gcc';
 
 if scanexec (env['targetCHOST'] + '-g++'):
   env['CXX'] = env['targetCHOST'] + '-g++';
+
+if scanexec (env['targetCHOST'] + '-as'):
+  env['AS'] = env['targetCHOST'] + '-as';
+
+if scanexec (env['targetCHOST'] + '-ar'):
+  env['AR'] = env['targetCHOST'] + '-ar';
+
+# if scanexec (env['targetCHOST'] + '-ld'):
+#   env['LINK'] = env['targetCHOST'] + '-ld';
+
+if scanexec (env['targetCHOST'] + '-ranlib'):
+  env['RANLIB'] = env['targetCHOST'] + '-ranlib';
 
 # install directories
 
@@ -181,7 +202,6 @@ def fileexists(name):
     return True
   except:
     return False
-
 
 def haveasm(name):
   global paths, useAssembly, noasm
