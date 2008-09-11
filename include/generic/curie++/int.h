@@ -1,5 +1,5 @@
 /*
- *  memory.c++
+ *  int.h
  *  libcurie++
  *
  *  Created by Magnus Deininger on 11/09/2008.
@@ -9,11 +9,11 @@
 
 /*
  * Copyright (c) 2008, Magnus Deininger All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer. *
  * Redistributions in binary form must reproduce the above copyright
@@ -22,8 +22,8 @@
  * Neither the name of the project nor the names of its contributors may
  * be used to endorse or promote products derived from this software
  * without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
  * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
@@ -33,29 +33,16 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <curie++/int.h>
+/*! \file
+ *  \brief Specific-length Integers (C++)
+ */
 
-#include <curie/memory.h>
-#include <curie/tree.h>
+#ifndef LIBCURIEPP_INT_H
+#define LIBCURIEPP_INT_H
 
-static struct tree size_map = TREE_INITIALISER;
+typedef unsigned int op_new_size;
 
-void *operator new(op_new_size length)
-{
-    void *r = aalloc(length);
-
-    tree_add_node_value (&size_map, (int_pointer)r, (void *)(int_pointer)length);
-
-    return r;
-}
-
-void operator delete(void *object)
-{
-    struct tree_node *node = tree_get_node (&size_map, (int_pointer)object);
-
-    afree((unsigned long)node_get_value(node), object);
-    tree_remove_node (&size_map, (int_pointer)object);
-}
+#endif
