@@ -41,6 +41,11 @@ if 'CFLAGS' in os.environ:
 else:
   opts.Add('cflags', 'additional compiler flags', '')
 
+if 'CXXFLAGS' in os.environ:
+  opts.Add('cxxflags', 'additional compiler flags', os.environ['CXXFLAGS'])
+else:
+  opts.Add('cxxflags', 'additional compiler flags', '')
+
 if 'LDFLAGS' in os.environ:
   opts.Add('ldflags', 'additional linker flags', os.environ['LDFLAGS'])
 else:
@@ -58,7 +63,10 @@ else:
 
 env = Environment(options = opts)
 env.Append (CFLAGS = env['cflags'])
+env.Append (CXXFLAGS = env['cxxflags'])
 env.Append (LINKFLAGS = env['ldflags'])
+
+env.Append (CXXFLAGS = '-fno-exceptions')
 
 Help(opts.GenerateHelpText(env))
 
@@ -254,9 +262,6 @@ if standalone():
   if ostype == 'darwin':
     cflagsx += '-static'
     linkx   += '-e _start'
-
-  if cctype == 'gnu':
-    sourcefilespp += [ 'personality' ]
 
 else:
   print 'adjusting linker flags for using host-libc based libcurie'

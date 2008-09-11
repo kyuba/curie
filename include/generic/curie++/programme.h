@@ -1,19 +1,19 @@
 /*
- *  gnu/personality.c++
- *  libcurie++
+ *  main.h
+ *  libcurie
  *
- *  Created by Magnus Deininger on 09/09/2008.
+ *  Created by Magnus Deininger on 26/05/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
  * Copyright (c) 2008, Magnus Deininger All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer. *
  * Redistributions in binary form must reproduce the above copyright
@@ -22,8 +22,8 @@
  * Neither the name of the project nor the names of its contributors may
  * be used to endorse or promote products derived from this software
  * without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
  * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
@@ -33,11 +33,32 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* This file is just a stub to get around the __gxx_personality_v0 issue when
-   linking c++ files. The implementation doesn't actually work, which in this
-   case means that libcurie++ code can't rely on exceptions. */
+/*! \file
+ *  \brief Main Function
+ *
+ *  This header declares the a_main() function for libcure applications. It also
+ *  has random, rarely-used functions.
+ */
 
-extern "C" void __gxx_personality_v0() {}
+#ifndef LIBCURIE_MAIN_H
+#define LIBCURIE_MAIN_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*@noreturn@*/ void   a_exit  (int status);
+
+int a_main();
+
+extern char **curie_argv;
+extern char **curie_environment;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LIBCURIE_MAIN_H */

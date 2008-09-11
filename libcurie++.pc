@@ -5,4 +5,4 @@ URL: http://kyuba.org/
 Requires: libcurie
 Conflicts:
 Libs: -lcurie++
-Cflags:
+Cflags: -fno-exceptions
