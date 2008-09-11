@@ -41,6 +41,7 @@
 #include <curie/network-system.h>
 #include <curie/io-system.h>
 
+#include <linux/socket.h>
 #include <linux/un.h>
 
 int __a_unix_socketpair (int [2]);
