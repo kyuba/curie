@@ -6,7 +6,7 @@ sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
                 'sexpr-read-write', 'network', 'multiplex-io',
                 'multiplex-sexpr', 'multiplex-process', 'multiplex-signal' ]
 
-sourcefilespp = [ 'main' ]
+sourcefilespp = [ 'memory++' ]
 
 needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
                       'exec-system', 'multiplex-system', 'signal-system' ]
@@ -65,8 +65,6 @@ env = Environment(options = opts)
 env.Append (CFLAGS = env['cflags'])
 env.Append (CXXFLAGS = env['cxxflags'])
 env.Append (LINKFLAGS = env['ldflags'])
-
-env.Append (CXXFLAGS = '-fno-exceptions')
 
 Help(opts.GenerateHelpText(env))
 
@@ -234,7 +232,9 @@ for i in paths:
   if fileexists('include/' + i):
     env.Append (CPPPATH = [ '#include/' + i ])
 
-env.Append(LIBPATH = '.', CFLAGS='--std=c99 -Wall -pedantic')
+env.Append(LIBPATH = '.',
+           CFLAGS='--std=c99 -Wall -pedantic',
+           CXXFLAGS='-Wall -fno-exceptions')
 
 if debug:
   env.Append(CFLAGS='-g')
@@ -325,15 +325,22 @@ env.Install (libdir, x)
 
 import glob
 testsource = glob.glob('tests/*.c');
+testsourcepp = glob.glob('tests/*.c++');
 
 tenv = env.Clone()
 tenv.Append(LIBS = ['curie'])
+
+tppenv = tenv.Clone()
+tppenv.Append(LIBS = ['curie++'])
 
 penv = ienv.Clone()
 penv.Append(LIBS = ['curie'])
 
 for i in testsource:
   tenv.Program(i)
+
+for i in testsourcepp:
+  tppenv.Program(i)
 
 infosource = glob.glob('information/*.c');
 for i in infosource:

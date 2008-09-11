@@ -1,19 +1,19 @@
 /*
- *  main.c++
- *  libcurie++
+ *  objects.c++
+ *  libcurie
  *
- *  Created by Magnus Deininger on 09/09/2008.
+ *  Created by Magnus Deininger on 08/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
  * Copyright (c) 2008, Magnus Deininger All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer. *
  * Redistributions in binary form must reproduce the above copyright
@@ -22,8 +22,8 @@
  * Neither the name of the project nor the names of its contributors may
  * be used to endorse or promote products derived from this software
  * without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
  * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
@@ -33,13 +33,40 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <curie/main.h>
+#include <curie/sexpr.h>
 
-/*
+class X {
+  public:
+    void foo () {
+        struct sexpr_io *io = sx_open_stdio();
+        sx_write (io, make_string(text));
+    }
+
+    X(char *btext) {
+        this->text = btext;
+    }
+
+    X() {
+        this->text = "foo";
+    }
+
+  private:
+    char *text;
+};
+
 extern "C" int a_main() {
-    return 0;
+  X *y = new X("meow");
+  X z = X("success");
+  X u;
+
+  u.foo();
+  y->foo();
+  z.foo();
+
+  delete y;
+  return 0;
 }
-*/
