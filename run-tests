@@ -11,7 +11,7 @@ rv=0;
 
 echo ";; running tests"
 
-for i in $(find ./tests -maxdepth 1 ! \( -type d -o \( -name '*.c' -o -name '*.o' \) \) ); do
+for i in $(find ./tests -maxdepth 1 ! \( -type d -o \( -name '*.c' -o -name '*.c++' -o -name '*.o' \) \) ); do
     let "tests += 1";
     echo $i;
 

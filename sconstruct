@@ -11,9 +11,12 @@ sourcefilespp = [ 'memory++' ]
 needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
                       'exec-system', 'multiplex-system', 'signal-system' ]
 
-installheaders = [ 'curie/exec', 'curie/main', 'curie/sexpr', 'curie/memory',
+installheaders = [ # C headers
+                   'curie/exec', 'curie/main', 'curie/sexpr', 'curie/memory',
                    'curie/multiplex', 'curie/signal', 'curie/tree',
-                   'curie/network', 'curie/int', 'curie/io' ]
+                   'curie/network', 'curie/int', 'curie/io',
+                   # C++ headers
+                   'curie++/int.h' ]
 
 sourcefiles += needforstandalone
 noasm = []
