@@ -2,15 +2,18 @@
 "" "hello \"world\"!"
 23 +23
 -1337
-symbol1
+symbol1;just some dummy, really...
 symbol2
+
+;; meh...
 
 #nil
 #t
 #f
 #meow
 
-(hello world      !
+(hello world    ;blah
+  ! ; blubb
   )
 (1  2
   3)

@@ -167,6 +167,7 @@ void sx_close_io (struct sexpr_io *io) {
             case '\t':
             case '\v':
             case ' ':
+            case ';': /* beginning a comment will also end the symbol */
             case 0:
             case ')': /* this is also a terminating character for a symbol */
                 /* end of symbol */
@@ -248,8 +249,19 @@ void sx_close_io (struct sexpr_io *io) {
     struct sexpr *result = sx_end_of_list, *next;
 
     do {
+        char comment = (char)0;
          /* skip all currently-leading whitespace */
         retry:
+        while (comment == (char)1) {
+            j++;
+            if (j >= length) return sx_nonexistent;
+
+            if (buf[j] == '\n') {
+                comment = (char)0;
+                break;
+            }
+        }
+		
         switch (buf[j]) {
             case '\n':
             case '\t':
@@ -258,6 +270,10 @@ void sx_close_io (struct sexpr_io *io) {
             case 0:
                 j++;
                 if (j >= length) return sx_nonexistent;
+                goto retry;
+
+            case ';':
+                comment = (char)1;
                 goto retry;
 
             default:
@@ -333,7 +349,16 @@ struct sexpr *sx_read(struct sexpr_io *io) {
     buf = io->in->buffer;
 
     /* remove leading whitespace */
+    char comment = (char)0;
     do {
+        if (comment == (char)1) {
+            if (buf[i] == '\n') {
+                comment = (char)0;
+            }
+            i++;
+            continue;
+        }
+
         switch (buf[i]) {
             case '\n':
             case '\t':
@@ -341,6 +366,9 @@ struct sexpr *sx_read(struct sexpr_io *io) {
             case ' ':
             case 0:
                 /* whitespace characters */
+                break;
+            case ';':
+                comment = (char)1;
                 break;
             default:
                 /* update current position, so the whitespace will be removed
