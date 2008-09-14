@@ -70,6 +70,8 @@ static void mx_on_close (struct io *r, void *d) {
     struct io_element *element = (struct io_element *)d;
 
     multiplex_del_io (element->io->out);
+    free_pool_mem (element->io);
+    free_pool_mem (element);
 }
 
 void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(struct sexpr *, struct sexpr_io *, void *), void *data) {
