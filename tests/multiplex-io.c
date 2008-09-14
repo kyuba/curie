@@ -46,19 +46,22 @@ static void mx_on_read(struct io *io, void *wx) {
     io->position = io->length;
 }
 
+static void mx_on_close(struct io *io, void *wx) {
+    struct io *w = (struct io *)wx;
+
+    multiplex_del_io (w);
+}
+
 int a_main(void) {
     struct io *r = io_open_read("tests/reference/temporary-multiplexer-test-data"),
               *w = io_open_write("temporary-multiplexer-test-data");
 
     multiplex_io();
 
-    multiplex_add_io (r, mx_on_read, (void *)w);
-    multiplex_add_io_no_callback(w);
+    multiplex_add_io (r, mx_on_read, mx_on_close, (void *)w);
+    multiplex_add_io_no_callback (w);
 
     while (multiplex() == mx_ok);
-
-    io_close (w);
-    io_close (r);
 
     return 0;
 }

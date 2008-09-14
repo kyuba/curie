@@ -114,6 +114,9 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
                             in = io_open (fdr);
                             out = io_open (fdw);
 
+                            in->type = iot_read;
+                            out->type = iot_write;
+
                             l->on_connect(in, out, l->data);
                         } else {
                             a_close (fdr);

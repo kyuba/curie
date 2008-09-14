@@ -66,6 +66,12 @@ static void mx_on_read (struct io *r, void *d) {
     }
 }
 
+static void mx_on_close (struct io *r, void *d) {
+    struct io_element *element = (struct io_element *)d;
+
+    multiplex_del_io (element->io->out);
+}
+
 void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(struct sexpr *, struct sexpr_io *, void *), void *data) {
     struct io_element *element = get_pool_mem (&list_pool);
 
@@ -73,6 +79,6 @@ void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(struct sexpr *, s
     element->on_read = on_read;
     element->data = data;
 
-    multiplex_add_io (io->in, mx_on_read, (void *)element);
+    multiplex_add_io (io->in, mx_on_read, mx_on_close, (void *)element);
     multiplex_add_io_no_callback(io->out);
 }

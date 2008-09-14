@@ -281,18 +281,15 @@ void io_close (struct io *io)
 {
     if (io->status != io_finalising) (void)io_finish (io);
 
-    switch (io->type)
-    {
-        case iot_undefined: break;
-        case iot_read: break;
-        case iot_write:
-            while (io_commit (io) == io_incomplete);
-            break;
+    if (io->type == iot_write) {
+        while (io_commit (io) == io_incomplete);
     }
 
     if (io->fd >= 0)
         (void)a_close (io->fd);
 
-    free_mem(io->buffersize, io->buffer);
+    if (io->buffersize > 0) {
+        free_mem(io->buffersize, io->buffer);
+    }
     free_pool_mem ((void *)io);
 }

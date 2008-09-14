@@ -52,6 +52,7 @@ static struct multiplex_functions mx_functions = {
 struct io_list {
     struct io *io;
     void (*on_read)(struct io *, void *);
+    void (*on_close)(struct io *, void *);
     void *data;
     struct io_list *next;
 };
@@ -60,7 +61,7 @@ static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct io_
 static struct io_list *list = (struct io_list *)0;
 
 static void mx_f_count(int *r, int *w) {
-    struct io_list *l = list;
+    struct io_list *l = list, *p = (struct io_list *)0;
 
     while (l != (struct io_list *)0) {
         if ((l->io->fd != -1) &&
@@ -79,15 +80,38 @@ static void mx_f_count(int *r, int *w) {
                 default:
                     break;
             }
+        } else {
+            struct io_list *t = l;
+
+            if (p == (struct io_list *)0)
+            {
+                list = l->next;
+            }
+            else
+            {
+                p->next = l->next;
+            }
+            l = l->next;
+
+            if (t->on_close != (void (*)(struct io *, void *))0)
+            {
+                t->on_close (t->io, t->data);
+            }
+
+            io_close (t->io);
+
+            free_pool_mem (t);
+            continue;
         }
 
         next:
+        p = l;
         l = l->next;
     }
 }
 
 static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
-    struct io_list *l = list;
+    struct io_list *l = list, *p = (struct io_list *)0;
 
     while (l != (struct io_list *)0) {
         if ((l->io->fd != -1) &&
@@ -122,15 +146,38 @@ static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
                 default:
                     break;
             }
+        } else {
+            struct io_list *t = l;
+
+            if (p == (struct io_list *)0)
+            {
+                list = l->next;
+            }
+            else
+            {
+                p->next = l->next;
+            }
+            l = l->next;
+
+            if (t->on_close != (void (*)(struct io *, void *))0)
+            {
+                t->on_close (t->io, t->data);
+            }
+
+            io_close (t->io);
+
+            free_pool_mem (t);
+            continue;
         }
 
         next:
+        p = l;
         l = l->next;
     }
 }
 
 static void mx_f_callback(int *rs, int r, int *ws, int w) {
-    struct io_list *l = list;
+    struct io_list *l = list, *p = (struct io_list *)0;
 
     while (l != (struct io_list *)0) {
         if ((l->io->fd != -1) &&
@@ -163,7 +210,35 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
             }
         }
 
+        if ((l->io->fd == -1) ||
+            (l->io->status == io_end_of_file) ||
+            (l->io->status == io_unrecoverable_error))
+        {
+            struct io_list *t = l;
+
+            if (p == (struct io_list *)0)
+            {
+                list = l->next;
+            }
+            else
+            {
+                p->next = l->next;
+            }
+            l = l->next;
+
+            if (t->on_close != (void (*)(struct io *, void *))0)
+            {
+                t->on_close (t->io, t->data);
+            }
+
+            io_close (t->io);
+
+            free_pool_mem (t);
+            continue;
+        }
+
         next:
+        p = l;
         l = l->next;
     }
 }
@@ -177,12 +252,47 @@ void multiplex_io () {
     }
 }
 
-void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void *data) {
+void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void (*on_close)(struct io *, void *), void *data) {
     struct io_list *list_element = get_pool_mem (&list_pool);
     list_element->next = list;
     list = list_element;
 
     list_element->io = io;
     list_element->on_read = on_read;
+    list_element->on_close = on_close;
     list_element->data = data;
+}
+
+void multiplex_del_io (struct io *io) {
+    struct io_list *l = list, *p = (struct io_list *)0;
+
+    while (l != (struct io_list *)0) {
+        if (l->io == io)
+        {
+            struct io_list *t = l;
+
+            if (p == (struct io_list *)0)
+            {
+                list = l->next;
+            }
+            else
+            {
+                p->next = l->next;
+            }
+            l = l->next;
+
+            if (t->on_close != (void (*)(struct io *, void *))0)
+            {
+                t->on_close (t->io, t->data);
+            }
+
+            io_close (t->io);
+
+            free_pool_mem (t);
+            continue;
+        }
+
+        p = l;
+        l = l->next;
+    }
 }

@@ -92,6 +92,10 @@ static void queue_on_read (struct io *qin, void *notused) {
 
 static struct io *signal_queue_out;
 
+static void queue_on_close (struct io *qin, void *notused) {
+    multiplex_del_io (signal_queue_out);
+}
+
 static void generic_signal_handler (enum signal signal) {
     io_collect (signal_queue_out, (char *)&signal, sizeof(enum signal));
 }
@@ -111,7 +115,7 @@ void multiplex_signal () {
 
         net_open_loop (&signal_queue_in, &signal_queue_out);
 
-        multiplex_add_io (signal_queue_in, queue_on_read, (void *)0);
+        multiplex_add_io (signal_queue_in, queue_on_read, queue_on_close, (void *)0);
         multiplex_add_io_no_callback (signal_queue_out);
 
         installed = (char)1;
