@@ -243,6 +243,11 @@ void tree_add_node_string_value (struct tree *t, /*@notnull@*/ char *k, /*@depen
     tree_add_node_value(t, (int_pointer)str_immutable_unaligned(k), v);
 }
 
+/*@null@*/ /*@dependent@*/ struct tree_node * tree_get_node_string (/*@notnull@*/ struct tree *t, char *k)
+{
+    return tree_get_node (t, (int_pointer)str_immutable_unaligned(k));
+}
+
 void tree_remove_node_string_specific (/*@dependent@*/ struct tree *t, /*@notnull@*/ char *k, /*@null@*/ struct tree_node *v)
 {
     tree_remove_node_specific(t, (int_pointer)str_immutable_unaligned(k), v);

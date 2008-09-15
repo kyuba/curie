@@ -97,6 +97,7 @@ void tree_map (struct tree *, void (*)(struct tree_node *, void *), /*@null@*/ v
 
 void tree_add_node_string (struct tree *, /*@notnull@*/ char *);
 void tree_add_node_string_value (struct tree *, /*@notnull@*/ char *, /*@dependent@*/ const void *);
+/*@null@*/ /*@dependent@*/ struct tree_node * tree_get_node_string (/*@notnull@*/ struct tree *, char *);
 void tree_remove_node_string_specific (/*@dependent@*/ struct tree *, /*@notnull@*/ char *, /*@null@*/ struct tree_node *);
 #define tree_remove_node_string(t,k) tree_remove_node_string_specific(t, k, (struct tree_node *)0)
 
