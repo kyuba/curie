@@ -89,7 +89,7 @@ cctype          = env['cctype']
 
 def scanexec(file):
 #  return os.spawnlp(os.P_WAIT, file, file, '--version') == 0
-  f = os.popen(file + ' --version', 'r')
+  f = os.popen(file + ' --version 2>&1', 'r')
   if f:
     if f.close() == None:
       print 'have ' + file
