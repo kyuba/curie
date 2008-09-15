@@ -38,6 +38,7 @@
 
 #include <curie/memory.h>
 #include <curie/tree.h>
+#include <curie/immutable.h>
 
 /*@-noeffect@*/
 /* the map function does actually not have a visible effect from this file's
@@ -230,4 +231,19 @@ static void tree_map_worker(/*@null@*/ struct tree_node *node, void (*callback)(
 
 void tree_map (struct tree *tree, void (*callback)(struct tree_node *, void *), void *sv) {
     tree_map_worker ((void *)tree->root, callback, sv);
+}
+
+void tree_add_node_string (struct tree *t, /*@notnull@*/ char *k)
+{
+    tree_add_node_string(t, (int_pointer)str_immutable_unaligned(k));
+}
+
+void tree_add_node_string_value (struct tree *t, /*@notnull@*/ char *k, /*@dependent@*/ const void *v)
+{
+    tree_add_node_value(t, (int_pointer)str_immutable_unaligned(k), v);
+}
+
+void tree_remove_node_string_specific (/*@dependent@*/ struct tree *t, /*@notnull@*/ char *k, /*@null@*/ struct tree_node *v)
+{
+    tree_remove_node_specific(t, (int_pointer)str_immutable_unaligned(k), v);
 }

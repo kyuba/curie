@@ -90,9 +90,15 @@ void tree_add_node_value (struct tree *, int_pointer, /*@dependent@*/ const void
 void tree_remove_node_specific (/*@dependent@*/ struct tree *, int_pointer, /*@null@*/ struct tree_node *);
 
 #define tree_remove_node(t,k) tree_remove_node_specific(t, k, (struct tree_node *)0)
+
 #define node_get_value(node) ((struct tree_node_pointer *)node)->value
 
 void tree_map (struct tree *, void (*)(struct tree_node *, void *), /*@null@*/ void *);
+
+void tree_add_node_string (struct tree *, /*@notnull@*/ char *);
+void tree_add_node_string_value (struct tree *, /*@notnull@*/ char *, /*@dependent@*/ const void *);
+void tree_remove_node_string_specific (/*@dependent@*/ struct tree *, /*@notnull@*/ char *, /*@null@*/ struct tree_node *);
+#define tree_remove_node_string(t,k) tree_remove_node_string_specific(t, k, (struct tree_node *)0)
 
 #ifdef __cplusplus
 }
