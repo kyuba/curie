@@ -1,3 +1,13 @@
+###- QUICK AND DIRTY: COMPILATION AND INSTALLATION -############################
+  You'll need scons and pkg-config. No ifs or buts.
+
+    $ scons install
+    $ scons hosted=yes install
+
+
+################################################################################
+
+
 NOTE:
   This is version one of this library; It has been tested with the included
   test-suite on a number of systems of differing architectures as well as
@@ -9,6 +19,9 @@ NOTE:
 NOTE.2:
   Please take note of the library licence (the COPYING file), as well as the
   credits (the CREDITS file).
+
+
+###- DETAILS -##################################################################
 
 Compilation:
   Make sure you have scons installed, then:
