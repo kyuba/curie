@@ -36,6 +36,8 @@ opts.Add('computerVendor', 'computer vendor', 'unknown')
 opts.Add('ostype', 'OS type', os.uname()[0].lower())
 opts.Add('cctype', 'toolchain type', 'gnu')
 
+opts.Add(BoolOption('hosted', 'avoid the standalone components', False))
+
 opts.Add('libdir', 'libdir base name (i.e. lib, lib32, lib64, etc)', 'lib')
 opts.Add('prefix', 'prefix (static libs are fine in /usr)', '/usr/')
 opts.Add('destdir', 'extra installation prefix', '')
@@ -85,7 +87,6 @@ arch            = env['arch']
 computerVendor  = env['computerVendor']
 ostype          = env['ostype']
 cctype          = env['cctype']
-
 
 def scanexec(file):
 #  return os.spawnlp(os.P_WAIT, file, file, '--version') == 0
@@ -287,7 +288,7 @@ ienv = env.Clone()
 cflagsx=''
 linkx=''
 
-if standalone():
+if standalone() and not env['hosted']:
   print 'linker configuration: freestanding'
   cflagsx += '-ffreestanding'
   linkx   += '-static -nostdlib -nostartfiles -nodefaultlibs -u _start'
@@ -299,8 +300,12 @@ if standalone():
 else:
   print 'linker configuration: hosted'
   noasm += [ 'bootstrap' ]
-  cflagsx += '-ffreestanding'
-  linkx   += '-nodefaultlibs -lc'
+  if not env['hosted']:
+    cflagsx += '-ffreestanding'
+    linkx   += '-nodefaultlibs -lc'
+
+if env['hosted']:
+  sourcefiles.remove ('bootstrap');
 
 env.Append(CFLAGS = cflagsx,
            LINKFLAGS = linkx)
@@ -313,13 +318,19 @@ lines = file.readlines()
 
 file.close()
 
-file = open('./build/libcurie.pc', "w")
+if env['hosted']:
+  file = open('./build/libcurie-hosted.pc', "w")
+else:
+  file = open('./build/libcurie.pc', "w")
 
 mod = []
 for l in lines:
   s = ""
   if "Libs:" in l:
-    s = 'Libs: -lcurie ' + linkx  + '\n'
+    if env['hosted']:
+      s = 'Libs: -lcurie-hosted ' + linkx  + '\n'
+    else:
+      s = 'Libs: -lcurie ' + linkx  + '\n'
   elif "Cflags" in l:
     s = 'Cflags: ' + cflagsx + '\n'
   else:
@@ -339,7 +350,11 @@ for i in sourcefiles:
     if n:
       sf += [ n ]
 
-x = env.StaticLibrary('curie', sf)
+if env['hosted']:
+  x = env.StaticLibrary('curie-hosted', sf)
+else:
+  x = env.StaticLibrary('curie', sf)
+
 env.Alias ('library', x)
 env.Install (libdir, x)
 
@@ -358,50 +373,55 @@ env.Install (libdir, x)
 
 # test cases, etc
 
-testsource = glob.glob('tests/*.c');
-testsourcepp = glob.glob('tests/*.c++');
+if env['hosted']:
+  env.Install(pkgconfigpath, [ 'build/libcurie-hosted.pc',
+                               'libcurie++-hosted.pc'])
 
-tenv = env.Clone()
-tenv.Append(LIBS = ['curie'])
+  env.Alias('install', [ pkgconfigpath, libdir ])
+else:
+  testsource = glob.glob('tests/*.c');
+  testsourcepp = glob.glob('tests/*.c++');
 
-tppenv = tenv.Clone()
-tppenv.Append(LIBS = ['curie++'])
+  tenv = env.Clone()
+  tenv.Append(LIBS = ['curie'])
 
-penv = ienv.Clone()
-penv.Append(LIBS = ['curie'])
+  tppenv = tenv.Clone()
+  tppenv.Append(LIBS = ['curie++'])
 
-for i in testsource:
-  tenv.Program(i)
+  penv = ienv.Clone()
+  penv.Append(LIBS = ['curie'])
 
-for i in testsourcepp:
-  tppenv.Program(i)
+  for i in testsource:
+    tenv.Program(i)
 
-infosource = glob.glob('information/*.c');
-for i in infosource:
-  ienv.Program(i)
+  for i in testsourcepp:
+    tppenv.Program(i)
 
-foo = tenv.Program ('benchmarks/configure.c')
+  infosource = glob.glob('information/*.c');
+  for i in infosource:
+    ienv.Program(i)
 
-infosource = glob.glob('benchmarks/posix-*.c');
-for i in infosource:
-  penv.Program(i)
+  foo = tenv.Program ('benchmarks/configure.c')
 
-infosource = glob.glob('benchmarks/curie-*.c');
-for i in infosource:
-  tenv.Program(i)
+  infosource = glob.glob('benchmarks/posix-*.c');
+  for i in infosource:
+    penv.Program(i)
+
+  infosource = glob.glob('benchmarks/curie-*.c');
+  for i in infosource:
+    tenv.Program(i)
 
 
-for i in installheaders:
-  x = findheader(i)
-  if x:
-    env.Install (includedir, x);
+  for i in installheaders:
+    x = findheader(i)
+    if x:
+      env.Install (includedir, x);
 
-for i in installheaderspp:
-  x = findheader(i)
-  if x:
-    env.Install (includedirpp, x);
+  for i in installheaderspp:
+    x = findheader(i)
+    if x:
+      env.Install (includedirpp, x);
 
-env.Install(pkgconfigpath, [ 'build/libcurie.pc', 'libcurie++.pc' ])
-env.Alias('pkg-config', pkgconfigpath)
+  env.Install(pkgconfigpath, [ 'build/libcurie.pc', 'libcurie++.pc' ])
 
-env.Alias('install', [ 'pkg-config', libdir, includedir, includedirpp ])
+  env.Alias('install', [ pkgconfigpath, libdir, includedir, includedirpp ])

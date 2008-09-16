@@ -34,6 +34,27 @@ Installation:
 
     $ scons destdir=/some/prefix install
 
+Compiling/Installing special 'hosted' Versions:
+  If you intend to use libcurie with the host libc, you should also do the
+  following to install special host-libc versions:
+
+    $ scons hosted=yes library
+    $ scons hosted=yes install
+
+  You should do this AFTER you've compiled and installed the non-hosted variant.
+  Alternatively, just the install-command alone would do too.
+
+Linking against libcurie:
+  Use pkg-config to retrieve the flags needed to link with libcurie:
+
+    $ pkg-config --cflags --libs libcurie
+
+  For the hosted variant, use:
+
+    $ pkg-config --cflags --libs libcurie-hosted
+
+  Check pkg-config's documentation for more details.
+
 Testing:
   Please help by giving this library's test suite a shot:
 

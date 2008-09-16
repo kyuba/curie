@@ -235,7 +235,7 @@ void tree_map (struct tree *tree, void (*callback)(struct tree_node *, void *), 
 
 void tree_add_node_string (struct tree *t, /*@notnull@*/ char *k)
 {
-    tree_add_node_string(t, (int_pointer)str_immutable_unaligned(k));
+    tree_add_node(t, (int_pointer)str_immutable_unaligned(k));
 }
 
 void tree_add_node_string_value (struct tree *t, /*@notnull@*/ char *k, /*@dependent@*/ const void *v)
