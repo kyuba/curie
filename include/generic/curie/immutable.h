@@ -36,6 +36,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef LIBCURIE_IMMUTABLE_H
 #define LIBCURIE_IMMUTABLE_H
 
@@ -65,4 +69,8 @@ void lock_immutable_pages ( void );
 
 /*@notnull@*/ /*@observer@*/ const char *str_immutable_unaligned (/*@notnull@*/ /*@returned@*/ const char *);
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
