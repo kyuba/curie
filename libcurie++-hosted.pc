@@ -1,6 +1,6 @@
 Name: libcurie++
 Description: minimalistic, sexpr-based, non-posix(!) libc++
-Version: 2
+Version: 3
 URL: http://kyuba.org/
 Requires: libcurie-hosted
 Conflicts:
