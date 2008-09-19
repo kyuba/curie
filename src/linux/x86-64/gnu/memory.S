@@ -94,6 +94,11 @@ do_syscall:
         cmp $0, %rax
         js negative_result
 
+        popq %r11
+        popq %rdx
+        popq %rsi
+        popq %rdi
+
         leave
         ret
 negative_result:
@@ -180,6 +185,11 @@ xor_first_and_second_arg_sc:
         xor %rsi, %rdi
         xor %rdi, %rsi
         xor %rsi, %rdi
+
+        pushq   $0
+        pushq   $0
+        pushq   $0
+        pushq   $0
 
         jmp cmopsass
 
