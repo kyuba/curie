@@ -55,6 +55,19 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+static void *(*get_mem_recovery)(unsigned long int) = (void *)0;
+static void *(*resize_mem_recovery)(unsigned long int, void *, unsigned long int) = (void *)0;
+
+void set_get_mem_recovery_function (void *(*handler)(unsigned long int))
+{
+    get_mem_recovery = handler;
+}
+
+void set_resize_mem_recovery_function (void *(*handler)(unsigned long int, void *, unsigned long int))
+{
+    resize_mem_recovery = handler;
+}
+
 /*@only@*/ void *get_mem(unsigned long int);
 /*@only@*/ void *resize_mem(unsigned long int, /*@only@*/ void *, unsigned long int);
 void free_mem(unsigned long int, /*@only@*/void *);
@@ -75,15 +88,16 @@ void *get_mem(unsigned long int size) {
     void *rv = (void *)-1;
     size_t msize = get_multiple_of_pagesize(size);
 
-    retry:
-
     rv = mmap((void *)0, msize, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE,
               -1, 0);
 
     if ((rv == (void *)-1) || (rv == (void *)0)) {
-        /* failure is not an option */
-        (void)sleep (1);
-        goto retry;
+        if (get_mem_recovery != (void *)0)
+        {
+            return get_mem_recovery(size);
+        }
+
+        return (void *)0;
     }
 
     return rv;
@@ -105,8 +119,19 @@ void *resize_mem(unsigned long int size, void *location, unsigned long int new_s
     size_t mnew_size = get_multiple_of_pagesize(new_size);
 
     if (msize != mnew_size) {
-        int *new_location = (int *)get_mem(new_size),
-            *old_location = (int *)location;
+        int *new_location = (int *)get_mem(new_size);
+
+        if (new_location == (int *)0)
+        {
+            if (resize_mem_recovery != (void *)0)
+            {
+                return resize_mem_recovery(size, location, new_size);
+            }
+
+            return (void *)0;
+        }
+
+        int *old_location = (int *)location;
         int i = 0,
             copysize = (int)((size < new_size) ? size : new_size);
 

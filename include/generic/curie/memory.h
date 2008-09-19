@@ -51,8 +51,11 @@ extern "C" {
 
 /* memory.c */
 
-/*@notnull@*/ /*@only@*/ void *get_mem(unsigned long int);
-/*@notnull@*/ /*@only@*/ void *resize_mem(unsigned long int, /*@notnull@*/ /*@only@*/ void *, unsigned long int);
+void set_get_mem_recovery_function (void *(*handler)(unsigned long int));
+void set_resize_mem_recovery_function (void *(*handler)(unsigned long int, void *, unsigned long int));
+
+/*@null@*/ /*@only@*/ void *get_mem(unsigned long int);
+/*@null@*/ /*@only@*/ void *resize_mem(unsigned long int, /*@notnull@*/ /*@only@*/ void *, unsigned long int);
 void free_mem(unsigned long int, /*@notnull@*/ /*@only@*/void *);
 
 void mark_mem_ro (unsigned long int, /*@notnull@*/ void *);

@@ -45,6 +45,8 @@
 .globl mark_mem_ro
 .globl mark_mem_rw
 .globl get_mem_chunk
+.globl set_get_mem_recovery_function
+.globl set_resize_mem_recovery_function
 
 .type get_mem,                 @function
 .type free_mem,                @function
@@ -52,6 +54,15 @@
 .type mark_mem_ro,             @function
 .type mark_mem_rw,             @function
 .type get_mem_chunk,           @function
+.type set_get_mem_recovery_function, @function
+.type set_resize_mem_recovery_function, @function
+
+.data
+get_mem_recovery:
+        .long 0x0
+
+resize_mem_recovery:
+        .long 0x0
 
 .text
         .align 8
@@ -60,6 +71,14 @@
 /* rdi rsi rdx rcx r8 r9 */
 /* kernel: */
 /* rdi rsi rdx r10 r8 r9 */
+
+set_get_mem_recovery_function:
+        movq %rdi, get_mem_recovery(%rip)
+        ret
+
+set_resize_mem_recovery_function:
+        movq %rdi, resize_mem_recovery(%rip)
+        ret
 
 cmopsass:
 /* the return value is stored in %rsi, since we always need it as the second
@@ -74,12 +93,23 @@ do_syscall:
         syscall
         cmp $0, %rax
         js negative_result
+
         leave
         ret
 negative_result:
         movq $0, %rax
+
+        popq %r11
+        popq %rdx
+        popq %rsi
+        popq %rdi
+
         leave
-        ret
+        cmp $0, %r11
+        jz rnr
+        jmp *%r11
+
+rnr:    ret
 
 get_mem_chunk:
         movq $_PAGESIZE, %rsi
@@ -89,6 +119,11 @@ get_mem:
 get_mem_innards:
         pushq   %rbp
         movq    %rsp, %rbp
+
+        pushq   %rdi
+        pushq   $0
+        pushq   $0
+        pushq   get_mem_recovery(%rip)
 
         movq $9, %rax /* sys_mmap */
         movq $0, %rdi /* pass 0-pointer as start address */
@@ -109,6 +144,11 @@ free_mem:
 resize_mem:
         pushq   %rbp
         movq    %rsp, %rbp
+
+        pushq   %rdi
+        pushq   %rsi
+        pushq   %rdx
+        pushq   resize_mem_recovery(%rip)
 
         movq $25, %rax /* sys_mremap */
         xor %rsi, %rdi
