@@ -65,7 +65,7 @@ void *aalloc   (unsigned long size) {
     void *p;
     unsigned long msize = calculate_aligned_size (size);
 
-    if (msize < MALLOC_POOL_CUTOFF) {
+    if (msize < CURIE_POOL_CUTOFF) {
         struct tree_node *n = tree_get_node(&alloc_pools, msize);
         struct memory_pool *pool;
 
@@ -89,8 +89,8 @@ void *arealloc (unsigned long size, void *p, unsigned long new_size) {
     unsigned long mnew_size = calculate_aligned_size (new_size);
 
     if (msize != mnew_size) {
-        if ((msize >= MALLOC_POOL_CUTOFF) &&
-            (mnew_size >= MALLOC_POOL_CUTOFF)) {
+        if ((msize >= CURIE_POOL_CUTOFF) &&
+            (mnew_size >= CURIE_POOL_CUTOFF)) {
             return resize_mem (msize, p, mnew_size);
         } else {
             unsigned int *new_location = (unsigned int *)aalloc(mnew_size),
@@ -123,7 +123,7 @@ static void pool_tree_optimiser(struct tree_node *node, /*@unused@*/ void *p) {
 void afree     (unsigned long size, void *p) {
     unsigned long msize = calculate_aligned_size (size);
 
-    if (msize < MALLOC_POOL_CUTOFF) {
+    if (msize < CURIE_POOL_CUTOFF) {
         free_pool_mem (p);
         optimise_threshold--;
         if (optimise_threshold == 0) {

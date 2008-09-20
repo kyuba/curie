@@ -49,7 +49,7 @@
 extern "C" {
 #endif
 
-/* memory.c */
+#include <curie/constants.h>
 
 void set_get_mem_recovery_function (void *(*handler)(unsigned long int));
 void set_resize_mem_recovery_function (void *(*handler)(unsigned long int, void *, unsigned long int));
@@ -61,12 +61,9 @@ void free_mem(unsigned long int, /*@notnull@*/ /*@only@*/void *);
 void mark_mem_ro (unsigned long int, /*@notnull@*/ void *);
 void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
 
-/*@notnull@*/ /*@only@*/ void *get_mem_chunk();
+/*@null@*/ /*@only@*/ void *get_mem_chunk();
 
-#define LIBCURIE_PAGE_SIZE 0x1000
 #define free_mem_chunk(p) free_mem(LIBCURIE_PAGE_SIZE, p)
-
-/* memory-pool.c */
 
 /* might need to find a better way to calculate this */
 #define BITSPERBITMAPENTITY (unsigned short)(sizeof(unsigned int)*8)
@@ -74,13 +71,6 @@ void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
 /* this'll allow managing 512 entries per poolblock */
 #define BITMAPMAPSIZE (unsigned short)16
 #define BITMAPMAXBLOCKENTRIES (unsigned short)(BITMAPMAPSIZE * BITSPERBITMAPENTITY)
-
-#define ENTITY_ALIGNMENT (unsigned short)8
-
-/* requested sizes bigger than this cutoff will be allocated directly as memory
-   pages, sizes smaller than that will be allocated using a mempool */
-
-#define MALLOC_POOL_CUTOFF 4000
 
 typedef unsigned int bitmap[BITMAPMAPSIZE];
 

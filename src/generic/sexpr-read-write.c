@@ -335,6 +335,7 @@ struct sexpr *sx_read(struct sexpr_io *io) {
     char *buf;
     unsigned int i, length;
     struct sexpr *result = sx_nonexistent;
+    char comment = (char)0;
 
     do {
         r = io_read (io->in);
@@ -349,7 +350,6 @@ struct sexpr *sx_read(struct sexpr_io *io) {
     buf = io->in->buffer;
 
     /* remove leading whitespace */
-    char comment = (char)0;
     do {
         if (comment == (char)1) {
             if (buf[i] == '\n') {

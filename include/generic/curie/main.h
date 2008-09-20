@@ -54,8 +54,8 @@ extern "C" {
 
 int a_main();
 
-extern char **curie_argv;
-extern char **curie_environment;
+/*@null@*/ extern char **curie_argv;
+/*@null@*/ extern char **curie_environment;
 
 #ifdef __cplusplus
 }

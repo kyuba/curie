@@ -38,18 +38,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*@-nullpass@*/
-/* we explicitly pass a (void*)0 as the first parameter of mmap;
-   apparently splint thinks this to be illegal, but according to SUS this
-   is allowed */
-
-/*@-mustfreeonly@*/
-/* this seems necessary for the free_mem() function to pass...
-   problem is we can't meaningfully check for a failure in munmap() here,
-   and it looks like the strictposix definition of munmap() isnt taking
-   an only-annotated pointer */
-
 #define _BSD_SOURCE
+
+#include <curie/memory.h>
 
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -57,10 +48,11 @@
 
 #include <valgrind/memcheck.h>
 
-#define LIBCURIE_PAGE_SIZE 0x1000
+typedef void *(*get_mem_recovery_t)(unsigned long int);
+typedef void *(*resize_mem_recovery_t)(unsigned long int, void *, unsigned long int);
 
-static void *(*get_mem_recovery)(unsigned long int) = (void *)0;
-static void *(*resize_mem_recovery)(unsigned long int, void *, unsigned long int) = (void *)0;
+/*@null@*/ static get_mem_recovery_t get_mem_recovery = (void *)0;
+/*@null@*/ static resize_mem_recovery_t resize_mem_recovery = (void *)0;
 
 void set_get_mem_recovery_function (void *(*handler)(unsigned long int))
 {
@@ -71,14 +63,6 @@ void set_resize_mem_recovery_function (void *(*handler)(unsigned long int, void 
 {
     resize_mem_recovery = handler;
 }
-
-/*@only@*/ void *get_mem(unsigned long int);
-/*@only@*/ void *resize_mem(unsigned long int, /*@only@*/ void *, unsigned long int);
-void free_mem(unsigned long int, /*@only@*/void *);
-/*@only@*/ void *get_mem_chunk();
-
-void mark_mem_ro (unsigned long int, /*@notnull@*/ void *);
-void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
 
 static size_t get_multiple_of_pagesize(unsigned long int s)
 {
@@ -92,8 +76,10 @@ void *get_mem(unsigned long int size) {
     void *rv = (void *)-1;
     size_t msize = get_multiple_of_pagesize(size);
 
+    /*@-unrecog@*/
     rv = mmap((void *)0, msize, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE,
               -1, 0);
+    /*@=unrecog@*/
 
     if ((rv == (void *)-1) || (rv == (void *)0)) {
         if (get_mem_recovery != (void *)0)
@@ -129,32 +115,39 @@ void *resize_mem(unsigned long int size, void *location, unsigned long int new_s
 
         if (new_location == (int *)0)
         {
+            /*@-mustfreeonly@*/
             if (resize_mem_recovery != (void *)0)
             {
                 return resize_mem_recovery(size, location, new_size);
             }
 
             return (void *)0;
+            /*@=mustfreeonly@*/
+        } else {
+            int *old_location = (int *)location;
+            int i = 0,
+                copysize = (int)((size < new_size) ? size : new_size);
+
+            copysize = (int)((copysize / sizeof(int))
+                             + (((copysize % sizeof(int)) == 0) ? 0 : 1));
+
+            while (i < copysize)
+            {
+                /* copy in chunks of ints */
+                new_location[i] = old_location[i];
+                i++;
+            }
+
+            free_mem (size, location);
+
+            return (void*)new_location;
         }
+    }
 
-        int *old_location = (int *)location;
-        int i = 0,
-            copysize = (int)((size < new_size) ? size : new_size);
-
-        copysize = (int)((copysize / sizeof(int))
-                         + (((copysize % sizeof(int)) == 0) ? 0 : 1));
-
-        for(; i < copysize; i++) {
-            /* copy in chunks of ints */
-            new_location[i] = old_location[i];
-        }
-
-        free_mem (size, location);
-
-        return (void*)new_location;
-    } else return location;
+    return location;
 }
 
+/*@-mustfreeonly@*/
 void free_mem(unsigned long int size, void *location) {
     size_t msize = get_multiple_of_pagesize(size);
 
@@ -162,26 +155,33 @@ void free_mem(unsigned long int size, void *location) {
        bad way is whenever people pass invalid data to this function, which in
        turn would either lead to serious issues with the kernel or other parts
        of the programme. */
+    /*@-unrecog@*/
     (void)munmap (location, msize);
+    /*@=unrecog@*/
 
     VALGRIND_FREELIKE_BLOCK(location, 0);
 }
+/*@=mustfreeonly@*/
 
 void *get_mem_chunk() {
     return get_mem(LIBCURIE_PAGE_SIZE);
 }
 
-void mark_mem_ro (unsigned long int size, /*@notnull@*/ void *location) {
+void mark_mem_ro (unsigned long int size, void *location) {
     size_t msize = get_multiple_of_pagesize(size);
 
     /* again we ignore the return value, because failure to mark the memory will
        only result in the memory still being writable, which is not going to be
        a critical issue */
+    /*@-unrecog@*/
     (void)mprotect (location, msize, PROT_READ);
+    /*@=unrecog@*/
 }
 
-void mark_mem_rw (unsigned long int size, /*@notnull@*/ void *location) {
+void mark_mem_rw (unsigned long int size, void *location) {
     size_t msize = get_multiple_of_pagesize(size);
 
+    /*@-unrecog@*/
     (void)mprotect (location, msize, PROT_READ | PROT_WRITE);
+    /*@=unrecog@*/
 }

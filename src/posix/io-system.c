@@ -38,19 +38,7 @@
 
 #define _POSIX_SOURCE
 
-int    a_read  (int fd, /*@out@*/ void *buf, unsigned int count)
-/*@globals errno;@*/;
-int    a_write (int fd, const void *buf, unsigned int count)
-/*@globals errno;@*/;
-
-int    a_open_read (const char *path)
-/*@globals errno;@*/;
-int    a_open_write (const char *path)
-/*@globals errno;@*/;
-int    a_create (const char *path, int mode)
-/*@globals errno;@*/;
-int    a_close (int fd)
-/*@globals errno;@*/;
+#include <curie/io-system.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -65,11 +53,12 @@ int    a_close (int fd)
 
 char last_error_recoverable_p = (char)1;
 
-static void examine_error( void )
- /*@globals errno;@*/;
+static void examine_error( void );
 
 static void examine_error( void ) {
+  /*@-checkstrictglobs@*/
   switch (errno)
+  /*@=checkstrictglobs@*/
   {
     case EINTR:
     case EAGAIN:
@@ -85,42 +74,54 @@ static void examine_error( void ) {
 
 int    a_read (int fd, void *buf, unsigned int count)
 {
+    /*@-checkstrictglobs@*/
     int rv = (int)read(fd, buf, (size_t)count);
+    /*@=checkstrictglobs@*/
     if (rv < 0) examine_error();
     return rv;
 }
 
 int    a_write (int fd, const void *buf, unsigned int count)
 {
+    /*@-checkstrictglobs@*/
     int rv = (int)write(fd, buf, (size_t)count);
+    /*@=checkstrictglobs@*/
     if (rv < 0) examine_error();
     return rv;
 }
 
 int    a_open_read (const char *path)
 {
+    /*@-checkstrictglobs@*/
     int rv = open(path, O_RDONLY | O_NONBLOCK);
+    /*@=checkstrictglobs@*/
     if (rv < 0) examine_error();
     return rv;
 }
 
 int    a_open_write (const char *path)
 {
+    /*@-checkstrictglobs@*/
     int rv = open(path, O_WRONLY | O_NONBLOCK | O_CREAT, 0666);
+    /*@=checkstrictglobs@*/
     if (rv < 0) examine_error();
     return rv;
 }
 
 int    a_create (const char *path, int mode)
 {
+    /*@-checkstrictglobs@*/
     int rv = open(path, O_WRONLY | O_NONBLOCK | O_CREAT, (mode_t)mode);
+    /*@=checkstrictglobs@*/
     if (rv < 0) examine_error();
     return rv;
 }
 
 int    a_close (int fd)
 {
+    /*@-checkstrictglobs@*/
     int rv = close (fd);
+    /*@=checkstrictglobs@*/
     if (rv < 0) {
         examine_error();
 
@@ -131,26 +132,34 @@ int    a_close (int fd)
 
 int    a_dup (int ofd, int nfd)
 {
+    /*@-checkstrictglobs@*/
     int rv = dup2 (ofd, nfd);
+    /*@=checkstrictglobs@*/
     if (rv < 0) examine_error();
     return rv;
 }
 
 int    a_dup_n (int fd)
 {
+    /*@-checkstrictglobs@*/
     int rv = dup (fd);
+    /*@=checkstrictglobs@*/
     if (rv < 0) examine_error();
     return rv;
 }
 
 int    a_make_nonblocking (int fd) {
+    /*@-checkstrictglobs@*/
     int rv = fcntl(fd, F_SETFL, O_NONBLOCK);
+    /*@=checkstrictglobs@*/
     if (rv < 0) examine_error();
     return rv;
 }
 
 int    a_unlink (const char *path) {
+    /*@-checkstrictglobs@*/
     int rv = unlink(path);
+    /*@=checkstrictglobs@*/
     if (rv < 0) examine_error();
     return rv;
 }

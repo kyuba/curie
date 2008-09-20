@@ -85,7 +85,7 @@ static int __a_connect (int fd, void *s, int size) {
     return __a_socketcall(SYS_CONNECT, a);
 }
 
-enum io_result a_open_loop(int result[2]) {
+enum io_result a_open_loop(int result[]) {
     int r = __a_unix_socketpair(result);
 
     if (r < 0) {

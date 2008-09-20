@@ -249,7 +249,7 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
         struct sigaction action;
         unsigned int actionui[sizeof (struct sigaction) / sizeof(unsigned int)];
     } x;
-    unsigned int i;
+    unsigned long int i;
     int signum = signal2signum (signal);
 
     if (signum == sig_unused) return;
@@ -264,7 +264,7 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
 
     signal_handlers[signal] = handler;
 
-    __a_set_signal_handler (signum, (void *)&(x.action));
+    (void)__a_set_signal_handler (signum, (void *)&(x.action));
 }
 
 void a_kill (enum signal signal, int pid) {

@@ -48,14 +48,28 @@
 #include <sys/un.h>
 #include <errno.h>
 
-enum io_result a_open_loop(int result[2]) {
+#ifdef S_SPLINT_S
+/* fixes for splint... */
+
+struct sockaddr;
+struct sockaddr_un
+{
+    int sun_family;
+    char sun_path[128];
+};
+typedef unsigned int socklen_t;
+#endif
+
+enum io_result a_open_loop(int result[]) {
+    /*@-unrecog@*/
     int r = socketpair(AF_UNIX, SOCK_STREAM, 0, result);
+    /*@=unrecog@*/
 
     if (r < 0) {
         return io_unrecoverable_error;
     } else {
-        a_make_nonblocking (result[0]);
-        a_make_nonblocking (result[1]);
+        (void)a_make_nonblocking (result[0]);
+        (void)a_make_nonblocking (result[1]);
     }
 
     return io_complete;
@@ -66,19 +80,34 @@ enum io_result a_open_socket(int *result, const char *path) {
     struct sockaddr_un addr_un;
     char *tc = (char *)&(addr_un);
 
+    /*@-unrecog@*/
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+        /*@=unrecog@*/
         return io_unrecoverable_error;
     }
 
-    for (i = 0; i < sizeof(struct sockaddr_un); i++) { tc[i] = (char)0; }
+    for (i = 0;
+         i < (int)sizeof(struct sockaddr_un);
+         i++)
+    {
+        tc[i] = (char)0;
+    }
 
+    /*@-unrecog@*/
     addr_un.sun_family = AF_UNIX;
-    for (i = 0; (i < (sizeof(addr_un.sun_path)-1)) && (path[i] != (char)0); i++) {
+    /*@=unrecog@*/
+    for (i = 0;
+         (i < (int)(sizeof(addr_un.sun_path)-1))
+         && (path[i] != (char)0);
+         i++)
+    {
         addr_un.sun_path[i] = path[i];
     }
 
+    /*@-unrecog@*/
     if (connect(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) == -1) {
-        a_close (fd);
+        /*@=unrecog@*/
+        (void)a_close (fd);
         return io_unrecoverable_error;
     }
 
@@ -92,26 +121,42 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
     struct sockaddr_un addr_un;
     char *tc = (char *)&(addr_un);
 
-    a_unlink(path);
+    (void)a_unlink(path);
 
+    /*@-unrecog@*/
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+        /*@=unrecog@*/
         return io_unrecoverable_error;
     }
 
-    for (i = 0; i < sizeof(struct sockaddr_un); i++) { tc[i] = (char)0; }
+    for (i = 0;
+         i < (int)sizeof(struct sockaddr_un); i++)
+    {
+        tc[i] = (char)0;
+    }
 
+    /*@-unrecog@*/
     addr_un.sun_family = AF_UNIX;
-    for (i = 0; (i < (sizeof(addr_un.sun_path)-1)) && (path[i] != (char)0); i++) {
+    /*@=unrecog@*/
+    for (i = 0;
+         (i < (int)(sizeof(addr_un.sun_path)-1)) &&
+         (path[i] != (char)0);
+         i++)
+    {
         addr_un.sun_path[i] = path[i];
     }
 
+    /*@-unrecog@*/
     if (bind(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) == -1) {
-        a_close (fd);
+        /*@=unrecog@*/
+        (void)a_close (fd);
         return io_unrecoverable_error;
     }
 
+    /*@-unrecog@*/
     if (listen(fd, 32) == -1) {
-        a_close (fd);
+        /*@=unrecog@*/
+        (void)a_close (fd);
         return io_unrecoverable_error;
     }
 
@@ -121,9 +166,13 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
 }
 
 enum io_result a_accept_socket(int *result, int fd) {
+    /*@-unrecog@*/
     int rfd = accept (fd, (struct sockaddr *)0, (socklen_t *)0);
+    /*@=unrecog@*/
     if (rfd < 0) {
+        /*@-checkstrictglobs@*/
         switch (errno) {
+        /*@=checkstrictglobs@*/
             case EINTR:
             case EAGAIN:
 #if EWOULDBLOCK && (EWOULDBLOCK != EAGAIN)

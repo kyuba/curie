@@ -1,8 +1,8 @@
 /*
- *  network-system.h
+ *  constants.h
  *  libcurie
  *
- *  Created by Magnus Deininger on 06/08/2008.
+ *  Created by Magnus Deininger on 20/09/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,26 +36,27 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*! \internal
- *
- * @{
- */
-
 /*! \file
- *  \brief Glue Code Header for network.h
- *
+ *  \brief Constants
  */
 
-#ifndef LIBCURIE_NETWORK_SYSTEM_H
-#define LIBCURIE_NETWORK_SYSTEM_H
+#ifndef LIBCURIE_CONSTANTS_H
+#define LIBCURIE_CONSTANTS_H
 
-#include <curie/io.h>
-
-enum io_result a_open_loop(int result[]);
-enum io_result a_open_socket(int *result, const char *path);
-enum io_result a_open_listen_socket(int *result, const char *path);
-enum io_result a_accept_socket(int *result, int fd);
-
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-/*! @} */
+#define LIBCURIE_PAGE_SIZE 0x1000
+#define ENTITY_ALIGNMENT (unsigned short)8
+
+/* requested sizes bigger than this cutoff will be allocated directly as memory
+   pages, sizes smaller than that will be allocated using a mempool */
+
+#define CURIE_POOL_CUTOFF 4000
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

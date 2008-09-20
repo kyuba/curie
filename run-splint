@@ -1,12 +1,13 @@
 #!/bin/sh
 
 splint_params='-Iinclude/generic -Iinclude/internal -export-local'
-splint_params_posix='+posixstrictlib'
+splint_params_posix='+posix-strict-lib'
 splint_params_curie='+nolib'
 
 splint ${splint_params} ${splint_params_curie} $(find ./include/generic ./include/internal ./src/generic \( -name "*.c" -o -name "*.h" \))
 splint ${splint_params} ${splint_params_posix} src/posix/*.c
 splint ${splint_params} ${splint_params_posix} src/valgrind/*.c
+splint ${splint_params} +nolib -D__$(uname -m)__=1 src/linux/*.c
 
 #for i in tests/*.c; do
 #  splint ${splint_params} ${splint_params_curie} "${i}"

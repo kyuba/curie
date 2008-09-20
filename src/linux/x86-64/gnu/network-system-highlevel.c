@@ -53,7 +53,7 @@ int __a_bind (int, void *, int);
 int __a_listen (int);
 int __a_connect (int, void *, int);
 
-enum io_result a_open_loop(int result[2]) {
+enum io_result a_open_loop(int result[]) {
     int r = __a_unix_socketpair(result);
 
     if (r < 0) {

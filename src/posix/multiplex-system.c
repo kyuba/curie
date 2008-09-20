@@ -41,26 +41,41 @@
 #include <curie/multiplex-system.h>
 #include <sys/select.h>
 
+#ifdef S_SPLINT_S
+/* seems to be needed on my box... */
+
+typedef unsigned int fd_set[16];
+#endif
+
 void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum) {
     fd_set rset, wset;
-    int highest = 0, r;
-    unsigned int i;
+    int highest = 0, r, i;
 
+    /*@-unrecog@*/
     FD_ZERO(&rset);
+    /*@=unrecog@*/
 
     for (i = 0; i < rnum; i++) {
         if (rfds[i] > highest) highest = rfds[i];
+        /*@-unrecog@*/
         FD_SET(rfds[i], &rset);
+        /*@=unrecog@*/
     }
 
+    /*@-unrecog@*/
     FD_ZERO(&wset);
+    /*@=unrecog@*/
 
     for (i = 0; i < wnum; i++) {
         if (wfds[i] > highest) highest = wfds[i];
+        /*@-unrecog@*/
         FD_SET(wfds[i], &wset);
+        /*@=unrecog@*/
     }
 
+    /*@-unrecog@*/
     r = select(highest + 1, &rset, &wset, (fd_set *)0, (void *)0);
+    /*@=unrecog@*/
 
     if (r <= 0) {
         for (i = 0; i < rnum; i++) {
@@ -71,12 +86,16 @@ void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum) {
         }
     } else {
         for (i = 0; i < rnum; i++) {
+            /*@-unrecog@*/
             if (!FD_ISSET(rfds[i], &rset)) {
+                /*@=unrecog@*/
                 rfds[i] = -1;
             }
         }
         for (i = 0; i < wnum; i++) {
+            /*@-unrecog@*/
             if (!FD_ISSET(wfds[i], &wset)) {
+                /*@=unrecog@*/
                 wfds[i] = -1;
             }
         }

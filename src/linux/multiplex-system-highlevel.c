@@ -42,27 +42,33 @@ int __a_select (int, void *, void *);
 
 #define BITSPERBYTE 8
 #define MAXCELLS 16
-#define CELLSIZE (sizeof(unsigned int) * BITSPERBYTE)
+#define CELLSIZE (unsigned int)(sizeof(unsigned int) * BITSPERBYTE)
 #define MAXFDS CELLSIZE * MAXCELLS
 
 typedef unsigned int fdcell [MAXCELLS];
 
-static void fdzero(fdcell *c) {
-    unsigned int i;
+static void fdzero(/*@out@*/ fdcell *c) {
+    unsigned int i = 0;
 
-    for (i = 0; i < MAXCELLS; i++) {
+    while (i < MAXCELLS)
+    {
+        /*@-usedef@*/
         (*c)[i] = 0;
+        /*@=usedef@*/
+        i++;
     }
 }
 
 static void fdset(fdcell *c, int fd) {
-    unsigned int cell = fd / CELLSIZE, cellbit = fd % CELLSIZE;
+    unsigned int cell = ((unsigned int)fd) / CELLSIZE,
+                 cellbit = ((unsigned int)fd) % CELLSIZE;
 
     (*c)[cell] |= 1 << cellbit;
 }
 
 static char fdisset(fdcell *c, int fd) {
-    unsigned int cell = fd / CELLSIZE, cellbit = fd % CELLSIZE;
+    unsigned int cell = ((unsigned int)fd) / CELLSIZE,
+                 cellbit = ((unsigned int)fd) % CELLSIZE;
 
     return (((*c)[cell]) & (1 << cellbit)) == 0 ? (char)0 : (char)1;
 }
@@ -70,7 +76,7 @@ static char fdisset(fdcell *c, int fd) {
 void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum) {
     fdcell rset, wset;
     int highest = 0, r;
-    unsigned int i;
+    int i;
 
     fdzero(&rset);
 

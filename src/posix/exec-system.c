@@ -44,19 +44,23 @@
 #include <sys/wait.h>
 
 int a_fork() {
-    int r = (int)fork();
-    return r;
+    /*@-checkstrictglobs@*/
+    return (int)fork();
+    /*@=checkstrictglobs@*/
 }
 
 enum wait_return a_wait(int pid, int *status) {
     int st;
     enum wait_return r;
 
-    waitpid(pid, &st, WNOHANG);
-    if (WIFEXITED(st)) {
+    /*@-checkstrictglobs@*/
+    (void)waitpid((pid_t)pid, &st, WNOHANG);
+    /*@=checkstrictglobs@*/
+
+    if (WIFEXITED(st) != 0) {
         r = wr_exited;
         *status = WEXITSTATUS(st);
-    } else if (WIFSIGNALED(st)) {
+    } else if (WIFSIGNALED(st) != 0) {
         r = wr_killed;
     } else {
         r = wr_running;
@@ -66,5 +70,7 @@ enum wait_return a_wait(int pid, int *status) {
 }
 
 void a_exec(const char *image, char **argv, char **env) {
+    /*@-checkstrictglobs@*/
     (void)execve(image, argv, env);
+    /*@=checkstrictglobs@*/
 }

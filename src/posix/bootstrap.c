@@ -36,21 +36,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+#include <curie/main.h>
+
 #include <stdlib.h>
 #include <unistd.h>
 
-char **curie_argv;
-char **curie_environment;
+char **curie_argv = (char **)0;
+char **curie_environment = (char **)0;
 int a_main();
-/*@noreturn@*/ void   a_exit  (int status);
-
-/*@-maintype@*/
 
 void   a_exit (int status)
 {
     exit (status);
 }
 
+/*@-maintype@*/
 int   main (/*@unused@*/ int argc, char **argv, char **env)
 {
     int rv;
