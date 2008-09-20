@@ -62,6 +62,7 @@ int a_main(void) {
     y = get_mem (~0); /* this function should jump to gm_recover() now... */
 
     if (y != (void *)1) return 2; /* value from gm_recover */
+
     y = get_mem (~0); /* now it should call a_exit() */
 
     return 3;

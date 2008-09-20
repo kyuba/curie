@@ -47,6 +47,8 @@
 .globl mark_mem_ro
 .globl mark_mem_rw
 .globl get_mem_chunk
+.globl set_get_mem_recovery_function
+.globl set_resize_mem_recovery_function
 
 .type get_mem,                 @function
 .type free_mem,                @function
@@ -54,9 +56,30 @@
 .type mark_mem_ro,             @function
 .type mark_mem_rw,             @function
 .type get_mem_chunk,           @function
+.type set_get_mem_recovery_function, @function
+.type set_resize_mem_recovery_function, @function
+
+.data
+get_mem_recovery:
+        .long 0x0
+
+resize_mem_recovery:
+        .long 0x0
 
 .text
         .align 8
+
+set_get_mem_recovery_function:
+        lis     5, get_mem_recovery@ha
+        addi    5, 5, get_mem_recovery@l
+        stw     3, 0(5)
+        blr
+
+set_resize_mem_recovery_function:
+        lis     5, resize_mem_recovery@ha
+        addi    5, 5, resize_mem_recovery@l
+        stw     3, 0(5)
+        blr
 
 cmopsass:
         mr      9, 4
@@ -70,7 +93,37 @@ cmopsass:
         addi    4, 4, _PAGESIZE 
 do_syscall:
         sc
+
+        cmpwi   3, 50
+        ble     recover
+
+epil:
+        lwz     15,12(1)
+        lwz     16,16(1)
+        lwz     17,20(1)
+        lwz     18,24(1)
+
+        addi    1,1,32
         blr
+
+recover:
+        li      3, 0
+
+        cmpwi   18,0
+        beq     epil
+
+        mr      3, 15
+        mr      4, 16
+        mr      5, 17
+        mtctr   18
+
+        lwz     15,12(1)
+        lwz     16,16(1)
+        lwz     17,20(1)
+        lwz     18,24(1)
+        addi    1,1,32
+
+        bctr
 
 get_mem_chunk:
         li      4, _PAGESIZE
@@ -78,6 +131,18 @@ get_mem_chunk:
 get_mem:
         mr      4, 3
 get_mem_innards:
+        addi    1,1,-32
+
+        stw     15,12(1)
+        stw     16,16(1)
+        stw     17,20(1)
+        stw     18,24(1)
+
+        mr      15, 3
+        lis     18, get_mem_recovery@ha
+        addi    18, 18, get_mem_recovery@l
+        lwz     18, 0(18)
+
         li      0, 90 /* sys_mmap */
         li      3, 0 /* pass 0-pointer as start address */
         li      5, 3 /* PROT_READ | PROT_WRITE */
@@ -87,6 +152,20 @@ get_mem_innards:
         b       cmopsass
 
 resize_mem:
+        addi    1,1,-32
+
+        stw     15,12(1)
+        stw     16,16(1)
+        stw     17,20(1)
+        stw     18,24(1)
+
+        mr      15, 3
+        mr      16, 4
+        mr      17, 5
+        lis     18, resize_mem_recovery@ha
+        addi    18, 18, resize_mem_recovery@l
+        lwz     18, 0(18)
+
         li      0, 163 /* sys_mremap */
 
         mr      9, 4
@@ -121,9 +200,18 @@ mark_mem:
         li      0, 125 /* sys_mprotect */
 
 swap_first_and_second_arg_sc:
+        addi    1,1,-32
+
+        stw     15,12(1)
+        stw     16,16(1)
+        stw     17,20(1)
+        stw     18,24(1)
+
         mr      9, 4
         mr      4, 3
         mr      3, 9
+
+        li      18, 0
 
         b       cmopsass
 
