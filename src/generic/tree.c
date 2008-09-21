@@ -45,34 +45,49 @@ static struct memory_pool tree_node_pool = MEMORY_POOL_INITIALISER(sizeof (struc
 static struct memory_pool tree_node_pointer_pool = MEMORY_POOL_INITIALISER(sizeof (struct tree_node_pointer));
 
 struct tree * tree_create () {
-    struct tree *tree;
+    struct tree *tree = (struct tree *)get_pool_mem(&tree_root_pool);
 
-    tree = (struct tree *)get_pool_mem(&tree_root_pool);
+    if (tree == (struct tree *)0)
+    {
+        return (struct tree *)0;
+    }
 
+    /*@-mustfree@*/
     tree->root = (struct tree_node *)0;
+    /*@=mustfree@*/
 
     return tree;
 }
 
-static void node_destroy(struct tree_node *node)
+static void node_destroy(/*@notnull@*/ /*@only@*/ struct tree_node *node)
 {
     if (node != (struct tree_node *)0) {
-        node_destroy ((void *)node->left);
-        node_destroy ((void *)node->right);
+        if (node->left != (struct tree_node *)0) {
+            node_destroy (node->left);
+        }
+        if (node->right != (struct tree_node *)0) {
+            node_destroy (node->right);
+        }
 
         free_pool_mem((void *)node);
     }
 }
 
+/*! \todo clean all nodes in 'ere */
 void tree_destroy (struct tree *tree) {
-    /* TODO: clean all nodes in 'ere */
-
-    node_destroy (tree->root);
+    if (tree->root != (struct tree_node *)0) {
+        node_destroy (tree->root);
+    }
 
     free_pool_mem((void *)tree);
 }
 
-static void tree_add_node_to_tree (struct tree *tree, struct tree_node *node, int_pointer key) {
+/*@-mustfree@*/
+static void tree_add_node_to_tree
+        (struct tree *tree,
+         /*@only@*/ struct tree_node *node,
+         int_pointer key)
+{
     struct tree_node *cur = tree->root, *last = (struct tree_node *)0;
 
     node->key = key;
@@ -100,21 +115,30 @@ static void tree_add_node_to_tree (struct tree *tree, struct tree_node *node, in
         last->left = node;
     }
 }
+/*@=mustfree@*/
 
-void tree_add_node (struct tree *tree, int_pointer key) {
+void tree_add_node (struct tree *tree, int_pointer key)
+{
     struct tree_node *node = (struct tree_node *)get_pool_mem(&tree_node_pool);
+
+    if (node == (struct tree_node *)0) return;
 
     tree_add_node_to_tree (tree, node, key);
 }
 
-void tree_add_node_value (struct tree *tree, int_pointer key, const void *value) {
-    struct tree_node_pointer *node = (struct tree_node_pointer *)get_pool_mem(&tree_node_pointer_pool);
+void tree_add_node_value (struct tree *tree, int_pointer key, const void *value)
+{
+    struct tree_node_pointer * node
+            = (struct tree_node_pointer *)get_pool_mem(&tree_node_pointer_pool);
+
+    if (node == (struct tree_node_pointer *)0) return;
 
     node->value = value;
 
     tree_add_node_to_tree (tree, (struct tree_node *)node, key);
 }
 
+/*@-memtrans -nullderef@*/
 struct tree_node * tree_get_node (struct tree *tree, int_pointer key) {
     struct tree_node *cur = tree->root;
 
@@ -130,7 +154,9 @@ struct tree_node * tree_get_node (struct tree *tree, int_pointer key) {
 
     return cur;
 }
+/*@=memtrans =nullderef@*/
 
+/*@-memtrans -mustfree@*/
 static void node_rotate (struct tree_node **root, struct tree_node *old, struct tree_node *new) {
     if (old->left == new) {
         old->left = new->right;
@@ -144,16 +170,19 @@ static void node_rotate (struct tree_node **root, struct tree_node *old, struct 
         *root = new;
     }
 }
+/*@=memtrans =mustfree@*/
 
+/*@-usereleased -nullderef -branchstate -memtrans -nullpass -mustfree -compdef@*/
 void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_node *node) {
-    struct tree_node *cur = tree->root, *last = last = (struct tree_node *)0;
+    struct tree_node
+            *cur = tree->root,
+            *last = (struct tree_node *)0;
 
     while (cur != (struct tree_node *)0) {
-
         if ((cur->key == key) &&
             ((node == (struct tree_node *)0) ||
-             (cur == node))) {
-
+             (cur == node)))
+        {
             /* perform tree rotations to make the node a leaf node */
             while ((cur->left != (struct tree_node *)0) ||
                    (cur->right != (struct tree_node *)0)) {
@@ -203,20 +232,26 @@ void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_
         } else {
             cur = cur->left;
         }
-    }
+    };
 }
+/*@=usereleased =nullderef =branchstate =memtrans =nullpass =mustfree =compdef@*/
 
 static void tree_map_worker(struct tree_node *node, void (*callback)(struct tree_node *, void *), void *sv) {
     if (node != (struct tree_node *)0) {
-        tree_map_worker ((void *)node->left, callback, sv);
-        tree_map_worker ((void *)node->right, callback, sv);
+        if (node->left != (struct tree_node *)0)
+            tree_map_worker ((void *)node->left, callback, sv);
+        if (node->right != (struct tree_node *)0)
+            tree_map_worker ((void *)node->right, callback, sv);
 
+        /*@-noeffect@*/
         callback((void *)node, sv);
+        /*@=noeffect@*/
     }
 }
 
 void tree_map (struct tree *tree, void (*callback)(struct tree_node *, void *), void *sv) {
-    tree_map_worker ((void *)tree->root, callback, sv);
+    if (tree->root != (struct tree_node *)0)
+        tree_map_worker ((void *)tree->root, callback, sv);
 }
 
 void tree_add_node_string (struct tree *t, char *k)
