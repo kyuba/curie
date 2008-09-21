@@ -15,7 +15,7 @@ needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
 installheaders = [ 'curie/exec', 'curie/main', 'curie/sexpr', 'curie/memory',
                    'curie/multiplex', 'curie/signal', 'curie/tree',
                    'curie/network', 'curie/int', 'curie/io',
-                   'curie/immutable' ]
+                   'curie/immutable', 'curie/constants' ]
 
 installheaderspp = [ 'curie++/int' ]
 
