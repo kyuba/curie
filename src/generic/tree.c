@@ -126,7 +126,7 @@ void tree_add_node (struct tree *tree, int_pointer key)
     tree_add_node_to_tree (tree, node, key);
 }
 
-void tree_add_node_value (struct tree *tree, int_pointer key, const void *value)
+void tree_add_node_value (struct tree *tree, int_pointer key, void *value)
 {
     struct tree_node_pointer * node
             = (struct tree_node_pointer *)get_pool_mem(&tree_node_pointer_pool);
@@ -259,7 +259,7 @@ void tree_add_node_string (struct tree *t, char *k)
     tree_add_node(t, (int_pointer)str_immutable_unaligned(k));
 }
 
-void tree_add_node_string_value (struct tree *t, char *k, const void *v)
+void tree_add_node_string_value (struct tree *t, char *k, void *v)
 {
     tree_add_node_value(t, (int_pointer)str_immutable_unaligned(k), v);
 }
