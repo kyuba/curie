@@ -263,6 +263,14 @@ void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void
     list_element->data = data;
 }
 
+void multiplex_add_io_no_callback (/*@notnull@*/ /*@only@*/ struct io *io)
+{
+    multiplex_add_io (io,
+                      (void (*)(struct io *, void *))0,
+                      (void (*)(struct io *, void *))0,
+                      (void *)0);
+}
+
 void multiplex_del_io (struct io *io) {
     struct io_list *l = list, *p = (struct io_list *)0;
 

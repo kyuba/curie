@@ -78,6 +78,7 @@ void multiplex_add_io (/*@notnull@*/ /*@only@*/ struct io *io,
                        /*@null@*/ void (*on_read)(struct io *, void *),
                        /*@null@*/ void (*on_close)(struct io *, void *),
                        /*@null@*/ void *d);
+void multiplex_add_io_no_callback (/*@notnull@*/ /*@only@*/ struct io *io);
 void multiplex_del_io (/*@notnull@*/ /*@only@*/ struct io *io);
 
 void multiplex_add_process (/*@notnull@*/ /*@only@*/ struct exec_context *context,
@@ -86,8 +87,6 @@ void multiplex_add_process (/*@notnull@*/ /*@only@*/ struct exec_context *contex
 void multiplex_add_sexpr (/*@notnull@*/ /*@only@*/ struct sexpr_io *io,
                           /*@null@*/ void (*on_read)(struct sexpr *, struct sexpr_io *, void *),
                           /*@null@*/ void *d);
-
-#define multiplex_add_io_no_callback(w) multiplex_add_io ((w), (void (*)(struct io *, void *))0, (void (*)(struct io *, void *))0, (void *)0);
 
 #ifdef __cplusplus
 }
