@@ -51,8 +51,8 @@ extern "C" {
 #endif
 
 struct sexpr_io {
-    struct io *in;
-    struct io *out;
+    /*@notnull@*/ /*@only@*/ struct io *in;
+    /*@notnull@*/ /*@only@*/ struct io *out;
 };
 
 #ifdef __cplusplus

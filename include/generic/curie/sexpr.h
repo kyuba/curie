@@ -109,11 +109,12 @@ struct sexpr_string_or_symbol {
 struct sexpr_io;
 
 /*@null@*/ /*@only@*/ struct sexpr_io *sx_open_io
-                              (/*@notnull@*/ /*@only@*/ struct io *,
-                               /*@notnull@*/ /*@only@*/ struct io *);
+        (/*@notnull@*/ /*@only@*/ struct io *,
+         /*@notnull@*/ /*@only@*/ struct io *);
 /*@null@*/ /*@only@*/ struct sexpr_io *sx_open_stdio ();
 
-void sx_close_io (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
+void sx_close_io
+        (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
 
 /*@notnull@*/ /*@shared@*/ struct sexpr *sx_read
         (/*@notnull@*/ struct sexpr_io *);
@@ -136,14 +137,17 @@ void sx_destroy
 void sx_xref
         (/*@notnull@*/ /*@shared@*/ struct sexpr *);
 
-void *sx_list_map (/*@notnull@*/ struct sexpr *,
-                   /*@notnull@*/ void (*)(struct sexpr *, void *),
-                   /*@null@*/ void *);
-/*@notnull@*/ struct sexpr *sx_list_fold (/*@notnull@*/ struct sexpr *,
-                                          /*@notnull@*/ void (*)(struct sexpr *));
+void *sx_list_map
+        (/*@notnull@*/ struct sexpr *,
+         /*@notnull@*/ void (*)(struct sexpr *, void *),
+         /*@null@*/ void *);
+/*@notnull@*/ /*@shared@*/ struct sexpr *sx_list_fold
+        (/*@notnull@*/ struct sexpr *,
+         /*@notnull@*/ void (*)(struct sexpr *));
 
-/*@notnull@*/ struct sexpr *equalp (/*@notnull@*/ struct sexpr *,
-                                    /*@notnull@*/ struct sexpr *);
+/*@notnull@*/ /*@shared@*/ struct sexpr *equalp
+        (/*@notnull@*/ struct sexpr *,
+         /*@notnull@*/ struct sexpr *);
 
 /*@notnull@*/ /*@shared@*/ extern struct sexpr * const sx_nil;
 /*@notnull@*/ /*@shared@*/ extern struct sexpr * const sx_false;

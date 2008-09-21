@@ -57,20 +57,23 @@
 static struct memory_pool sx_io_pool = MEMORY_POOL_INITIALISER(sizeof (struct sexpr_io));
 
 static void sx_write_dispatch (struct sexpr_io *io, struct sexpr *sexpr);
-static struct sexpr *sx_read_dispatch (unsigned int *i, char *buf, unsigned int length);
+/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_dispatch
+        (unsigned int *i, char *buf, unsigned int length);
 
 struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
-    struct sexpr_io *rv;
+    struct sexpr_io *rv = get_pool_mem (&sx_io_pool);
 
-    if ((rv = get_pool_mem (&sx_io_pool)) == (struct sexpr_io *)0)
+    if (rv == (struct sexpr_io *)0)
     {
         io_close (in);
         io_close (out);
         return (struct sexpr_io *)0;
     }
 
+    /*@-mustfree@*/
     rv->in = in;
     rv->out = out;
+    /*@=mustfree@*/
 
     in->type = iot_read;
     out->type = iot_write;
@@ -102,7 +105,9 @@ void sx_close_io (struct sexpr_io *io) {
     free_pool_mem (io);
 }
 
-static struct sexpr *sx_read_string (unsigned int *i, char *buf, unsigned int length) {
+/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_string
+        (unsigned int *i, char *buf, unsigned int length)
+{
     unsigned int j = *i, k = 0;
     char newstring [MAX_STRING_LENGTH];
 
@@ -132,7 +137,9 @@ static struct sexpr *sx_read_string (unsigned int *i, char *buf, unsigned int le
     return sx_nonexistent;
 }
 
-static struct sexpr *sx_read_number (unsigned int *i, char *buf, unsigned int length) {
+/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_number
+        (unsigned int *i, char *buf, unsigned int length)
+{
     unsigned int j = *i;
     signed long number = 0;
     char number_is_negative = (char)0;
@@ -178,7 +185,9 @@ static struct sexpr *sx_read_number (unsigned int *i, char *buf, unsigned int le
     return sx_nonexistent;
 }
 
-static struct sexpr *sx_read_symbol (unsigned int *i, char *buf, int unsigned length) {
+/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_symbol
+        (unsigned int *i, char *buf, int unsigned length)
+{
     unsigned int j = *i, k = 0;
     char newsymbol [MAX_SYMBOL_LENGTH];
 
@@ -240,7 +249,10 @@ static struct sexpr *sx_read_symbol (unsigned int *i, char *buf, int unsigned le
     return sx_nonexistent;
 }
 
-static struct sexpr *sx_read_cons_finalise (struct sexpr *oreverse) {
+/*@-branchstate@*/
+/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_cons_finalise
+        (/*@shared@*/ struct sexpr *oreverse)
+{
     struct sexpr *result = sx_end_of_list;
     struct sexpr *reverse = oreverse;
 
@@ -262,8 +274,11 @@ static struct sexpr *sx_read_cons_finalise (struct sexpr *oreverse) {
 
     return result;
 }
+/*@=branchstate@*/
 
-static struct sexpr *sx_read_cons (unsigned int *i, char *buf, unsigned int length) {
+/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_cons
+        (unsigned int *i, char *buf, unsigned int length)
+{
     /* i think the best we can do here, is to construct the list in reverse
        order using cons(), then once it's done we simply reverse it. */
     unsigned int j = *i;
@@ -320,7 +335,8 @@ static struct sexpr *sx_read_cons (unsigned int *i, char *buf, unsigned int leng
     return sx_nonexistent;
 }
 
-static struct sexpr *sx_read_dispatch (unsigned int *i, char *buf, unsigned int length)
+static struct sexpr *sx_read_dispatch
+        (unsigned int *i, char *buf, unsigned int length)
 {
     switch (buf[(*i)]) {
         case '"':

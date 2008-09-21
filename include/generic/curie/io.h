@@ -86,15 +86,21 @@ struct io {
 /*@null@*/ /*@only@*/ struct io *io_open (int);
 /*@null@*/ /*@only@*/ struct io *io_open_read (/*@notnull@*/ const char *);
 /*@null@*/ /*@only@*/ struct io *io_open_write (/*@notnull@*/ const char *);
-enum io_result io_write (/*@notnull@*/ struct io *,
-                         /*@notnull@*/ const char *, unsigned int);
-enum io_result io_collect (/*@notnull@*/ struct io *,
-                           /*@notnull@*/ const char *,
-                           unsigned int);
-enum io_result io_read (/*@notnull@*/ struct io *);
-enum io_result io_commit (/*@notnull@*/ struct io *);
-enum io_result io_finish (/*@notnull@*/ struct io *);
-void io_close (/*@notnull@*/ struct io *);
+enum io_result io_write
+        (/*@notnull@*/ struct io *,
+         /*@notnull@*/ const char *, unsigned int);
+enum io_result io_collect
+        (/*@notnull@*/ struct io *,
+         /*@notnull@*/ const char *,
+         unsigned int);
+enum io_result io_read
+        (/*@notnull@*/ struct io *);
+enum io_result io_commit
+        (/*@notnull@*/ struct io *);
+enum io_result io_finish
+        (/*@notnull@*/ struct io *);
+void io_close
+        (/*@notnull@*/ /*@only@*/ struct io *);
 
 #ifdef __cplusplus
 }
