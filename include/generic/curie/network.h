@@ -52,12 +52,12 @@
 extern "C" {
 #endif
 
-void net_open_loop (/*@out@*/ /*@null@*/ struct io **in,
-                    /*@out@*/ /*@null@*/ struct io **out);
+void net_open_loop (/*@out@*/ /*@notnull@*/ struct io **in,
+                    /*@out@*/ /*@notnull@*/ struct io **out);
 
 void net_open_socket (/*@notnull@*/ const char *path,
-                      /*@out@*/ /*@null@*/ struct io **in,
-                      /*@out@*/ /*@null@*/ struct io **out);
+                      /*@out@*/ /*@notnull@*/ struct io **in,
+                      /*@out@*/ /*@notnull@*/ struct io **out);
 
 void multiplex_network();
 void multiplex_add_socket
@@ -75,7 +75,7 @@ void multiplex_add_socket_listener_sx
 
 void multiplex_add_socket_sx
         (/*@notnull@*/ const char *path,
-         /*@null@*/ void (*on_read)(struct sexpr *, struct sexpr_io *, void *),
+         /*@null@*/ void (*on_read)(/*@shared@*/ struct sexpr *, struct sexpr_io *, void *),
          /*@null@*/ void *d);
 
 #ifdef __cplusplus
