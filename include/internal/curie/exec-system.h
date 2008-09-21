@@ -75,9 +75,9 @@ enum wait_return a_wait(int pid, /*@notnull@*/ /*@out@*/ int *status);
  *  \param[in] argv  The argument vector for the new process.
  *  \param[in] env   The environment vector for the new process.
  */
-void a_exec(/*@notnull@*/ /*@observer@*/ const char *image,
-            /*@notnull@*/ /*@observer@*/ char **argv,
-            /*@notnull@*/ /*@observer@*/ char **env);
+void a_exec(/*@notnull@*/ const char *image,
+            /*@notnull@*/ char **argv,
+            /*@notnull@*/ char **env);
 
 #endif
 

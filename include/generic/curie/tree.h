@@ -106,7 +106,7 @@ void tree_remove_node_specific
 void tree_map
         (/*@notnull@*/ struct tree *,
          /*@notnull@*/ void (*)(struct tree_node *, void *),
-         void *);
+         /*@null@*/ void *);
 
 void tree_add_node_string
         (/*@notnull@*/ struct tree *,

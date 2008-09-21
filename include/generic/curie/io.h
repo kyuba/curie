@@ -71,7 +71,7 @@ enum io_result {
 
 struct io {
     int fd;
-    /*@notnull@*/ /*@only@*/ char *buffer;
+    /*@null@*/ /*@only@*/ char *buffer;
     /* can't use a fixed buffer since we might need to read (or write)
        something larger */
 

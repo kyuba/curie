@@ -236,7 +236,7 @@ void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_
 }
 /*@=usereleased =nullderef =branchstate =memtrans =nullpass =mustfree =compdef@*/
 
-static void tree_map_worker(struct tree_node *node, void (*callback)(struct tree_node *, void *), void *sv) {
+static void tree_map_worker(struct tree_node *node, void (*callback)(struct tree_node *, void *), /*@null@*/void *sv) {
     if (node != (struct tree_node *)0) {
         if (node->left != (struct tree_node *)0)
             tree_map_worker ((void *)node->left, callback, sv);

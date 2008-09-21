@@ -46,9 +46,20 @@ struct io *io_open (int fd)
 {
     struct io *io = 0;
 
-    a_make_nonblocking (fd);
+    (void)a_make_nonblocking (fd);
 
     io = get_pool_mem(&io_pool);
+
+    if (io == (struct io *)0) return (struct io *)0;
+
+    /*@-mustfree@*/
+    io->buffer = get_mem (IO_CHUNKSIZE);
+    /*@=mustfree@*/
+
+    if (io->buffer == (char *)0) {
+        free_pool_mem ((void *)io);
+        return (struct io *)0;
+    }
 
     io->fd = fd;
     io->type = iot_undefined;
@@ -57,8 +68,6 @@ struct io *io_open (int fd)
     io->position = 0;
     io->buffersize = IO_CHUNKSIZE;
 
-    io->buffer = get_mem (IO_CHUNKSIZE);
-
     return io;
 }
 
@@ -66,6 +75,8 @@ struct io *io_open_read (const char *path)
 {
     int fd = a_open_read (path);
     struct io *io = io_open(fd);
+
+    if (io == (struct io *)0) return (struct io *)0;
 
     io->type = iot_read;
 
@@ -77,6 +88,8 @@ struct io *io_open_write (const char *path)
     int fd = a_open_write (path);
     struct io *io = io_open(fd);
 
+    if (io == (struct io *)0) return (struct io *)0;
+
     io->type = iot_write;
 
     return io;
@@ -84,6 +97,8 @@ struct io *io_open_write (const char *path)
 
 static void relocate_buffer_contents (struct io *io)
 {
+    if (io->buffer == (char *)0) return;
+
     if (io->position >= io->length) {
         io->length = 0;
         io->position = 0;
@@ -105,6 +120,14 @@ enum io_result io_collect(struct io *io, const char *data, unsigned int length)
 
     if (io->fd == -1) {
         io->status = io_unrecoverable_error;
+    }
+
+    if (io->buffer == (char *)0)
+    {
+        io->buffersize = 0;
+        io->length = 0;
+        io->status = io_unrecoverable_error;
+        return io_unrecoverable_error;
     }
 
     if ((io->status == io_finalising) ||
@@ -129,6 +152,15 @@ enum io_result io_collect(struct io *io, const char *data, unsigned int length)
         }
 
         io->buffer = resize_mem (io->buffersize, io->buffer, newsize);
+
+        if (io->buffer == (char *)0)
+        {
+            io->buffersize = 0;
+            io->length = 0;
+            io->status = io_unrecoverable_error;
+            return io_unrecoverable_error;
+        }
+
         io->buffersize = newsize;
     }
 
@@ -156,6 +188,14 @@ enum io_result io_read(struct io *io)
         io->status = io_unrecoverable_error;
     }
 
+    if (io->buffer == (char *)0)
+    {
+        io->buffersize = 0;
+        io->length = 0;
+        io->status = io_unrecoverable_error;
+        return io_unrecoverable_error;
+    }
+
     if ((io->status == io_finalising) ||
         (io->status == io_end_of_file) ||
         (io->status == io_unrecoverable_error))
@@ -178,6 +218,15 @@ enum io_result io_read(struct io *io)
         }
 
         io->buffer = resize_mem (io->buffersize, io->buffer, newsize);
+
+        if (io->buffer == (char *)0)
+        {
+            io->buffersize = 0;
+            io->length = 0;
+            io->status = io_unrecoverable_error;
+            return io_unrecoverable_error;
+        }
+
         io->buffersize = newsize;
     }
 
@@ -221,8 +270,14 @@ enum io_result io_commit (struct io *io)
             return io_read(io);
         case iot_write:
             if (io->length == 0) return io_complete;
-            rv = a_write(io->fd, io->buffer, io->length);
-            break;
+            if (io->buffer != (char *)0)
+                rv = a_write(io->fd, io->buffer, io->length);
+    }
+
+    if (io->buffer == (char *)0)
+    {
+        io->length = 0;
+        return io_unrecoverable_error;
     }
 
     if (rv < 0) /* potential error */
@@ -267,6 +322,7 @@ enum io_result io_finish (struct io *io)
     return io_finalising;
 }
 
+/*@-branchstate@*/
 void io_close (struct io *io)
 {
     if (io->status != io_finalising) (void)io_finish (io);
@@ -278,8 +334,10 @@ void io_close (struct io *io)
     if (io->fd >= 0)
         (void)a_close (io->fd);
 
-    if (io->buffersize > 0) {
+    if ((io->buffersize > 0) && (io->buffer != (char *)0)) {
         free_mem(io->buffersize, io->buffer);
     }
+
     free_pool_mem ((void *)io);
 }
+/*@=branchstate@*/

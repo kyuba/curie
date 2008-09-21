@@ -90,10 +90,10 @@ struct exec_context {
     enum process_status status;
 
     /*! \brief An IO Context to write Data to the Process's stdin */
-    struct io *in;
+    /*@null@*/ /*@only@*/ struct io *in;
 
     /*! \brief An IO Context to read Data from the Process's stdout */
-    struct io *out;
+    /*@null@*/ /*@only@*/ struct io *out;
 };
 
 /*! \brief Execute a new Process

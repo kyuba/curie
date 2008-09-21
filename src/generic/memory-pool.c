@@ -41,6 +41,7 @@
 
 #define AUTOOPT_N 300
 
+/*@-fixedformalarray@*/
 static unsigned int bitmap_getslot(unsigned int b) {
     return (unsigned int)(b / BITSPERBITMAPENTITY);
 }
@@ -69,11 +70,14 @@ static unsigned char bitmap_isempty(bitmap m) {
 
     return (unsigned char)1;
 }
+/*@=fixedformalarray@*/
 
 struct memory_pool *create_memory_pool (unsigned long int entitysize) {
     struct memory_pool *pool = get_mem_chunk();
     unsigned short r;
     unsigned int i;
+
+    if (pool == (struct memory_pool *)0) return (struct memory_pool *)0;
 
     r = (unsigned short)(entitysize & ~(ENTITY_ALIGNMENT - 1));
     if (r != (unsigned short)entitysize) {
@@ -90,7 +94,9 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize) {
 
     if (pool->maxentities > BITMAPMAXBLOCKENTRIES) pool->maxentities = BITMAPMAXBLOCKENTRIES;
 
+    /*@-mustfree@*/
     pool->next = (struct memory_pool *)0;
+    /*@=mustfree@*/
 
     pool->optimise_counter = AUTOOPT_N;
 
@@ -102,7 +108,10 @@ void free_memory_pool (struct memory_pool *pool) {
     free_mem_chunk((struct memory_pool *)pool);
 }
 
-static void *get_pool_mem_inner(struct memory_pool *pool, struct memory_pool *frame) {
+/*@-memtrans -branchstate@*/
+/*@null@*/ /*@only@*/ static void *get_pool_mem_inner
+        (struct memory_pool *pool, struct memory_pool *frame)
+{
     unsigned int index = 0;
 
     for (; index < frame->maxentities; index++) {
@@ -114,28 +123,39 @@ static void *get_pool_mem_inner(struct memory_pool *pool, struct memory_pool *fr
 
             frame_mem_start = (char *)frame + sizeof(struct memory_pool);
 
-            if ((pool != frame) && (pool->next != (struct memory_pool *)0) && (pool->next != frame)) {
+            if ((pool != frame) &&
+                (pool->next != (struct memory_pool *)0) &&
+                (pool->next != frame))
+            {
                 struct memory_pool *cursor = pool->next;
 
                 while (cursor->next != frame) {
                     cursor = cursor->next;
                 }
 
+                /*@-mustfree@*/
                 cursor->next = frame->next;
                 frame->next = pool->next;
                 pool->next = frame;
+                /*@=mustfree@*/
             }
 
+            /*@-usedef@*/
             return (void *)(frame_mem_start + (index * (frame->entitysize)));
+            /*@=usedef@*/
         }
     }
 
     if (frame->next == (struct memory_pool *)0) {
-        frame->next = create_memory_pool (frame->entitysize);
+        struct memory_pool *n = create_memory_pool (frame->entitysize);
+        if (n == (struct memory_pool *)0) return (void *)0;
+
+        frame->next = n;
     }
 
     return get_pool_mem_inner(pool, frame->next);
 }
+/*@=memtrans =branchstate@*/
 
 void *get_pool_mem(struct memory_pool *pool) {
     pool->optimise_counter--;
@@ -146,6 +166,7 @@ void *get_pool_mem(struct memory_pool *pool) {
     return get_pool_mem_inner(pool, pool);
 }
 
+/*@-mustfree@*/
 void free_pool_mem(void *mem) {
 /* actually we /can/ derive the start address of a pool frame using an
    address that points into the pool...
@@ -159,7 +180,9 @@ void free_pool_mem(void *mem) {
 
     bitmap_clear (pool->map, index);
 }
+/*@=mustfree@*/
 
+/*@-branchstate -memtrans@*/
 void optimise_memory_pool(struct memory_pool *pool) {
     struct memory_pool *cursor = pool, *last = (struct memory_pool *)0;
 
@@ -169,9 +192,12 @@ void optimise_memory_pool(struct memory_pool *pool) {
         cursor = cursor->next;
 
         if (bitmap_isempty(cursor->map) == (unsigned char)1) {
+            /*@-mustfree@*/
             last->next = cursor->next;
+            /*@=mustfree@*/
             free_mem_chunk((void *)cursor);
             cursor = last;
         }
     }
 }
+/*@=branchstate =memtrans@*/

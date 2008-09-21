@@ -64,12 +64,19 @@ void *aalloc   (unsigned long size) {
 
     if (msize < CURIE_POOL_CUTOFF) {
         struct tree_node *n = tree_get_node(&alloc_pools, msize);
-        struct memory_pool *pool;
+        struct memory_pool *pool = (struct memory_pool *)0;
 
         if (n != (struct tree_node *)0) {
             pool = (struct memory_pool *)node_get_value (n);
-        } else {
+        }
+
+        if (pool == (struct memory_pool *)0) {
             pool = create_memory_pool (msize);
+
+            if (pool == (struct memory_pool *)0) {
+                return (void *)0;
+            }
+
             tree_add_node_value (&alloc_pools, msize, pool);
         }
 
@@ -90,22 +97,30 @@ void *arealloc (unsigned long size, void *p, unsigned long new_size) {
             (mnew_size >= CURIE_POOL_CUTOFF)) {
             return resize_mem (msize, p, mnew_size);
         } else {
-            unsigned int *new_location = (unsigned int *)aalloc(mnew_size),
-                         *old_location = (unsigned int *)p;
-            int i = 0,
+            unsigned int *new_location = (unsigned int *)aalloc(mnew_size);
+            if (new_location == (unsigned int *)0)
+            {
+                afree (msize, p);
+                return (void *)0;
+            }
+            else
+            {
+                unsigned int *old_location = (unsigned int *)p;
+                int i = 0,
                 copysize = (int)((msize < mnew_size) ? msize : mnew_size);
 
-            copysize = (int)((copysize / sizeof(int))
-                             + (((copysize % sizeof(int)) == 0) ? 0 : 1));
+                copysize = (int)((copysize / sizeof(int))
+                        + (((copysize % sizeof(int)) == 0) ? 0 : 1));
 
-            for(; i < copysize; i++) {
-                /* copy in chunks of ints */
-                new_location[i] = old_location[i];
+                for(; i < copysize; i++) {
+                    /* copy in chunks of ints */
+                    new_location[i] = old_location[i];
+                }
+
+                afree (msize, p);
+
+                return (void*)new_location;
             }
-
-            afree (msize, p);
-
-            return (void*)new_location;
         }
     }
 
@@ -114,7 +129,7 @@ void *arealloc (unsigned long size, void *p, unsigned long new_size) {
 
 static void pool_tree_optimiser(struct tree_node *node, /*@unused@*/ void *p) {
     struct memory_pool *pool = (struct memory_pool *)node_get_value (node);
-    optimise_memory_pool(pool);
+    if (pool != (struct memory_pool *)0) optimise_memory_pool(pool);
 }
 
 void afree     (unsigned long size, void *p) {

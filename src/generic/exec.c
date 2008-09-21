@@ -48,6 +48,7 @@
 static struct memory_pool
   exec_context_pool = MEMORY_POOL_INITIALISER(sizeof(struct exec_context));
 
+/*@-usedef@*/
 struct exec_context *execute(unsigned int options,
                              char **command,
                              char **environment)
@@ -58,10 +59,17 @@ struct exec_context *execute(unsigned int options,
     struct io *proc_stdout_in, *proc_stdout_out,
               *proc_stdin_in,  *proc_stdin_out;
 
+    if (context == (struct exec_context *)0)
+    {
+        return (struct exec_context *)0;
+    }
+
+    /*@-mustfree@*/
     context->in = (struct io *)0;
     context->out = (struct io *)0;
+    /*@=mustfree@*/
 
-    if (!(options & EXEC_CALL_NO_IO)) {
+    if ((options & EXEC_CALL_NO_IO) == 0) {
         net_open_loop(&proc_stdout_in, &proc_stdout_out);
         net_open_loop(&proc_stdin_in, &proc_stdin_out);
     }
@@ -80,20 +88,22 @@ struct exec_context *execute(unsigned int options,
             context->out = (struct io *)0;
             break;
         case 0:
-            if ((command != (char **)0) || (options & EXEC_CALL_PURGE)) {
-                if (!(options & EXEC_CALL_NO_IO)) {
-                    a_dup (proc_stdin_in->fd, 0);
-                    a_dup (proc_stdout_out->fd, 1);
+            if ((command != (char **)0) ||
+                ((options & EXEC_CALL_PURGE) != 0))
+            {
+                if ((options & EXEC_CALL_NO_IO) == 0) {
+                    (void)a_dup (proc_stdin_in->fd, 0);
+                    (void)a_dup (proc_stdout_out->fd, 1);
                 }
 
                 for (i = 3; i < MAXFD; i++) {
-                    a_close(i);
+                    (void)a_close(i);
                 }
 
                 if (command != (char **)0) {
                     a_exec (command[0], command, environment);
                 }
-            } else if (!(options & EXEC_CALL_NO_IO)) {
+            } else if ((options & EXEC_CALL_NO_IO) == 0) {
                 io_close (proc_stdout_in);
                 io_close (proc_stdin_out);
 
@@ -103,7 +113,7 @@ struct exec_context *execute(unsigned int options,
 
             break;
         default:
-            if (!(options & EXEC_CALL_NO_IO)) {
+            if ((options & EXEC_CALL_NO_IO) == 0) {
                 io_close (proc_stdin_in);
                 io_close (proc_stdout_out);
 
@@ -117,6 +127,7 @@ struct exec_context *execute(unsigned int options,
 
     return context;
 }
+/*@=usedef@*/
 
 void free_exec_context (struct exec_context *context) {
     free_pool_mem ((void *)context);

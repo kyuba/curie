@@ -385,6 +385,7 @@ struct sexpr *sx_read(struct sexpr_io *io) {
     }
 
     buf = io->in->buffer;
+    if (buf == (char *)0) return sx_nonexistent;
 
     /* remove leading whitespace */
     do {
