@@ -92,8 +92,8 @@ struct sexpr_cons {
     enum sx_type type;
     signed int references;
 
-    struct sexpr *car;
-    struct sexpr *cdr;
+    /*@shared@*/ struct sexpr *car;
+    /*@shared@*/ struct sexpr *cdr;
 };
 
 /*! \brief Sexpr with a String or Symbol Payload
@@ -115,18 +115,26 @@ struct sexpr_io;
 
 void sx_close_io (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
 
-/*@notnull@*/ struct sexpr *sx_read (/*@notnull@*/ struct sexpr_io *);
-void sx_write (/*@notnull@*/ struct sexpr_io *,
-               /*@notnull@*/ struct sexpr *);
+/*@notnull@*/ /*@shared@*/ struct sexpr *sx_read
+        (/*@notnull@*/ struct sexpr_io *);
+void sx_write
+        (/*@notnull@*/ struct sexpr_io *,
+         /*@notnull@*/ struct sexpr *);
 
-/*@notnull@*/ struct sexpr *cons (/*@notnull@*/ struct sexpr *,
-                                  /*@notnull@*/ struct sexpr *);
-/*@notnull@*/ struct sexpr *make_integer (signed long);
-/*@notnull@*/ struct sexpr *make_string (/*@notnull@*/ const char *);
-/*@notnull@*/ struct sexpr *make_symbol (/*@notnull@*/ const char *);
+/*@notnull@*/ /*@shared@*/ struct sexpr *cons
+        (/*@notnull@*/ /*@shared@*/ struct sexpr *,
+         /*@notnull@*/ /*@shared@*/ struct sexpr *);
+/*@notnull@*/ /*@shared@*/ struct sexpr *make_integer
+        (signed long);
+/*@notnull@*/ /*@shared@*/ struct sexpr *make_string
+        (/*@notnull@*/ const char *);
+/*@notnull@*/ /*@shared@*/ struct sexpr *make_symbol
+        (/*@notnull@*/ const char *);
 
-void sx_destroy (/*@notnull@*/ struct sexpr *);
-void sx_xref (/*@notnull@*/ struct sexpr *);
+void sx_destroy
+        (/*@notnull@*/ /*@shared@*/ struct sexpr *);
+void sx_xref
+        (/*@notnull@*/ /*@shared@*/ struct sexpr *);
 
 void *sx_list_map (/*@notnull@*/ struct sexpr *,
                    /*@notnull@*/ void (*)(struct sexpr *, void *),
@@ -137,15 +145,15 @@ void *sx_list_map (/*@notnull@*/ struct sexpr *,
 /*@notnull@*/ struct sexpr *equalp (/*@notnull@*/ struct sexpr *,
                                     /*@notnull@*/ struct sexpr *);
 
-/*@notnull@*/ extern struct sexpr * const sx_nil;
-/*@notnull@*/ extern struct sexpr * const sx_false;
-/*@notnull@*/ extern struct sexpr * const sx_true;
-/*@notnull@*/ extern struct sexpr * const sx_empty_list;
-/*@notnull@*/ extern struct sexpr * const sx_end_of_list;
-/*@notnull@*/ extern struct sexpr * const sx_end_of_file;
-/*@notnull@*/ extern struct sexpr * const sx_not_a_number;
-/*@notnull@*/ extern struct sexpr * const sx_nonexistent;
-/*@notnull@*/ extern struct sexpr * const sx_dot;
+/*@notnull@*/ /*@shared@*/ extern struct sexpr * const sx_nil;
+/*@notnull@*/ /*@shared@*/ extern struct sexpr * const sx_false;
+/*@notnull@*/ /*@shared@*/ extern struct sexpr * const sx_true;
+/*@notnull@*/ /*@shared@*/ extern struct sexpr * const sx_empty_list;
+/*@notnull@*/ /*@shared@*/ extern struct sexpr * const sx_end_of_list;
+/*@notnull@*/ /*@shared@*/ extern struct sexpr * const sx_end_of_file;
+/*@notnull@*/ /*@shared@*/ extern struct sexpr * const sx_not_a_number;
+/*@notnull@*/ /*@shared@*/ extern struct sexpr * const sx_nonexistent;
+/*@notnull@*/ /*@shared@*/ extern struct sexpr * const sx_dot;
 
 #define nilp(sx)   (((struct sexpr *)(sx) == sx_nil)          || ((sx)->type == sxt_nil))
 #define truep(sx)  (((struct sexpr *)(sx) == sx_true)         || ((sx)->type == sxt_true))

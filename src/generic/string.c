@@ -152,7 +152,11 @@ int_32 str_hash_unaligned(const char *string, unsigned long *len)
         unsigned int i;
         int_32 rv = 0;
 
-        r = get_mem (length);
+        if ((r = get_mem (length)) == (char *)0)
+        {
+            *len = 0;
+            return 0;
+        }
         /* the return value of this is always suitable for our purposes. */
 
         for (i = 0; string[i] != (char)0; i++) r[i] = string[i];
