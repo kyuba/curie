@@ -46,20 +46,23 @@ static void mx_f_callback(int *rs, int r, int *ws, int w);
 static struct multiplex_functions mx_functions = {
     .count = mx_f_count,
     .augment = mx_f_augment,
-    .callback = mx_f_callback
+    .callback = mx_f_callback,
+    .next = (struct multiplex_functions *)0
 };
 
 struct io_list {
     struct io *io;
     void (*on_read)(struct io *, void *);
     void (*on_close)(struct io *, void *);
-    void *data;
-    struct io_list *next;
+    /*@temp@*/ void *data;
+    /*@only@*/ struct io_list *next;
 };
 
-static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct io_list));
-static struct io_list *list = (struct io_list *)0;
+static struct memory_pool list_pool
+         = MEMORY_POOL_INITIALISER(sizeof (struct io_list));
+/*@only@*/ /*@null@*/ static struct io_list *list = (struct io_list *)0;
 
+/*@-branchstate@*/
 static void mx_f_count(int *r, int *w) {
     struct io_list *l = list, *p = (struct io_list *)0;
 
@@ -89,11 +92,13 @@ static void mx_f_count(int *r, int *w) {
             }
             else
             {
+                /*@-mustfree@*/
                 p->next = l->next;
+                /*@=mustfree@*/
             }
             l = l->next;
 
-            if (t->on_close != (void (*)(struct io *, void *))0)
+            if (t->on_close != (void *)0)
             {
                 t->on_close (t->io, t->data);
             }
@@ -155,11 +160,13 @@ static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
             }
             else
             {
+                /*@-mustfree@*/
                 p->next = l->next;
+                /*@=mustfree@*/
             }
             l = l->next;
 
-            if (t->on_close != (void (*)(struct io *, void *))0)
+            if (t->on_close != (void *)0)
             {
                 t->on_close (t->io, t->data);
             }
@@ -190,8 +197,8 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
                 case iot_read:
                     for (i = 0; i < r; i++) {
                         if (rs[i] == fd) {
-                            io_read (l->io);
-                            if (l->on_read != (void (*)(struct io *, void *))0)
+                            (void)io_read (l->io);
+                            if (l->on_read != (void *)0)
                                 l->on_read (l->io, l->data);
                         }
                     }
@@ -201,7 +208,7 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
 
                     for (i = 0; i < w; i++) {
                         if (ws[i] == fd) {
-                            io_commit (l->io);
+                            (void)io_commit (l->io);
                         }
                     }
                     break;
@@ -222,11 +229,13 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
             }
             else
             {
+                /*@-mustfree@*/
                 p->next = l->next;
+                /*@=mustfree@*/
             }
             l = l->next;
 
-            if (t->on_close != (void (*)(struct io *, void *))0)
+            if (t->on_close != (void *)0)
             {
                 t->on_close (t->io, t->data);
             }
@@ -242,6 +251,7 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
         l = l->next;
     }
 }
+/*@=branchstate@*/
 
 void multiplex_io () {
     static char installed = (char)0;
@@ -252,25 +262,29 @@ void multiplex_io () {
     }
 }
 
+/*@-nullstate -mustfree@*/
 void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void (*on_close)(struct io *, void *), void *data) {
     struct io_list *list_element = get_pool_mem (&list_pool);
+
+    if (list_element == (struct io_list *)0) return;
+
     list_element->next = list;
-    list = list_element;
 
     list_element->io = io;
     list_element->on_read = on_read;
     list_element->on_close = on_close;
     list_element->data = data;
+
+    list = list_element;
 }
+/*@=nullstate =mustfree@*/
 
 void multiplex_add_io_no_callback (/*@notnull@*/ /*@only@*/ struct io *io)
 {
-    multiplex_add_io (io,
-                      (void (*)(struct io *, void *))0,
-                      (void (*)(struct io *, void *))0,
-                      (void *)0);
+    multiplex_add_io (io, (void *)0, (void *)0, (void *)0);
 }
 
+/*@-branchstate*/
 void multiplex_del_io (struct io *io) {
     struct io_list *l = list, *p = (struct io_list *)0;
 
@@ -279,6 +293,7 @@ void multiplex_del_io (struct io *io) {
         {
             struct io_list *t = l;
 
+            /*@-mustfree@*/
             if (p == (struct io_list *)0)
             {
                 list = l->next;
@@ -287,14 +302,13 @@ void multiplex_del_io (struct io *io) {
             {
                 p->next = l->next;
             }
+            /*@=mustfree@*/
             l = l->next;
 
-            if (t->on_close != (void (*)(struct io *, void *))0)
+            if (t->on_close != (void *)0)
             {
                 t->on_close (t->io, t->data);
             }
-
-            io_close (t->io);
 
             free_pool_mem (t);
             continue;
@@ -303,4 +317,7 @@ void multiplex_del_io (struct io *io) {
         p = l;
         l = l->next;
     }
+
+    io_close (io);
 }
+/*@=branchstate*/

@@ -43,12 +43,15 @@
 struct exec_cx {
     struct exec_context *context;
     void (*on_death)(struct exec_context *, void *);
-    void *data;
+    /*@temp@*/ void *data;
 };
 
 static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct exec_cx));
 
-static enum signal_callback_result sig_chld_signal_handler(enum signal signal, void *e) {
+/*@-memtrans@*/
+static enum signal_callback_result sig_chld_signal_handler
+        (/*@unused@*/ enum signal signal, void *e)
+{
     struct exec_cx *cx = (struct exec_cx *)e;
 
     if (cx->context->status == ps_running) {
@@ -62,6 +65,7 @@ static enum signal_callback_result sig_chld_signal_handler(enum signal signal, v
 
     return scr_keep;
 }
+/*@=memtrans@*/
 
 void multiplex_process () {
     static char installed = (char)0;
@@ -72,8 +76,11 @@ void multiplex_process () {
     }
 }
 
+/*@-mustfree@*/
 void multiplex_add_process (struct exec_context *context, void (*on_death)(struct exec_context *, void *), void *data) {
     struct exec_cx *element = get_pool_mem (&list_pool);
+
+    if (element == (struct exec_cx *)0) return;
 
     element->context = context;
     element->on_death = on_death;
@@ -81,3 +88,4 @@ void multiplex_add_process (struct exec_context *context, void (*on_death)(struc
 
     multiplex_add_signal (sig_chld, sig_chld_signal_handler, (void *)element);
 }
+/*@=mustfree@*/
