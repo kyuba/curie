@@ -40,16 +40,6 @@
 #include <curie/io.h>
 #include <curie/memory.h>
 
-/*@-castfcnptr@*/
-/* somehow that test didn't work properly on my box... ah well */
-
-/*@-mustfreeonly@*/
-/* if i don't specify this, then the line
-   io->buffer = get_mem ();
-   is invalid. however, it isn't. i simply can't free the storage in there
-   before assigning the new address, because there is no address in there
-   when i get the chunk from get_pool_mem(). */
-
 static struct memory_pool io_pool = MEMORY_POOL_INITIALISER(sizeof(struct io));
 
 struct io *io_open (int fd)

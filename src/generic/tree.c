@@ -40,20 +40,6 @@
 #include <curie/tree.h>
 #include <curie/immutable.h>
 
-/*@-noeffect@*/
-/* the map function does actually not have a visible effect from this file's
-   POV, however it really does serve a purpose. */
-
-/*@-nullpass@*/
-/*@-nullderef@*/
-/*@-usereleased@*/
-/*@-compdef@*/
-/* looks like splint can't seem to get through some logic in loop
-   conditionals. */
-
-/*@-temptrans@*/
-/*@-mustfreeonly@*/
-
 static struct memory_pool tree_root_pool = MEMORY_POOL_INITIALISER(sizeof (struct tree));
 static struct memory_pool tree_node_pool = MEMORY_POOL_INITIALISER(sizeof (struct tree_node));
 static struct memory_pool tree_node_pointer_pool = MEMORY_POOL_INITIALISER(sizeof (struct tree_node_pointer));

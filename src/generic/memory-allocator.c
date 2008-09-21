@@ -39,9 +39,6 @@
 #include <curie/memory.h>
 #include <curie/tree.h>
 
-/*@-branchstate@*/
-/*@-mustfreefresh@*/
-
 static struct tree alloc_pools = TREE_INITIALISER;
 
 /* pools themselves actually do this optimisation, but we use a lot of

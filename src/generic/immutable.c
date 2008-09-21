@@ -44,14 +44,6 @@
 
 #define IMMUTABLE_CHUNKSIZE (4096*2)
 
-/*@-onlytrans@*/
-/*@-temptrans@*/
-
-/*@-usereleased@*/
-/* there is a false positive in the str_immutable_unaligned() function, because
-   str_immutable() is allowed to return the same string as its input; however,
-   in the given use case, that is impossible. */
-
 /*@notnull@*/ static char *immutable_data;
 /*@notnull@*/ static char *immutable_cursor;
 static unsigned long immutable_data_size = 0;

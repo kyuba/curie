@@ -54,23 +54,23 @@ extern "C" {
 #endif
 
 struct tree {
-    /*@null@*/ /*@owned@*/ struct tree_node * root;
+    /*@null@*/ struct tree_node * root;
 };
 
 struct tree_node {
-    /*@null@*/ /*@owned@*/ struct tree_node * left;
-    /*@null@*/ /*@owned@*/ struct tree_node * right;
+    /*@null@*/ struct tree_node * left;
+    /*@null@*/ struct tree_node * right;
 
     int_pointer key;
 };
 
 struct tree_node_pointer {
-    /*@null@*/ /*@owned@*/ struct tree_node * left;
-    /*@null@*/ /*@owned@*/ struct tree_node * right;
+    /*@null@*/ struct tree_node * left;
+    /*@null@*/ struct tree_node * right;
 
     int_pointer key;
 
-    /*@dependent@*/ const void *value;
+    const void *value;
 };
 
 #ifdef __cplusplus
@@ -79,26 +79,26 @@ struct tree_node_pointer {
 #define TREE_INITIALISER { .root = (struct tree_node *)0 }
 #endif
 
-/*@notnull@*/ /*@only@*/ struct tree * tree_create ();
-void tree_destroy (/*@notnull@*/ /*@only@*/ struct tree *);
+struct tree * tree_create ();
+void tree_destroy (struct tree *);
 
 void tree_add_node (struct tree *, int_pointer);
-void tree_add_node_value (struct tree *, int_pointer, /*@dependent@*/ const void *);
+void tree_add_node_value (struct tree *, int_pointer, const void *);
 
-/*@null@*/ /*@dependent@*/ struct tree_node * tree_get_node (/*@notnull@*/ struct tree *, int_pointer);
+struct tree_node * tree_get_node (struct tree *, int_pointer);
 
-void tree_remove_node_specific (/*@dependent@*/ struct tree *, int_pointer, /*@null@*/ struct tree_node *);
+void tree_remove_node_specific (struct tree *, int_pointer, struct tree_node *);
 
 #define tree_remove_node(t,k) tree_remove_node_specific(t, k, (struct tree_node *)0)
 
 #define node_get_value(node) ((struct tree_node_pointer *)node)->value
 
-void tree_map (struct tree *, void (*)(struct tree_node *, void *), /*@null@*/ void *);
+void tree_map (struct tree *, void (*)(struct tree_node *, void *), void *);
 
-void tree_add_node_string (struct tree *, /*@notnull@*/ char *);
-void tree_add_node_string_value (struct tree *, /*@notnull@*/ char *, /*@dependent@*/ const void *);
-/*@null@*/ /*@dependent@*/ struct tree_node * tree_get_node_string (/*@notnull@*/ struct tree *, char *);
-void tree_remove_node_string_specific (/*@dependent@*/ struct tree *, /*@notnull@*/ char *, /*@null@*/ struct tree_node *);
+void tree_add_node_string (struct tree *, char *);
+void tree_add_node_string_value (struct tree *, char *, const void *);
+struct tree_node * tree_get_node_string (struct tree *, char *);
+void tree_remove_node_string_specific (struct tree *, char *, struct tree_node *);
 #define tree_remove_node_string(t,k) tree_remove_node_string_specific(t, k, (struct tree_node *)0)
 
 #ifdef __cplusplus

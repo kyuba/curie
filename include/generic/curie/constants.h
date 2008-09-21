@@ -50,9 +50,8 @@ extern "C" {
 #define LIBCURIE_PAGE_SIZE 0x1000
 #define ENTITY_ALIGNMENT (unsigned short)8
 
-/* requested sizes bigger than this cutoff will be allocated directly as memory
-   pages, sizes smaller than that will be allocated using a mempool */
-
+/*! Requested sizes bigger than this cutoff will be allocated directly as memory
+    pages, sizes smaller than that will be allocated using a mempool. */
 #define CURIE_POOL_CUTOFF 4000
 
 #ifdef __cplusplus

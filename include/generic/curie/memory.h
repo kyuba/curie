@@ -54,14 +54,14 @@ extern "C" {
 void set_get_mem_recovery_function (void *(*handler)(unsigned long int));
 void set_resize_mem_recovery_function (void *(*handler)(unsigned long int, void *, unsigned long int));
 
-/*@null@*/ /*@only@*/ void *get_mem(unsigned long int);
-/*@null@*/ /*@only@*/ void *resize_mem(unsigned long int, /*@notnull@*/ /*@only@*/ void *, unsigned long int);
-void free_mem(unsigned long int, /*@notnull@*/ /*@only@*/void *);
+void *get_mem(unsigned long int);
+void *resize_mem(unsigned long int, void *, unsigned long int);
+void free_mem(unsigned long int, void *);
 
-void mark_mem_ro (unsigned long int, /*@notnull@*/ void *);
-void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
+void mark_mem_ro (unsigned long int, void *);
+void mark_mem_rw (unsigned long int, void *);
 
-/*@null@*/ /*@only@*/ void *get_mem_chunk();
+void *get_mem_chunk();
 
 #define free_mem_chunk(p) free_mem(LIBCURIE_PAGE_SIZE, p)
 
@@ -79,7 +79,7 @@ struct memory_pool {
     unsigned short maxentities;
     unsigned short optimise_counter;
 
-    /*@null@*/ /*@shared@*/ struct memory_pool *next;
+    /*@null@*/ /*@only@*/ struct memory_pool *next;
 
     bitmap map;
 };
@@ -91,17 +91,17 @@ struct memory_pool {
   .map = {~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0}, \
   .next = (struct memory_pool *)0 }
 
-/*@notnull@*/ /*@only@*/ struct memory_pool *create_memory_pool (unsigned long int entitysize);
-void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *);
+struct memory_pool *create_memory_pool (unsigned long int entitysize);
+void free_memory_pool (struct memory_pool *);
 
-/*@notnull@*/ /*@only@*/ void *get_pool_mem(struct memory_pool *);
-void free_pool_mem(/*@notnull@*/ /*@only@*/ void *);
+void *get_pool_mem(struct memory_pool *);
+void free_pool_mem(void *);
 
 void optimise_memory_pool (struct memory_pool *);
 
-/*@notnull@*/ /*@only@*/ void *aalloc   (unsigned long);
-/*@notnull@*/ /*@only@*/ void *arealloc (unsigned long, /*@notnull@*/ /*@only@*/ /*@returned@*/ void *, unsigned long);
-void afree     (unsigned long, /*@notnull@*/ /*@only@*/ void *);
+void *aalloc   (unsigned long);
+void *arealloc (unsigned long, void *, unsigned long);
+void afree     (unsigned long, void *);
 
 #ifdef __cplusplus
 }

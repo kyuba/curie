@@ -83,15 +83,15 @@ struct io {
     unsigned int buffersize;
 };
 
-/*@notnull@*/ /*@only@*/ struct io *io_open (int);
-/*@notnull@*/ /*@only@*/ struct io *io_open_read (const char *);
-/*@notnull@*/ /*@only@*/ struct io *io_open_write (const char *);
-enum io_result io_write(/*@notnull@*/ struct io *, const char *, unsigned int);
-enum io_result io_collect(/*@notnull@*/ struct io *, const char *, unsigned int);
-enum io_result io_read(/*@notnull@*/ struct io *);
-enum io_result io_commit (/*@notnull@*/ struct io *);
-enum io_result io_finish (/*@notnull@*/ struct io *);
-void io_close (/*@notnull@*/ /*@only@*/ struct io *);
+struct io *io_open (int);
+struct io *io_open_read (const char *);
+struct io *io_open_write (const char *);
+enum io_result io_write(struct io *, const char *, unsigned int);
+enum io_result io_collect(struct io *, const char *, unsigned int);
+enum io_result io_read(struct io *);
+enum io_result io_commit (struct io *);
+enum io_result io_finish (struct io *);
+void io_close (struct io *);
 
 #ifdef __cplusplus
 }

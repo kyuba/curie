@@ -39,9 +39,9 @@
 #include <curie/string.h>
 #include <curie/memory.h>
 
-/*@-shiftimplementation@*/
-/*@+charint@*/
-/* markos' string hash function requires these */
+/*@-shiftimplementation +charint@*/
+/* markos' string hash function requires these. i'm totally not gonna muck
+   around with that :D */
 
 /**** begin ***** markos' hashing function ************************************/
 

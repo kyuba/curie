@@ -41,22 +41,6 @@
 #include <curie/string.h>
 #include <curie/tree.h>
 
-/*@-mustfreeonly@*/
-/* somehow can't seem to write initialisers without this... */
-
-/*@-temptrans@*/
-
-/*@-compmempass@*/
-/* this is actually intentional. */
-
-/*@-dependenttrans@*/
-/* and so is this. */
-
-/*@-freshtrans@*/
-/*@-mustfreefresh@*/
-/*@-onlytrans@*/
-/*@-sharedtrans@*/
-
 static const struct sexpr _sx_nil = { .type = sxt_nil, .references = -1 };
 static const struct sexpr _sx_false = { .type = sxt_false, .references = -1 };
 static const struct sexpr _sx_true = { .type = sxt_true, .references = -1 };

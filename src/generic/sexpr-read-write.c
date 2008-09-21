@@ -41,9 +41,6 @@
 #include <curie/io.h>
 #include <curie/io-system.h>
 
-/*@-mustfreeonly@*/
-/* somehow can't seem to write initialisers without this... */
-
 /* the sx_read function will try to keep reading off a struct io * until either
    nothing more is available just now, or MAX_READ_THRESHOLD is hit. */
 #define MAX_READ_THRESHOLD (16*1024)

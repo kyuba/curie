@@ -50,7 +50,7 @@
 extern "C" {
 #endif
 
-/*@noreturn@*/ void   a_exit  (int status);
+/*@noreturn@*/ void a_exit (int status);
 
 int a_main();
 

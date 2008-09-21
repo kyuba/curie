@@ -39,17 +39,6 @@
 #include <curie/memory.h>
 #include <curie/int.h>
 
-/*@-mustfreeonly@*/
-/*@-onlytrans@*/
-/*@-sharedtrans@*/
-/*@-temptrans@*/
-/*@-fixedformalarray@*/
-/* turns out we need this here, because we actually implement memory management here,
-   including functions that do do these thingamajigs */
-
-/*@-branchstate@*/
-/* needed to make optimise_memory_pool pass */
-
 #define AUTOOPT_N 300
 
 static unsigned int bitmap_getslot(unsigned int b) {

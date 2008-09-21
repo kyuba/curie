@@ -92,8 +92,8 @@ struct sexpr_cons {
     enum sx_type type;
     signed int references;
 
-    /*@shared@*/ struct sexpr *car;
-    /*@shared@*/ struct sexpr *cdr;
+    struct sexpr *car;
+    struct sexpr *cdr;
 };
 
 /*! \brief Sexpr with a String or Symbol Payload
@@ -110,23 +110,23 @@ struct sexpr_io {
   struct io *in, *out;
 };
 
-/*@notnull@*/ /*@only@*/ struct sexpr_io *sx_open_io(/*@notnull@*/ /*@only@*/ struct io *, /*@notnull@*/ /*@only@*/ struct io *);
+struct sexpr_io *sx_open_io(struct io *, struct io *);
 
 #define sx_open_io_fd(in,out) sx_open_io (io_open ((in)), io_open((out)))
 #define sx_open_stdio() sx_open_io_fd(0, 1)
 
-void sx_close_io (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
+void sx_close_io (struct sexpr_io *);
 
-/*@notnull@*/ /*@shared@*/ struct sexpr *sx_read(/*@notnull@*/ struct sexpr_io *);
-void sx_write(/*@notnull@*/ struct sexpr_io *, /*@notnull@*/ /*@shared@*/ struct sexpr *);
+struct sexpr *sx_read(struct sexpr_io *);
+void sx_write(struct sexpr_io *, struct sexpr *);
 
-/*@notnull@*/ /*@shared@*/ struct sexpr *cons(/*@shared@*/ struct sexpr *, /*@shared@*/ struct sexpr *);
-/*@notnull@*/ /*@shared@*/ struct sexpr *make_integer(signed long);
-/*@notnull@*/ /*@shared@*/ struct sexpr *make_string(/*@notnull@*/ const char *);
-/*@notnull@*/ /*@shared@*/ struct sexpr *make_symbol(/*@notnull@*/ const char *);
+struct sexpr *cons(struct sexpr *, struct sexpr *);
+struct sexpr *make_integer(signed long);
+struct sexpr *make_string(const char *);
+struct sexpr *make_symbol(const char *);
 
-void sx_destroy(/*@notnull@*/ /*@shared@*/ struct sexpr *);
-void sx_xref(/*@notnull@*/ /*@shared@*/ struct sexpr *);
+void sx_destroy(struct sexpr *);
+void sx_xref(struct sexpr *);
 
 void *sx_list_map (struct sexpr *, void (*)(struct sexpr *, void *), void *);
 struct sexpr *sx_list_fold (struct sexpr *, void (*)(struct sexpr *));
