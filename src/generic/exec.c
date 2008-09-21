@@ -46,24 +46,12 @@
 #define MAXFD 1024
 
 static struct memory_pool
-  exec_call_pool = MEMORY_POOL_INITIALISER(sizeof(struct exec_call)),
   exec_context_pool = MEMORY_POOL_INITIALISER(sizeof(struct exec_context));
 
-struct exec_call *create_exec_call () {
-    struct exec_call *call = (struct exec_call *)get_pool_mem(&exec_call_pool);
-
-    call->options = 0;
-    call->command = (char **)0;
-    call->environment = (char **)0;
-
-    return call;
-}
-
-void free_exec_call (struct exec_call *call) {
-    free_pool_mem ((void *)call);
-}
-
-struct exec_context *execute(struct exec_call *call) {
+struct exec_context *execute(unsigned int options,
+                             char **command,
+                             char **environment)
+{
     struct exec_context *context =
         (struct exec_context *)get_pool_mem(&exec_context_pool);
     int pid, i;
@@ -73,7 +61,7 @@ struct exec_context *execute(struct exec_call *call) {
     context->in = (struct io *)0;
     context->out = (struct io *)0;
 
-    if (!(call->options & EXEC_CALL_NO_IO)) {
+    if (!(options & EXEC_CALL_NO_IO)) {
         net_open_loop(&proc_stdout_in, &proc_stdout_out);
         net_open_loop(&proc_stdin_in, &proc_stdin_out);
     }
@@ -92,8 +80,8 @@ struct exec_context *execute(struct exec_call *call) {
             context->out = (struct io *)0;
             break;
         case 0:
-            if ((call->command != (char **)0) || (call->options & EXEC_CALL_PURGE)) {
-                if (!(call->options & EXEC_CALL_NO_IO)) {
+            if ((command != (char **)0) || (options & EXEC_CALL_PURGE)) {
+                if (!(options & EXEC_CALL_NO_IO)) {
                     a_dup (proc_stdin_in->fd, 0);
                     a_dup (proc_stdout_out->fd, 1);
                 }
@@ -102,10 +90,10 @@ struct exec_context *execute(struct exec_call *call) {
                     a_close(i);
                 }
 
-                if (call->command != (char **)0) {
-                    a_exec (call->command[0], call->command, call->environment);
+                if (command != (char **)0) {
+                    a_exec (command[0], command, environment);
                 }
-            } else if (!(call->options & EXEC_CALL_NO_IO)) {
+            } else if (!(options & EXEC_CALL_NO_IO)) {
                 io_close (proc_stdout_in);
                 io_close (proc_stdin_out);
 
@@ -115,7 +103,7 @@ struct exec_context *execute(struct exec_call *call) {
 
             break;
         default:
-            if (!(call->options & EXEC_CALL_NO_IO)) {
+            if (!(options & EXEC_CALL_NO_IO)) {
                 io_close (proc_stdin_in);
                 io_close (proc_stdout_out);
 
@@ -124,8 +112,6 @@ struct exec_context *execute(struct exec_call *call) {
             }
             break;
     }
-
-    free_exec_call(call);
 
     context->status = ps_running;
 

@@ -99,7 +99,6 @@ static void sx_read_child_confirmation(struct sexpr *sx, struct sexpr_io *io, vo
 
 int a_main(void) {
     struct exec_context *context;
-    struct exec_call *call;
     struct sexpr *commence = make_symbol ("commence");
 
     struct sexpr *sx_tests[4] = {
@@ -111,9 +110,7 @@ int a_main(void) {
 
     struct sexpr_io *io;
 
-    call = create_exec_call();
-    call->options |= EXEC_CALL_PURGE;
-    context = execute(call);
+    context = execute(EXEC_CALL_PURGE, (char **)0, (char **)0);
 
     multiplex_network();
     multiplex_sexpr();

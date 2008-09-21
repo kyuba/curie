@@ -101,7 +101,7 @@ void optimise_memory_pool (/*@notnull@*/ struct memory_pool *);
 
 /*@null@*/ /*@only@*/ void *aalloc   (unsigned long);
 /*@null@*/ /*@only@*/ void *arealloc (unsigned long, /*@notnull@*/ /*@only@*/ void *, unsigned long);
-void afree     (unsigned long, /*@notnull@*/ /*@only@*/ void *);
+void afree (unsigned long, /*@notnull@*/ /*@only@*/ void *);
 
 #ifdef __cplusplus
 }

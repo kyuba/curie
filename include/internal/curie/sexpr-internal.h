@@ -1,8 +1,8 @@
 /*
- *  string.h
+ *  sexpr.h
  *  libcurie
  *
- *  Created by Magnus Deininger on 14/06/2008.
+ *  Created by Magnus Deininger on 01/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,30 +36,27 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*! \internal
- *
- *  @{
- */
-
 /*! \file
- *  \brief String Handling
- *
- *  Helper functions to deal with strings.
+ *  \brief S-expressions (internal)
+ *  \internal
  */
 
-#ifndef LIBCURIE_STRING_H
-#define LIBCURIE_STRING_H
+#ifndef LIBCURIE_SEXPR_INTERNAL_H
+#define LIBCURIE_SEXPR_INTERNAL_H
 
-#include <curie/int.h>
+#include <curie/io.h>
 
-/* kudos to markos for this one */
-
-/* input MUST be 32-bit aligned. */
-int_32 str_hash(/*@notnull@*/ const char *data,
-                /*@notnull@*/ /*@out@*/ unsigned long *len);
-int_32 str_hash_unaligned(/*@notnull@*/ const char *data,
-                          /*@notnull@*/ /*@out@*/ unsigned long *len);
-
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-/*! @} */
+struct sexpr_io {
+    struct io *in;
+    struct io *out;
+};
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -54,11 +54,11 @@ extern "C" {
 #endif
 
 struct multiplex_functions {
-    void (*count)(int *, int *);
-    void (*augment)(int *, int *, int *, int *);
-    void (*callback)(int *, int, int *, int);
+    /*@notnull@*/ void (*count)(int *, int *);
+    /*@notnull@*/ void (*augment)(int *, int *, int *, int *);
+    /*@notnull@*/ void (*callback)(int *, int, int *, int);
 
-    struct multiplex_functions *next;
+    /*@null@*/ struct multiplex_functions *next;
 };
 
 enum multiplex_result {
@@ -68,17 +68,24 @@ enum multiplex_result {
 
 enum multiplex_result multiplex ();
 
-void multiplex_add (struct multiplex_functions *);
+void multiplex_add (/*@notnull@*/ struct multiplex_functions *);
 
 void multiplex_io ();
 void multiplex_process ();
 void multiplex_sexpr ();
 
-void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void (*on_close)(struct io *, void *), void *d);
-void multiplex_del_io (struct io *io);
+void multiplex_add_io (/*@notnull@*/ /*@only@*/ struct io *io,
+                       /*@null@*/ void (*on_read)(struct io *, void *),
+                       /*@null@*/ void (*on_close)(struct io *, void *),
+                       /*@null@*/ void *d);
+void multiplex_del_io (/*@notnull@*/ /*@only@*/ struct io *io);
 
-void multiplex_add_process (struct exec_context *context, void (*on_death)(struct exec_context *, void *), void *d);
-void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(struct sexpr *, struct sexpr_io *, void *), void *d);
+void multiplex_add_process (/*@notnull@*/ /*@only@*/ struct exec_context *context,
+                            /*@null@*/ void (*on_death)(struct exec_context *, void *),
+                            /*@null@*/ void *d);
+void multiplex_add_sexpr (/*@notnull@*/ /*@only@*/ struct sexpr_io *io,
+                          /*@null@*/ void (*on_read)(struct sexpr *, struct sexpr_io *, void *),
+                          /*@null@*/ void *d);
 
 #define multiplex_add_io_no_callback(w) multiplex_add_io ((w), (void (*)(struct io *, void *))0, (void (*)(struct io *, void *))0, (void *)0);
 

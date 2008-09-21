@@ -41,6 +41,8 @@
 #include <curie/io.h>
 #include <curie/io-system.h>
 
+#include <curie/sexpr-internal.h>
+
 /* the sx_read function will try to keep reading off a struct io * until either
    nothing more is available just now, or MAX_READ_THRESHOLD is hit. */
 #define MAX_READ_THRESHOLD (16*1024)
@@ -60,7 +62,12 @@ static struct sexpr *sx_read_dispatch (unsigned int *i, char *buf, unsigned int 
 struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
     struct sexpr_io *rv;
 
-    rv = get_pool_mem (&sx_io_pool);
+    if ((rv = get_pool_mem (&sx_io_pool)) == (struct sexpr_io *)0)
+    {
+        io_close (in);
+        io_close (out);
+        return (struct sexpr_io *)0;
+    }
 
     rv->in = in;
     rv->out = out;
@@ -69,6 +76,23 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
     out->type = iot_write;
 
     return rv;
+}
+
+struct sexpr_io *sx_open_stdio() {
+    struct io *in, *out;
+
+    if ((in = io_open (0)) == (struct io *)0)
+    {
+        return (struct sexpr_io *)0;
+    }
+
+    if ((out = io_open (1)) == (struct io *)0)
+    {
+        io_close (in);
+        return (struct sexpr_io *)0;
+    }
+
+    return sx_open_io (in, out);
 }
 
 void sx_close_io (struct sexpr_io *io) {

@@ -106,42 +106,46 @@ struct sexpr_string_or_symbol {
     char character_data[];
 };
 
-struct sexpr_io {
-  struct io *in, *out;
-};
+struct sexpr_io;
 
-struct sexpr_io *sx_open_io(struct io *, struct io *);
+/*@null@*/ /*@only@*/ struct sexpr_io *sx_open_io
+                              (/*@notnull@*/ /*@only@*/ struct io *,
+                               /*@notnull@*/ /*@only@*/ struct io *);
+/*@null@*/ /*@only@*/ struct sexpr_io *sx_open_stdio ();
 
-#define sx_open_io_fd(in,out) sx_open_io (io_open ((in)), io_open((out)))
-#define sx_open_stdio() sx_open_io_fd(0, 1)
+void sx_close_io (/*@notnull@*/ /*@only@*/ struct sexpr_io *);
 
-void sx_close_io (struct sexpr_io *);
+/*@notnull@*/ struct sexpr *sx_read (/*@notnull@*/ struct sexpr_io *);
+void sx_write (/*@notnull@*/ struct sexpr_io *,
+               /*@notnull@*/ struct sexpr *);
 
-struct sexpr *sx_read(struct sexpr_io *);
-void sx_write(struct sexpr_io *, struct sexpr *);
+/*@notnull@*/ struct sexpr *cons (/*@notnull@*/ struct sexpr *,
+                                  /*@notnull@*/ struct sexpr *);
+/*@notnull@*/ struct sexpr *make_integer (signed long);
+/*@notnull@*/ struct sexpr *make_string (/*@notnull@*/ const char *);
+/*@notnull@*/ struct sexpr *make_symbol (/*@notnull@*/ const char *);
 
-struct sexpr *cons(struct sexpr *, struct sexpr *);
-struct sexpr *make_integer(signed long);
-struct sexpr *make_string(const char *);
-struct sexpr *make_symbol(const char *);
+void sx_destroy (/*@notnull@*/ struct sexpr *);
+void sx_xref (/*@notnull@*/ struct sexpr *);
 
-void sx_destroy(struct sexpr *);
-void sx_xref(struct sexpr *);
+void *sx_list_map (/*@notnull@*/ struct sexpr *,
+                   /*@notnull@*/ void (*)(struct sexpr *, void *),
+                   /*@null@*/ void *);
+/*@notnull@*/ struct sexpr *sx_list_fold (/*@notnull@*/ struct sexpr *,
+                                          /*@notnull@*/ void (*)(struct sexpr *));
 
-void *sx_list_map (struct sexpr *, void (*)(struct sexpr *, void *), void *);
-struct sexpr *sx_list_fold (struct sexpr *, void (*)(struct sexpr *));
+/*@notnull@*/ struct sexpr *equalp (/*@notnull@*/ struct sexpr *,
+                                    /*@notnull@*/ struct sexpr *);
 
-struct sexpr *equalp (struct sexpr *, struct sexpr *);
-
-extern struct sexpr * const sx_nil;
-extern struct sexpr * const sx_false;
-extern struct sexpr * const sx_true;
-extern struct sexpr * const sx_empty_list;
-extern struct sexpr * const sx_end_of_list;
-extern struct sexpr * const sx_end_of_file;
-extern struct sexpr * const sx_not_a_number;
-extern struct sexpr * const sx_nonexistent;
-extern struct sexpr * const sx_dot;
+/*@notnull@*/ extern struct sexpr * const sx_nil;
+/*@notnull@*/ extern struct sexpr * const sx_false;
+/*@notnull@*/ extern struct sexpr * const sx_true;
+/*@notnull@*/ extern struct sexpr * const sx_empty_list;
+/*@notnull@*/ extern struct sexpr * const sx_end_of_list;
+/*@notnull@*/ extern struct sexpr * const sx_end_of_file;
+/*@notnull@*/ extern struct sexpr * const sx_not_a_number;
+/*@notnull@*/ extern struct sexpr * const sx_nonexistent;
+/*@notnull@*/ extern struct sexpr * const sx_dot;
 
 #define nilp(sx)   (((struct sexpr *)(sx) == sx_nil)          || ((sx)->type == sxt_nil))
 #define truep(sx)  (((struct sexpr *)(sx) == sx_true)         || ((sx)->type == sxt_true))

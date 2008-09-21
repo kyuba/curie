@@ -59,9 +59,9 @@
 extern "C" {
 #endif
 
-/*! \brief Flag for exec_call::options: Do not create a stdio Connection */
+/*! \brief Flag: Do not create a stdio Connection */
 #define EXEC_CALL_NO_IO 0x0001
-/*! \brief Flag for exec_call::options: Purge open File Descriptors */
+/*! \brief Flag: Purge open File Descriptors */
 #define EXEC_CALL_PURGE 0x0002
 
 /*! \brief Description of a Process's Status */
@@ -96,58 +96,12 @@ struct exec_context {
     struct io *out;
 };
 
-/*! \brief Programme Execution Parameters */
-struct exec_call {
-    /*! \brief Flags to modify the execution Behaviour. */
-    unsigned int options;
-
-    /*! \brief The Command to execute
-     *
-     *  This is a list of strings, the end of the list must be a 0-pointer, and
-     *  the first element of the list is used as the binary to execute.
-     *
-     *  If this field is 0 itself, then instead of executing a programme the
-     *  execute() function will rather fork.
-     */
-    char **command;
-
-    /*! \brief The Environment to use for the Child Process
-     *
-     *  A 0-terminated list of KEY=value pairs that will compose a child
-     *  process's environment. Only used when command is set to something other
-     *  than 0.
-     */
-    char **environment;
-};
-
-/*! \namespace exec
- *  \brief X
- *
- * @{
- */
-
-/*! \brief Initialise an exec_call Structure
- *  \return A new exec_call structure.
- */
-struct exec_call *create_exec_call ();
-
-/*! \brief Free an exec_call Structure
- *  \param[in] call The call to free.
- *
- *  This funtion should rarely be needed, as execute() will already free the
- *  memory associated with its parameter.
- */
-void free_exec_call (struct exec_call *call);
-
-/*! @} */
-
 /*! \brief Execute a new Process
- *  \param[in] call The structure with parameters of what to execute.
  *  \return A new exec_context.
  *
  *  After calling this function, the given call structure will be invalid.
  */
-struct exec_context *execute(struct exec_call *call);
+/*@null@*/ /*@only@*/ struct exec_context *execute(unsigned int options, /*@notnull@*/ char **command, /*@notnull@*/ char **environment);
 
 /*! \brief Update an exec_context Structure
  *  \param[in] context The context to update.
@@ -155,7 +109,7 @@ struct exec_context *execute(struct exec_call *call);
  *  This function will basically perform a wait() on the child process
  *  described with the given context.
  */
-void check_exec_context (struct exec_context *context);
+void check_exec_context (/*@notnull@*/ struct exec_context *context);
 
 /*! \brief Free an exec_context Structure
  *  \param[in] context The context to free.
@@ -164,7 +118,7 @@ void check_exec_context (struct exec_context *context);
  *  as after the context has been freed, it is impossible for the process to
  *  perform a wait on that child process.
  */
-void free_exec_context (struct exec_context *context);
+void free_exec_context (/*@notnull@*/ /*@only@*/ struct exec_context *context);
 
 #ifdef __cplusplus
 }

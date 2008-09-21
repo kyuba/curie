@@ -39,12 +39,13 @@
 #include "curie/exec.h"
 #include "curie/sexpr.h"
 
+#include <curie/sexpr-internal.h>
+
 #define TEST_STRING_1 "hello-world!"
 #define TEST_STRING_2 "hello \"world\"!"
 
 int a_main(void) {
     struct exec_context *context;
-    struct exec_call *call;
     int rv = 0;
     struct sexpr *i,
                  *t1 = make_symbol (TEST_STRING_1),
@@ -52,8 +53,7 @@ int a_main(void) {
                  *t3 = make_symbol ("success");
     struct sexpr_io *io, *stdio = sx_open_stdio();
 
-    call = create_exec_call();
-    context = execute(call);
+    context = execute(0, (char **)0, (char **)0);
 
     switch (context->pid) {
         case -1: /* only way this would fail ... */

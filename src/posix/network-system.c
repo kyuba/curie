@@ -65,6 +65,7 @@ enum io_result a_open_loop(int result[]) {
     int r = socketpair(AF_UNIX, SOCK_STREAM, 0, result);
     /*@=unrecog@*/
 
+    /*@-usedef -mustdefine@*/
     if (r < 0) {
         return io_unrecoverable_error;
     } else {
@@ -73,6 +74,7 @@ enum io_result a_open_loop(int result[]) {
     }
 
     return io_complete;
+    /*@=usedef =mustdefine@*/
 }
 
 enum io_result a_open_socket(int *result, const char *path) {
@@ -81,8 +83,11 @@ enum io_result a_open_socket(int *result, const char *path) {
     char *tc = (char *)&(addr_un);
 
     /*@-unrecog@*/
-    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-        /*@=unrecog@*/
+    fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    /*@=unrecog@*/
+    *result = fd;
+
+    if (fd == -1) {
         return io_unrecoverable_error;
     }
 
@@ -111,8 +116,6 @@ enum io_result a_open_socket(int *result, const char *path) {
         return io_unrecoverable_error;
     }
 
-    *result = fd;
-
     return io_complete;
 }
 
@@ -124,8 +127,11 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
     (void)a_unlink(path);
 
     /*@-unrecog@*/
-    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-        /*@=unrecog@*/
+    fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    /*@=unrecog@*/
+    *result = fd;
+
+    if (fd == -1) {
         return io_unrecoverable_error;
     }
 
@@ -160,8 +166,6 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
         return io_unrecoverable_error;
     }
 
-    *result = fd;
-
     return io_complete;
 }
 
@@ -169,6 +173,8 @@ enum io_result a_accept_socket(int *result, int fd) {
     /*@-unrecog@*/
     int rfd = accept (fd, (struct sockaddr *)0, (socklen_t *)0);
     /*@=unrecog@*/
+    *result = rfd;
+
     if (rfd < 0) {
         /*@-checkstrictglobs@*/
         switch (errno) {
@@ -184,6 +190,5 @@ enum io_result a_accept_socket(int *result, int fd) {
         }
     }
 
-    *result = rfd;
     return io_complete;
 }

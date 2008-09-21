@@ -39,6 +39,8 @@
 #include <curie/multiplex.h>
 #include <curie/memory.h>
 
+#include <curie/sexpr-internal.h>
+
 struct io_element {
     struct sexpr_io *io;
     void (*on_read)(struct sexpr *, struct sexpr_io *, void *);

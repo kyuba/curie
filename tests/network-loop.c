@@ -39,6 +39,8 @@
 #include "curie/network.h"
 #include "curie/sexpr.h"
 
+#include <curie/sexpr-internal.h>
+
 #define TEST_STRING_1 "hello-world!"
 #define TEST_STRING_2 "hello \"world\"!"
 

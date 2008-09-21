@@ -60,10 +60,9 @@ enum wait_return a_wait(int pid, int *status) {
     if (WIFEXITED(st) != 0) {
         r = wr_exited;
         *status = WEXITSTATUS(st);
-    } else if (WIFSIGNALED(st) != 0) {
-        r = wr_killed;
     } else {
-        r = wr_running;
+        r = (WIFSIGNALED(st) != 0) ? wr_killed : wr_running;
+        *status = 0;
     }
 
     return r;

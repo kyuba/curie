@@ -52,17 +52,31 @@
 extern "C" {
 #endif
 
-void net_open_loop (struct io **in, struct io **out);
+void net_open_loop (/*@out@*/ /*@null@*/ struct io **in,
+                    /*@out@*/ /*@null@*/ struct io **out);
 
-void net_open_socket (const char *path, struct io **in, struct io **out);
+void net_open_socket (/*@notnull@*/ const char *path,
+                      /*@out@*/ /*@null@*/ struct io **in,
+                      /*@out@*/ /*@null@*/ struct io **out);
 
 void multiplex_network();
-void multiplex_add_socket (const char *path, void (*on_connect)(struct io *, struct io *, void *), void *data);
+void multiplex_add_socket
+        (/*@notnull@*/ const char *path,
+         /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *),
+         /*@null@*/ void *data);
 
-void multiplex_add_socket_listener_sx (const char *path, void (*on_connect)(struct sexpr_io *, void *), void *data);
+void multiplex_add_socket_listener_sx
+        (/*@notnull@*/ const char *path,
+         /*@notnull@*/ void (*on_connect)(struct sexpr_io *, void *),
+         /*@null@*/ void *data);
 
-struct sexpr_io *sx_open_socket (const char *path);
-void multiplex_add_socket_sx (const char *path, void (*on_read)(struct sexpr *, struct sexpr_io *, void *), void *d);
+/*@null@*/ /*@only@*/ struct sexpr_io *sx_open_socket
+        (/*@notnull@*/ const char *path);
+
+void multiplex_add_socket_sx
+        (/*@notnull@*/ const char *path,
+         /*@null@*/ void (*on_read)(struct sexpr *, struct sexpr_io *, void *),
+         /*@null@*/ void *d);
 
 #ifdef __cplusplus
 }

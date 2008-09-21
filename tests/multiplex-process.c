@@ -49,13 +49,10 @@ static void mx_on_death(struct exec_context *cx, void *d) {
 
 int a_main(void) {
     struct exec_context *context;
-    struct exec_call *call;
 
     multiplex_process();
 
-    call = create_exec_call();
-    call->options |= EXEC_CALL_NO_IO;
-    context = execute(call);
+    context = execute(EXEC_CALL_NO_IO, (char **)0, (char **)0);
 
     if (context->pid < 0) {
         return 3;

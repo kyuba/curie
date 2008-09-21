@@ -68,14 +68,16 @@ int a_fork();
  *  \param[out] status The location of an integer to store the result in.
  *  \return The current status of the process.
  */
-enum wait_return a_wait(int pid, int *status);
+enum wait_return a_wait(int pid, /*@notnull@*/ /*@out@*/ int *status);
 
 /*! \brief Wrapper for the execve() System Call
  *  \param[in] image The process image to execute.
  *  \param[in] argv  The argument vector for the new process.
  *  \param[in] env   The environment vector for the new process.
  */
-void a_exec(const char *image, char **argv, char **env);
+void a_exec(/*@notnull@*/ /*@observer@*/ const char *image,
+            /*@notnull@*/ /*@observer@*/ char **argv,
+            /*@notnull@*/ /*@observer@*/ char **env);
 
 #endif
 

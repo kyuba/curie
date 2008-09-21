@@ -107,7 +107,9 @@ enum signal_callback_result {
 };
 
 void multiplex_signal ();
-void multiplex_add_signal (enum signal signal, enum signal_callback_result (*handler)(enum signal, void *), void *data);
+void multiplex_add_signal (enum signal signal,
+                           /*@notnull@*/ enum signal_callback_result (*handler)(enum signal, void *),
+                           void *data);
 
 void send_signal (enum signal signal, int pid);
 void send_signal_self (enum signal signal);

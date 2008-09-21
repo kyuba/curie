@@ -51,10 +51,12 @@
 
 #include <curie/io.h>
 
-enum io_result a_open_loop(int result[]);
-enum io_result a_open_socket(int *result, const char *path);
-enum io_result a_open_listen_socket(int *result, const char *path);
-enum io_result a_accept_socket(int *result, int fd);
+enum io_result a_open_loop (/*@notnull@*/ /*@out@*/ int result[]);
+enum io_result a_open_socket (/*@notnull@*/ /*@out@*/ int *result,
+                              /*@notnull@*/ const char *path);
+enum io_result a_open_listen_socket (/*@notnull@*/ /*@out@*/ int *result,
+                                     /*@notnull@*/ const char *path);
+enum io_result a_accept_socket (/*@notnull@*/ /*@out@*/ int *result, int fd);
 
 #endif
 
