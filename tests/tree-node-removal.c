@@ -40,9 +40,6 @@
 
 #define MAXKEYNUM 2048
 
-/*@-branchstate@*/
-/*@-sharedtrans@*/
-
 char *sentinelbase = (char*)0x8916316;
 #define sentinelvalue(i) (void *)(sentinelbase + i)
 

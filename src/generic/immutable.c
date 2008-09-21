@@ -44,8 +44,8 @@
 
 #define IMMUTABLE_CHUNKSIZE (4096*2)
 
-/*@notnull@*/ static char *immutable_data;
-/*@notnull@*/ static char *immutable_cursor;
+/*@null@*/ /*@owned@*/ static char *immutable_data = (char *)0;
+/*@null@*/ /*@dependent@*/ static char *immutable_cursor = (char *)0;
 static unsigned long immutable_data_size = 0;
 static unsigned long immutable_data_space_left = 0;
 
@@ -54,7 +54,6 @@ static struct tree immutable_string_hashes = TREE_INITIALISER;
 
 const char *str_immutable_unaligned (const char * string) {
     unsigned int length;
-    const char *rv;
 
     for (length = 0; string[length] != (char)0; length++);
     length++;
@@ -64,11 +63,15 @@ const char *str_immutable_unaligned (const char * string) {
 
         return str_immutable (string);
     } else {
+        const char *rv;
         char *r;
         unsigned int i;
 
-        r = get_mem (length); /* the return value of this is always suitable for
-                                 our purposes. */
+        if ((r = get_mem (length)) == (char *)0)
+        /* the return value of this is always suitable for our purposes. */
+        {
+            return (void *)0;
+        }
 
         for (i = 0; string[i] != (char)0; i++) r[i] = string[i];
         do {
@@ -78,16 +81,18 @@ const char *str_immutable_unaligned (const char * string) {
 
         rv = str_immutable (r);
 
+        /*@-usereleased@*/
         free_mem (length, r);
 
         return rv;
+        /*@=usereleased@*/
     }
 }
 
 const char *str_immutable (const char * string) {
     unsigned long stringlength = 0;
     int_pointer hash;
-    const char *rv = (const char *)0;
+    /*@observer@*/ const char *rv;
     struct tree_node *n;
 
     /* the compiler should put static strings into read-only storage... */
@@ -101,18 +106,20 @@ const char *str_immutable (const char * string) {
 
     stringlength++; /* add an extra character for the terminating 0 */
 
-    n = tree_get_node (&immutable_string_hashes, hash);
-    if (n != (struct tree_node *)0) {
-        rv = (const char *)node_get_value (n);
+    if ((n = tree_get_node (&immutable_string_hashes, hash))
+         != (struct tree_node *)0)
+    {
+        return (const char *)node_get_value (n);
     }
 
-    if (rv == (const char *)0) {
-        rv = immutable (string, stringlength);
-
-        tree_add_node (&immutable_strings, (int_pointer)rv);
-
-        tree_add_node_value (&immutable_string_hashes, hash, (const void *)rv);
+    if ((rv = immutable (string, stringlength)) == (char *)0)
+    {
+        return (char *)0;
     }
+
+    tree_add_node (&immutable_strings, (int_pointer)rv);
+
+    tree_add_node_value (&immutable_string_hashes, hash, (const void *)rv);
 
     return rv;
 }
@@ -127,11 +134,22 @@ const void *immutable ( const void * data, unsigned long length ) {
 
         if (length > IMMUTABLE_CHUNKSIZE) {
             new_size = ((length / IMMUTABLE_CHUNKSIZE) +
-                    (((length % IMMUTABLE_CHUNKSIZE) != 0) ? 1 : 0))
-                    * IMMUTABLE_CHUNKSIZE;
+                         (((length % IMMUTABLE_CHUNKSIZE) != 0) ? 1 : 0))
+                       * IMMUTABLE_CHUNKSIZE;
         }
 
-        immutable_data = get_mem(new_size);
+        if (immutable_data != (void *)0)
+        {
+            lock_immutable_pages();
+        }
+
+        /*@-mustfree*/
+        if ((immutable_data = get_mem(new_size)) == (void *)0)
+        {
+            /*@=mustfree*/
+            return (char *)0;
+        }
+
         immutable_data_space_left = new_size;
         immutable_cursor = immutable_data;
         immutable_data_size = new_size;
@@ -143,9 +161,11 @@ const void *immutable ( const void * data, unsigned long length ) {
          immutable_cursor++,
          data_char++,
          length--,
-         immutable_data_space_left--) {
-
+         immutable_data_space_left--)
+    {
+         /*@-nullderef@*/ /* can't be null here */
          *immutable_cursor = *data_char;
+         /*@=nullderef@*/
     }
 
     return rv;
@@ -153,7 +173,10 @@ const void *immutable ( const void * data, unsigned long length ) {
 
 void lock_immutable_pages ( void ) {
     if (immutable_data_size != 0) {
+        /* not null here... */
+        /*@-nullpass@*/
         mark_mem_ro (immutable_data_size, immutable_data);
+        /*@=nullpass@*/
     }
 
     immutable_data_size = 0;

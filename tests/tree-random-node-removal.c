@@ -41,9 +41,6 @@
 
 #define MAXKEYNUM 4096
 
-/*@-branchstate@*/
-/*@-sharedtrans@*/
-
 unsigned int random_numbers[MAXKEYNUM];
 
 static unsigned int have_number_before_slot (unsigned int n, unsigned int s) {

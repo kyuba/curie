@@ -38,12 +38,10 @@
 
 #include "curie/main.h"
 
-/*@-unreachable@*/
-/* this annotiation makes sure to inhibit the warning on the 'return 1'
-   statement, because we intend to test a_exit() to behave correctly. */
-
 int a_main(void) {
 /* test the a_exit() call */
     a_exit(0);
+    /*@-unreachable@*/
     return 1;
+    /*@=unreachable@*/
 }

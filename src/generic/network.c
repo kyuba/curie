@@ -162,7 +162,7 @@ void net_open_loop (struct io **in, struct io **out) {
     (*out)->type = iot_write;
 }
 
-void net_open_socket (/*@notnull@*/ const char *path, struct io **in, struct io **out) {
+void net_open_socket (const char *path, struct io **in, struct io **out) {
     int fdr, fdw;
 
     if ((a_open_socket(&fdr, path) == io_complete) &&
@@ -189,7 +189,7 @@ void multiplex_network() {
     }
 }
 
-void multiplex_add_socket (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *), /*@null@*/ void *data) {
+void multiplex_add_socket (const char *path, void (*on_connect)(struct io *, struct io *, void *), void *data) {
     int fd;
 
     if (a_open_listen_socket (&fd, path) == io_complete) {
@@ -220,7 +220,7 @@ static void mx_sx_on_connect(struct io *in, struct io *out, void *d) {
     free_pool_mem (p);
 }
 
-void multiplex_add_socket_listener_sx (/*@notnull@*/ const char *path, /*@notnull@*/ void (*on_connect)(struct sexpr_io *, void *), /*@null@*/ void *data) {
+void multiplex_add_socket_listener_sx (const char *path, void (*on_connect)(struct sexpr_io *, void *), void *data) {
     struct mx_sx_payload *d = (struct mx_sx_payload *)get_pool_mem (&mx_sx_payload_pool);
 
     d->on_connect = on_connect;

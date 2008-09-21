@@ -54,7 +54,7 @@ struct tree * tree_create () {
     return tree;
 }
 
-static void node_destroy(/*@null@*/ /*@owned@*/ struct tree_node *node)
+static void node_destroy(struct tree_node *node)
 {
     if (node != (struct tree_node *)0) {
         node_destroy ((void *)node->left);
@@ -72,7 +72,7 @@ void tree_destroy (struct tree *tree) {
     free_pool_mem((void *)tree);
 }
 
-static void tree_add_node_to_tree (/*@dependent@*/ struct tree *tree, /*@only@*/ struct tree_node *node, int_pointer key) {
+static void tree_add_node_to_tree (struct tree *tree, struct tree_node *node, int_pointer key) {
     struct tree_node *cur = tree->root, *last = (struct tree_node *)0;
 
     node->key = key;
@@ -116,7 +116,7 @@ void tree_add_node_value (struct tree *tree, int_pointer key, const void *value)
 }
 
 struct tree_node * tree_get_node (struct tree *tree, int_pointer key) {
-    /*@null@*/ struct tree_node *cur = tree->root;
+    struct tree_node *cur = tree->root;
 
     while (cur != (struct tree_node *)0) {
         if (cur->key == key) break;
@@ -131,7 +131,7 @@ struct tree_node * tree_get_node (struct tree *tree, int_pointer key) {
     return cur;
 }
 
-static void node_rotate (struct tree_node **root, /*owned*/ struct tree_node *old, /*owned*/ struct tree_node *new) {
+static void node_rotate (struct tree_node **root, struct tree_node *old, struct tree_node *new) {
     if (old->left == new) {
         old->left = new->right;
         new->right = old;
@@ -206,7 +206,7 @@ void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_
     }
 }
 
-static void tree_map_worker(/*@null@*/ struct tree_node *node, void (*callback)(struct tree_node *, void *), void *sv) {
+static void tree_map_worker(struct tree_node *node, void (*callback)(struct tree_node *, void *), void *sv) {
     if (node != (struct tree_node *)0) {
         tree_map_worker ((void *)node->left, callback, sv);
         tree_map_worker ((void *)node->right, callback, sv);
@@ -219,22 +219,22 @@ void tree_map (struct tree *tree, void (*callback)(struct tree_node *, void *), 
     tree_map_worker ((void *)tree->root, callback, sv);
 }
 
-void tree_add_node_string (struct tree *t, /*@notnull@*/ char *k)
+void tree_add_node_string (struct tree *t, char *k)
 {
     tree_add_node(t, (int_pointer)str_immutable_unaligned(k));
 }
 
-void tree_add_node_string_value (struct tree *t, /*@notnull@*/ char *k, /*@dependent@*/ const void *v)
+void tree_add_node_string_value (struct tree *t, char *k, const void *v)
 {
     tree_add_node_value(t, (int_pointer)str_immutable_unaligned(k), v);
 }
 
-/*@null@*/ /*@dependent@*/ struct tree_node * tree_get_node_string (/*@notnull@*/ struct tree *t, char *k)
+struct tree_node * tree_get_node_string (struct tree *t, char *k)
 {
     return tree_get_node (t, (int_pointer)str_immutable_unaligned(k));
 }
 
-void tree_remove_node_string_specific (/*@dependent@*/ struct tree *t, /*@notnull@*/ char *k, /*@null@*/ struct tree_node *v)
+void tree_remove_node_string_specific (struct tree *t, char *k, struct tree_node *v)
 {
     tree_remove_node_specific(t, (int_pointer)str_immutable_unaligned(k), v);
 }

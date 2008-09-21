@@ -36,9 +36,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*@-usedef@*/
-/*@-unqualifiedtrans@*/
-
 #include "curie/memory.h"
 
 #define MAXSIZE 23

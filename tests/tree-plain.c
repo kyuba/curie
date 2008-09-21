@@ -40,9 +40,6 @@
 
 #define MAXKEYNUM 2048
 
-/*@-branchstate@*/
-/*@-sharedtrans@*/
-
 static unsigned int test_tree(unsigned int keys) {
     struct tree *t = tree_create ();
     unsigned int i;
