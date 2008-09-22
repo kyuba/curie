@@ -9,12 +9,13 @@
 
 
 NOTE:
-  This is version two of this library; It has been tested with the included
+  This is an early version of this library; It has been tested with the included
   test-suite on a number of systems of differing architectures as well as
   different operating systems. However, there hasn't been any large-scale field
   testing just yet, nor has there been any extensive code review.
 
-  Also, library documentation is still scarce, that's planned for v3 or v4.
+  Also, library documentation is still scarce, that's planned for a future
+  release.
 
 NOTE.2:
   Please take note of the library licence (the COPYING file), as well as the
