@@ -54,16 +54,20 @@ else:
   opts.Add('ldflags', 'additional linker flags', '')
 
 if 'CHOST' in os.environ:
-  opts.Add('targetCHOST', 'target CHOST', os.environ['CHOST'])
+  pfx = os.environ['CHOST']
 else:
-  opts.Add('targetCHOST', 'additional linker flags',
-    ARGUMENTS.get('arch', os.uname()[4].lower()) + '-' +
-    ARGUMENTS.get('computerVendor', 'unknown') + '-' +
-    ARGUMENTS.get('ostype', os.uname()[0].lower()) + '-' +
-    ARGUMENTS.get('cctype', 'gnu'))
+  pfx = ARGUMENTS.get('arch', os.uname()[4].lower()) + '-' +\
+        ARGUMENTS.get('computerVendor', 'unknown') + '-' +\
+        ARGUMENTS.get('ostype', os.uname()[0].lower()) + '-' +\
+        ARGUMENTS.get('cctype', 'gnu')
 
+opts.Add('targetCHOST', 'target CHOST', pfx)
 
 env = Environment(options = opts)
+
+opts.Add('compilerPrefix', 'compiler prefix (usually the same as targetCHOST)', env['targetCHOST'])
+opts.Update(env)
+
 env.Append (CFLAGS = env['cflags'])
 env.Append (CXXFLAGS = env['cxxflags'])
 env.Append (LINKFLAGS = env['ldflags'])
@@ -97,24 +101,21 @@ def scanexec(file):
   print 'missing ' + file
   return False
 
-if scanexec (env['targetCHOST'] + '-gcc'):
-  env['CC'] = env['targetCHOST'] + '-gcc';
-  env['LINK'] = env['targetCHOST'] + '-gcc';
+if scanexec (env['compilerPrefix'] + '-gcc'):
+  env['CC'] = env['compilerPrefix'] + '-gcc';
+  env['LINK'] = env['compilerPrefix'] + '-gcc';
 
-if scanexec (env['targetCHOST'] + '-g++'):
-  env['CXX'] = env['targetCHOST'] + '-g++';
+if scanexec (env['compilerPrefix'] + '-g++'):
+  env['CXX'] = env['compilerPrefix'] + '-g++';
 
-if scanexec (env['targetCHOST'] + '-as'):
-  env['AS'] = env['targetCHOST'] + '-as';
+if scanexec (env['compilerPrefix'] + '-as'):
+  env['AS'] = env['compilerPrefix'] + '-as';
 
-if scanexec (env['targetCHOST'] + '-ar'):
-  env['AR'] = env['targetCHOST'] + '-ar';
+if scanexec (env['compilerPrefix'] + '-ar'):
+  env['AR'] = env['compilerPrefix'] + '-ar';
 
-# if scanexec (env['targetCHOST'] + '-ld'):
-#   env['LINK'] = env['targetCHOST'] + '-ld';
-
-if scanexec (env['targetCHOST'] + '-ranlib'):
-  env['RANLIB'] = env['targetCHOST'] + '-ranlib';
+if scanexec (env['compilerPrefix'] + '-ranlib'):
+  env['RANLIB'] = env['compilerPrefix'] + '-ranlib';
 
 # install directories
 
