@@ -31,10 +31,6 @@ opts.Add(BoolOption('optimise', 'default optimisations', True))
 opts.Add(BoolOption('optimiseLinking', 'special linker optimisations', True))
 opts.Add(BoolOption('useAssembly', 'use assembler code (usually to bypass the default C library)', True))
 
-opts.Add('arch', 'target architecture', os.uname()[4].lower())
-opts.Add('computerVendor', 'computer vendor', 'unknown')
-opts.Add('ostype', 'OS type', os.uname()[0].lower())
-opts.Add('cctype', 'toolchain type', 'gnu')
 
 opts.Add(BoolOption('hosted', 'avoid the standalone components', False))
 
@@ -83,10 +79,12 @@ debugMemory     = env['debugMemory']
 
 # ACTUAL SCRIPT
 
-arch            = env['arch']
-computerVendor  = env['computerVendor']
-ostype          = env['ostype']
-cctype          = env['cctype']
+x = env['targetCHOST'].split('-')
+
+arch            = x[0]
+computerVendor  = x[1]
+ostype          = x[2]
+cctype          = x[3]
 
 def scanexec(file):
 #  return os.spawnlp(os.P_WAIT, file, file, '--version') == 0
@@ -144,8 +142,14 @@ def pathPermutateVendor(prefix):
 
 def pathPermutateCC(prefix):
   global cctype
-  return pathPermutateVendor(prefix + cctype + '/') +\
-         pathPermutateVendor(prefix)
+  x = pathPermutateVendor(prefix + cctype + '/')
+  if cctype == 'uclibc':
+    x += pathPermutateVendor(prefix + 'gnu/')
+  if cctype == 'dietlibc':
+    x += pathPermutateVendor(prefix + 'gnu/')
+  x += pathPermutateVendor(prefix)
+
+  return x
 
 def pathPermutateArch(prefix):
   global arch
