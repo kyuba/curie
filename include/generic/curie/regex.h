@@ -2,8 +2,9 @@
  *  regex.h
  *  libcurie
  *
- *  Created by Magnus Deininger on 29/09/2008.
+ *  Created by Nadja Klein on 29/09/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
+   *  Copyright 2008 Nadja Klein. All rights reserved.
  *
  */
 
@@ -62,4 +63,6 @@ int rx_exec(struct graph *, struct sexpr *);
 //! frees the memory allocated to the finite_state machine
 void rx_free(struct graph *);
 
+ #ifdef __cplusplus
 }
+#endif

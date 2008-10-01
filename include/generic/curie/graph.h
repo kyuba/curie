@@ -1,9 +1,10 @@
 /*
  *  graph.h
  *  libcurie
- *
- *  Created by Magnus Deininger on 29/09/2008.
+ * 
+ *  Created by Nadja Klein on 29/09/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
+  *  Copyright 2008 Nadja Klein. All rights reserved.
  *
  */
 
@@ -60,8 +61,12 @@ struct graph {
 
 struct graph_node {
 	struct sexpr * label;
-	struct graph_node * *successors; // for 
-	struct sexpr * *edge_weights; 
+	struct graph_edge * *edges;
+}
+
+struct edge {
+	struct graph_node *target;
+	struct sexpr * label;
 }
 
 
@@ -76,8 +81,7 @@ void graph_remove_node (struct graph *, struct graph_node *);
 void graph_search_node (struct graph *, struct sexpr *);
 
 
+
 #ifdef __cplusplus
 }
-#endif
-
 #endif
