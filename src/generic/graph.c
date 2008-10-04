@@ -1,14 +1,12 @@
 /*
- *  graph.c
+ *  tree.c
  *  libcurie
  *
- *  Created by Nadja Klein on 30/09/2008
- *  Copyright 2008 Nadja Klein. All rights reserved.
+ *  Created by Magnus Deininger on 01/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
- 
- 
+
 /*
  * Copyright (c) 2008, Magnus Deininger All rights reserved.
  *
@@ -37,36 +35,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
- #include <curie/graph.h>
- 
- #define MAXLABEL 2048
- 
- int a_main (void) {
- 	struct graph * forest;
-    forest = graph_create();
-	
-	for(int i = 0; i < MAXLABEL; i++) {
-		struct sexpr *s = make_integer(i);
-        
-        struct graph_edge ** edges;
-		struct graph_node *node = {s, edges};
-        
-        edges = aalloc(sizeof(struct graph_edge));
-         struct graph_edge edge = {node, s};
-        edges[0] = &edge;
-		/*
-		if(!graph_add_node(forest, node))
-			return 1;*/
-	}
-// 	
-// 	for(int i = MAXLABEL; i > 0; i--) {
-// 		struct sexpr *s = make_integer(i);
-// 		
-// 			return 2;
-// 	}
-// 	
-// 	
-// 	graph_destroy (forest);
-	return 0;
- }
+
+#include <curie/graph.h>
+#include <curie/memory.h>
+#include <curie/immutable.h>
+
+static struct memory_pool graph_pool = MEMORY_POOL_INITIALISER(sizeof (struct graph));
+static struct memory_pool graph_node_pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_node));
+static struct memory_pool graph_edge_pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_edge));
+
+struct graph * graph_create() {
+    struct graph *gr = (struct graph *) get_pool_mem(&graph_pool);
+    return gr;
+
+}
+
+int graph_add_node(struct graph * gr, struct graph_node * node) {
+    int i = 0;
+    for(; i < sizeof(gr->nodes); i++) ;
+    gr->nodes = (struct graph_nodes **) arealloc(sizeof(gr->nodes), gr->nodes, sizeof(gr->nodes) + sizeof(node));
+    gr->nodes[i] = node;
+    return i;
+}
+
+void graph_node_destroy(struct graph * gr, int node_index) {
+    
+    afree(sizeof (gr->nodes[node_index]), gr->nodes[node_index]);
+    gr->nodes = (struct graph_nodes **) arealloc(sizeof(gr->nodes), gr->nodes, sizeof(gr->nodes) - sizeof(gr->nodes[node_index]));
+}
+
+void graph_destroy (struct graph * gr) {
+    for(int i = 0; i < sizeof(gr->nodes); i++) {
+        graph_node_destroy(gr, i);
+    }
+}
+
+struct graph_node * make_node(struct sexpr * label, struct graph_edge ** edges) {
+    struct graph_node * node = (struct graph_node *) get_pool_mem(&graph_node_pool);
+    node->label = label;
+    node->edges = edges;
+}
+
+int graph_search_node(struct graph * gr, struct sexpr * label) {
+    for(int i = 0; i < sizeof(gr->nodes); i++) {
+        if(gr->nodes[i]->label == label) 
+            return i;
+    }
+    return -1;
+}
