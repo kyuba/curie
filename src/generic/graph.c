@@ -46,28 +46,38 @@ static struct memory_pool graph_edge_pool = MEMORY_POOL_INITIALISER(sizeof (stru
 
 struct graph * graph_create() {
     struct graph *gr = (struct graph *) get_pool_mem(&graph_pool);
+    gr->nodes = aalloc(sizeof(struct graph_node *));
     return gr;
+}
 
+int get_size(struct graph * gr) {
+    return (sizeof(gr->nodes)/sizeof(gr->nodes[0]));
 }
 
 int graph_add_node(struct graph * gr, struct graph_node * node) {
     int i = 0;
-    for(; i < sizeof(gr->nodes); i++) ;
+    if(gr->nodes[0]) {
+        i = get_size(gr) + 1;
+    }
     gr->nodes = (struct graph_nodes **) arealloc(sizeof(gr->nodes), gr->nodes, sizeof(gr->nodes) + sizeof(node));
     gr->nodes[i] = node;
+    
     return i;
 }
 
 void graph_node_destroy(struct graph * gr, int node_index) {
     
-    afree(sizeof (gr->nodes[node_index]), gr->nodes[node_index]);
-    gr->nodes = (struct graph_nodes **) arealloc(sizeof(gr->nodes), gr->nodes, sizeof(gr->nodes) - sizeof(gr->nodes[node_index]));
+    afree(sizeof (gr->nodes[node_index]), gr->nodes[node_index]);/*
+    gr->nodes = (struct graph_nodes **) arealloc(sizeof(gr->nodes), gr->nodes, sizeof(gr->nodes) - sizeof(gr->nodes[node_index]));*/
 }
 
 void graph_destroy (struct graph * gr) {
-    for(int i = 0; i < sizeof(gr->nodes); i++) {
+    for(int i = 0; i < get_size(gr); i++) {
+//         if(gr->nodes[i])
         graph_node_destroy(gr, i);
     }
+    afree(sizeof(struct graph_node), gr->nodes);
+    
 }
 
 struct graph_node * make_node(struct sexpr * label, struct graph_edge ** edges) {

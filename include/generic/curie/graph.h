@@ -75,7 +75,7 @@ struct graph * graph_create();
 void graph_destroy (struct graph *);
 
 //! returns node index in node list
-int graph_add_node (struct graph *, struct graph_node *);
+// int graph_add_node (struct graph *, struct graph_node *);
 
 void graph_remove_node (struct graph *, struct graph_node *);
 

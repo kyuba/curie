@@ -46,8 +46,8 @@
  	struct graph * forest;
     forest = graph_create();
 	
-	for(int i = 0; i < MAXLABEL; i++) {
-		struct sexpr *s = make_integer(i);
+// 	for(int i = 0; i < MAXLABEL; i++) {
+		struct sexpr *s = make_integer(1);
         
         struct graph_edge ** edges;
 		struct graph_node *node = {s, edges};
@@ -55,18 +55,10 @@
         edges = aalloc(sizeof(struct graph_edge));
          struct graph_edge edge = {node, s};
         edges[0] = &edge;
-		/*
-		if(!graph_add_node(forest, node))
-			return 1;*/
-	}
-// 	
-// 	for(int i = MAXLABEL; i > 0; i--) {
-// 		struct sexpr *s = make_integer(i);
-// 		
-// 			return 2;
-// 	}
-// 	
-// 	
-// 	graph_destroy (forest);
+       
+//         forest->nodes[0] = node;
+        
+        graph_add_node(forest, node);
+	graph_destroy (forest);
 	return 0;
  }
