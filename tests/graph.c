@@ -39,6 +39,7 @@
  */
  
  #include <curie/graph.h>
+ #include <curie/sexpr.h>
  
  #define MAXLABEL 2048
  
@@ -58,7 +59,10 @@
        
 //         forest->nodes[0] = node;
         
-        graph_add_node(forest, node);
+    graph_add_node(forest, node);
+    signed int x = graph_search_node(forest, make_integer(1));
+    if(x != 0) return 1;
+    
 	graph_destroy (forest);
 	return 0;
  }

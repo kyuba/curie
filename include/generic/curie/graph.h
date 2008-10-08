@@ -61,8 +61,8 @@ struct graph {
 };
 
 struct graph_node {
-	struct sexpr * label;
 	struct graph_edge * *edges;
+    struct sexpr * label;
 };
 
 struct graph_edge {

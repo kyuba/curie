@@ -39,6 +39,7 @@
 #include <curie/graph.h>
 #include <curie/memory.h>
 #include <curie/immutable.h>
+#include <curie/sexpr.h>
 
 static struct memory_pool graph_pool = MEMORY_POOL_INITIALISER(sizeof (struct graph));
 static struct memory_pool graph_node_pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_node));
@@ -80,16 +81,18 @@ void graph_destroy (struct graph * gr) {
     
 }
 
-struct graph_node * make_node(struct sexpr * label, struct graph_edge ** edges) {
-    struct graph_node * node = (struct graph_node *) get_pool_mem(&graph_node_pool);
-    node->label = label;
-    node->edges = edges;
-}
+// struct graph_node * make_node(struct sexpr * label, struct graph_edge ** edges) {
+//     struct graph_node * node = (struct graph_node *) get_pool_mem(&graph_node_pool);
+//     node->label = label;
+//     node->edges = edges;
+// }
 
-int graph_search_node(struct graph * gr, struct sexpr * label) {
-    for(int i = 0; i < sizeof(gr->nodes); i++) {
-        if(gr->nodes[i]->label == label) 
-            return i;
+signed int graph_search_node(struct graph * gr, struct sexpr * label) {
+    int x = -1;
+
+    for(int i = 0; i < sizeof(gr->nodes)/sizeof(gr->nodes[0]); i++) {
+        if(truep(equalp(gr->nodes[i], label)))
+           return i;
     }
-    return -1;
+    return x;
 }
