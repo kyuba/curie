@@ -75,15 +75,13 @@ struct graph_edge {
 struct graph * graph_create();
 void graph_destroy (struct graph *);
 
-//! returns node index in node list
 struct graph_node *graph_add_node (struct graph *, struct sexpr *);
 
-void graph_remove_node (struct graph *, struct graph_node *);
-
-//! returns -1 if no  node with this key was found, the index of the first node that was found.
 struct graph_node *graph_search_node (struct graph *, struct sexpr *);
 
+struct graph_edge *graph_node_add_edge(struct graph_node *, struct graph_node *, struct sexpr *);
 
+struct graph_edge *graph_node_search_edge(struct graph_node *, struct sexpr *);
 
 #ifdef __cplusplus
 }

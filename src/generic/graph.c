@@ -58,11 +58,11 @@ struct graph_node * graph_add_node(struct graph * gr, struct sexpr *label) {
 
     if (gr->node_count > 0)
     {
-      gr->nodes = (struct graph_nodes **) arealloc(sizeof(struct graph_node *) * gr->node_count, gr->nodes, sizeof(struct graph_node *) * (gr->node_count + 1));
+      gr->nodes = (struct graph_node **) arealloc(sizeof(struct graph_node *) * gr->node_count, gr->nodes, sizeof(struct graph_node *) * (gr->node_count + 1));
     }
     else
     {
-      gr->nodes = (struct graph_nodes **) aalloc(sizeof(struct graph_node *));
+      gr->nodes = (struct graph_node **) aalloc(sizeof(struct graph_node *));
     }
     
     node->edge_count = 0;
@@ -87,4 +87,31 @@ struct graph_node * graph_search_node(struct graph *gr, struct sexpr *label) {
     }
 
     return (struct graph_node *)0;
+}
+
+struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_node *target, struct sexpr *label) {
+
+    static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_edge));
+    struct graph_edge *edge = (struct graph_edge *) get_pool_mem(&pool);
+
+    if(node->edge_count > 0) {
+         node->edges = (struct graph_edge **) arealloc(sizeof(struct graph_edge *) * node->edge_count, node->edges, sizeof(struct graph_edge *) * (node->edge_count + 1));   
+    }
+    else {
+        node->edges = (struct graph_edge **)aalloc(sizeof(struct graph_edge *));
+    }
+    
+    edge->target = target;
+    edge->label = label;   
+    
+    node->edges[node->edge_count] = edge;
+    node->edge_count++;
+    return edge;
+}
+
+struct graph_edge * graph_node_search_edge(struct graph_node *node, struct sexpr *label) {
+    for(int i = 0; i < node->edge_count; i++) {
+        if(truep(equalp(node->edges[i]->label, label)))
+           return node->edges[i];
+    }
 }
