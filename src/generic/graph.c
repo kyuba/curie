@@ -41,8 +41,6 @@
 #include <curie/immutable.h>
 #include <curie/sexpr.h>
 
-static struct memory_pool graph_edge_pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_edge));
-
 struct graph * graph_create() {
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph));
 
@@ -66,7 +64,7 @@ struct graph_node * graph_add_node(struct graph * gr, struct sexpr *label) {
     }
     
     node->edge_count = 0;
-    node->edges = (struct graph_edges **) 0;
+    node->edges = (struct graph_edge **)0;
     node->label = label;
     
     gr->nodes[gr->node_count] = node;
@@ -114,4 +112,5 @@ struct graph_edge * graph_node_search_edge(struct graph_node *node, struct sexpr
         if(truep(equalp(node->edges[i]->label, label)))
            return node->edges[i];
     }
+    return (struct graph_edge *)0;
 }
