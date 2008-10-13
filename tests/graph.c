@@ -7,8 +7,7 @@
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
- 
- 
+
 /*
  * Copyright (c) 2008, Magnus Deininger All rights reserved.
  *
@@ -37,32 +36,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
- #include <curie/graph.h>
- #include <curie/sexpr.h>
- 
- #define MAXLABEL 2048
- 
- int a_main (void) {
- 	struct graph * forest;
-    forest = graph_create();
-	
-// 	for(int i = 0; i < MAXLABEL; i++) {
-		struct sexpr *s = make_integer(1);
-        
-        struct graph_edge ** edges;
-		struct graph_node *node = {s, edges};
-        
-        edges = aalloc(sizeof(struct graph_edge));
-         struct graph_edge edge = {node, s};
-        edges[0] = &edge;
-       
-//         forest->nodes[0] = node;
-        
-    graph_add_node(forest, node);
-    signed int x = graph_search_node(forest, make_integer(1));
-    if(x != 0) return 1;
-    
-	graph_destroy (forest);
-	return 0;
- }
+
+#include <curie/graph.h>
+#include <curie/sexpr.h>
+
+#define MAXLABEL 2048
+
+int a_main (void) {
+    struct graph *forest = graph_create();
+    struct sexpr *s = make_integer(1);
+    struct graph_node *node1 = graph_add_node (forest, s);
+
+    if (graph_search_node(forest, s) != node1) {
+        return 1;
+    }
+
+    graph_destroy (forest);
+    return 0;
+}

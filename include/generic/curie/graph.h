@@ -57,30 +57,31 @@ extern "C" {
 
 
 struct graph {
-	struct graph_node * *nodes;	
+    int_32 node_count;
+    struct graph_node **nodes;
 };
 
 struct graph_node {
-	struct graph_edge * *edges;
     struct sexpr * label;
+    int_32 edge_count;
+    struct graph_edge **edges;
 };
 
 struct graph_edge {
-	struct graph_node *target;
-	struct sexpr * label;
+    struct graph_node *target;
+    struct sexpr *label;
 };
 
 struct graph * graph_create();
-
 void graph_destroy (struct graph *);
 
 //! returns node index in node list
-// int graph_add_node (struct graph *, struct graph_node *);
+struct graph_node *graph_add_node (struct graph *, struct sexpr *);
 
 void graph_remove_node (struct graph *, struct graph_node *);
 
 //! returns -1 if no  node with this key was found, the index of the first node that was found.
-int graph_search_node (struct graph *, struct sexpr *);
+struct graph_node *graph_search_node (struct graph *, struct sexpr *);
 
 
 
