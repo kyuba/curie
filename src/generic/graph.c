@@ -68,8 +68,8 @@ int graph_add_node(struct graph * gr, struct graph_node * node) {
 
 void graph_node_destroy(struct graph * gr, int node_index) {
     
-    afree(sizeof (gr->nodes[node_index]), gr->nodes[node_index]);/*
-    gr->nodes = (struct graph_nodes **) arealloc(sizeof(gr->nodes), gr->nodes, sizeof(gr->nodes) - sizeof(gr->nodes[node_index]));*/
+    afree(sizeof (gr->nodes[node_index]), gr->nodes[node_index]);
+    gr->nodes = (struct graph_nodes **) arealloc(sizeof(gr->nodes), gr->nodes, (sizeof(gr->nodes)/sizeof(gr->nodes[0]) - sizeof(gr->nodes[node_index]));
 }
 
 void graph_destroy (struct graph * gr) {
