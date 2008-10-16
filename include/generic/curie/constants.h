@@ -38,6 +38,9 @@
 
 /*! \file
  *  \brief Constants
+ *
+ *  These constants are likely to require tuning on different OSs and
+ *  architectures, so they get their own header.
  */
 
 #ifndef LIBCURIE_CONSTANTS_H
@@ -47,12 +50,28 @@
 extern "C" {
 #endif
 
+/*! \brief Page Size
+ *
+ *  This is the page size that is assumed for memory operations. This is usually
+ *  constant for a given OS/architecture combination.
+ */
 #define LIBCURIE_PAGE_SIZE 0x1000
-#define ENTITY_ALIGNMENT (unsigned short)8
 
-/*! Requested sizes bigger than this cutoff will be allocated directly as memory
-    pages, sizes smaller than that will be allocated using a mempool. */
-#define CURIE_POOL_CUTOFF 4000
+/*! \brief Allocator Alignment (in Bytes)
+ *
+ *  Memory allocated by the curie functions will always be aligned to this value
+ *  -- the alignment will be 'both ways', so to speak, i.e. the start address
+ *  will be aligned to a multiple of this value and the size of the allocated
+ *  chunk of memory will be a multiple of this as well.
+ */
+#define ENTITY_ALIGNMENT ((unsigned short)8)
+
+/*! \brief aalloc() Allocator Cutoff
+ *
+ *  Requested sizes bigger than this cutoff will be allocated directly as memory
+ *  pages, sizes smaller than that will be allocated using a mempool.
+ */
+#define CURIE_POOL_CUTOFF 1024
 
 #ifdef __cplusplus
 }

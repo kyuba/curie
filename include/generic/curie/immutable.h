@@ -43,30 +43,51 @@ extern "C" {
 #ifndef LIBCURIE_IMMUTABLE_H
 #define LIBCURIE_IMMUTABLE_H
 
-/* making immutable copies of strings may help reduce the likelihood of
-   memory leaks by making sure all immutable copies only exist exactly once
-   in the process space, as well as prevent improper access to these strings
-   (such as inadvertedly modifying them */
+/*! \file
+ *  \brief Immutable Objects
+ *
+ *  Making immutable copies of strings may help reduce the likelihood of
+ *  memory leaks by making sure all immutable copies only exist exactly once
+ *  in the process space, as well as prevent improper access to these strings
+ *  (such as inadvertedly modifying them.
+ *
+ *  For this purpose there are some functions to create immutable copies of
+ *  strings and regular data.
+ */
 
+/*! \brief Create or find immutable Copy of a String
+ *
+ *  This function will generate an immutable copy of the given string, or return
+ *  a pointer to a previously generated immutable copy of the same string.
+ *
+ *  \note The input string MUST be aligned and padded to eight-byte boundaries!
+ */
 /*@null@*/ /*@shared@*/ /*@observer@*/ const char *str_immutable (/*@notnull@*/ /*@returned@*/ /*@observer@*/ const char *);
 
-/* similarly, non-string data should be storable in this way, so here we go. */
-
+/*! \brief Create immutable Copy of arbitrary Data
+ *
+ *  Similarly to str_immutable(), non-string data should be storable in the
+ *  same way, so here we go.
+ */
 /*@null@*/ /*@shared@*/ /*@observer@*/ const void *immutable (/*@notnull@*/ /*@observer@*/ const void *, unsigned long);
 
-/* this function is used to force locking of all the current pages that are used
-   to store new immutable data. the idea is that if you know you wont be storing
-   (much) new stuff anytime soon, you can call this function and immediately get
-   the memory protection effect. */
-
+/*! \brief Lock current Memory Pages with immutable Data
+ *
+ * This function is used to force locking of all the current pages that are used
+ * to store new immutable data. the idea is that if you know you wont be storing
+ * (much) new stuff anytime soon, you can call this function and immediately get
+ * the memory protection effect.
+ */
 void lock_immutable_pages ( void );
 
-/* the str_immutable() function expects its parameter to be aligned to an 8-byte
-   boundary, as well as zero-padded to the next 8-byte boundary, unless its a
-   previous return value of itself. this function is a bit of a helper to ensure
-   these alignment-constraints in case you dont know if your input meets these
-   criteria. */
-
+/*! \brief Create or find immutable Copy of a String, regardless of Alignment
+ *
+ * The str_immutable() function expects its parameter to be aligned to an 8-byte
+ * boundary, as well as zero-padded to the next 8-byte boundary, unless its a
+ * previous return value of itself. this function is a bit of a helper to ensure
+ * these alignment-constraints in case you dont know if your input meets these
+ * criteria.
+ */
 /*@null@*/ /*@shared@*/ /*@observer@*/ const char *str_immutable_unaligned (/*@notnull@*/ /*@returned@*/ /*@observer@*/ const char *);
 
 #endif

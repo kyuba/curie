@@ -36,18 +36,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*! \defgroup ProgrammeExecution Programme Execution
- *
- *  Functions to execute a different process or to fork the current one.
- *
- *  @{
- */
-
 /*! \file
  *  \brief Programme Execution
  *
- *  Functions from this header are used to execute other programmes and to
- *  query a child process's status.
+ *  Functions from this header are used to execute other programmes, fork the
+ *  process and to query a child process's status.
  */
 
 #ifndef LIBCURIE_EXEC_H
