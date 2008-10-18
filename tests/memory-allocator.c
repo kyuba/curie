@@ -80,7 +80,7 @@ unsigned int test_aalloc (unsigned int size) {
     return 0;
 }
 
-int a_main(void) {
+int cmain(void) {
     unsigned int i;
 
     for (i = 1; i < MAXSIZE; i++) {

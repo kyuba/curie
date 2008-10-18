@@ -43,21 +43,21 @@
 
 char **curie_argv = (char **)0;
 char **curie_environment = (char **)0;
-int a_main();
+int cmain();
 
-void   a_exit (int status)
+void cexit (int status)
 {
     exit (status);
 }
 
 /*@-maintype@*/
-int   main (/*@unused@*/ int argc, char **argv, char **env)
+int main (/*@unused@*/ int argc, char **argv, char **env)
 {
     int rv;
 
     curie_argv = argv;
     curie_environment = env;
 
-    rv = a_main();
+    rv = cmain();
     return rv;
 }

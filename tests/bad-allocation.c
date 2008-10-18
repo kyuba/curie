@@ -48,11 +48,11 @@ static void *gm_recover(unsigned long int s)
         return (void *)1;
     }
 
-    a_exit(0);
+    cexit(0);
     return (void *)0;
 }
 
-int a_main(void) {
+int cmain(void) {
     void *y = get_mem (~0); /* try to allocate more memory than possible. */
 
     if (y != (void *)0) /* if this succeeded, something's wrong... */
@@ -63,7 +63,7 @@ int a_main(void) {
 
     if (y != (void *)1) return 2; /* value from gm_recover */
 
-    y = get_mem (~0); /* now it should call a_exit() */
+    y = get_mem (~0); /* now it should call cexit() */
 
     return 3;
 }

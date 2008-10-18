@@ -42,12 +42,12 @@
 
 static void mx_on_death(struct exec_context *cx, void *d) {
     if (cx->exitstatus == 4)
-        a_exit (0);
+        cexit (0);
 
-    a_exit (2);
+    cexit (2);
 }
 
-int a_main(void) {
+int cmain(void) {
     struct exec_context *context;
 
     multiplex_process();

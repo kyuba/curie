@@ -68,7 +68,7 @@ int generate_random_integers_file() {
     return 0;
 }
 
-int a_main () {
+int cmain () {
     return generate_random_integers_file();
 }
 

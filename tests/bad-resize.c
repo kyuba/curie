@@ -48,11 +48,11 @@ static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
         return (void *)1;
     }
 
-    a_exit(0);
+    cexit(0);
     return (void *)0;
 }
 
-int a_main(void) {
+int cmain(void) {
     void *y = get_mem (1);
 
     if (y == (void *)0) return 1;
@@ -61,7 +61,7 @@ int a_main(void) {
     void *z = resize_mem (1, y, ~0); /* rm_recover (hopefully) */
 
     if (z != (void *)1) return 2; /* value from rm_recover */
-    resize_mem (1, y, ~0); /* now it should call a_exit() */
+    resize_mem (1, y, ~0); /* now it should call cexit() */
 
     return 3;
 }

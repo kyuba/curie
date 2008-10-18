@@ -42,7 +42,7 @@
 #define TESTDATA "THIS IS SOME TEST DATA"
 #define TESTDATA_LENGTH (unsigned int)(sizeof(TESTDATA) -1)
 
-int a_main(void) {
+int cmain(void) {
     struct io *out = io_open_write ("temporary-io-test-file"), *in;
     char cont = (char)1;
     unsigned int i;

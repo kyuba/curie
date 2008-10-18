@@ -48,10 +48,10 @@ curie_environment:
         .long 0x0
 
 .globl _start
-.globl a_exit
+.globl cexit
 
 .type _start,                    @function
-.type a_exit,                    @function
+.type cexit,                     @function
 
 .text
 
@@ -94,9 +94,9 @@ _3:
 
 _4:
         addi    1, 1, -16
-        bl      a_main
+        bl      cmain
 
-a_exit:
+cexit:
         li      0, 1
         sc
 

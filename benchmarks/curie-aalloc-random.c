@@ -82,7 +82,7 @@ int test_aalloc_random_sizes () {
     return 0;
 }
 
-int a_main() {
+int cmain() {
     int r;
 
     if ((r = read_random_integers_file()) != 0) return r;

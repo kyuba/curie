@@ -43,7 +43,7 @@ static void mx_on_read(struct sexpr *sx, struct sexpr_io *io, void *n) {
     if (sx != sx_end_of_file) sx_write (io, sx);
 }
 
-int a_main(void) {
+int cmain(void) {
     struct io *r = io_open_read("tests/data/sexpr-read-test-data"),
               *w = io_open_write("temporary-multiplexer-sexpr-test-data");
     struct sexpr_io *io = sx_open_io (r, w);

@@ -207,7 +207,7 @@ struct io {
 };
 
 
-/*! \brief Open FD
+/*! \brief Open File Desriptor
  *  \param[in] fd The file descriptor to use.
  *  \return A new struct io. (struct io *)0 is only returned for memory
  *          allocation errors.

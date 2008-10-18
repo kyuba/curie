@@ -55,12 +55,12 @@ curie_environment:
 .text
         .align 8
 
-.globl a_main
-        .type a_main,             @function
+.globl cmain
+        .type cmain,              @function
 .globl _start
         .type _start,             @function
-.globl	a_exit
-        .type a_exit,             @function
+.globl cexit
+        .type cexit,              @function
 
 
 /* C-functions: */
@@ -117,9 +117,9 @@ environment_done_prematurely:
         movq    $0, (%rax)
 environment_done:
 
-        call a_main
+        call cmain
         movq %rax, %rdi
-a_exit:
+cexit:
         movq $60, %rax /* sys_exit */
         syscall
 

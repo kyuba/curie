@@ -163,7 +163,7 @@ static unsigned int test_tree_random_node_removal(unsigned int keys) {
     return 0;
 }
 
-int a_main(void) {
+int cmain(void) {
     unsigned int i;
 
     for (i = 2; i < MAXKEYNUM; i++) {

@@ -39,8 +39,8 @@
 /*! \file
  *  \brief Main Function
  *
- *  This header declares the a_main() function for libcure applications. It also
- *  has random, rarely-used functions.
+ *  This header declares the cmain() function for libcurie applications and the
+ *  cexit() function.
  */
 
 #ifndef LIBCURIE_MAIN_H
@@ -50,11 +50,35 @@
 extern "C" {
 #endif
 
-/*@noreturn@*/ void a_exit (int status);
+/*! \brief Terminate Process
+ *  \param[in] status The status code to return.
+ *
+ *  After calling this function, the process will terminate and return the given
+ *  status code to the calling process.
+ */
+/*@noreturn@*/ void cexit (int status);
 
-int a_main();
 
+/*! \brief Main Function
+ *  \return The status code to return to the calling process.
+ *
+ *  This is the main entry point for plain curie applications. Once this
+ *  function terminates, the process will also terminate.
+ */
+int cmain();
+
+/*! \brief Command-line Arguments
+ *
+ *  This array contains the command-line arguments passed to the application, if
+ *  applicable.
+ */
 /*@null@*/ extern char **curie_argv;
+
+/*! \brief Process Environment
+ *
+ *  This array contains the process environment that the prgramme was run in, if
+ *  applicable.
+ */
 /*@null@*/ extern char **curie_environment;
 
 #ifdef __cplusplus

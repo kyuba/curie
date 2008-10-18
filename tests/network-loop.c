@@ -44,7 +44,7 @@
 #define TEST_STRING_1 "hello-world!"
 #define TEST_STRING_2 "hello \"world\"!"
 
-int a_main(void) {
+int cmain(void) {
     struct io *in, *out;
     struct sexpr_io *io, *stdio;
     struct sexpr *i, *t1, *t2;

@@ -44,7 +44,7 @@
 #define TEST_STRING_1 "hello-world!"
 #define TEST_STRING_2 "hello \"world\"!"
 
-int a_main(void) {
+int cmain(void) {
     struct exec_context *context;
     int rv = 0;
     struct sexpr *i,

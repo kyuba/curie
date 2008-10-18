@@ -40,7 +40,7 @@
 
 #define ARGV0 "./tests/environment"
 
-int a_main(void) {
+int cmain(void) {
     unsigned int i;
 
     if (curie_argv == (char **)0)

@@ -42,14 +42,14 @@
 #include "curie/main.h"
 
 static void mx_on_death(struct exec_context *cx, void *d) {
-    a_exit (2);
+    cexit (2);
 }
 
 static void sx_read_child(struct sexpr *sx, struct sexpr_io *io, void *d)
 {
     if (sx == sx_end_of_file) {
         sx_close_io (io);
-        a_exit (4);
+        cexit (4);
     }
 
     sx_write (io, sx);
@@ -59,7 +59,7 @@ static void sx_read_parent_sexpr(struct sexpr *sx, struct sexpr_io *io, void *d)
 {
     if (sx == sx_end_of_file) {
         sx_close_io (io);
-        a_exit (8);
+        cexit (8);
     }
 
     sx_write (io, sx);
@@ -72,12 +72,12 @@ static void sx_read_parent(struct sexpr *sx, struct sexpr_io *io, struct sexpr *
     if (equalp(sx, sx_tests[num])) {
         if (num == 3) {
             sx_close_io (io);
-            a_exit (0);
+            cexit (0);
         } else {
             num++;
         }
     } else {
-        a_exit (10+num);
+        cexit (10+num);
     }
 }
 
@@ -97,7 +97,7 @@ static void sx_read_child_confirmation(struct sexpr *sx, struct sexpr_io *io, vo
     }
 }
 
-int a_main(void) {
+int cmain(void) {
     struct exec_context *context;
     struct sexpr *commence = make_symbol ("commence");
 

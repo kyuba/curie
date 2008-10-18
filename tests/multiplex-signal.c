@@ -41,11 +41,11 @@
 #include "curie/main.h"
 
 static enum signal_callback_result mx_sig_usr1(enum signal signal, void *wx) {
-    a_exit (0);
+    cexit (0);
     return scr_ditch;
 }
 
-int a_main(void) {
+int cmain(void) {
     multiplex_signal();
 
     multiplex_add_signal (sig_usr1, mx_sig_usr1, (void *)0);

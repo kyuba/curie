@@ -38,9 +38,9 @@
 
 #include "curie/main.h"
 
-int a_main(void) {
-/* test the a_exit() call */
-    a_exit(0);
+int cmain(void) {
+    /* test the cexit() call */
+    cexit(0);
     /*@-unreachable@*/
     return 1;
     /*@=unreachable@*/

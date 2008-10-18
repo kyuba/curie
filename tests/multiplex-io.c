@@ -52,7 +52,7 @@ static void mx_on_close(struct io *io, void *wx) {
     multiplex_del_io (w);
 }
 
-int a_main(void) {
+int cmain(void) {
     struct io *r = io_open_read("tests/reference/temporary-multiplexer-test-data"),
               *w = io_open_write("temporary-multiplexer-test-data");
 

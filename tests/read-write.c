@@ -41,7 +41,7 @@
 #define TESTDATA       "TEST-DATA"
 #define TESTDATA_SIZE  (int)(sizeof(TESTDATA)-1)
 
-int a_main(void) {
+int cmain(void) {
 /* test the a_create() and a_close() functions */
     int fd, i, j;
     char buffer[TESTDATA_SIZE];

@@ -100,7 +100,7 @@ static unsigned int test_tree_random(unsigned int keys) {
     return 0;
 }
 
-int a_main(void) {
+int cmain(void) {
     unsigned int i;
 
     for (i = 1; i < MAXKEYNUM; i++) {

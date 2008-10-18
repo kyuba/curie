@@ -43,7 +43,7 @@
 #include "curie/io.h"
 #include "curie/sexpr.h"
 
-int a_main(void) {
+int cmain(void) {
     struct io *out = io_open_write ("temporary-sexpr-read"),
               *in = io_open_read ("tests/data/sexpr-read-test-data");
 

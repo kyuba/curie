@@ -43,7 +43,7 @@
 #define SX_TEST_INTEGER (signed long int)1337
 #define SX_TEST_INTEGER2 (signed long int)-23
 
-int a_main(void) {
+int cmain(void) {
     struct io *out = io_open_write ("temporary-sexpr-write"), *in = io_open (0);
     struct sexpr_io *io = sx_open_io (in, out);
     struct sexpr *s = make_string (SX_TEST_STRING);

@@ -83,7 +83,7 @@ static unsigned int test_pool(unsigned int poolentitysize, unsigned int usepoole
     return rv;
 }
 
-int a_main(void) {
+int cmain(void) {
     unsigned int i, j;
 
     for (i = 1; i < MAXSIZE; i++) {

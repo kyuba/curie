@@ -41,7 +41,7 @@
 #define STRING1 "hello world"
 #define STRING1_LENGTH (unsigned int)(sizeof(STRING1)-1)
 
-int a_main(void) {
+int cmain(void) {
     const char *immutable_ref1 = str_immutable_unaligned (STRING1);
     const char *immutable_ref2 = str_immutable_unaligned (immutable_ref1),
                *immutable_ref3 = str_immutable_unaligned (STRING1);

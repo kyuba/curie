@@ -42,7 +42,7 @@
 
 #define MAXLABEL 2048
 
-int a_main (void) {
+int cmain (void) {
     struct graph *forest = graph_create();
     struct sexpr *s = make_integer(1);
     struct sexpr *s2 = make_integer(2);

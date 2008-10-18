@@ -58,7 +58,7 @@ class X {
     char *text;
 };
 
-extern "C" int a_main() {
+extern "C" int cmain() {
   X *y = new X("meow");
   X z = X("success");
   X u;
