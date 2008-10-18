@@ -39,7 +39,7 @@
 /*! \file
  *  \brief Memory Management
  *
- *  Functions to allocate and deallocate memory.
+ *  Functions for dynamic memory management.
  */
 
 #ifndef LIBCURIE_MEMORY_H
@@ -51,57 +51,242 @@ extern "C" {
 
 #include <curie/constants.h>
 
-void set_get_mem_recovery_function (/*@null@*/ void *(*handler)(unsigned long int));
-void set_resize_mem_recovery_function (/*@null@*/ void *(*handler)(unsigned long int, void *, unsigned long int));
+/*! \brief Define get_mem() Recovery Function
+ *  \param[in] handler Pointer to the recovery function.
+ *
+ *  This function is called when get_mem() can't allocate any memory, and its
+ *  result is returned instead of the (void *)0 that get_mem() would return.
+ */
+void set_get_mem_recovery_function 
+        (/*@null@*/ void *(*handler)(unsigned long int));
 
-/*@null@*/ /*@only@*/ void *get_mem(unsigned long int);
-/*@null@*/ /*@only@*/ void *resize_mem(unsigned long int, /*@notnull@*/ /*@only@*/ /*@returned@*/ void *, unsigned long int);
-void free_mem(unsigned long int, /*@notnull@*/ /*@only@*/ void *);
+/*! \brief Define resize_mem() Recovery Function
+ *  \param[in] handler Pointer to the recovery function.
+ *
+ *  This function is called when resize_mem() can't allocate any memory, and
+ *  its result is returned instead of the (void *)0 that resize_mem() would
+ *  return.
+ */
+void set_resize_mem_recovery_function
+        (/*@null@*/ void *(*handler)(unsigned long int, void *, unsigned long int));
 
-void mark_mem_ro (unsigned long int, /*@notnull@*/ void *);
-void mark_mem_rw (unsigned long int, /*@notnull@*/ void *);
+/*! \brief Allocate Memory
+ *  \param[in] size The number of bytes to allocate.
+ *  \return Pointer to the newly allocated chunk of memory, or (void*)0 if the
+ *          memory could not be allocated.
+ *
+ *  This function allocates memory and returns a pointer to the newly allocated
+ *  chunk. The memory is allocated in multiples of the pagesize, so if you only
+ *  need small amounts of memory, using this function wastes memory. On the
+ *  other hand, this function is usually very fast to allocate the memory.
+ */
+/*@null@*/ /*@only@*/ void *get_mem
+        (unsigned long int size);
 
+/*! \brief Resize Memory Block
+ *  \param[in] size    Current size of the block, in chunks.
+ *  \param[in] block   The block to resize.
+ *  \param[in] newsize The new size of the block.
+ *  \return Pointer to the resized chunk of memory, or (void*)0 if new memory to
+ *          hold the data could not be allocated.
+ *
+ *  This function takes a previously allocated block of memory and resizes it to
+ *  a new size. The contents of the block are kept in tact, unless the new size
+ *  is smaller than the current size, in which case the block's contents will be
+ *  truncated.
+ */
+/*@null@*/ /*@only@*/ void *resize_mem
+        (unsigned long int size,
+         /*@notnull@*/ /*@only@*/ /*@returned@*/ void * block,
+         unsigned long int newsize);
+
+/*! \brief Free Memory Block
+ *  \param[in] size  The size of the block.
+ *  \param[in] block The block to deallocate.
+ *
+ *  The passed block is deallocated, and its memory is returned to the OS. Any
+ *  further dereferences of the block are likely to trigger a SIGSEGV.
+ */
+void free_mem
+        (unsigned long int size, /*@notnull@*/ /*@only@*/ void * block);
+
+/*! \brief Make Block of Memory read-only
+ *  \param[in] size  The current size of the block.
+ *  \param[in] block The block to make read-only.
+ *
+ *  After calling this function, the given block of memory is set to read-only
+ *  mode, that is, writing to it should produce a segmentation violation.
+ *  Probably not all operating systems support this, but it may help in
+ *  tightening down memory access for those operating systems that do.
+ */
+void mark_mem_ro (unsigned long int size, /*@notnull@*/ void *block);
+
+/*! \brief Make Block of Memory writable
+ *  \param[in] size  The current size of the block.
+ *  \param[in] block The block to make writable.
+ *
+ *  Make the given block readable as well as writable. This is the default.
+ */
+void mark_mem_rw (unsigned long int size, /*@notnull@*/ void *block);
+
+/*! \brief Allocate a Chunk of Memory
+ *  \return Pointer to the newly allocated chunk of memory, or (void*)0 if the
+ *          memory could not be allocated.
+ *
+ *  Same as get_mem(), but it always allocates LIBCURIE_PAGE_SIZE bytes of
+ *  memory.
+ */
 /*@null@*/ /*@only@*/ void *get_mem_chunk();
 
+/*! \brief Free Memory allocated by get_mem_chunk()
+ *
+ *  Same as free_mem(), with the size parameter set to LIBCURIE_PAGE_SIZE.
+ */
 #define free_mem_chunk(p) free_mem(LIBCURIE_PAGE_SIZE, p)
 
-/* might need to find a better way to calculate this */
-#define BITSPERBITMAPENTITY (unsigned short)(sizeof(unsigned int)*8)
+/*! \brief Bitmap to keep track of used Entities memory_pool
+ *
+ *  This type is used to keep track of which entities in a memory pool are used.
+ */
+typedef BITMAPENTITYTYPE pool_bitmap[BITMAPMAPSIZE];
 
-/* this'll allow managing 512 entries per poolblock */
-#define BITMAPMAPSIZE (unsigned short)16
-#define BITMAPMAXBLOCKENTRIES (unsigned short)(BITMAPMAPSIZE * BITSPERBITMAPENTITY)
-
-typedef unsigned int bitmap[BITMAPMAPSIZE];
-
+/*! \brief Memory Pool Header
+ *
+ *  Each memory pool page uses this struct as its header. It's used to keep
+ *  track of which elements are still available, which are used, how big the
+ *  entities in the pool are, etc.
+ */
 struct memory_pool {
+    /*! \brief Entity Size
+     *
+     *  All elements of this pool frame have exactly this size, in bytes.
+     */
     unsigned long int entitysize;
+
+    /*! \brief Maximal Number of Elements
+     *
+     *  This is the number of entities that can be allocated from this pool
+     *  frame. The number is calculated when the pool frame is allocated.
+     */
     unsigned short maxentities;
+
+    /*! \brief Optimisation Counter
+     *
+     *  Once this counter reaches zero, the pool is optimised, i.e. empty frames
+     *  are removed.
+     */
     unsigned short optimise_counter;
 
+    /*! \brief Next Frame
+     *
+     *  This is a pointer to the next pool frame, or (struct memory_pool *)0 if
+     *  there is no next frame.
+     */
     /*@null@*/ /*@only@*/ struct memory_pool *next;
 
-    bitmap map;
+    /*! \brief Allocation Bitmap
+     *
+     *  This bitmap is used to keep track of which entities are still available.
+     *  When an entity is given out by get_pool_mem(), the corresponding bit in
+     *  this bitmap is set to 1, so that it won't be given out again. Once it's
+     *  deallocated with free_pool_mem(), it's set to 0.
+     */
+    pool_bitmap map;
 };
 
-#define MEMORY_POOL_INITIALISER(size) {\
-  .entitysize = (size), \
-  .maxentities = 0, \
-  .optimise_counter = 300, \
-  .map = {~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0}, \
-  .next = (struct memory_pool *)0 }
+/*! \brief Static Memory Pool Initialiser
+ *  \param[in] size The size of the entities to get from the pool.
+ *  \return Sentinel pool frame.
+ *
+ *  Just like create_memory_pool(), but you get to use it as a static
+ *  initialiser, that is it's legit to use it when defining file-scope variables
+ *  or static variables.
+ */
+#define MEMORY_POOL_INITIALISER(size) { size, 0, 300, (struct memory_pool *)0 }
 
-/*@null@*/ /*@only@*/ struct memory_pool *create_memory_pool (unsigned long int entitysize);
-void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *);
+/*! \brief Create a new Memory Pool
+ *  \param[in] entitysize The size of the entities to get from the pool.
+ *  \return New pool frame, or (struct memory_pool *)0 if get_mem() failed.
+ *
+ *  Initialises a new memory pool that returns elements of the given entitysize.
+ */
+/*@null@*/ /*@only@*/ struct memory_pool *create_memory_pool
+        (unsigned long int entitysize);
 
-/*@null@*/ /*@only@*/ void *get_pool_mem(/*@notnull@*/ struct memory_pool *);
-void free_pool_mem(/*@notnull@*/ /*@only@*/void *);
+/*! \brief Free a Memory Pool
+ *  \param[in] pool The pool to deallocate.
+ *
+ *  Return all the memory assoicated with the pool argument back to the
+ *  operating system. Using either the passed pool, or any entities retrieved
+ *  from it after this function has been called results in a segmentation
+ *  violation.
+ */
+void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *pool);
 
-void optimise_memory_pool (/*@notnull@*/ struct memory_pool *);
+/*! \brief Get Memory from Pool
+ *  \param[in] pool The pool to allocate from.
+ *  \return Pointer to the new entity, or (void *)0 if no entities were
+ *          available and get_mem() failed to allocate memory for a new frame.
+ *
+ *  This allocates an entity of pool's entitiy size from the given pool. It is
+ *  up to the caller to remember how big entities in the pool are.
+ */
+/*@null@*/ /*@only@*/ void *get_pool_mem
+        (/*@notnull@*/ struct memory_pool *pool);
 
-/*@null@*/ /*@only@*/ void *aalloc   (unsigned long);
-/*@null@*/ /*@only@*/ void *arealloc (unsigned long, /*@notnull@*/ /*@only@*/ void *, unsigned long);
-void afree (unsigned long, /*@notnull@*/ /*@only@*/ void *);
+/*! \brief Free Memory allocated from a Memory Pool
+ *  \param[in] entity The entity to deallocate.
+ *
+ *  The given entity's address is marked as being available for subsequent
+ *  allocations. The memory is not returned to the operating system immediately,
+ *  it's only made available for subsequent allocations.
+ */
+void free_pool_mem(/*@notnull@*/ /*@only@*/void *entity);
+
+/*! \brief Optimise Memory Pool
+ *  \param[in] pool The pool to clean up.
+ *
+ *  This function prunes the pool of empty frames, that is frames where all
+ *  entities are still available. The memory associated with these frames is
+ *  returned to the operating system.
+ */
+void optimise_memory_pool (/*@notnull@*/ struct memory_pool *pool);
+
+
+/*! \brief Allocate Memory
+ *  \param[in] size The number of bytes to allocate.
+ *  \return The allocated block, or (void *)0 if no memory is available.
+ *
+ *  Allocate the requested number of bytes. This function uses either get_mem()
+ *  or a memory pool, depending on the size to allocate. If you're thinking
+ *  malloc(), and you don't know how big your memory is going to be, use this.
+ */
+/*@null@*/ /*@only@*/ void *aalloc
+        (unsigned long size);
+
+/*! \brief Resize Memory
+ *  \param[in] size    The current size of the block.
+ *  \param[in] block   The block to resize.
+ *  \param[in] newsize The new size.
+ *  \return The resized block, or (void *)0 if no memory was available.
+ *
+ *  This resizes the given block of memory from size to newsize. Only use this
+ *  function for memory you've gotten from aalloc().
+ */
+/*@null@*/ /*@only@*/ void *arealloc
+        (unsigned long size,
+         /*@notnull@*/ /*@only@*/ void *block,
+         unsigned long newsize);
+
+/*! \brief Free Memory
+ *  \param[in] size  The current size of the block.
+ *  \param[in] block The block to deallocate.
+ *
+ *  This deallocates a block that was allocated with aalloc(). Depending on the
+ *  size of the block, the memory may or may not be available to the operating
+ *  system right after this call.
+ */
+void afree (unsigned long size, /*@notnull@*/ /*@only@*/ void *block);
 
 #ifdef __cplusplus
 }

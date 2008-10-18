@@ -56,7 +56,7 @@ extern "C" {
  */
 
 /*! \brief Create or find immutable Copy of a String
- *  \brief[in] s The string to make an immutable copy of.
+ *  \param[in] s The string to make an immutable copy of.
  *  \return An immutable copy of the string parameter.
  *
  *  This function will generate an immutable copy of the given string, or return
@@ -69,8 +69,8 @@ const char *str_immutable
         (/*@notnull@*/ /*@returned@*/ /*@observer@*/ const char *s);
 
 /*! \brief Create immutable Copy of arbitrary Data
- *  \brief[in] data   The data to make an immutable copy of.
- *  \brief[in] length The length of the data, in bytes.
+ *  \param[in] data   The data to make an immutable copy of.
+ *  \param[in] length The length of the data, in bytes.
  *  \return An immutable copy of the data parameter.
  *
  *  Similarly to str_immutable(), non-string data should be storable in the
@@ -92,7 +92,7 @@ const void *immutable
 void lock_immutable_pages ( void );
 
 /*! \brief Create or find immutable Copy of a String, regardless of Alignment
- *  \brief[in] s The string to make an immutable copy of.
+ *  \param[in] s The string to make an immutable copy of.
  *  \return An immutable copy of the string parameter.
  *
  * The str_immutable() function expects its parameter to be aligned to an 8-byte

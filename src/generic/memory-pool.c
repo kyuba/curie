@@ -46,23 +46,23 @@ static unsigned int bitmap_getslot(unsigned int b) {
     return (unsigned int)(b / BITSPERBITMAPENTITY);
 }
 
-static void bitmap_set(bitmap m, unsigned int b) {
+static void bitmap_set(pool_bitmap m, unsigned int b) {
     unsigned int s = bitmap_getslot(b);
     m[s] |= 1 << (b%BITSPERBITMAPENTITY);
 }
 
-static void bitmap_clear(bitmap m, unsigned int b) {
+static void bitmap_clear(pool_bitmap m, unsigned int b) {
     unsigned int s = bitmap_getslot(b);
     m[s] &= ~(1 << (b%BITSPERBITMAPENTITY));
 }
 
-static unsigned char bitmap_isset(bitmap m, unsigned int b) {
+static unsigned char bitmap_isset(pool_bitmap m, unsigned int b) {
     unsigned int s = bitmap_getslot(b);
 
     return (unsigned char)((m[s] & (1 << (b%BITSPERBITMAPENTITY))) != 0);
 }
 
-static unsigned char bitmap_isempty(bitmap m) {
+static unsigned char bitmap_isempty(pool_bitmap m) {
     unsigned int i;
     for (i = 0; i < BITMAPMAPSIZE; i++) {
         if (m[i] != 0) return (unsigned char)0;

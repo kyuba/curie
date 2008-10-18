@@ -73,6 +73,30 @@ extern "C" {
  */
 #define CURIE_POOL_CUTOFF 1024
 
+/*! \brief pool_bitmap: Entity Type
+ *
+ *  This is the type used for the pool_bitmap array.
+ */
+#define BITMAPENTITYTYPE unsigned int
+
+/*! \brief pool_bitmap: Bits per Entity
+ *
+ *  This is the number of bits in BITMAPENTITYTYPE.
+ */
+#define BITSPERBITMAPENTITY (unsigned short)(sizeof(BITMAPENTITYTYPE)*8)
+
+/*! \brief pool_bitmap: Number of Elements
+ *
+ *  This is the number of BITMAPENTITYTYPE elements in pool_bitmap.
+ */
+#define BITMAPMAPSIZE (unsigned short)16
+
+/*! \brief pool_bitmap: Total Number of Bits
+ *
+ *  This is the number of bits in pool_mem that may be used.
+ */
+#define BITMAPMAXBLOCKENTRIES (unsigned short)(BITMAPMAPSIZE * BITSPERBITMAPENTITY)
+
 /*! \brief The chunk size for I/O buffers
  *
  *  I/O buffers are always allocated in multiples of this. The default of 
