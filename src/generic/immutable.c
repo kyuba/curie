@@ -119,7 +119,7 @@ const char *str_immutable (const char * string) {
 
     tree_add_node (&immutable_strings, (int_pointer)rv);
 
-    tree_add_node_value (&immutable_string_hashes, hash, (const void *)rv);
+    tree_add_node_value (&immutable_string_hashes, hash, (void *)rv);
 
     return rv;
 }

@@ -38,8 +38,8 @@
 
 /*! \file
  *  \brief Specific-length integers
- */
-/*  This file is rather platform/architecture specific, so this header file
+ *
+ *  This file is rather platform/architecture specific, so this header file
  *  may need porting, depending on the target architecture. for this very
  *  purpose, the build system is capable of feeding the compiler with
  *  appropriate path information to allow overrides in the include/ directory.
@@ -57,35 +57,37 @@
 extern "C" {
 #endif
 
-/*! \brief Unsigned Integer with the Length as a Pointer */
-/*
+/*! \brief Unsigned Integer with the Length of a Pointer
+ *
  * Longs should be the same length as pointers, really... we'll see compiler
  * warnings if it ain't anyway, but the long<>pointer size thing holds true on
- * the platforms that are of most concern to me, so it should be good enough.
+ * all the archs i've tried so far (which means x86, amd64 and ppc).
  */
 typedef unsigned long int_pointer;
 
-/*! \brief Unsigned Integer with a Length of at least 64 Bits */
-/*
- * This is either 64 bits or we can't get anything that long anyway
+/*! \brief Unsigned Integer with a Length of 64 Bits
+ *
+ *  This could be most troublesome between archs. I see trouble for this on at
+ *  least DOS/x86 in real mode.
  */
 typedef unsigned long long int_64;
 
-/*! \brief Unsigned Integer with a Length of at least 32 Bits */
-/*
- * An astounishing lot of machines use 32-bit ints ...
+/*! \brief Unsigned Integer with a Length of 32 Bits
+ *
+ *  Most archs these days seem to have 32-bit ints.
  */
 typedef unsigned int int_32;
 
-/*! \brief Unsigned Integer with a Length of at least 16 Bits */
-/*
- * ... and 16-bit shorts ...
+/*! \brief Unsigned Integer with a Length of 16 Bits
+ *
+ *  This should be true on just about anything, really.
  */
 typedef unsigned short int_16;
 
-/*! \brief Unsigned Integer with a Length of at least 8 Bits */
-/*
- * ... and 8-bit chars.
+/*! \brief Unsigned Integer with a Length of 8 Bits
+ *
+ *  I know of at least one arch that uses 9-bit chars, but it's rare and the
+ *  arch is way old.
  */
 typedef unsigned char int_8;
 

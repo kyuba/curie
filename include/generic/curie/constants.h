@@ -73,6 +73,14 @@ extern "C" {
  */
 #define CURIE_POOL_CUTOFF 1024
 
+/*! \brief The chunk size for I/O buffers
+ *
+ *  I/O buffers are always allocated in multiples of this. The default of 
+ *  LIBCURIE_PAGE_SIZE should work quite fine for most purposes, especially
+ *  since get_mem() is used to get memory for I/O buffers.
+ */
+#define IO_CHUNKSIZE LIBCURIE_PAGE_SIZE
+
 #ifdef __cplusplus
 }
 #endif

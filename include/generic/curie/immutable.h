@@ -56,20 +56,31 @@ extern "C" {
  */
 
 /*! \brief Create or find immutable Copy of a String
+ *  \brief[in] s The string to make an immutable copy of.
+ *  \return An immutable copy of the string parameter.
  *
  *  This function will generate an immutable copy of the given string, or return
  *  a pointer to a previously generated immutable copy of the same string.
  *
  *  \note The input string MUST be aligned and padded to eight-byte boundaries!
  */
-/*@null@*/ /*@shared@*/ /*@observer@*/ const char *str_immutable (/*@notnull@*/ /*@returned@*/ /*@observer@*/ const char *);
+/*@null@*/ /*@shared@*/ /*@observer@*/
+const char *str_immutable
+        (/*@notnull@*/ /*@returned@*/ /*@observer@*/ const char *s);
 
 /*! \brief Create immutable Copy of arbitrary Data
+ *  \brief[in] data   The data to make an immutable copy of.
+ *  \brief[in] length The length of the data, in bytes.
+ *  \return An immutable copy of the data parameter.
  *
  *  Similarly to str_immutable(), non-string data should be storable in the
  *  same way, so here we go.
+ *
+ *  \note Data need not be aligned and padded to eight-byte boundaries.
  */
-/*@null@*/ /*@shared@*/ /*@observer@*/ const void *immutable (/*@notnull@*/ /*@observer@*/ const void *, unsigned long);
+/*@null@*/ /*@shared@*/ /*@observer@*/
+const void *immutable
+        (/*@notnull@*/ /*@observer@*/ const void *data, unsigned long length);
 
 /*! \brief Lock current Memory Pages with immutable Data
  *
@@ -81,6 +92,8 @@ extern "C" {
 void lock_immutable_pages ( void );
 
 /*! \brief Create or find immutable Copy of a String, regardless of Alignment
+ *  \brief[in] s The string to make an immutable copy of.
+ *  \return An immutable copy of the string parameter.
  *
  * The str_immutable() function expects its parameter to be aligned to an 8-byte
  * boundary, as well as zero-padded to the next 8-byte boundary, unless its a
@@ -88,7 +101,9 @@ void lock_immutable_pages ( void );
  * these alignment-constraints in case you dont know if your input meets these
  * criteria.
  */
-/*@null@*/ /*@shared@*/ /*@observer@*/ const char *str_immutable_unaligned (/*@notnull@*/ /*@returned@*/ /*@observer@*/ const char *);
+/*@null@*/ /*@shared@*/ /*@observer@*/
+const char *str_immutable_unaligned
+        (/*@notnull@*/ /*@returned@*/ /*@observer@*/ const char *s);
 
 #endif
 
