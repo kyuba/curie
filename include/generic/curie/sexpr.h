@@ -70,10 +70,10 @@ struct sexpr_generic;
  */
 typedef struct sexpr_generic * sexpr;
 
-/*! \defgroup sexpr_representation In-Memory Representation
+/*! \internal
+ *  \defgroup sexpr_representation In-Memory Representation
  *  \ingroup sexpr
  *  \brief In-Memory Representation of S-Expressions
- *  \internal
  *
  *  These data structures define the runtime memory layout for s-expressions.
  *  You really shouldn't need to grok into this too much.
@@ -82,6 +82,7 @@ typedef struct sexpr_generic * sexpr;
  */
 
 /*! \brief S-Expression Type
+ *  \internal
  *
  *  All S-expressions have a type, which is part of their in-memory
  *  representation.
@@ -94,14 +95,12 @@ enum sx_type {
     sxt_string = 4,           /*!< String, i.e. "string" */
     sxt_symbol = 5,           /*!< Symbol, i.e. symbol */
     sxt_cons = 6,             /*!< Cons, i.e. (x . y) */
-    sxt_empty_list = 7,       /*!< \internal
-                               *   Empty List */
+    sxt_empty_list = 7,       /*!< Empty List */
     sxt_end_of_list = 8,      /*!< End of a List, i.e. () */
     sxt_end_of_file = 9,      /*!< End of File */
     sxt_not_a_number = 10,    /*!< Not-a-Number */
     sxt_nonexistent = 11,     /*!< Nonexistent (used in return values) */
-    sxt_dot = 12              /*!< \internal
-                               *   Dot, i.e. . */
+    sxt_dot = 12              /*!< Dot, i.e. . */
 };
 
 /*! \brief Generic S-Expressions
@@ -119,7 +118,6 @@ struct sexpr_generic {
     enum sx_type type;
 
     /*! \brief Reference Count
-     *  \internal
      *
      *  This keeps track of how often this particular expression is in use.
      */
@@ -140,7 +138,6 @@ struct sexpr_integer {
     enum sx_type type;
 
     /*! \brief Reference Count
-     *  \internal
      *
      *  This keeps track of how often this particular expression is in use.
      */
@@ -167,7 +164,6 @@ struct sexpr_cons {
     enum sx_type type;
 
     /*! \brief Reference Count
-     *  \internal
      *
      *  This keeps track of how often this particular expression is in use.
      */
@@ -201,7 +197,6 @@ struct sexpr_string_or_symbol {
     enum sx_type type;
 
     /*! \brief Reference Count
-     *  \internal
      *
      *  This keeps track of how often this particular expression is in use.
      */

@@ -62,8 +62,8 @@ extern "C" {
  *  modes would effectively invalidate the buffer of an associated struct io.
  */
 enum io_type {
-    /*! \brief Undefined I/O Mode
-     *  \internal
+    /*! \internal
+     *  \brief Undefined I/O Mode
      *
      *  This is the initial value of io->type, and should not be used for
      *  anything else.
@@ -91,8 +91,8 @@ enum io_type {
  *  This enum is used to specify the outcome of an I/O operation.
  */
 enum io_result {
-    /*! \brief Undefined Result
-     *  \internal
+    /*! \internal
+     *  \brief Undefined Result
      *
      *  This is only used as the initial value of io->status fields.
      */
