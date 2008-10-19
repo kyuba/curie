@@ -36,7 +36,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \defgroup memory Memory Management
+ *
+ *  Dynamic memory management for Curie applications consists of three more or
+ *  less distinct types of memory allocation: The first type is used to get
+ *  memory pages from the OS, the second type is special memory pools, and the
+ *  third type is something that works almost like malloc().
+ */
+
 /*! \file
+ *  \ingroup memory
  *  \brief Memory Management
  *
  *  Functions for dynamic memory management.
@@ -50,6 +59,19 @@ extern "C" {
 #endif
 
 #include <curie/constants.h>
+
+/*! \defgroup memoryExceptions Exception Handling
+ *  \ingroup memory
+ *  \brief Memory Allocation Exceptions
+ *
+ *  These functions help with handling memory allocation exceptions (usually
+ *  that's when there's no more memory to get).
+ *
+ *  Only the block allocation functions may generate exceptions, because the
+ *  two other allocation schemes rely on the block allocation.
+ *
+ *  @{
+ */
 
 /*! \brief Define get_mem() Recovery Function
  *  \param[in] handler Pointer to the recovery function.
@@ -69,6 +91,25 @@ void set_get_mem_recovery_function
  */
 void set_resize_mem_recovery_function
         (/*@null@*/ void *(*handler)(unsigned long int, void *, unsigned long int));
+
+/*! @} */
+
+/*! \defgroup memoryBlocks Block Allocation
+ *  \ingroup memory
+ *  \brief Allocation of Blocks of Memory that are multiples of the Page Size
+ *
+ *  Memory blocks are always fetched from the operating system in large chunks,
+ *  for example with mmap() to get anonymous memory on POSIX systems. If you
+ *  only have small amounts of memory, i.e. anything smaller than 2 or so
+ *  kilobytes, then using this allocation scheme will waste a good deal of
+ *  memory. On the bright side, this type of allocation is also quite possibly
+ *  the fastests, and most of the complexity is left for the operating system to
+ *  optimise.
+ *
+ *  \note The two other allocation mechanisms rely on this one.
+ *
+ *  @{
+ */
 
 /*! \brief Allocate Memory
  *  \param[in] size The number of bytes to allocate.
@@ -144,13 +185,17 @@ void mark_mem_rw (unsigned long int size, /*@notnull@*/ void *block);
  */
 #define free_mem_chunk(p) free_mem(LIBCURIE_PAGE_SIZE, p)
 
-/*! \brief Bitmap to keep track of used Entities memory_pool
+/*! @} */
+
+/*! \brief Bitmap to keep track of used Entities in memory_pool
+ *  \internal
  *
  *  This type is used to keep track of which entities in a memory pool are used.
  */
 typedef BITMAPENTITYTYPE pool_bitmap[BITMAPMAPSIZE];
 
-/*! \brief Memory Pool Header
+/*! \brief Memory Pool Page Header
+ *  \internal
  *
  *  Each memory pool page uses this struct as its header. It's used to keep
  *  track of which elements are still available, which are used, how big the

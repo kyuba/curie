@@ -71,7 +71,7 @@ struct sexpr_generic;
 typedef struct sexpr_generic * sexpr;
 
 /*! \internal
- *  \defgroup sexpr_representation In-Memory Representation
+ *  \defgroup sexprRepresentation In-Memory Representation
  *  \ingroup sexpr
  *  \brief In-Memory Representation of S-Expressions
  *
@@ -218,7 +218,7 @@ struct sexpr_string_or_symbol {
 
 /*! @} */
 
-/*! \defgroup sexpr_io In-/Output
+/*! \defgroup sexprIO In-/Output
  *  \ingroup sexpr
  *  \brief S-Expression In- and Output
  *
@@ -292,7 +292,7 @@ void sx_write
 
 /*! @} */
 
-/*! \defgroup sexpr_constructors Constructors
+/*! \defgroup sexprConstructors Constructors
  *  \ingroup sexpr
  *  \brief Making new S-Expressions and destroying old ones
  *
@@ -430,7 +430,7 @@ void sx_xref
 
 /*! @} */
 
-/*! \defgroup predicates Predicates
+/*! \defgroup sexprPredicates Predicates
  *  \ingroup sexpr
  *  \brief S-Expression Predicates
  *
@@ -583,7 +583,7 @@ void sx_xref
 
 /*! @} */
 
-/*! \defgroup sexpr_accessors Accessors
+/*! \defgroup sexprAccessors Accessors
  *  \ingroup sexpr
  *  \brief Accessing S-Expression Contents
  *
