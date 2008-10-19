@@ -42,7 +42,7 @@
  *
  *  This is libcurie, a small, minimalistic C library. It includes the bare
  *  minimum in functionality to get some use out of C, and some high-level
- *  concepts, such as parser for s-expressions, trees and graphs. The reason
+ *  concepts, such as a parser for s-expressions, trees and graphs. The reason
  *  for writing this C library is twofold. One reason is that if you try to
  *  write portable C code, you'll soon find that neither sticking to ANSI C nor
  *  POSIX C is portable enough to actually work, even on the more common
