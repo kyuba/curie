@@ -38,11 +38,10 @@
 
 /*! \defgroup sexpr S-Expressions
  *  \brief Symbolic Expression Handling
- *
- *  @{
  */
 
 /*! \file
+ *  \ingroup sexpr
  *  \brief S-expressions
  *
  *  Functions to parse, write and otherwise handle symbolic expressions, as used
@@ -63,6 +62,7 @@ extern "C" {
 
 struct sexpr_generic;
 /*! \brief S-Expression
+ *  \ingroup sexpr
  *
  *  Outside of the library, s-expressions should always be referenced by
  *  pointers. The library is nice enough to make sure never to return (sexpr)0
@@ -71,6 +71,7 @@ struct sexpr_generic;
 typedef struct sexpr_generic * sexpr;
 
 /*! \defgroup sexpr_representation In-Memory Representation
+ *  \ingroup sexpr
  *  \brief In-Memory Representation of S-Expressions
  *  \internal
  *
@@ -223,6 +224,7 @@ struct sexpr_string_or_symbol {
 /*! @} */
 
 /*! \defgroup sexpr_io In-/Output
+ *  \ingroup sexpr
  *  \brief S-Expression In- and Output
  *
  *  These functions deal with that pesky in- and output that makes normal
@@ -296,6 +298,7 @@ void sx_write
 /*! @} */
 
 /*! \defgroup sexpr_constructors Constructors
+ *  \ingroup sexpr
  *  \brief Making new S-Expressions and destroying old ones
  *
  *  @{
@@ -433,6 +436,7 @@ void sx_xref
 /*! @} */
 
 /*! \defgroup predicates Predicates
+ *  \ingroup sexpr
  *  \brief S-Expression Predicates
  *
  *  Predicates are functions (or function-like macros) that return a boolean
@@ -585,6 +589,7 @@ void sx_xref
 /*! @} */
 
 /*! \defgroup sexpr_accessors Accessors
+ *  \ingroup sexpr
  *  \brief Accessing S-Expression Contents
  *
  *  These functions (and function-macros) allow you to get to the actual
@@ -660,5 +665,3 @@ void *sx_list_map
 #endif
 
 #endif
-
-/*! @} */
