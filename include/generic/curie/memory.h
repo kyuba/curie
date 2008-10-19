@@ -187,6 +187,22 @@ void mark_mem_rw (unsigned long int size, /*@notnull@*/ void *block);
 
 /*! @} */
 
+/*! \defgroup memoryPools Memory Pools
+ *  \ingroup memory
+ *  \brief Pools of small Memory Entities with the same Size
+ *
+ *  These functions are more efficient for smaller amounts of memory: the memory
+ *  is allocated in chunks of the page size, and then divided up in smaller
+ *  chunks defined at pool creation time. Since all chunks are of the same size,
+ *  the total memory overhead for managing a multitude of chunks is reduced a
+ *  lot.
+ *
+ *  \note For best results, the individual entities should not exceed one fourth
+ *        of the target machine's pagesize.
+ *
+ *  @{
+ */
+
 /*! \brief Bitmap to keep track of used Entities in memory_pool
  *  \internal
  *
@@ -297,6 +313,21 @@ void free_pool_mem(/*@notnull@*/ /*@only@*/void *entity);
  */
 void optimise_memory_pool (/*@notnull@*/ struct memory_pool *pool);
 
+/*! @} */
+
+/*! \defgroup memoryMixed Mixed Memory Allocator
+ *  \ingroup memory
+ *  \brief Allocating Memory with less straightforward Characteristica
+ *
+ *  This allocation scheme should be used when the exact size of the memory
+ *  blocks aren't known in advance, or they vary a lot. Basically this allocator
+ *  will use the memory pools or blocks, depending on the size of the requested
+ *  memory at runtime.
+ *
+ *  If you're thinking in malloc() and free(), this is for you.
+ *
+ *  @{
+ */
 
 /*! \brief Allocate Memory
  *  \param[in] size The number of bytes to allocate.
@@ -332,6 +363,8 @@ void optimise_memory_pool (/*@notnull@*/ struct memory_pool *pool);
  *  system right after this call.
  */
 void afree (unsigned long size, /*@notnull@*/ /*@only@*/ void *block);
+
+/*! @} */
 
 #ifdef __cplusplus
 }
