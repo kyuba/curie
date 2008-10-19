@@ -41,23 +41,23 @@
 #include <curie/string.h>
 #include <curie/tree.h>
 
-static const struct sexpr_header _sx_nil =
+static const struct sexpr_generic _sx_nil =
   { .type = sxt_nil, .references = -1 };
-static const struct sexpr_header _sx_false =
+static const struct sexpr_generic _sx_false =
   { .type = sxt_false, .references = -1 };
-static const struct sexpr_header _sx_true =
+static const struct sexpr_generic _sx_true =
   { .type = sxt_true, .references = -1 };
-static const struct sexpr_header _sx_empty_list =
+static const struct sexpr_generic _sx_empty_list =
   { .type = sxt_empty_list, .references = -1 };
-static const struct sexpr_header _sx_end_of_list =
+static const struct sexpr_generic _sx_end_of_list =
   { .type = sxt_end_of_list, .references = -1 };
-static const struct sexpr_header _sx_end_of_file =
+static const struct sexpr_generic _sx_end_of_file =
   { .type = sxt_end_of_file, .references = -1 };
-static const struct sexpr_header _sx_not_a_number =
+static const struct sexpr_generic _sx_not_a_number =
   { .type = sxt_not_a_number, .references = -1 };
-static const struct sexpr_header _sx_nonexistent =
+static const struct sexpr_generic _sx_nonexistent =
   { .type = sxt_nonexistent, .references = -1 };
-static const struct sexpr_header _sx_dot =
+static const struct sexpr_generic _sx_dot =
   { .type = sxt_dot, .references = -1 };
 
 /*@-compmempass@*/
