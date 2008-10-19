@@ -100,10 +100,10 @@ void set_resize_mem_recovery_function
  *
  *  Memory blocks are always fetched from the operating system in large chunks,
  *  for example with mmap() to get anonymous memory on POSIX systems. If you
- *  only have small amounts of memory, i.e. anything smaller than 2 or so
- *  kilobytes, then using this allocation scheme will waste a good deal of
+ *  only have small amounts of memory, i.e. anything smaller than one or so
+ *  kilobyte, then using this allocation scheme will waste a good deal of
  *  memory. On the bright side, this type of allocation is also quite possibly
- *  the fastests, and most of the complexity is left for the operating system to
+ *  the fastest, and most of the complexity is left for the operating system to
  *  optimise.
  *
  *  \note The two other allocation mechanisms rely on this one.
