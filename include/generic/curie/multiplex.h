@@ -216,7 +216,7 @@ void multiplex_add_process (/*@notnull@*/ /*@only@*/ struct exec_context *contex
  *  when appropriate.
  */
 void multiplex_add_sexpr (/*@notnull@*/ /*@only@*/ struct sexpr_io *io,
-                          /*@null@*/ void (*on_read)(struct sexpr *, struct sexpr_io *, void *),
+                          /*@null@*/ void (*on_read)(sexpr, struct sexpr_io *, void *),
                           /*@null@*/ void *aux);
 
 #ifdef __cplusplus

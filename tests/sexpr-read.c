@@ -48,7 +48,7 @@ int cmain(void) {
               *in = io_open_read ("tests/data/sexpr-read-test-data");
 
     struct sexpr_io *io = sx_open_io (in, out);
-    struct sexpr* s;
+    sexpr s;
 
     do {
         s = sx_read (io);

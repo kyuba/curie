@@ -46,10 +46,10 @@
 int cmain(void) {
     struct io *out = io_open_write ("temporary-sexpr-write"), *in = io_open (0);
     struct sexpr_io *io = sx_open_io (in, out);
-    struct sexpr *s = make_string (SX_TEST_STRING);
-    struct sexpr *s1 = make_string (SX_TEST_STRING);
-    struct sexpr *s2 = make_integer(SX_TEST_INTEGER);
-    struct sexpr *list;
+    sexpr s = make_string (SX_TEST_STRING);
+    sexpr s1 = make_string (SX_TEST_STRING);
+    sexpr s2 = make_integer(SX_TEST_INTEGER);
+    sexpr list;
 
     sx_write (io, s);
 

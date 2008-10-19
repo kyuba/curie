@@ -138,7 +138,7 @@ void multiplex_add_socket_listener_sx
  */
 void multiplex_add_socket_sx
         (/*@notnull@*/ const char *path,
-         /*@null@*/ void (*on_read)(/*@shared@*/ struct sexpr *, struct sexpr_io *, void *),
+         /*@null@*/ void (*on_read)(/*@shared@*/ sexpr, struct sexpr_io *, void *),
          /*@null@*/ void *aux);
 
 #ifdef __cplusplus

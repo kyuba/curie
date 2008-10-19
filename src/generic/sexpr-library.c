@@ -38,10 +38,10 @@
 
 #include <curie/sexpr.h>
 
-void *sx_list_map (struct sexpr *sexpr, void (*callback)(struct sexpr *, void *), void *p);
-struct sexpr *sx_list_fold (struct sexpr *sexpr, void (*callback)(struct sexpr *));
+void *sx_list_map (sexpr sx, void (*callback)(sexpr, void *), void *p);
+sexpr sx_list_fold (sexpr sx, void (*callback)(sexpr ));
 
-struct sexpr *equalp (struct sexpr *a, struct sexpr *b) {
+sexpr equalp (sexpr a, sexpr b) {
     if (a == b) return sx_true;
     if (a->type != b->type) return sx_false;
 

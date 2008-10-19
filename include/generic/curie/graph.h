@@ -49,6 +49,7 @@
 
 
 #include <curie/int.h>
+#include <curie/sexpr.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,7 +83,7 @@ struct graph_node {
      *  This should be all the payload that is needed, since sexprs are able to
      *  represent just about anything.
      */
-    struct sexpr * label;
+    sexpr label;
 
     /*! \brief Edge Count
      *
@@ -114,7 +115,7 @@ struct graph_edge {
      *  The edge's label. Used in search operations, when a specific edge is
      *  needed.
      */
-    struct sexpr *label;
+    sexpr label;
 };
 
 /*! \brief Create a new Graph
@@ -142,7 +143,7 @@ void graph_destroy (struct graph *g);
  *  This creates a new graph node, adds it to the given graph and then assigns
  *  the given label to the node.
  */
-struct graph_node *graph_add_node (struct graph *g, struct sexpr *label);
+struct graph_node *graph_add_node (struct graph *g, sexpr label);
 
 /*! \brief Search for Graph Node
  *  \param[in] g     The graph to search in.
@@ -153,7 +154,7 @@ struct graph_node *graph_add_node (struct graph *g, struct sexpr *label);
  *  This function searches for the given label in the graph, and returns a node
  *  with that label, if one is found.
  */
-struct graph_node *graph_search_node (struct graph *g, struct sexpr *label);
+struct graph_node *graph_search_node (struct graph *g, sexpr label);
 
 /*! \brief Create Graph Edge
  *  \param[in] node   The originating node for the edge.
@@ -165,7 +166,7 @@ struct graph_node *graph_search_node (struct graph *g, struct sexpr *label);
  *  node to target with the given label.
  */
 struct graph_edge *graph_node_add_edge
-        (struct graph_node *node, struct graph_node *target, struct sexpr *label);
+        (struct graph_node *node, struct graph_node *target, sexpr label);
 
 /*! \brief Search for Graph Edge
  *  \param[in] node  The originating node to search from.
@@ -177,7 +178,7 @@ struct graph_edge *graph_node_add_edge
  *  an edge with a particular label, and return it if found.
  */
 struct graph_edge *graph_node_search_edge
-        (struct graph_node *node, struct sexpr *label);
+        (struct graph_node *node, sexpr label);
 
 #ifdef __cplusplus
 }

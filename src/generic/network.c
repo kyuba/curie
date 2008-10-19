@@ -323,7 +323,7 @@ struct sexpr_io *sx_open_socket (const char *path) {
     return sx_open_io (in, out);
 }
 
-void multiplex_add_socket_sx (const char *path, void (*on_read)(struct sexpr *, struct sexpr_io *, void *), void *d) {
+void multiplex_add_socket_sx (const char *path, void (*on_read)(sexpr, struct sexpr_io *, void *), void *d) {
     struct sexpr_io *io = sx_open_socket(path);
     if (io != (struct sexpr_io *)0)
         multiplex_add_sexpr (io, on_read, d);

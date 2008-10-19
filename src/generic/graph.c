@@ -50,7 +50,7 @@ struct graph * graph_create() {
     return gr;
 }
 
-struct graph_node * graph_add_node(struct graph * gr, struct sexpr *label) {
+struct graph_node * graph_add_node(struct graph * gr, sexpr label) {
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_node));
     struct graph_node *node = (struct graph_node *) get_pool_mem(&pool);
 
@@ -78,7 +78,7 @@ void graph_destroy (struct graph * gr) {
 }
 
 
-struct graph_node * graph_search_node(struct graph *gr, struct sexpr *label) {
+struct graph_node * graph_search_node(struct graph *gr, sexpr label) {
     for(int i = 0; i < gr->node_count; i++) {
         if(truep(equalp(gr->nodes[i]->label, label)))
            return gr->nodes[i];
@@ -87,7 +87,7 @@ struct graph_node * graph_search_node(struct graph *gr, struct sexpr *label) {
     return (struct graph_node *)0;
 }
 
-struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_node *target, struct sexpr *label) {
+struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_node *target, sexpr label) {
 
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_edge));
     struct graph_edge *edge = (struct graph_edge *) get_pool_mem(&pool);
@@ -107,7 +107,7 @@ struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_nod
     return edge;
 }
 
-struct graph_edge * graph_node_search_edge(struct graph_node *node, struct sexpr *label) {
+struct graph_edge * graph_node_search_edge(struct graph_node *node, sexpr label) {
     for(int i = 0; i < node->edge_count; i++) {
         if(truep(equalp(node->edges[i]->label, label)))
            return node->edges[i];

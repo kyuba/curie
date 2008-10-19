@@ -55,10 +55,10 @@ extern "C" {
 #endif
 
 //! compiles a given regex into a finite-state machine
-struct graph * rx_compile(struct sexpr *);
+struct graph * rx_compile(sexpr );
 
 //! matching is done here
-int rx_exec(struct graph *, struct sexpr *);
+int rx_exec(struct graph *, sexpr );
 
 //! frees the memory allocated to the finite_state machine
 void rx_free(struct graph *);

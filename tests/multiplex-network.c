@@ -45,7 +45,7 @@ static void mx_on_death(struct exec_context *cx, void *d) {
     cexit (2);
 }
 
-static void sx_read_child(struct sexpr *sx, struct sexpr_io *io, void *d)
+static void sx_read_child(sexpr sx, struct sexpr_io *io, void *d)
 {
     if (sx == sx_end_of_file) {
         sx_close_io (io);
@@ -55,7 +55,7 @@ static void sx_read_child(struct sexpr *sx, struct sexpr_io *io, void *d)
     sx_write (io, sx);
 }
 
-static void sx_read_parent_sexpr(struct sexpr *sx, struct sexpr_io *io, void *d)
+static void sx_read_parent_sexpr(sexpr sx, struct sexpr_io *io, void *d)
 {
     if (sx == sx_end_of_file) {
         sx_close_io (io);
@@ -65,7 +65,7 @@ static void sx_read_parent_sexpr(struct sexpr *sx, struct sexpr_io *io, void *d)
     sx_write (io, sx);
 }
 
-static void sx_read_parent(struct sexpr *sx, struct sexpr_io *io, struct sexpr *sx_tests[4])
+static void sx_read_parent(sexpr sx, struct sexpr_io *io, sexpr sx_tests[4])
 {
     static int num = 0;
 
@@ -81,16 +81,16 @@ static void sx_read_parent(struct sexpr *sx, struct sexpr_io *io, struct sexpr *
     }
 }
 
-static void sx_on_connect(struct sexpr_io *io, struct sexpr *sx_tests[4]) {
+static void sx_on_connect(struct sexpr_io *io, sexpr sx_tests[4]) {
     sx_write (io, sx_tests[0]);
     sx_write (io, sx_tests[1]);
     sx_write (io, sx_tests[2]);
     sx_write (io, sx_tests[3]);
 
-    multiplex_add_sexpr (io, (void (*)(struct sexpr *, struct sexpr_io *, void *))sx_read_parent, (void *)sx_tests);
+    multiplex_add_sexpr (io, (void (*)(sexpr, struct sexpr_io *, void *))sx_read_parent, (void *)sx_tests);
 }
 
-static void sx_read_child_confirmation(struct sexpr *sx, struct sexpr_io *io, void *d)
+static void sx_read_child_confirmation(sexpr sx, struct sexpr_io *io, void *d)
 {
     if ((void *)sx == d) {
         multiplex_add_socket_sx ("test-socket-sexpr-io", sx_read_child, (void *)0);
@@ -99,9 +99,9 @@ static void sx_read_child_confirmation(struct sexpr *sx, struct sexpr_io *io, vo
 
 int cmain(void) {
     struct exec_context *context;
-    struct sexpr *commence = make_symbol ("commence");
+    sexpr commence = make_symbol ("commence");
 
-    struct sexpr *sx_tests[4] = {
+    sexpr sx_tests[4] = {
         make_string ("hello world!"),
         make_integer (1337),
         make_symbol ("meow"),

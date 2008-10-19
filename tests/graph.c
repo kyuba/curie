@@ -44,17 +44,17 @@
 
 int cmain (void) {
     struct graph *forest = graph_create();
-    struct sexpr *s = make_integer(1);
-    struct sexpr *s2 = make_integer(2);
+    sexpr s = make_integer(1);
+    sexpr s2 = make_integer(2);
     struct graph_node *node1 = graph_add_node (forest, s);
     struct graph_node *node2 = graph_add_node (forest, s2);
 
     if (graph_search_node(forest, s) != node1) {
         return 1;
     }
-    
+
     struct graph_edge *edge1 = graph_node_add_edge(node1, node2, s2);
-    
+
     if(graph_node_search_edge(node1, s2) != edge1) {
         return 2;
     }

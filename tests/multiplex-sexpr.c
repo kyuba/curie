@@ -39,7 +39,7 @@
 #include "curie/io.h"
 #include "curie/multiplex.h"
 
-static void mx_on_read(struct sexpr *sx, struct sexpr_io *io, void *n) {
+static void mx_on_read(sexpr sx, struct sexpr_io *io, void *n) {
     if (sx != sx_end_of_file) sx_write (io, sx);
 }
 

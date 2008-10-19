@@ -47,7 +47,7 @@
 int cmain(void) {
     struct io *in, *out;
     struct sexpr_io *io, *stdio;
-    struct sexpr *i, *t1, *t2;
+    sexpr i, t1, t2;
     int rv = 0;
 
     net_open_loop(&in, &out);

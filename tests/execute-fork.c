@@ -47,10 +47,10 @@
 int cmain(void) {
     struct exec_context *context;
     int rv = 0;
-    struct sexpr *i,
-                 *t1 = make_symbol (TEST_STRING_1),
-                 *t2 = make_string (TEST_STRING_2),
-                 *t3 = make_symbol ("success");
+    sexpr i,
+          t1 = make_symbol (TEST_STRING_1),
+          t2 = make_string (TEST_STRING_2),
+          t3 = make_symbol ("success");
     struct sexpr_io *io, *stdio = sx_open_stdio();
 
     context = execute(0, (char **)0, (char **)0);

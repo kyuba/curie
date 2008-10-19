@@ -56,8 +56,8 @@
 
 static struct memory_pool sx_io_pool = MEMORY_POOL_INITIALISER(sizeof (struct sexpr_io));
 
-static void sx_write_dispatch (struct sexpr_io *io, struct sexpr *sexpr);
-/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_dispatch
+static void sx_write_dispatch (struct sexpr_io *io, sexpr sx);
+/*@notnull@*/ /*@shared@*/ static sexpr sx_read_dispatch
         (unsigned int *i, char *buf, unsigned int length);
 
 struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
@@ -105,7 +105,7 @@ void sx_close_io (struct sexpr_io *io) {
     free_pool_mem (io);
 }
 
-/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_string
+/*@notnull@*/ /*@shared@*/ static sexpr sx_read_string
         (unsigned int *i, char *buf, unsigned int length)
 {
     unsigned int j = *i, k = 0;
@@ -137,7 +137,7 @@ void sx_close_io (struct sexpr_io *io) {
     return sx_nonexistent;
 }
 
-/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_number
+/*@notnull@*/ /*@shared@*/ static sexpr sx_read_number
         (unsigned int *i, char *buf, unsigned int length)
 {
     unsigned int j = *i;
@@ -185,7 +185,7 @@ void sx_close_io (struct sexpr_io *io) {
     return sx_nonexistent;
 }
 
-/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_symbol
+/*@notnull@*/ /*@shared@*/ static sexpr sx_read_symbol
         (unsigned int *i, char *buf, int unsigned length)
 {
     unsigned int j = *i, k = 0;
@@ -250,16 +250,16 @@ void sx_close_io (struct sexpr_io *io) {
 }
 
 /*@-branchstate@*/
-/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_cons_finalise
-        (/*@shared@*/ struct sexpr *oreverse)
+/*@notnull@*/ /*@shared@*/ static sexpr sx_read_cons_finalise
+        (/*@shared@*/ sexpr oreverse)
 {
-    struct sexpr *result = sx_end_of_list;
-    struct sexpr *reverse = oreverse;
+    sexpr result = sx_end_of_list;
+    sexpr reverse = oreverse;
 
     while (consp(reverse)) {
-        struct sexpr *ncar = car (reverse);
+        sexpr ncar = car (reverse);
         if (dotp (ncar)) {
-            struct sexpr *nresult = car(result);
+            sexpr nresult = car(result);
             sx_xref (nresult);
             sx_destroy (result);
             result = nresult;
@@ -276,13 +276,13 @@ void sx_close_io (struct sexpr_io *io) {
 }
 /*@=branchstate@*/
 
-/*@notnull@*/ /*@shared@*/ static struct sexpr *sx_read_cons
+/*@notnull@*/ /*@shared@*/ static sexpr sx_read_cons
         (unsigned int *i, char *buf, unsigned int length)
 {
     /* i think the best we can do here, is to construct the list in reverse
        order using cons(), then once it's done we simply reverse it. */
     unsigned int j = *i;
-    struct sexpr *result = sx_end_of_list, *next;
+    sexpr result = sx_end_of_list, next;
 
     do {
         char comment = (char)0;
@@ -335,7 +335,7 @@ void sx_close_io (struct sexpr_io *io) {
     return sx_nonexistent;
 }
 
-static struct sexpr *sx_read_dispatch
+static sexpr sx_read_dispatch
         (unsigned int *i, char *buf, unsigned int length)
 {
     switch (buf[(*i)]) {
@@ -367,11 +367,11 @@ static struct sexpr *sx_read_dispatch
     }
 }
 
-struct sexpr *sx_read(struct sexpr_io *io) {
+sexpr sx_read(struct sexpr_io *io) {
     enum io_result r;
     char *buf;
     unsigned int i, length;
-    struct sexpr *result = sx_nonexistent;
+    sexpr result = sx_nonexistent;
     char comment = (char)0;
 
     do {
@@ -467,22 +467,22 @@ static void sx_write_string_or_symbol (struct io *io, struct sexpr_string_or_sym
     }
 }
 
-static void sx_write_cons (struct sexpr_io *io, struct sexpr_cons *sexpr) {
+static void sx_write_cons (struct sexpr_io *io, struct sexpr_cons *sx) {
     (void)io_collect (io->out, "(", 1);
 
   retry:
 
-    sx_write_dispatch (io, car(sexpr));
-    sexpr = (struct sexpr_cons *)cdr ((struct sexpr *)sexpr);
+    sx_write_dispatch (io, car(sx));
+    sx = (struct sexpr_cons *)cdr ((sexpr)sx);
 
-    if (consp(sexpr)) {
+    if (consp(sx)) {
         (void)io_collect (io->out, " ", 1);
         goto retry;
     }
 
-    if (!eolp(sexpr)) {
+    if (!eolp(sx)) {
         (void)io_collect (io->out, " . ", 3);
-        sx_write_dispatch (io, (struct sexpr *)sexpr);
+        sx_write_dispatch (io, (sexpr)sx);
     }
 
     (void)io_collect (io->out, ")", 1);
@@ -519,20 +519,20 @@ static void sx_write_integer (struct io *io, struct sexpr_integer *sexpr) {
     (void)io_collect (io, num+((MAX_NUMBER_LENGTH-1) -j), j);
 }
 
-static void sx_write_dispatch (struct sexpr_io *io, struct sexpr *sexpr)
+static void sx_write_dispatch (struct sexpr_io *io, sexpr sx)
 {
-    switch (sexpr->type) {
+    switch (sx->type) {
         case sxt_symbol:
         case sxt_string:
-            sx_write_string_or_symbol (io->out, (struct sexpr_string_or_symbol *)sexpr);
+            sx_write_string_or_symbol (io->out, (struct sexpr_string_or_symbol *)sx);
             break;
 
         case sxt_cons:
-            sx_write_cons (io, (struct sexpr_cons *)sexpr);
+            sx_write_cons (io, (struct sexpr_cons *)sx);
             break;
 
         case sxt_integer:
-            sx_write_integer (io->out, (struct sexpr_integer *)sexpr);
+            sx_write_integer (io->out, (struct sexpr_integer *)sx);
             break;
 
         case sxt_nil:
@@ -566,8 +566,8 @@ static void sx_write_dispatch (struct sexpr_io *io, struct sexpr *sexpr)
     }
 }
 
-void sx_write(struct sexpr_io *io, struct sexpr *sexpr) {
-    sx_write_dispatch(io, sexpr);
+void sx_write(struct sexpr_io *io, sexpr sx) {
+    sx_write_dispatch(io, sx);
 
     (void)io_write (io->out, "\n", 1);
 }

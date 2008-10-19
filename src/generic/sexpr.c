@@ -41,44 +41,44 @@
 #include <curie/string.h>
 #include <curie/tree.h>
 
-static const struct sexpr _sx_nil =
+static const struct sexpr_header _sx_nil =
   { .type = sxt_nil, .references = -1 };
-static const struct sexpr _sx_false =
+static const struct sexpr_header _sx_false =
   { .type = sxt_false, .references = -1 };
-static const struct sexpr _sx_true =
+static const struct sexpr_header _sx_true =
   { .type = sxt_true, .references = -1 };
-static const struct sexpr _sx_empty_list =
+static const struct sexpr_header _sx_empty_list =
   { .type = sxt_empty_list, .references = -1 };
-static const struct sexpr _sx_end_of_list =
+static const struct sexpr_header _sx_end_of_list =
   { .type = sxt_end_of_list, .references = -1 };
-static const struct sexpr _sx_end_of_file =
+static const struct sexpr_header _sx_end_of_file =
   { .type = sxt_end_of_file, .references = -1 };
-static const struct sexpr _sx_not_a_number =
+static const struct sexpr_header _sx_not_a_number =
   { .type = sxt_not_a_number, .references = -1 };
-static const struct sexpr _sx_nonexistent =
+static const struct sexpr_header _sx_nonexistent =
   { .type = sxt_nonexistent, .references = -1 };
-static const struct sexpr _sx_dot =
+static const struct sexpr_header _sx_dot =
   { .type = sxt_dot, .references = -1 };
 
 /*@-compmempass@*/
-struct sexpr * const sx_nil =
-        (struct sexpr * const)&_sx_nil;
-struct sexpr * const sx_false =
-        (struct sexpr * const)&_sx_false;
-struct sexpr * const sx_true =
-        (struct sexpr * const)&_sx_true;
-struct sexpr * const sx_empty_list =
-        (struct sexpr * const)&_sx_empty_list;
-struct sexpr * const sx_end_of_list =
-        (struct sexpr * const)&_sx_end_of_list;
-struct sexpr * const sx_end_of_file =
-        (struct sexpr * const)&_sx_end_of_file;
-struct sexpr * const sx_not_a_number =
-        (struct sexpr * const)&_sx_not_a_number;
-struct sexpr * const sx_nonexistent =
-        (struct sexpr * const)&_sx_nonexistent;
-struct sexpr * const sx_dot =
-        (struct sexpr * const)&_sx_dot;
+sexpr const sx_nil =
+        (sexpr const)&_sx_nil;
+sexpr const sx_false =
+        (sexpr const)&_sx_false;
+sexpr const sx_true =
+        (sexpr const)&_sx_true;
+sexpr const sx_empty_list =
+        (sexpr const)&_sx_empty_list;
+sexpr const sx_end_of_list =
+        (sexpr const)&_sx_end_of_list;
+sexpr const sx_end_of_file =
+        (sexpr const)&_sx_end_of_file;
+sexpr const sx_not_a_number =
+        (sexpr const)&_sx_not_a_number;
+sexpr const sx_nonexistent =
+        (sexpr const)&_sx_nonexistent;
+sexpr const sx_dot =
+        (sexpr const)&_sx_dot;
 /*@=compmempass@*/
 
 static struct memory_pool sx_cons_pool =
@@ -89,7 +89,7 @@ static struct memory_pool sx_int_pool =
 static struct tree sx_string_tree = TREE_INITIALISER;
 static struct tree sx_symbol_tree = TREE_INITIALISER;
 
-struct sexpr *cons(struct sexpr *sx_car, struct sexpr *sx_cdr) {
+sexpr cons(sexpr sx_car, sexpr sx_cdr) {
     struct sexpr_cons *rv = get_pool_mem (&sx_cons_pool);
 
     if (rv == (struct sexpr_cons *)0)
@@ -104,11 +104,11 @@ struct sexpr *cons(struct sexpr *sx_car, struct sexpr *sx_cdr) {
     rv->references = 1;
 
     /*@-memtrans -mustfree@*/
-    return (struct sexpr*)rv;
+    return (sexpr)rv;
     /*@=memtrans =mustfree@*/
 }
 
-struct sexpr *make_integer(signed long number) {
+sexpr make_integer(signed long number) {
     struct sexpr_integer *rv = get_pool_mem (&sx_int_pool);
 
     if (rv == (struct sexpr_integer *)0)
@@ -121,11 +121,11 @@ struct sexpr *make_integer(signed long number) {
     rv->integer = number;
 
     /*@-memtrans -mustfree@*/
-    return (struct sexpr*)rv;
+    return (sexpr)rv;
     /*@=memtrans =mustfree@*/
 }
 
-/*@shared@*/ static struct sexpr *make_string_or_symbol
+/*@shared@*/ static sexpr make_string_or_symbol
         (const char *string, char symbol)
 {
     struct sexpr_string_or_symbol *s;
@@ -139,7 +139,7 @@ struct sexpr *make_integer(signed long number) {
              != (struct sexpr_string_or_symbol *)0)
         {
             (s->references)++;
-            return (struct sexpr *)s;
+            return (sexpr )s;
         }
     }
 
@@ -160,38 +160,38 @@ struct sexpr *make_integer(signed long number) {
     s->type = (symbol == (char)1) ? sxt_symbol : sxt_string;
 
     /*@-memtrans -mustfree@*/
-    return (struct sexpr *)s;
+    return (sexpr )s;
     /*@=memtrans =mustfree@*/
 }
 
-struct sexpr *make_string(const char *string) {
+sexpr make_string(const char *string) {
     return make_string_or_symbol (string, (char)0);
 }
 
-struct sexpr *make_symbol(const char *symbol) {
+sexpr make_symbol(const char *symbol) {
     return make_string_or_symbol (symbol, (char)1);
 }
 
-void sx_destroy(struct sexpr *sexpr) {
-    if (sexpr->references == -1) {
+void sx_destroy(sexpr sx) {
+    if (sx->references == -1) {
         return;
-    } else if (sexpr->references > 1) {
-        if (sexpr->type == sxt_cons) {
-            sx_destroy ((struct sexpr *)car (sexpr));
-            sx_destroy ((struct sexpr *)cdr (sexpr));
+    } else if (sx->references > 1) {
+        if (sx->type == sxt_cons) {
+            sx_destroy ((sexpr) car (sx));
+            sx_destroy ((sexpr) cdr (sx));
         }
-        (sexpr->references)--;
+        (sx->references)--;
         return;
     }
 
-    switch (sexpr->type) {
+    switch (sx->type) {
         case sxt_integer:
-            free_pool_mem (sexpr);
+            free_pool_mem (sx);
             return;
         case sxt_cons:
-            sx_destroy ((struct sexpr *)car (sexpr));
-            sx_destroy ((struct sexpr *)cdr (sexpr));
-            free_pool_mem (sexpr);
+            sx_destroy ((sexpr) car (sx));
+            sx_destroy ((sexpr) cdr (sx));
+            free_pool_mem (sx);
             return;
         case sxt_string:
         case sxt_symbol:
@@ -199,15 +199,15 @@ void sx_destroy(struct sexpr *sexpr) {
                 unsigned long length = 0;
                 int_32 hash;
 
-                hash = str_hash_unaligned (((struct sexpr_string_or_symbol *)sexpr)->character_data, &length);
+                hash = str_hash_unaligned (((struct sexpr_string_or_symbol *)sx)->character_data, &length);
 
-                if (sexpr->type == sxt_string) {
+                if (sx->type == sxt_string) {
                     tree_remove_node(&sx_string_tree, (int_pointer)hash);
                 } else {
                     tree_remove_node(&sx_symbol_tree, (int_pointer)hash);
                 }
 
-                afree ((sizeof (struct sexpr_string_or_symbol) + length), sexpr);
+                afree ((sizeof (struct sexpr_string_or_symbol) + length), sx);
             }
             return;
         default:
@@ -215,12 +215,12 @@ void sx_destroy(struct sexpr *sexpr) {
     }
 }
 
-void sx_xref(struct sexpr *sexpr) {
-    if (sexpr->references == -1) return;
-    if (consp(sexpr)) {
-        sx_xref(car(sexpr));
-        sx_xref(cdr(sexpr));
+void sx_xref(sexpr sx) {
+    if (sx->references == -1) return;
+    if (consp(sx)) {
+        sx_xref(car(sx));
+        sx_xref(cdr(sx));
     }
 
-    sexpr->references += 1;
+    sx->references += 1;
 }
