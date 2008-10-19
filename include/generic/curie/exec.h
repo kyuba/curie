@@ -133,7 +133,7 @@ struct exec_context {
  *  \param[in] options     OR-combination of EXEC_* Flags to control the
  *                         behaviour of the function.
  *  \param[in] command     The command to execute, as an array of strings.
- *  \param[in] environemnt The environment to pass to the new process, as an
+ *  \param[in] environment The environment to pass to the new process, as an
  *                         array of strings (ignored if command == (char **)0).
  *  \return A new exec_context.
  *
