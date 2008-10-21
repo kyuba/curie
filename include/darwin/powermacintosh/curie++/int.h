@@ -43,7 +43,7 @@
 #ifndef LIBCURIEPP_INT_H
 #define LIBCURIEPP_INT_H
 
-namespace curie
+namespace curiepp
 {
     /*! \brief Size of the Argument for the new Operator
      *

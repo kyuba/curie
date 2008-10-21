@@ -47,8 +47,23 @@
 #include <curie/io.h>
 #include <curie/sexpr.h>
 
-namespace curie
+#include <curie++/multiplex.h>
+
+/*! \brief Curie++ Namespace
+ *
+ *  All Curie++ functionality is kept in this namespace, so that things won't
+ *  clash too much.
+ */
+namespace curiepp
 {
+    /*! \brief Basic Input and Output
+     *
+     *  This class performs basic in- and output; it's a wrapper around the code
+     *  in curie/io.h.
+     *
+     *  The limitations for curie/io.h still apply, especially the thing about
+     *  multiplexing.
+     */
     class IO
     {
         public:
@@ -71,11 +86,23 @@ namespace curie
             enum io_result finish ();
             void close ();
 
-            int_8 *getBuffer();
+            char *getBuffer ();
+
+            void setPosition (int_32 position);
+
+        protected:
+            struct io *context;
 
         private:
-            struct io *context;
             sexpr filename;
+    };
+
+    /*! \brief I/O Multiplexer
+     *
+     *  This is a base class to derive your own I/O multiplexers from.
+     */
+    class IOMultiplexer: public IO, public Multiplexer
+    {
     };
 }
 

@@ -1,8 +1,8 @@
 /*
- *  int.h
+ *  multiplex.h
  *  libcurie++
  *
- *  Created by Magnus Deininger on 11/09/2008.
+ *  Created by Magnus Deininger on 21/10/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -37,21 +37,22 @@
  */
 
 /*! \file
- *  \brief Specific-length Integers (C++)
+ *  \brief Process Multiplexing (C++)
  */
 
-#ifndef LIBCURIEPP_INT_H
-#define LIBCURIEPP_INT_H
+#ifndef LIBCURIEPP_MULTIPLEX_H
+#define LIBCURIEPP_MULTIPLEX_H
 
 namespace curiepp
 {
-    /*! \brief Size of the Argument for the new Operator
+    /*! \brief Multiplexer
      *
-     *  Use this type when declaring a 'new'-Operator. Curie doesn't have
-     *  size_t, so this type should be used instead.
+     *  Multiplexers inherit from this class.
      */
 
-    typedef unsigned int op_new_size;
+    class Multiplexer
+    {
+    };
 }
 
 #endif

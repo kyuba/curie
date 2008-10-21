@@ -17,7 +17,7 @@ installheaders = [ 'curie/exec', 'curie/main', 'curie/sexpr', 'curie/memory',
                    'curie/network', 'curie/int', 'curie/io',
                    'curie/immutable', 'curie/constants' ]
 
-installheaderspp = [ 'curie++/int', 'curie++/io', 'curie++/pointer' ]
+installheaderspp = [ 'curie++/int', 'curie++/io', 'curie++/multiplex' ]
 
 sourcefiles += needforstandalone
 noasm = []
