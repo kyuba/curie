@@ -66,8 +66,8 @@
  *  of the target architecture, such as operating system, cpu architecture and
  *  the compiler toolchain that is used.
  *
- *  Actually the characteristics of the C library are so loose, it should even
- *  be possible to port libcurie's functionality to freestanding environments.
+ *  Actually this C library's interface should even be portable to freestanding
+ *  environments.
  *
  *  \section small We've had small libcs, haven't we?
  *
