@@ -38,6 +38,8 @@
 
 #include <curie++/io.h>
 
+using namespace curie;
+
 IO::IO()
 {
     filename = sx_nonexistent;
@@ -69,8 +71,6 @@ IO::IO (int fd, io_type type)
 
 IO::~IO()
 {
-    if (context != (struct io *)0)
-        io_close (context);
     sx_destroy(filename);
 }
 

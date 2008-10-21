@@ -7,7 +7,7 @@ sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
                 'multiplex-sexpr', 'multiplex-process', 'multiplex-signal',
                 'immutable', 'graph' ]
 
-sourcefilespp = [ 'memory++', 'io++', 'reference-counter++' ]
+sourcefilespp = [ 'memory++', 'io++' ]
 
 needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
                       'exec-system', 'multiplex-system', 'signal-system' ]
@@ -17,7 +17,7 @@ installheaders = [ 'curie/exec', 'curie/main', 'curie/sexpr', 'curie/memory',
                    'curie/network', 'curie/int', 'curie/io',
                    'curie/immutable', 'curie/constants' ]
 
-installheaderspp = [ 'curie++/int', 'curie++/io', 'curie++/reference-counter' ]
+installheaderspp = [ 'curie++/int', 'curie++/io', 'curie++/pointer' ]
 
 sourcefiles += needforstandalone
 noasm = []

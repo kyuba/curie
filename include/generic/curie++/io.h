@@ -47,33 +47,36 @@
 #include <curie/io.h>
 #include <curie/sexpr.h>
 
-class IO
+namespace curie
 {
-    public:
-        IO ();
-        IO (char *filename);
-        IO (sexpr filename);
-        IO (int fd);
-        IO (int fd, io_type type);
-        ~IO();
+    class IO
+    {
+        public:
+            IO ();
+            IO (char *filename);
+            IO (sexpr filename);
+            IO (int fd);
+            IO (int fd, io_type type);
+            ~IO();
 
-        void open ();
-        void open (sexpr &filename);
-        void open (io_type type);
-        void open (sexpr &filename, io_type type);
+            void open ();
+            void open (sexpr &filename);
+            void open (io_type type);
+            void open (sexpr &filename, io_type type);
 
-        enum io_result read ();
-        enum io_result collect (const char *data, int_pointer length);
-        enum io_result write (const char *data, int_pointer length);
-        enum io_result commit ();
-        enum io_result finish ();
-        void close ();
+            enum io_result read ();
+            enum io_result collect (const char *data, int_pointer length);
+            enum io_result write (const char *data, int_pointer length);
+            enum io_result commit ();
+            enum io_result finish ();
+            void close ();
 
-        int_8 *getBuffer();
+            int_8 *getBuffer();
 
-    private:
-        struct io *context;
-        sexpr filename;
-};
+        private:
+            struct io *context;
+            sexpr filename;
+    };
+}
 
 #endif
