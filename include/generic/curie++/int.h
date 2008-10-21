@@ -43,11 +43,15 @@
 #ifndef LIBCURIEPP_INT_H
 #define LIBCURIEPP_INT_H
 
-/*! \brief Size of the Argument for the new Operator
- *
- *  Use this type when declaring a 'new'-Operator. Curie doesn't have size_t, so
- *  this type should be used instead.
- */
-typedef unsigned int op_new_size;
+namespace curie
+{
+    /*! \brief Size of the Argument for the new Operator
+     *
+     *  Use this type when declaring a 'new'-Operator. Curie doesn't have
+     *  size_t, so this type should be used instead.
+     */
+
+    typedef unsigned int op_new_size;
+}
 
 #endif

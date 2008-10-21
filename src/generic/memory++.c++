@@ -41,6 +41,8 @@
 #include <curie/memory.h>
 #include <curie/tree.h>
 
+using namespace curie;
+
 static struct tree size_map = TREE_INITIALISER;
 
 void *operator new(op_new_size length)
