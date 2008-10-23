@@ -42,10 +42,12 @@
 .globl  a_fork
 .globl  a_exec
 .globl  a_wait
+.globl  a_wait_all
 
 .type a_fork,                    @function
 .type a_exec,                    @function
 .type a_wait,                    @function
+.type a_wait_all,                @function
 
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */
@@ -113,6 +115,33 @@ exited_normally:
     leave
     ret
 
+
+a_wait_all:
+    pushq   %rbp
+    movq    %rsp, %rbp
+
+    movq %rdi, %rsi /* arg1 -> arg2 */
+    movq $-1, %rdi /* wait for anything */
+    movq $61, %rax /* sys_wait4 */
+    movq $1, %rdx /* WNOHNANG */
+    movq $0, %r10 /* we don't care about the rusage field */
+
+    syscall
+
+    pushq %rbx
+    pushq %rcx
+
+    movl (%rsi), %ecx
+    xor %rbx, %rbx
+
+    movb  %ch, %bl /* use the high-order bits of the lower 16 bits only */
+    movl %ebx, (%rsi)
+
+    popq %rcx
+    popq %rbx
+
+    leave
+    ret
 
 #if defined(__ELF__)
           .section .note.GNU-stack,"",%progbits

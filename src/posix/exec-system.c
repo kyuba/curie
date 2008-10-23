@@ -68,6 +68,20 @@ enum wait_return a_wait(int pid, int *status) {
     return r;
 }
 
+int a_wait_all(int *status) {
+    int st, r;
+
+    /*@-checkstrictglobs@*/
+    r = waitpid((pid_t)-1, &st, WNOHANG);
+    /*@=checkstrictglobs@*/
+
+    if (WIFEXITED(st) != 0) {
+        *status = WEXITSTATUS(st);
+    }
+
+    return r;
+}
+
 void a_exec(const char *image, char **argv, char **env) {
     /*@-checkstrictglobs@*/
     (void)execve(image, argv, env);

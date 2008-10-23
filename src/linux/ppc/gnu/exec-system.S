@@ -42,10 +42,12 @@
 .globl  a_fork
 .globl  a_exec
 .globl  a_wait
+.globl  a_wait_all
 
 .type a_fork,                    @function
 .type a_exec,                    @function
 .type a_wait,                    @function
+.type a_wait_all,                @function
 
 a_fork:
         li      0, 2 /* sys_fork */
@@ -92,6 +94,25 @@ exited_normally:
         li      3, 1 /* wr_exited */
         blr
 
+
+a_wait_all:
+        li      0, 114 /* sys_wait4 */
+        mr      16, 3
+        mr      4, 3 /* arg1 is actually arg2 for the call */
+        li      3, -1 /* wait for anything */
+        li      5, 1 /* WNOHNANG */
+        li      6, 0 /* we don't care about the rusage field */
+
+        sc
+
+        l       4, 0(16)
+
+        rotrwi  4, 4, 8 /* use the high-order bits of the lower 16 bits only */
+        andi.   4, 4, 0x7f
+
+        stw     4, 0(16)
+
+        blr
 
 #if defined(__ELF__)
           .section .note.GNU-stack,"",%progbits

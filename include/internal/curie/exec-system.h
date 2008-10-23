@@ -70,6 +70,8 @@ int a_fork();
  */
 enum wait_return a_wait(int pid, /*@notnull@*/ /*@out@*/ int *status);
 
+int a_wait_all (int *status);
+
 /*! \brief Wrapper for the execve() System Call
  *  \param[in] image The process image to execute.
  *  \param[in] argv  The argument vector for the new process.
