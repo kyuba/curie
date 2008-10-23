@@ -1,8 +1,8 @@
 /*
- *  host.c
+ *  constants.h
  *  libcurie
  *
- *  Created by Magnus Deininger on 22/06/2008.
+ *  Created by Magnus Deininger on 20/09/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,15 +36,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
+/*! \file
+ *  \brief Constants (Internal)
+ *
+ *  These constants are likely to require tuning on different OSs and
+ *  architectures, so they get their own header.
+ */
 
-#include <sys/stat.h>
+#ifndef LIBCURIE_INTERNAL_CONSTANTS_H
+#define LIBCURIE_INTERNAL_CONSTANTS_H
 
-int getpagesize(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-int main () {
-    fprintf (stdout, "pagesize: %i\n", getpagesize());
-    fprintf (stdout, "sizeof(struct stat): %i\n", (int)sizeof(struct stat));
+#define LIBCURIE_STAT_BUFFER_SIZE 256
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif

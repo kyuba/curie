@@ -71,6 +71,9 @@ extern "C" {
 
   int a_unlink (/*@notnull@*/ const char *path);
 
+  int a_stat(/*@notnull@*/ const char *path, void *buffer);
+  int a_lstat(/*@notnull@*/ const char *path, void *buffer);
+
   extern char last_error_recoverable_p;
 #ifdef __cplusplus
 }

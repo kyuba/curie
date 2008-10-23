@@ -37,6 +37,7 @@
  */
 
 #define _POSIX_SOURCE
+#define _BSD_SOURCE
 
 #include <curie/io-system.h>
 
@@ -159,6 +160,24 @@ int    a_make_nonblocking (int fd) {
 int    a_unlink (const char *path) {
     /*@-checkstrictglobs@*/
     int rv = unlink(path);
+    /*@=checkstrictglobs@*/
+    if (rv < 0) examine_error();
+    return rv;
+}
+
+int a_stat(const char *path, void *buffer)
+{
+    /*@-checkstrictglobs@*/
+    int rv = stat(path, (struct stat *)buffer);
+    /*@=checkstrictglobs@*/
+    if (rv < 0) examine_error();
+    return rv;
+}
+
+int a_lstat(const char *path, void *buffer)
+{
+    /*@-checkstrictglobs@*/
+    int rv = lstat(path, (struct stat *)buffer);
     /*@=checkstrictglobs@*/
     if (rv < 0) examine_error();
     return rv;

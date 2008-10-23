@@ -5,7 +5,7 @@ sourcefiles = [ 'sexpr', 'io', 'memory-pool', 'tree', 'exec', 'multiplex',
                 'string', 'memory-allocator', 'sexpr-library',
                 'sexpr-read-write', 'network', 'multiplex-io',
                 'multiplex-sexpr', 'multiplex-process', 'multiplex-signal',
-                'immutable', 'graph' ]
+                'immutable', 'graph', 'filesystem' ]
 
 sourcefilespp = [ 'memory++', 'io++' ]
 
@@ -15,7 +15,8 @@ needforstandalone = [ 'io-system', 'memory', 'bootstrap', 'network-system',
 installheaders = [ 'curie/exec', 'curie/main', 'curie/sexpr', 'curie/memory',
                    'curie/multiplex', 'curie/signal', 'curie/tree',
                    'curie/network', 'curie/int', 'curie/io',
-                   'curie/immutable', 'curie/constants', 'curie/graph' ]
+                   'curie/immutable', 'curie/constants', 'curie/graph',
+                   'curie/filesystem' ]
 
 installheaderspp = [ 'curie++/int', 'curie++/io', 'curie++/multiplex' ]
 

@@ -55,6 +55,8 @@ last_error_recoverable_p:
 .globl  a_close
 .globl  a_dup
 .globl  a_dup_n
+.globl  a_stat
+.globl  a_lstat
 .globl  a_make_nonblocking
 .globl  a_unlink
 
@@ -66,6 +68,8 @@ last_error_recoverable_p:
 .type a_close,                   @function
 .type a_dup,                     @function
 .type a_dup_n,                   @function
+.type a_stat,                    @function
+.type a_lstat,                   @function
 .type a_make_nonblocking,        @function
 .type a_unlink,                  @function
 
@@ -114,6 +118,14 @@ a_dup:
 
 a_dup_n:
     movq $32, %rax /* sys_dup */
+    jmp syscall_with_cleanup
+
+a_stat:
+    movq $4, %rax /* sys_newstat */
+    jmp syscall_with_cleanup
+
+a_lstat:
+    movq $6, %rax /* sys_newlstat */
     jmp syscall_with_cleanup
 
 a_make_nonblocking:

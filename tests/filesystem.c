@@ -1,8 +1,8 @@
 /*
- *  host.c
+ *  filesystem.c
  *  libcurie
  *
- *  Created by Magnus Deininger on 22/06/2008.
+ *  Created by Magnus Deininger on 23/10/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,15 +36,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
+#include "curie/filesystem.h"
 
-#include <sys/stat.h>
+int cmain(void) {
+    if (filep ("tess")) return 1;
+    if (linkp ("tess")) return 2;
+    if (!filep ("tests")) return 3;
+    if (!linkp ("tests")) return 4;
 
-int getpagesize(void);
-
-int main () {
-    fprintf (stdout, "pagesize: %i\n", getpagesize());
-    fprintf (stdout, "sizeof(struct stat): %i\n", (int)sizeof(struct stat));
+    return 0;
 }

@@ -1,8 +1,8 @@
 /*
- *  host.c
+ *  filesystem.h
  *  libcurie
  *
- *  Created by Magnus Deininger on 22/06/2008.
+ *  Created by Magnus Deininger on 23/10/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,15 +36,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
+/*! \file
+ *  \brief Filesystem Information
+ *
+ *  The functions in this header file are used to query the OS about certain
+ *  pieces of filesystem information.
+ */
 
-#include <sys/stat.h>
+#ifndef LIBCURIE_FILESYSTEM_H
+#define LIBCURIE_FILESYSTEM_H
 
-int getpagesize(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-int main () {
-    fprintf (stdout, "pagesize: %i\n", getpagesize());
-    fprintf (stdout, "sizeof(struct stat): %i\n", (int)sizeof(struct stat));
+/*! \brief Check if a File exists
+ *  \param[in] path The path to check.
+ *  \return 0 if the file does not exist, 1 if it does exist.
+ *
+ *  This function basically uses stat() to figure out if the given file exists.
+ */
+unsigned char filep(const char *path);
+
+/*! \brief Check if a Link exists
+ *  \param[in] path The path to check.
+ *  \return 0 if the link does not exist, 1 if it does exist.
+ *
+ *  Same as filep(), but for symlinks it only checks the presence of the
+ *  symlink, as opposed to checking for the actual file referenced by the
+ *  symlink.
+ */
+unsigned char linkp(const char *path);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif

@@ -1,8 +1,8 @@
 /*
- *  host.c
+ *  filesystem.c
  *  libcurie
  *
- *  Created by Magnus Deininger on 22/06/2008.
+ *  Created by Magnus Deininger on 23/10/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,15 +36,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
+#include <curie/filesystem.h>
+#include <curie/internal-constants.h>
+#include <curie/io-system.h>
 
-#include <sys/stat.h>
+unsigned char filep(const char *path)
+{
+    char stat_buffer[LIBCURIE_STAT_BUFFER_SIZE];
 
-int getpagesize(void);
+    return (a_stat(path, (void *)stat_buffer) == 0) ? 1 : 0;
+}
 
-int main () {
-    fprintf (stdout, "pagesize: %i\n", getpagesize());
-    fprintf (stdout, "sizeof(struct stat): %i\n", (int)sizeof(struct stat));
+unsigned char linkp(const char *path)
+{
+    char stat_buffer[LIBCURIE_STAT_BUFFER_SIZE];
+
+    return (a_lstat(path, (void *)stat_buffer) == 0) ? 1 : 0;
 }
