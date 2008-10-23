@@ -40,13 +40,18 @@
 #include <curie/memory.h>
 #include <curie/signal.h>
 
+#include <curie/exec-system.h>
+
 struct exec_cx {
     struct exec_context *context;
     void (*on_death)(struct exec_context *, void *);
     /*@temp@*/ void *data;
+    struct exec_cx *next;
 };
 
+static struct exec_cx *elements = (struct exec_cx *)0;
 static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct exec_cx));
+static char multiplexer_installed = (char)0;
 
 /*@-memtrans@*/
 static enum signal_callback_result sig_chld_signal_handler
@@ -67,12 +72,51 @@ static enum signal_callback_result sig_chld_signal_handler
 }
 /*@=memtrans@*/
 
-void multiplex_process () {
-    static char installed = (char)0;
+/* this is a combined handler that should be nicer on the resources, but it has
+   the disadvantage of reaping all child processes. */
+static enum signal_callback_result sig_chld_combined_handler
+        (/*@unused@*/ enum signal signal, void *e)
+{
+    int pid, q;
 
-    if (installed == (char)0) {
+    while ((pid = a_wait_all(&q)) > 0)
+    {
+        struct exec_cx *cx = elements;
+        struct exec_cx **prev = &elements;
+
+        while (cx != (struct exec_cx *)0)
+        {
+            if ((cx->context->pid == pid) &&
+                (cx->context->status == ps_running)) {
+                cx->context->exitstatus = q;
+                cx->context->status = ps_terminated;
+                cx->on_death (cx->context, cx->data);
+
+                *prev = cx->next;
+                free_pool_mem((void *)cx);
+                break;
+            }
+
+            prev = &(cx->next);
+            cx = cx->next;
+        }
+    }
+
+    return scr_keep;
+}
+
+void multiplex_process () {
+    if (multiplexer_installed == (char)0) {
         multiplex_signal();
-        installed = (char)1;
+        multiplexer_installed = (char)1;
+    }
+}
+
+void multiplex_all_processes () {
+    if (multiplexer_installed == (char)0) {
+        multiplex_signal();
+        multiplex_add_signal (sig_chld, sig_chld_combined_handler, (void *)0);
+        multiplexer_installed = (char)2;
     }
 }
 
@@ -86,6 +130,14 @@ void multiplex_add_process (struct exec_context *context, void (*on_death)(struc
     element->on_death = on_death;
     element->data = data;
 
-    multiplex_add_signal (sig_chld, sig_chld_signal_handler, (void *)element);
+    if (multiplexer_installed == (char)1)
+    {
+        multiplex_add_signal (sig_chld, sig_chld_signal_handler, (void *)element);
+    }
+    else
+    {
+        element->next = elements;
+        elements = element;
+    }
 }
 /*@=mustfree@*/

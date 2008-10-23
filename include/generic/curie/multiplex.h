@@ -154,6 +154,19 @@ void multiplex_io ();
  */
 void multiplex_process ();
 
+/*! \brief Initialise Process Multiplexer (Reap All Processes)
+ *
+ *  This is essentially the same as multiplex_process(), but the reaping
+ *  strategy that is employed is slightly different. Where multiplex_process()
+ *  will only reap children that are specifically specified, this variant will
+ *  reap all child processes, even those that have not been specified in any
+ *  way.
+ *
+ *  Theoretically, this variant ought to be faster, since less syscalls are
+ *  involved when keeping track of multiple processes.
+ */
+void multiplex_all_processes ();
+
 /*! \brief Initialise S-Expression I/O Multiplexer
  *
  *  Use this function before using the sexpr multiplexer, i.e. before calling
