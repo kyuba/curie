@@ -43,6 +43,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+#include <unistd.h>
+
 int a_fork() {
     /*@-checkstrictglobs@*/
     return (int)fork();
@@ -86,4 +88,8 @@ void a_exec(const char *image, char **argv, char **env) {
     /*@-checkstrictglobs@*/
     (void)execve(image, argv, env);
     /*@=checkstrictglobs@*/
+}
+
+int a_set_sid() {
+    return setsid();
 }

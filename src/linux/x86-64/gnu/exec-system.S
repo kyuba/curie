@@ -43,11 +43,13 @@
 .globl  a_exec
 .globl  a_wait
 .globl  a_wait_all
+.globl  a_set_sid
 
 .type a_fork,                    @function
 .type a_exec,                    @function
 .type a_wait,                    @function
 .type a_wait_all,                @function
+.type a_set_sid,                 @function
 
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */
@@ -140,6 +142,16 @@ a_wait_all:
     popq %rcx
     popq %rbx
 
+    leave
+    ret
+
+a_set_sid:
+    pushq   %rbp
+    movq    %rsp, %rbp
+
+    movq $112, %rax /* sys_setsid */
+
+    syscall
     leave
     ret
 

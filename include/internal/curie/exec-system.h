@@ -81,6 +81,8 @@ void a_exec(/*@notnull@*/ const char *image,
             /*@notnull@*/ char **argv,
             /*@notnull@*/ char **env);
 
+int a_set_sid ();
+
 #endif
 
 /*! @} */

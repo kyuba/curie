@@ -43,11 +43,13 @@
 .globl  a_exec
 .globl  a_wait
 .globl  a_wait_all
+.globl  a_set_sid
 
 .type a_fork,                    @function
 .type a_exec,                    @function
 .type a_wait,                    @function
 .type a_wait_all,                @function
+.type a_set_sid,                 @function
 
 a_fork:
         li      0, 2 /* sys_fork */
@@ -112,6 +114,11 @@ a_wait_all:
 
         stw     4, 0(16)
 
+        blr
+
+a_set_sid:
+        li      0, 66 /* sys_execve */
+        sc
         blr
 
 #if defined(__ELF__)
