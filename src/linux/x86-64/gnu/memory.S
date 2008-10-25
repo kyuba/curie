@@ -44,6 +44,7 @@
 .globl resize_mem
 .globl mark_mem_ro
 .globl mark_mem_rw
+.globl mark_mem_rx
 .globl get_mem_chunk
 .globl set_get_mem_recovery_function
 .globl set_resize_mem_recovery_function
@@ -53,6 +54,7 @@
 .type resize_mem,              @function
 .type mark_mem_ro,             @function
 .type mark_mem_rw,             @function
+.type mark_mem_rx,             @function
 .type get_mem_chunk,           @function
 .type set_get_mem_recovery_function, @function
 .type set_resize_mem_recovery_function, @function
@@ -170,6 +172,9 @@ resize_mem:
         addq $_PAGESIZE, %rdx
         jmp cmopsass
 
+mark_mem_rx:
+        movq $0x5, %rdx
+        jmp mark_mem
 mark_mem_rw:
         movq $0x3, %rdx
         jmp mark_mem

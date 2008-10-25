@@ -170,6 +170,14 @@ void mark_mem_ro (unsigned long int size, /*@notnull@*/ void *block);
  */
 void mark_mem_rw (unsigned long int size, /*@notnull@*/ void *block);
 
+/*! \brief Make Block of Memory executable
+ *  \param[in] size  The current size of the block.
+ *  \param[in] block The block to make writable.
+ *
+ *  Make the given block readable as well as executable.
+ */
+void mark_mem_rx (unsigned long int size, /*@notnull@*/ void *block);
+
 /*! \brief Allocate a Chunk of Memory
  *  \return Pointer to the newly allocated chunk of memory, or (void*)0 if the
  *          memory could not be allocated.

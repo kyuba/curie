@@ -177,3 +177,11 @@ void mark_mem_rw (unsigned long int size, void *location) {
     (void)mprotect (location, msize, PROT_READ | PROT_WRITE);
     /*@=unrecog@*/
 }
+
+void mark_mem_rx (unsigned long int size, void *location) {
+    size_t msize = get_multiple_of_pagesize(size);
+
+    /*@-unrecog@*/
+    (void)mprotect (location, msize, PROT_READ | PROT_EXEC);
+    /*@=unrecog@*/
+}
