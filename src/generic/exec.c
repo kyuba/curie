@@ -88,6 +88,11 @@ struct exec_context *execute(unsigned int options,
             context->out = (struct io *)0;
             break;
         case 0:
+            if (options & EXEC_CALL_CREATE_SESSION)
+            {
+                a_set_sid();
+            }
+
             if ((command != (char **)0) ||
                 ((options & EXEC_CALL_PURGE) != 0))
             {

@@ -66,6 +66,12 @@ extern "C" {
  */
 #define EXEC_CALL_PURGE 0x0002
 
+/*! \brief Create Session
+ *
+ *  This flag makes execute() create a new session after forking.
+ */
+#define EXEC_CALL_CREATE_SESSION 0x0004
+
 /*! \brief Description of a Process's Status */
 enum process_status {
     /*! \brief Process is still running
