@@ -268,14 +268,27 @@ void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void
 
     if (list_element == (struct io_list *)0) return;
 
-    list_element->next = list;
-
+    list_element->next = (void *)0;
     list_element->io = io;
     list_element->on_read = on_read;
     list_element->on_close = on_close;
     list_element->data = data;
 
-    list = list_element;
+    if (list == (void *)0)
+    {
+        list = list_element;
+    }
+    else
+    {
+        struct io_list *cx = list;
+
+        while ((cx->next) != (struct io_list *)0)
+        {
+            cx = cx->next;
+        }
+
+        cx->next = list_element;
+    }
 }
 /*@=nullstate =mustfree@*/
 
