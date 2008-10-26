@@ -82,7 +82,7 @@ static enum signal_callback_result sig_chld_combined_handler
     while ((pid = a_wait_all(&q)) > 0)
     {
         struct exec_cx *cx = elements;
-        struct exec_cx **prev;
+        struct exec_cx **prev = &elements;
 
         while (cx != (struct exec_cx *)0)
         {
@@ -93,19 +93,6 @@ static enum signal_callback_result sig_chld_combined_handler
                 cx->context->status = ps_terminated;
                 cx->on_death (cx->context, cx->data);
 
-                break;
-            }
-
-            cx = cx->next;
-        }
-
-        cx = elements;
-        prev = &elements;
-
-        while (cx != (struct exec_cx *)0)
-        {
-            if (cx->context->status == ps_terminated)
-            {
                 *prev = cx->next;
                 free_pool_mem((void *)cx);
 
@@ -115,7 +102,7 @@ static enum signal_callback_result sig_chld_combined_handler
             prev = &(cx->next);
             cx = cx->next;
         }
-}
+    }
 
     return scr_keep;
 }
@@ -144,6 +131,7 @@ void multiplex_add_process (struct exec_context *context, void (*on_death)(struc
     element->context = context;
     element->on_death = on_death;
     element->data = data;
+    element->next = (struct exec_cx *)0;
 
     if (multiplexer_installed == (char)1)
     {
@@ -151,8 +139,21 @@ void multiplex_add_process (struct exec_context *context, void (*on_death)(struc
     }
     else
     {
-        element->next = elements;
-        elements = element;
+        if (elements == (struct exec_cx *)0)
+        {
+            elements = element;
+        }
+        else
+        {
+            struct exec_cx *cx = elements;
+
+            while ((cx->next) != (struct exec_cx *)0)
+            {
+                cx = cx->next;
+            }
+
+            cx->next = element;
+        }
     }
 }
 /*@=mustfree@*/
