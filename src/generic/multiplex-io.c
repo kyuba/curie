@@ -64,7 +64,7 @@ static struct memory_pool list_pool
 
 /*@-branchstate@*/
 static void mx_f_count(int *r, int *w) {
-    struct io_list *l = list, *p = (struct io_list *)0;
+    struct io_list *l = list, **p = &list;
 
     while (l != (struct io_list *)0) {
         if ((l->io->fd != -1) &&
@@ -86,17 +86,9 @@ static void mx_f_count(int *r, int *w) {
         } else {
             struct io_list *t = l;
 
-            if (p == (struct io_list *)0)
-            {
-                list = l->next;
-            }
-            else
-            {
-                /*@-mustfree@*/
-                p->next = l->next;
-                /*@=mustfree@*/
-            }
-            l = l->next;
+            *p = l->next;
+            p = &(l->next);
+            l = *p;
 
             if (t->on_close != (void *)0)
             {
@@ -110,13 +102,13 @@ static void mx_f_count(int *r, int *w) {
         }
 
         next:
-        p = l;
+        p = &(l->next);
         l = l->next;
     }
 }
 
 static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
-    struct io_list *l = list, *p = (struct io_list *)0;
+    struct io_list *l = list, **p = &list;
 
     while (l != (struct io_list *)0) {
         if ((l->io->fd != -1) &&
@@ -154,17 +146,9 @@ static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
         } else {
             struct io_list *t = l;
 
-            if (p == (struct io_list *)0)
-            {
-                list = l->next;
-            }
-            else
-            {
-                /*@-mustfree@*/
-                p->next = l->next;
-                /*@=mustfree@*/
-            }
-            l = l->next;
+            *p = l->next;
+            p = &(l->next);
+            l = *p;
 
             if (t->on_close != (void *)0)
             {
@@ -178,13 +162,13 @@ static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
         }
 
         next:
-        p = l;
+        p = &(l->next);
         l = l->next;
     }
 }
 
 static void mx_f_callback(int *rs, int r, int *ws, int w) {
-    struct io_list *l = list, *p = (struct io_list *)0;
+    struct io_list *l = list, **p = &list;
 
     while (l != (struct io_list *)0) {
         if ((l->io->fd != -1) &&
@@ -223,17 +207,9 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
         {
             struct io_list *t = l;
 
-            if (p == (struct io_list *)0)
-            {
-                list = l->next;
-            }
-            else
-            {
-                /*@-mustfree@*/
-                p->next = l->next;
-                /*@=mustfree@*/
-            }
-            l = l->next;
+            *p = l->next;
+            p = &(l->next);
+            l = *p;
 
             if (t->on_close != (void *)0)
             {
@@ -247,7 +223,7 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
         }
 
         next:
-        p = l;
+        p = &(l->next);
         l = l->next;
     }
 }
