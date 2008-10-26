@@ -92,6 +92,8 @@ static enum signal_callback_result sig_chld_combined_handler
                 cx->context->exitstatus = q;
                 cx->context->status = ps_terminated;
                 cx->on_death (cx->context, cx->data);
+
+                break;
             }
 
             cx = cx->next;
@@ -107,18 +109,11 @@ static enum signal_callback_result sig_chld_combined_handler
                 *prev = cx->next;
                 free_pool_mem((void *)cx);
 
-                if ((*prev) == (struct exec_cx *)0)
-                {
-                    break;
-                }
-                prev = &((*prev)->next);
-                cx = (*prev)->next;
+                break;
             }
-            else
-            {
-                prev = &(cx->next);
-                cx = cx->next;
-            }
+
+            prev = &(cx->next);
+            cx = cx->next;
         }
 }
 
