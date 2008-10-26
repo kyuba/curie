@@ -64,7 +64,7 @@ static struct memory_pool list_pool
 
 /*@-branchstate@*/
 static void mx_f_count(int *r, int *w) {
-    struct io_list *l = list, **p = &list;
+    struct io_list *l = list;
 
     while (l != (struct io_list *)0) {
         if ((l->io->fd != -1) &&
@@ -83,32 +83,15 @@ static void mx_f_count(int *r, int *w) {
                 default:
                     break;
             }
-        } else {
-            struct io_list *t = l;
-
-            *p = l->next;
-            p = &(l->next);
-            l = *p;
-
-            if (t->on_close != (void *)0)
-            {
-                t->on_close (t->io, t->data);
-            }
-
-            io_close (t->io);
-
-            free_pool_mem (t);
-            continue;
         }
 
         next:
-        p = &(l->next);
         l = l->next;
     }
 }
 
 static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
-    struct io_list *l = list, **p = &list;
+    struct io_list *l = list;
 
     while (l != (struct io_list *)0) {
         if ((l->io->fd != -1) &&
@@ -143,26 +126,9 @@ static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
                 default:
                     break;
             }
-        } else {
-            struct io_list *t = l;
-
-            *p = l->next;
-            p = &(l->next);
-            l = *p;
-
-            if (t->on_close != (void *)0)
-            {
-                t->on_close (t->io, t->data);
-            }
-
-            io_close (t->io);
-
-            free_pool_mem (t);
-            continue;
         }
 
         next:
-        p = &(l->next);
         l = l->next;
     }
 }
