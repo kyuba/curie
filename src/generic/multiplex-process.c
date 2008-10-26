@@ -82,25 +82,40 @@ static enum signal_callback_result sig_chld_combined_handler
     while ((pid = a_wait_all(&q)) > 0)
     {
         struct exec_cx *cx = elements;
-        struct exec_cx **prev = &elements;
+        struct exec_cx **prev;
 
         while (cx != (struct exec_cx *)0)
         {
             if ((cx->context->pid == pid) &&
-                (cx->context->status == ps_running)) {
+                (cx->context->status == ps_running))
+            {
                 cx->context->exitstatus = q;
                 cx->context->status = ps_terminated;
                 cx->on_death (cx->context, cx->data);
-
-                *prev = cx->next;
-                free_pool_mem((void *)cx);
-                break;
             }
 
-            prev = &(cx->next);
             cx = cx->next;
         }
-    }
+
+        cx = elements;
+        prev = &elements;
+
+        while (cx != (struct exec_cx *)0)
+        {
+            if (cx->context->status == ps_terminated)
+            {
+                *prev = cx->next;
+                free_pool_mem((void *)cx);
+
+                cx = (*prev)->next;
+            }
+            else
+            {
+                prev = &(cx->next);
+                cx = cx->next;
+            }
+        }
+}
 
     return scr_keep;
 }
