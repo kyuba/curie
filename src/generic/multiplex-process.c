@@ -107,6 +107,7 @@ static enum signal_callback_result sig_chld_combined_handler
                 *prev = cx->next;
                 free_pool_mem((void *)cx);
 
+                prev = &((*prev)->next);
                 cx = (*prev)->next;
             }
             else
