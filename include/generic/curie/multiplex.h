@@ -216,7 +216,8 @@ void multiplex_del_io (/*@notnull@*/ /*@only@*/ struct io *io);
  *  reap the process and call the on_death callback.
  */
 void multiplex_add_process (/*@notnull@*/ /*@only@*/ struct exec_context *context,
-                            /*@null@*/ void (*on_death)(struct exec_context *, void *),
+                            /*@notnull@*/ void (*on_death)(struct exec_context*,
+                                                           void *),
                             /*@null@*/ void *aux);
 
 /*! \brief Register Callbacks for S-Expression I/O
@@ -229,7 +230,9 @@ void multiplex_add_process (/*@notnull@*/ /*@only@*/ struct exec_context *contex
  *  when appropriate.
  */
 void multiplex_add_sexpr (/*@notnull@*/ /*@only@*/ struct sexpr_io *io,
-                          /*@null@*/ void (*on_read)(sexpr, struct sexpr_io *, void *),
+                          /*@null@*/ void (*on_read)(sexpr,
+                                                     struct sexpr_io *,
+                                                     void *),
                           /*@null@*/ void *aux);
 
 #ifdef __cplusplus
