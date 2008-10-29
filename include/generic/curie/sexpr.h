@@ -54,13 +54,13 @@
 #ifndef LIBCURIE_SEXPR_H
 #define LIBCURIE_SEXPR_H
 
+#include <curie/int.h>
 #include <curie/io.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct sexpr_generic;
 /*! \brief S-Expression
  *  \ingroup sexpr
  *
@@ -68,7 +68,7 @@ struct sexpr_generic;
  *  pointers. The library is nice enough to make sure never to return (sexpr)0
  *  pointers, so this ought to be alright.
  */
-typedef struct sexpr_generic * sexpr;
+typedef int_pointer sexpr;
 
 /*! \internal
  *  \defgroup sexprRepresentation In-Memory Representation
@@ -84,70 +84,13 @@ typedef struct sexpr_generic * sexpr;
 /*! \brief S-Expression Type
  *  \internal
  *
- *  All S-expressions have a type, which is part of their in-memory
+ *  All (Pointer-)S-expressions have a type, which is part of their in-memory
  *  representation.
  */
 enum sx_type {
-    sxt_nil = 0,              /*!< NIL */
-    sxt_false = 1,            /*!< Boolean 'False', i.e. \#f */
-    sxt_true = 2,             /*!< Boolean 'True', i.e. \#t */
-    sxt_integer = 3,          /*!< Integral Number, i.e. 42 */
     sxt_string = 4,           /*!< String, i.e. "string" */
     sxt_symbol = 5,           /*!< Symbol, i.e. symbol */
     sxt_cons = 6,             /*!< Cons, i.e. (x . y) */
-    sxt_empty_list = 7,       /*!< Empty List */
-    sxt_end_of_list = 8,      /*!< End of a List, i.e. () */
-    sxt_end_of_file = 9,      /*!< End of File */
-    sxt_not_a_number = 10,    /*!< Not-a-Number */
-    sxt_nonexistent = 11,     /*!< Nonexistent (used in return values) */
-    sxt_dot = 12              /*!< Dot, i.e. . */
-};
-
-/*! \brief Generic S-Expressions
- *  \internal
- *
- *  Base type for symbolic expressions. You should use the sexpr typedef instead
- *  in application code.
- */
-struct sexpr_generic {
-    /*! \brief S-Expression Type
-     *
-     *  This field defines the type of the symbolic expression. It's present in
-     *  all sexprs.
-     */
-    enum sx_type type;
-
-    /*! \brief Reference Count
-     *
-     *  This keeps track of how often this particular expression is in use.
-     */
-    signed int references;
-};
-
-/*! \brief Integer S-Expression
- *  \internal
- *
- *  This structure is used to represent integers as sexprs.
- */
-struct sexpr_integer {
-    /*! \brief S-Expression Type
-     *
-     *  This field defines the type of the symbolic expression. It's present in
-     *  all sexprs.
-     */
-    enum sx_type type;
-
-    /*! \brief Reference Count
-     *
-     *  This keeps track of how often this particular expression is in use.
-     */
-    signed int references;
-
-    /*! \brief Integer Value
-     *
-     *  This is the integer value of this s-expression.
-     */
-    signed long integer;
 };
 
 /*! \brief Cons S-Expression
@@ -311,16 +254,24 @@ void sx_write
         (/*@notnull@*/ /*@shared@*/ sexpr car,
          /*@notnull@*/ /*@shared@*/ sexpr cdr);
 
-/*! \brief Create a new Integer
+/*! \brief Encode an Integer
  *  \param[in] integer The value of the new s-expression.
- *  \return The new s-expression, or sx_nonexistent if there's not enough
- *          memory.
+ *  \return The s-expression.
  *
- *  This function takes a C integer and returns a new s-expression with the
+ *  This macro takes a C integer and returns a new s-expression with the
  *  integer as its value.
  */
-/*@notnull@*/ /*@shared@*/ sexpr make_integer
-        (signed long integer);
+#define make_integer(integer)\
+        ((sexpr)((((int_pointer_s)(integer)) << 3) | 0x2))
+
+/*! \brief Encode a Special S-Expression
+ *  \param[in] code The value of the new s-expression.
+ *  \return The s-expression.
+ *
+ *  These s-expressions may be used as sentinel values and the like.
+ */
+#define make_special(code)\
+        ((sexpr)((((int_pointer)(code)) << 3) | 0x4))
 
 /*! \brief Create a new String
  *  \param[in] string The string to use.
@@ -370,63 +321,70 @@ void sx_xref
  *  There is always only one instance of this s-expression in a running Curie 
  *  programme, so it is kept as a constant.
  */
-/*@notnull@*/ /*@shared@*/ extern sexpr const sx_nil;
+#define sx_nil make_special(1)
 
 /*! \brief Boolean False (S-Expression)
  *
  *  There is always only one instance of this s-expression in a running Curie 
  *  programme, so it is kept as a constant.
  */
-/*@notnull@*/ /*@shared@*/ extern sexpr const sx_false;
+#define sx_false make_special(2)
 
 /*! \brief Boolean True (S-Expression)
  *
  *  There is always only one instance of this s-expression in a running Curie 
  *  programme, so it is kept as a constant.
  */
-/*@notnull@*/ /*@shared@*/ extern sexpr const sx_true;
+#define sx_true make_special(3)
 
 /*! \brief Empty List (S-Expression)
  *
  *  There is always only one instance of this s-expression in a running Curie 
  *  programme, so it is kept as a constant.
  */
-/*@notnull@*/ /*@shared@*/ extern sexpr const sx_empty_list;
+#define sx_empty_list make_special(4)
 
 /*! \brief End of List (S-Expression)
  *
  *  There is always only one instance of this s-expression in a running Curie 
  *  programme, so it is kept as a constant.
  */
-/*@notnull@*/ /*@shared@*/ extern sexpr const sx_end_of_list;
+#define sx_end_of_list make_special(5)
 
 /*! \brief End of File (S-Expression)
  *
  *  There is always only one instance of this s-expression in a running Curie 
  *  programme, so it is kept as a constant.
  */
-/*@notnull@*/ /*@shared@*/ extern sexpr const sx_end_of_file;
+#define sx_end_of_file make_special(6)
 
 /*! \brief Not-a-Number (S-Expression)
  *
  *  There is always only one instance of this s-expression in a running Curie 
  *  programme, so it is kept as a constant.
  */
-/*@notnull@*/ /*@shared@*/ extern sexpr const sx_not_a_number;
+#define sx_not_a_number make_special(7)
 
 /*! \brief Nonexistent (S-Expression)
  *
  *  There is always only one instance of this s-expression in a running Curie 
  *  programme, so it is kept as a constant.
  */
-/*@notnull@*/ /*@shared@*/ extern sexpr const sx_nonexistent;
+#define sx_nonexistent make_special(8)
 
 /*! \brief Dot Operator (S-Expression)
  *
  *  There is always only one instance of this s-expression in a running Curie 
  *  programme, so it is kept as a constant.
  */
-/*@notnull@*/ /*@shared@*/ extern sexpr const sx_dot;
+#define sx_dot make_special(9)
+
+/*! \brief S-Expression Pointer Flag
+ *
+ *  This flag is set in the memory encoding of an s-expression if it's a pointer
+ *  instead of the literal value.
+ */
+#define sx_mask_pointer 0x1
 
 /*! @} */
 
@@ -464,6 +422,24 @@ void sx_xref
         (/*@notnull@*/ sexpr a,
          /*@notnull@*/ sexpr b);
 
+/*! \brief Check if the S-Expression is a Special Expression
+ *  \param[in] sx The s-expression to check.
+ *  \return 1 if it is a special expression, 0 otherwise.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ */
+#define specialp(sx) ((((int_pointer)(sx)) & 0x4) == 0x4)
+
+/*! \brief Check if the S-Expression is a Pointer
+ *  \param[in] sx The s-expression to check.
+ *  \return 1 if it is a pointer, 0 otherwise.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ */
+#define pointerp(sx) ((((int_pointer)(sx)) & 0x1) == 0x1)
+
 /*! \brief Check if the S-Expression is the NIL Expression
  *  \param[in] sx The s-expression to check.
  *  \return 1 if it is nil, 0 otherwise.
@@ -471,115 +447,115 @@ void sx_xref
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define nilp(sx)   (((sexpr)(sx) == sx_nil)          || ((sx)->type == sxt_nil))
+#define nilp(sx)   ((sexpr)(sx) == sx_nil)
 
 /*! \brief Check if the S-Expression is the Boolean True Expression
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is true, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define truep(sx)  (((sexpr)(sx) == sx_true)         || ((sx)->type == sxt_true))
+#define truep(sx)  ((sexpr)(sx) == sx_true)
 
 /*! \brief Check if the S-Expression is is the Boolean False Expression
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is false, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define falsep(sx) (((sexpr)(sx) == sx_false)        || ((sx)->type == sxt_false))
+#define falsep(sx) ((sexpr)(sx) == sx_false)
 
 /*! \brief Check if the S-Expression is the empty List Expression
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is an empty list, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define emptyp(sx) (((sexpr)(sx) == sx_empty_list)   || ((sx)->type == sxt_empty_list))
+#define emptyp(sx) ((sexpr)(sx) == sx_empty_list)
 
 /*! \brief Check if the S-Expression is the End-of-List Expression
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is the end-of-list expression, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define eolp(sx)   (((sexpr)(sx) == sx_end_of_list)  || ((sx)->type == sxt_end_of_list))
+#define eolp(sx)   ((sexpr)(sx) == sx_end_of_list)
 
 /*! \brief Check if the S-Expression is the End-of-File Expression
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is the end-of-file expression, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define eofp(sx)   (((sexpr)(sx) == sx_end_of_file)  || ((sx)->type == sxt_end_of_file))
+#define eofp(sx)   ((sexpr)(sx) == sx_end_of_file)
 
 /*! \brief Check if the S-Expression is the Not-a-Number Expression
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is the not-a-number expression, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define nanp(sx)   (((sexpr)(sx) == sx_not_a_number) || ((sx)->type == sxt_not_a_number))
+#define nanp(sx)   ((sexpr)(sx) == sx_not_a_number)
 
 /*! \brief Check if the S-Expression is the nonexistent Expression
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is the nonexistent expression, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define nexp(sx)   (((sexpr)(sx) == sx_nonexistent)  || ((sx)->type == sxt_nonexistent))
+#define nexp(sx)   ((sexpr)(sx) == sx_nonexistent)
 
 /*! \brief Check if the S-Expression is the Dot Operator
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is the dot operator, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define dotp(sx)   (((sexpr)(sx) == sx_dot)          || ((sx)->type == sxt_dot))
+#define dotp(sx)   ((sexpr)(sx) == sx_dot)
 
 /*! \brief Check if the S-Expression is a Cons
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is a cons, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define consp(sx)    ((sx)->type == sxt_cons)
+#define consp(sx)    (pointerp(sx) && (((struct sexpr_cons *)sx_pointer(sx))->type == sxt_cons))
 
 /*! \brief Check if the S-Expression is a String
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is a string, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define stringp(sx)  ((sx)->type == sxt_string)
+#define stringp(sx)  (pointerp(sx) && (((struct sexpr_string_or_symbol *)sx_pointer(sx))->type == sxt_string))
 
 /*! \brief Check if the S-Expression is a Symbol
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is a symbol, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define symbolp(sx)  ((sx)->type == sxt_symbol)
+#define symbolp(sx)  (pointerp(sx) && (((struct sexpr_string_or_symbol *)sx_pointer(sx))->type == sxt_symbol))
 
 /*! \brief Check if the S-Expression is an Integer
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
+ *  \return 1 if it is an integer, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define integerp(sx) ((sx)->type == sxt_integer)
+#define integerp(sx) ((((int_pointer)(sx)) & 0x2) == 0x2)
 
 /*! @} */
 
@@ -593,6 +569,15 @@ void sx_xref
  *  @{
  */
 
+/*! \brief Access the Pointer Value of an S-Expression
+ *  \param[in] sx The s-expression.
+ *  \return The pointer.
+ *
+ *  For s-expressions that are used to encode a pointer, this macro retrieves
+ *  that particular pointer.
+ */
+#define sx_pointer(sx) ((void *)(((int_pointer)(sx)) & (~0x7)))
+
 /*! \brief Access the car of a Cons
  *  \param[in] sx The cons.
  *  \return The car of sx, or sx_nonexistent if sx is not a cons.
@@ -601,7 +586,7 @@ void sx_xref
  *  generic sexpr structure doesn't actually include the car, so some type
  *  juggling is in order to get this working.
  */
-#define car(sx)        (((sx)->type == sxt_cons) ? (((struct sexpr_cons *)(sx))->car) : sx_nonexistent)
+#define car(sx)        (consp(sx) ? (((struct sexpr_cons *)sx_pointer(sx))->car) : sx_nonexistent)
 
 /*! \brief Access the cdr of a Cons
  *  \param[in] sx The cons.
@@ -609,7 +594,7 @@ void sx_xref
  *
  *  Analoguous to car(), but it returns the cdr.
  */
-#define cdr(sx)        (((sx)->type == sxt_cons) ? (((struct sexpr_cons *)(sx))->cdr) : sx_nonexistent)
+#define cdr(sx)        (consp(sx) ? (((struct sexpr_cons *)sx_pointer(sx))->cdr) : sx_nonexistent)
 
 /*! \brief Access the Integer Value of an Integer
  *  \param[in] sx The integer.
@@ -619,7 +604,7 @@ void sx_xref
  *  you should always make sure to check the type of sx yourself if it's
  *  actually important.
  */
-#define sx_integer(sx) (((sx)->type == sxt_integer) ? (((struct sexpr_integer *)(sx))->integer) : -1)
+#define sx_integer(sx) ((int_pointer_s)(((int_pointer)sx_pointer(sx)) & (~0x7)) >> 3)
 
 /*! \brief Access the String Value of a String
  *  \param[in] sx The string.
@@ -629,7 +614,7 @@ void sx_xref
  *  string itself, you should always make sure to check the type of sx yourself
  *  if it's actually important.
  */
-#define sx_string(sx)  (const char *)(((sx)->type == sxt_string) ? (((struct sexpr_string_or_symbol *)(sx))->character_data) : "#nonexistent")
+#define sx_string(sx)  (const char *)(stringp(sx) ? (((struct sexpr_string_or_symbol *)sx_pointer(sx))->character_data) : "#nonexistent")
 
 /*! \brief Access the String Value of a Symbol
  *  \param[in] sx The symbol.
@@ -639,7 +624,7 @@ void sx_xref
  *  string itself, you should always make sure to check the type of sx yourself
  *  if it's actually important.
  */
-#define sx_symbol(sx)  (const char *)(((sx)->type == sxt_symbol) ? (((struct sexpr_string_or_symbol *)(sx))->character_data) : "#nonexistent")
+#define sx_symbol(sx)  (const char *)(symbolp(sx) ? (((struct sexpr_string_or_symbol *)sx_pointer(sx))->character_data) : "#nonexistent")
 
 /*! @} */
 

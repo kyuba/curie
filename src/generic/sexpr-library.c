@@ -47,30 +47,27 @@ sexpr sx_list_fold (sexpr sx, void (*callback)(sexpr ));
 
 sexpr equalp (sexpr a, sexpr b) {
     if (a == b) return sx_true;
-    if (a->type != b->type) return sx_false;
 
-    switch (a->type) {
-        case sxt_integer:
-            {
-                return (((struct sexpr_integer *)a)->integer ==
-                        ((struct sexpr_integer *)b)->integer) ?
-                        sx_true : sx_false;
-            }
-        case sxt_symbol:
-        case sxt_string:
-            {
-                struct sexpr_string_or_symbol
-                    *sa = (struct sexpr_string_or_symbol *)a,
-                    *sb = (struct sexpr_string_or_symbol *)b;
-                int i;
+    if (!pointerp(a) || !pointerp(b)) return sx_false;
 
-                for (i = 0; (sa->character_data[i] == sb->character_data[i]) &&
-                            (sa->character_data[i] != (char)0); i++);
+    if ((stringp(a) && stringp(b)) || (symbolp(a) && symbolp(b)))
+    {
+        struct sexpr_string_or_symbol
+                *sa = (struct sexpr_string_or_symbol *)sx_pointer(a),
+                *sb = (struct sexpr_string_or_symbol *)sx_pointer(b);
+        int i;
 
-                return (sa->character_data[i] == (char)0) ? sx_true : sx_false;
-            }
+        for (i = 0; (sa->character_data[i] == sb->character_data[i]) &&
+                    (sa->character_data[i] != (char)0); i++);
 
-        default: /* the remaining types have no payload */
-            return sx_true;
+        return (sa->character_data[i] == (char)0) ? sx_true : sx_false;
     }
+    else if (consp(a) && consp(b))
+    {
+        return ((truep(equalp(car(a), car(b))) &&
+                 truep(equalp(cdr(a), cdr(b))))) ?
+                sx_true : sx_false;
+    }
+
+    return sx_false;
 }

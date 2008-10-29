@@ -41,50 +41,8 @@
 #include <curie/string.h>
 #include <curie/tree.h>
 
-static const struct sexpr_generic _sx_nil =
-  { .type = sxt_nil, .references = -1 };
-static const struct sexpr_generic _sx_false =
-  { .type = sxt_false, .references = -1 };
-static const struct sexpr_generic _sx_true =
-  { .type = sxt_true, .references = -1 };
-static const struct sexpr_generic _sx_empty_list =
-  { .type = sxt_empty_list, .references = -1 };
-static const struct sexpr_generic _sx_end_of_list =
-  { .type = sxt_end_of_list, .references = -1 };
-static const struct sexpr_generic _sx_end_of_file =
-  { .type = sxt_end_of_file, .references = -1 };
-static const struct sexpr_generic _sx_not_a_number =
-  { .type = sxt_not_a_number, .references = -1 };
-static const struct sexpr_generic _sx_nonexistent =
-  { .type = sxt_nonexistent, .references = -1 };
-static const struct sexpr_generic _sx_dot =
-  { .type = sxt_dot, .references = -1 };
-
-/*@-compmempass@*/
-sexpr const sx_nil =
-        (sexpr const)&_sx_nil;
-sexpr const sx_false =
-        (sexpr const)&_sx_false;
-sexpr const sx_true =
-        (sexpr const)&_sx_true;
-sexpr const sx_empty_list =
-        (sexpr const)&_sx_empty_list;
-sexpr const sx_end_of_list =
-        (sexpr const)&_sx_end_of_list;
-sexpr const sx_end_of_file =
-        (sexpr const)&_sx_end_of_file;
-sexpr const sx_not_a_number =
-        (sexpr const)&_sx_not_a_number;
-sexpr const sx_nonexistent =
-        (sexpr const)&_sx_nonexistent;
-sexpr const sx_dot =
-        (sexpr const)&_sx_dot;
-/*@=compmempass@*/
-
 static struct memory_pool sx_cons_pool =
         MEMORY_POOL_INITIALISER(sizeof (struct sexpr_cons));
-static struct memory_pool sx_int_pool =
-        MEMORY_POOL_INITIALISER(sizeof (struct sexpr_integer));
 
 static struct tree sx_string_tree = TREE_INITIALISER;
 static struct tree sx_symbol_tree = TREE_INITIALISER;
@@ -104,24 +62,7 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr) {
     rv->references = 1;
 
     /*@-memtrans -mustfree@*/
-    return (sexpr)rv;
-    /*@=memtrans =mustfree@*/
-}
-
-sexpr make_integer(signed long number) {
-    struct sexpr_integer *rv = get_pool_mem (&sx_int_pool);
-
-    if (rv == (struct sexpr_integer *)0)
-    {
-        return sx_nonexistent;
-    }
-
-    rv->references = 1;
-    rv->type = sxt_integer;
-    rv->integer = number;
-
-    /*@-memtrans -mustfree@*/
-    return (sexpr)rv;
+    return (sexpr)(((int_pointer)rv) | sx_mask_pointer);
     /*@=memtrans =mustfree@*/
 }
 
@@ -139,7 +80,7 @@ sexpr make_integer(signed long number) {
              != (struct sexpr_string_or_symbol *)0)
         {
             (s->references)++;
-            return (sexpr )s;
+            return (sexpr)(((int_pointer)s) | sx_mask_pointer);
         }
     }
 
@@ -160,7 +101,7 @@ sexpr make_integer(signed long number) {
     s->type = (symbol == (char)1) ? sxt_symbol : sxt_string;
 
     /*@-memtrans -mustfree@*/
-    return (sexpr )s;
+    return (sexpr)(((int_pointer)s) | sx_mask_pointer);
     /*@=memtrans =mustfree@*/
 }
 
@@ -172,55 +113,71 @@ sexpr make_symbol(const char *symbol) {
     return make_string_or_symbol (symbol, (char)1);
 }
 
-void sx_destroy(sexpr sx) {
-    if (sx->references == -1) {
-        return;
-    } else if (sx->references > 1) {
-        if (sx->type == sxt_cons) {
-            sx_destroy ((sexpr) car (sx));
-            sx_destroy ((sexpr) cdr (sx));
+void sx_destroy(sexpr sxx) {
+    if (!pointerp(sxx)) return;
+
+    if (stringp(sxx) || symbolp(sxx))
+    {
+        struct sexpr_string_or_symbol *sx
+                = (struct sexpr_string_or_symbol *)sx_pointer(sxx);
+
+        if (sx->references > 1)
+        {
+            (sx->references)--;
         }
-        (sx->references)--;
-        return;
-    }
+        else
+        {
+            unsigned long length = 0;
+            int_32 hash;
 
-    switch (sx->type) {
-        case sxt_integer:
-            free_pool_mem (sx);
-            return;
-        case sxt_cons:
-            sx_destroy ((sexpr) car (sx));
-            sx_destroy ((sexpr) cdr (sx));
-            free_pool_mem (sx);
-            return;
-        case sxt_string:
-        case sxt_symbol:
-            {
-                unsigned long length = 0;
-                int_32 hash;
+            hash = str_hash_unaligned (((struct sexpr_string_or_symbol *)sx)->character_data, &length);
 
-                hash = str_hash_unaligned (((struct sexpr_string_or_symbol *)sx)->character_data, &length);
-
-                if (sx->type == sxt_string) {
-                    tree_remove_node(&sx_string_tree, (int_pointer)hash);
-                } else {
-                    tree_remove_node(&sx_symbol_tree, (int_pointer)hash);
-                }
-
-                afree ((sizeof (struct sexpr_string_or_symbol) + length), sx);
+            if (sx->type == sxt_string) {
+                tree_remove_node(&sx_string_tree, (int_pointer)hash);
+            } else {
+                tree_remove_node(&sx_symbol_tree, (int_pointer)hash);
             }
-            return;
-        default:
-            return;
+
+            afree ((sizeof (struct sexpr_string_or_symbol) + length), sx);
+        }
+    }
+    else if (consp(sxx))
+    {
+        struct sexpr_cons *sx
+                = (struct sexpr_cons *)sx_pointer(sxx);
+
+        sx_destroy ((sexpr) car (sx));
+        sx_destroy ((sexpr) cdr (sx));
+
+        if (sx->references > 1)
+        {
+            (sx->references)--;
+        }
+        else
+        {
+            free_pool_mem (sx);
+        }
     }
 }
 
-void sx_xref(sexpr sx) {
-    if (sx->references == -1) return;
-    if (consp(sx)) {
+void sx_xref(sexpr sxx) {
+    if (!pointerp(sxx)) return;
+
+    if (stringp(sxx) || symbolp(sxx))
+    {
+        struct sexpr_string_or_symbol *sx
+                = (struct sexpr_string_or_symbol *)sx_pointer(sxx);
+
+        (sx->references) += 1;
+    }
+    else if (consp(sxx))
+    {
+        struct sexpr_cons *sx
+                = (struct sexpr_cons *)sx_pointer(sxx);
+
         sx_xref(car(sx));
         sx_xref(cdr(sx));
-    }
 
-    sx->references += 1;
+        (sx->references) += 1;
+    }
 }

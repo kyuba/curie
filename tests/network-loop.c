@@ -65,9 +65,9 @@ int cmain(void) {
     /* test transmission of a single symbol*/
     do {
         i = sx_read (io);
-    } while (i == sx_nonexistent);
+    } while (nexp(i));
 
-    rv |= ((t1 == i) ? 0 : 1) << 1;
+    rv |= (truep(equalp(t1, i)) ? 0 : 1) << 1;
 
     sx_destroy (i);
 
@@ -78,12 +78,13 @@ int cmain(void) {
         i = sx_read (io);
     } while (i == sx_nonexistent);
 
-    rv |= ((i == t2) ? 0 : 1) << 2;
+    rv |= (truep(equalp(i, t2)) ? 0 : 1) << 2;
 
     sx_destroy (i);
 
     i = sx_read (io);
-    rv |= ((i == sx_nonexistent) ? 0 : 1) << 3;
+
+    rv |= (nexp(i) ? 0 : 1) << 3;
 
     if (rv != 0) {
         sx_write (stdio, (i = make_symbol("failure")));

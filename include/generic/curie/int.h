@@ -65,6 +65,12 @@ extern "C" {
  */
 typedef unsigned long int_pointer;
 
+/*! \brief Signed Integer with the Length of a Pointer
+ *
+ *  Equivalent to int_pointer, but signed.
+ */
+typedef signed long int_pointer_s;
+
 /*! \brief Unsigned Integer with a Length of 64 Bits
  *
  *  This could be most troublesome between archs. I see trouble for this on at
@@ -72,11 +78,23 @@ typedef unsigned long int_pointer;
  */
 typedef unsigned long long int_64;
 
+/*! \brief Signed Integer with a Length of 64 Bits
+ *
+ *  Equivalent to int_64, but signed.
+ */
+typedef signed long long int_64_s;
+
 /*! \brief Unsigned Integer with a Length of 32 Bits
  *
  *  Most archs these days seem to have 32-bit ints.
  */
 typedef unsigned int int_32;
+
+/*! \brief Signed Integer with a Length of 32 Bits
+ *
+ *  Equivalent to int_32, but signed.
+ */
+typedef signed int int_32_s;
 
 /*! \brief Unsigned Integer with a Length of 16 Bits
  *
@@ -84,12 +102,24 @@ typedef unsigned int int_32;
  */
 typedef unsigned short int_16;
 
+/*! \brief Signed Integer with a Length of 16 Bits
+ *
+ *  Equivalent to int_16, but signed.
+ */
+typedef signed short int_16_s;
+
 /*! \brief Unsigned Integer with a Length of 8 Bits
  *
  *  I know of at least one arch that uses 9-bit chars, but it's rare and the
  *  arch is way old.
  */
 typedef unsigned char int_8;
+
+/*! \brief Signed Integer with a Length of 8 Bits
+ *
+ *  Equivalent to int_8, but signed.
+ */
+typedef signed char int_8_s;
 
 #ifdef __cplusplus
 }

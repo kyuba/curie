@@ -111,11 +111,22 @@ extern "C" {
  * nothing more is available just now, or MAX_READ_THRESHOLD is hit. */
 #define SX_MAX_READ_THRESHOLD (128*1024)
 
-/* maximum sizes, better to hardcode them to make sure we won't get a mean
-   stack smash so easily.
-   excess characters will be silently discarded. */
+/*! \brief Maximum Size for S-Expression Strings
+ *
+ *  Longer strings are silently truncated.
+ */
 #define SX_MAX_STRING_LENGTH 1025
+
+/*! \brief Maximum Size for S-Expression Symbols
+ *
+ *  Longer symbols are silently truncated.
+ */
 #define SX_MAX_SYMBOL_LENGTH 385
+
+/*! \brief Maximum Size for S-Expression Numerals
+ *
+ *  Longer numbers are silently truncated.
+ */
 #define SX_MAX_NUMBER_LENGTH 33
 
 #ifdef __cplusplus

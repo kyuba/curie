@@ -432,15 +432,13 @@ sexpr sx_read(struct sexpr_io *io) {
     return result;
 }
 
-
-
 static void sx_write_string_or_symbol (struct io *io, struct sexpr_string_or_symbol *sexpr) {
     unsigned int i, j;
 
     for (i = 0; sexpr->character_data[i] != (char)0; i++);
 
     if (i != 0) {
-        if (stringp(sexpr)) {
+        if (sexpr->type == sxt_string) {
             (void)io_collect (io, "\"", 1);
             /* TODO: this is actually super-inefficient... but it works */
             for (j = 0; j < i; j++) {
@@ -452,7 +450,7 @@ static void sx_write_string_or_symbol (struct io *io, struct sexpr_string_or_sym
             (void)io_collect (io, "\"", 1);
         } else
             (void)io_collect (io, sexpr->character_data, i);
-    } else if (stringp(sexpr)) {
+    } else if (sexpr->type == sxt_string) {
         (void)io_collect (io, "\"\"", 2);
     }
 }
@@ -462,27 +460,26 @@ static void sx_write_cons (struct sexpr_io *io, struct sexpr_cons *sx) {
 
   retry:
 
-    sx_write_dispatch (io, car(sx));
-    sx = (struct sexpr_cons *)cdr ((sexpr)sx);
+    sx_write_dispatch (io, sx->car);
 
-    if (consp(sx)) {
+    if (consp(sx->cdr)) {
         (void)io_collect (io->out, " ", 1);
+        sx = (struct sexpr_cons *)sx_pointer(sx->cdr);
         goto retry;
     }
 
-    if (!eolp(sx)) {
+    if (!eolp(sx->cdr)) {
         (void)io_collect (io->out, " . ", 3);
-        sx_write_dispatch (io, (sexpr)sx);
+        sx_write_dispatch (io, sx->cdr);
     }
 
     (void)io_collect (io->out, ")", 1);
 }
 
-static void sx_write_integer (struct io *io, struct sexpr_integer *sexpr) {
+static void sx_write_integer (struct io *io, int_pointer_s i) {
     char num [SX_MAX_NUMBER_LENGTH];
 
     int neg = 0;
-    signed long i = (signed long)sexpr->integer;
     unsigned int j = 0;
 
     if(i < 0) {
@@ -511,48 +508,53 @@ static void sx_write_integer (struct io *io, struct sexpr_integer *sexpr) {
 
 static void sx_write_dispatch (struct sexpr_io *io, sexpr sx)
 {
-    switch (sx->type) {
-        case sxt_symbol:
-        case sxt_string:
-            sx_write_string_or_symbol (io->out, (struct sexpr_string_or_symbol *)sx);
-            break;
-
-        case sxt_cons:
-            sx_write_cons (io, (struct sexpr_cons *)sx);
-            break;
-
-        case sxt_integer:
-            sx_write_integer (io->out, (struct sexpr_integer *)sx);
-            break;
-
-        case sxt_nil:
-            (void)io_collect (io->out, "#nil", 4);
-            break;
-        case sxt_false:
-            (void)io_collect (io->out, "#f", 2);
-            break;
-        case sxt_true:
-            (void)io_collect (io->out, "#t", 2);
-            break;
-        case sxt_empty_list:
-        case sxt_end_of_list:
-            (void)io_collect (io->out, "()", 2);
-            break;
-/*        case sxt_end_of_list:
-            (void)io_collect (io->out, "#eol", 4);
-            break; */
-        case sxt_end_of_file:
-            (void)io_collect (io->out, "#eof", 4);
-            break;
-        case sxt_not_a_number:
-            (void)io_collect (io->out, "#nan", 4);
-            break;
-        case sxt_nonexistent:
-            (void)io_collect (io->out, "#ne", 3);
-            break;
-        case sxt_dot:
-            (void)io_collect (io->out, ".", 1);
-            break;
+    if (symbolp(sx) || stringp(sx))
+    {
+        sx_write_string_or_symbol (io->out, (struct sexpr_string_or_symbol *)sx_pointer(sx));
+    }
+    else if (consp(sx))
+    {
+        sx_write_cons (io, (struct sexpr_cons *)sx_pointer(sx));
+    }
+    else if (integerp(sx))
+    {
+        sx_write_integer (io->out, sx_integer(sx));
+    }
+    else if (nilp(sx))
+    {
+        (void)io_collect (io->out, "#nil", 4);
+    }
+    else if (falsep(sx))
+    {
+        (void)io_collect (io->out, "#f", 2);
+    }
+    else if (truep(sx))
+    {
+        (void)io_collect (io->out, "#t", 2);
+    }
+    else if (eolp(sx) || emptyp(sx))
+    {
+        (void)io_collect (io->out, "()", 2);
+    }
+    else if (eofp(sx))
+    {
+        (void)io_collect (io->out, "#eof", 4);
+    }
+    else if (nanp(sx))
+    {
+        (void)io_collect (io->out, "#nan", 4);
+    }
+    else if (nexp(sx))
+    {
+        (void)io_collect (io->out, "#ne", 3);
+    }
+    else if (dotp(sx))
+    {
+        (void)io_collect (io->out, ".", 1);
+    }
+    else
+    {
+        (void)io_collect (io->out, "#?", 2);
     }
 }
 
