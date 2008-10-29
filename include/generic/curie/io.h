@@ -83,7 +83,27 @@ enum io_type {
      *  The last access on the associated struct io was a write request. The
      *  buffer contains everything that still needs to be written.
      */
-    iot_write = 2
+    iot_write = 2,
+
+    /*! \brief "Special" Read I/O Mode
+     *
+     *  This indicates an I/O struct that can be read from, but it isn't backed
+     *  by any real file descriptor, or at least not directly. Instead, data can
+     *  be 'read' from this struct after writing to it with the write/collect
+     *  functions.
+     *
+     *  Changing an iot_special_write to this won't invalidate the buffer.
+     */
+    iot_special_read = 3,
+
+    /*! \brief "Special" Write I/O Mode
+     *
+     *  This indicates an I/O struct that can be written to, but it'll only
+     *  modify the buffer in memory and not flush the data to anywhere.
+     *
+     *  Changing an iot_special_read to this won't invalidate the buffer.
+     */
+    iot_special_write = 4
 };
 
 /*! \brief Result code for an I/O Operation
@@ -102,13 +122,15 @@ enum io_result {
      *
      *  The last request carried out on the associated struct io has hit the end
      *  of the underlying file. Subsequent read or write operations are
-     *  pointless.
+     *  pointless (most of the time, anyway).
      */
     io_end_of_file = 1,
 
     /*! \brief New Data
      *
-     *  The last read request has retrieved new data.
+     *  The last read request has retrieved new data. This is also used for
+     *  iot_special_read and iot_special_write to make the multiplexer aware of
+     *  file modifications.
      */
     io_changes = 2,
 
@@ -243,11 +265,25 @@ struct io {
  *          allocation errors.
  *
  *  The given filename is opened for writing. If the file does not exist, or
- *  cannot be read from, a struct io is returned anyway, but it will have an
+ *  cannot be written to, a struct io is returned anyway, but it will have an
  *  fd of -1, which means it will be useless. The type is set to iot_write.
  */
 /*@null@*/ /*@only@*/ struct io *io_open_write
         (/*@notnull@*/ const char *filename);
+
+/*! \brief Create Special I/O Structure
+ *  \return A new struct io. (struct io *)0 is only returned for memory
+ *          allocation errors.
+ *
+ *  The returned I/O structure is suitable for special in-memory processing. It
+ *  isn't backed by any actual file (not from Curie's point of view, anyway),
+ *  which means that this I/O structure can be used to process memory buffers
+ *  obtained one way or another.
+ *
+ *  Writing to the resulting IO structure will write to a memory-only buffer,
+ *  reading from it will report io_changes once after each write operation.
+ */
+/*@null@*/ /*@only@*/ struct io *io_open_special ();
 
 /*! \brief Write Data to I/O Structure
  *  \param[in] io     The I/O structure to write data to.

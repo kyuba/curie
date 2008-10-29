@@ -105,6 +105,19 @@ extern "C" {
  */
 #define IO_CHUNKSIZE LIBCURIE_PAGE_SIZE
 
+/*! \brief Threshold for sx_read()
+ *
+ * the sx_read function will try to keep reading off a struct io * until either
+ * nothing more is available just now, or MAX_READ_THRESHOLD is hit. */
+#define SX_MAX_READ_THRESHOLD (128*1024)
+
+/* maximum sizes, better to hardcode them to make sure we won't get a mean
+   stack smash so easily.
+   excess characters will be silently discarded. */
+#define SX_MAX_STRING_LENGTH 1025
+#define SX_MAX_SYMBOL_LENGTH 385
+#define SX_MAX_NUMBER_LENGTH 33
+
 #ifdef __cplusplus
 }
 #endif

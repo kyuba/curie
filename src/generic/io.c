@@ -40,13 +40,10 @@
 #include <curie/io.h>
 #include <curie/memory.h>
 
-static struct memory_pool io_pool = MEMORY_POOL_INITIALISER(sizeof(struct io));
-
-struct io *io_open (int fd)
+static struct io *io_create ()
 {
+    static struct memory_pool io_pool = MEMORY_POOL_INITIALISER(sizeof(struct io));
     struct io *io = 0;
-
-    (void)a_make_nonblocking (fd);
 
     io = get_pool_mem(&io_pool);
 
@@ -61,12 +58,34 @@ struct io *io_open (int fd)
         return (struct io *)0;
     }
 
-    io->fd = fd;
-    io->type = iot_undefined;
     io->status = io_undefined;
     io->length = 0;
     io->position = 0;
     io->buffersize = IO_CHUNKSIZE;
+
+    return io;
+}
+
+struct io *io_open_special ()
+{
+    struct io *io = io_create();
+
+    if (io == (struct io *)0) return (struct io *)0;
+
+    io->fd = -1;
+    io->type = iot_special_write;
+
+    return io;
+}
+
+struct io *io_open (int fd)
+{
+    struct io *io = io_create();
+
+    (void)a_make_nonblocking (fd);
+
+    io->fd = fd;
+    io->type = iot_undefined;
 
     return io;
 }
@@ -118,10 +137,6 @@ enum io_result io_collect(struct io *io, const char *data, unsigned int length)
 {
     unsigned int i, pos;
 
-    if (io->fd == -1) {
-        io->status = io_unrecoverable_error;
-    }
-
     if (io->buffer == (char *)0)
     {
         io->buffersize = 0;
@@ -131,11 +146,20 @@ enum io_result io_collect(struct io *io, const char *data, unsigned int length)
     }
 
     if ((io->status == io_finalising) ||
-         (io->status == io_end_of_file) ||
-         (io->status == io_unrecoverable_error))
+        (io->status == io_end_of_file) ||
+        (io->status == io_unrecoverable_error))
         return io->status;
 
-    if (io->type == iot_write) {
+    if (io->type == iot_special_read)
+    {
+        io->type = iot_special_write;
+    }
+    else if ((io->type != iot_special_write) && (io->fd == -1))
+    {
+        io->status = io_unrecoverable_error;
+    }
+
+    if ((io->type == iot_write) || (io->type == iot_special_write)) {
         relocate_buffer(io);
     } else {
         io->length = 0;
@@ -170,6 +194,11 @@ enum io_result io_collect(struct io *io, const char *data, unsigned int length)
 
     io->length += length;
 
+    if (io->type == iot_special_write)
+    {
+        io->status = io_changes;
+    }
+
     return io_incomplete;
 }
 
@@ -184,10 +213,6 @@ enum io_result io_read(struct io *io)
 {
     int readrv;
 
-    if (io->fd == -1) {
-        io->status = io_unrecoverable_error;
-    }
-
     if (io->buffer == (char *)0)
     {
         io->buffersize = 0;
@@ -200,6 +225,22 @@ enum io_result io_read(struct io *io)
         (io->status == io_end_of_file) ||
         (io->status == io_unrecoverable_error))
         return io->status;
+
+    if (io->type == iot_special_write)
+    {
+        io->type = iot_special_read;
+        relocate_buffer(io);
+        if (io->status == io_changes)
+        {
+          io->status = io_no_change;
+          return io_changes;
+        }
+        return io_no_change;
+    }
+    else if ((io->type != iot_special_read) && (io->fd == -1))
+    {
+        io->status = io_unrecoverable_error;
+    }
 
     if (io->type == iot_read) {
         relocate_buffer(io);
@@ -266,8 +307,11 @@ enum io_result io_commit (struct io *io)
     switch (io->type) {
         case iot_undefined:
             return io_undefined;
+        case iot_special_read:
         case iot_read:
             return io_read(io);
+        case iot_special_write:
+            return io_incomplete;
         case iot_write:
             if (io->length == 0) return io_complete;
             if (io->buffer != (char *)0)

@@ -40,19 +40,9 @@
 #include <curie/sexpr.h>
 #include <curie/io.h>
 #include <curie/io-system.h>
+#include <curie/constants.h>
 
 #include <curie/sexpr-internal.h>
-
-/* the sx_read function will try to keep reading off a struct io * until either
-   nothing more is available just now, or MAX_READ_THRESHOLD is hit. */
-#define MAX_READ_THRESHOLD (16*1024)
-
-/* maximum sizes, better to hardcode them to make sure we won't get a mean
-   stack smash so easily.
-   excess characters will be silently discarded. */
-#define MAX_STRING_LENGTH 1025
-#define MAX_SYMBOL_LENGTH 385
-#define MAX_NUMBER_LENGTH 33
 
 static struct memory_pool sx_io_pool = MEMORY_POOL_INITIALISER(sizeof (struct sexpr_io));
 
@@ -109,7 +99,7 @@ void sx_close_io (struct sexpr_io *io) {
         (unsigned int *i, char *buf, unsigned int length)
 {
     unsigned int j = *i, k = 0;
-    char newstring [MAX_STRING_LENGTH];
+    char newstring [SX_MAX_STRING_LENGTH];
 
     do {
         if (buf[j] == '"') {
@@ -126,7 +116,7 @@ void sx_close_io (struct sexpr_io *io) {
             if (j >= length) return sx_nonexistent;
         }
 
-        if (k < (MAX_STRING_LENGTH - 2)) {
+        if (k < (SX_MAX_STRING_LENGTH - 2)) {
             /* make sure we still have enough room, then add the character */
             newstring[k] = buf[j];
             k++;
@@ -189,7 +179,7 @@ void sx_close_io (struct sexpr_io *io) {
         (unsigned int *i, char *buf, int unsigned length)
 {
     unsigned int j = *i, k = 0;
-    char newsymbol [MAX_SYMBOL_LENGTH];
+    char newsymbol [SX_MAX_SYMBOL_LENGTH];
 
     do {
         switch (buf[j]) {
@@ -235,7 +225,7 @@ void sx_close_io (struct sexpr_io *io) {
                     return make_symbol (newsymbol);
                 }
             default:
-                if (k < (MAX_SYMBOL_LENGTH - 2)) {
+                if (k < (SX_MAX_SYMBOL_LENGTH - 2)) {
                     /* make sure we still have enough room, then add the
                        character */
                     newsymbol[k] = buf[j];
@@ -378,7 +368,7 @@ sexpr sx_read(struct sexpr_io *io) {
         r = io_read (io->in);
         i = io->in->position;
         length = io->in->length;
-    } while ((r == io_changes) && (length < MAX_READ_THRESHOLD));
+    } while ((r == io_changes) && (length < SX_MAX_READ_THRESHOLD));
 
     if (length == 0) {
         return sx_nonexistent;
@@ -489,7 +479,7 @@ static void sx_write_cons (struct sexpr_io *io, struct sexpr_cons *sx) {
 }
 
 static void sx_write_integer (struct io *io, struct sexpr_integer *sexpr) {
-    char num [MAX_NUMBER_LENGTH];
+    char num [SX_MAX_NUMBER_LENGTH];
 
     int neg = 0;
     signed long i = (signed long)sexpr->integer;
@@ -504,19 +494,19 @@ static void sx_write_integer (struct io *io, struct sexpr_integer *sexpr) {
         char s;
         s = '0' + (char)(i % 10);
 
-        num[(MAX_NUMBER_LENGTH-2)-j] = s;
+        num[(SX_MAX_NUMBER_LENGTH-2)-j] = s;
 
         i /= 10;
         j++;
-    } while ((i != 0) && (j < (MAX_NUMBER_LENGTH-2)));
+    } while ((i != 0) && (j < (SX_MAX_NUMBER_LENGTH-2)));
 
     if(neg == 1) {
         num[31-j] = '-';
         j++;
     }
-    num[(MAX_NUMBER_LENGTH-1)] = (char)0;
+    num[(SX_MAX_NUMBER_LENGTH-1)] = (char)0;
 
-    (void)io_collect (io, num+((MAX_NUMBER_LENGTH-1) -j), j);
+    (void)io_collect (io, num+((SX_MAX_NUMBER_LENGTH-1) -j), j);
 }
 
 static void sx_write_dispatch (struct sexpr_io *io, sexpr sx)

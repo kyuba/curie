@@ -67,16 +67,18 @@ static void mx_f_count(int *r, int *w) {
     struct io_list *l = list;
 
     while (l != (struct io_list *)0) {
-        if ((l->io->fd != -1) &&
-             (l->io->status != io_end_of_file) &&
-             (l->io->status != io_unrecoverable_error))
+        struct io *io = l->io;
+
+        if ((io->fd != -1) &&
+            (io->status != io_end_of_file) &&
+            (io->status != io_unrecoverable_error))
         {
-            switch (l->io->type) {
+            switch (io->type) {
                 case iot_read:
                     (*r) += 1;
                     break;
                 case iot_write:
-                    if (l->io->length == 0) goto next;
+                    if (io->length == 0) goto next;
 
                     (*w) += 1;
                     break;
@@ -94,13 +96,15 @@ static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
     struct io_list *l = list;
 
     while (l != (struct io_list *)0) {
-        if ((l->io->fd != -1) &&
-            (l->io->status != io_end_of_file) &&
-            (l->io->status != io_unrecoverable_error))
-        {
-            int i, t, fd = l->io->fd;
+        struct io *io = l->io;
 
-            switch (l->io->type) {
+        if ((io->fd != -1) &&
+            (io->status != io_end_of_file) &&
+            (io->status != io_unrecoverable_error))
+        {
+            int i, t, fd = io->fd;
+
+            switch (io->type) {
                 case iot_read:
                     t = *r;
                     for (i = 0; i < t; i++) {
@@ -112,7 +116,7 @@ static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
                     (*r) += 1;
                     break;
                 case iot_write:
-                    if (l->io->length == 0) goto next;
+                    if (io->length == 0) goto next;
 
                     t = *w;
                     for (i = 0; i < t; i++) {
@@ -137,28 +141,46 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
     struct io_list *l = list, **p = &list;
 
     while (l != (struct io_list *)0) {
-        if ((l->io->fd != -1) &&
-            (l->io->status != io_end_of_file) &&
-            (l->io->status != io_unrecoverable_error))
-        {
-            int i, fd = l->io->fd;
+        struct io *io = l->io;
 
-            switch (l->io->type) {
+        if (io->fd == -1)
+        {
+            switch (io->type) {
+                case iot_special_read:
+                case iot_special_write:
+                    if (l->on_read != (void *)0)
+                    {
+                        if (io_read(io) == io_changes)
+                        {
+                            l->on_read (io, l->data);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if ((io->status != io_end_of_file) &&
+                 (io->status != io_unrecoverable_error))
+        {
+            int i, fd = io->fd;
+
+            switch (io->type) {
                 case iot_read:
                     for (i = 0; i < r; i++) {
                         if (rs[i] == fd) {
-                            (void)io_read (l->io);
+                            (void)io_read (io);
                             if (l->on_read != (void *)0)
-                                l->on_read (l->io, l->data);
+                                l->on_read (io, l->data);
                         }
                     }
                     break;
                 case iot_write:
-                    if (l->io->length == 0) goto next;
+                    if (io->length == 0) goto next;
 
                     for (i = 0; i < w; i++) {
                         if (ws[i] == fd) {
-                            (void)io_commit (l->io);
+                            (void)io_commit (io);
                         }
                     }
                     break;
@@ -167,9 +189,11 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
             }
         }
 
-        if ((l->io->fd == -1) ||
-            (l->io->status == io_end_of_file) ||
-            (l->io->status == io_unrecoverable_error))
+        if (((io->fd == -1) &&
+             (io->type != iot_special_read) &&
+             (io->type != iot_special_write)) ||
+            (io->status == io_end_of_file) ||
+            (io->status == io_unrecoverable_error))
         {
             struct io_list *t = l;
 
