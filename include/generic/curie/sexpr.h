@@ -576,7 +576,7 @@ void sx_xref
  *  For s-expressions that are used to encode a pointer, this macro retrieves
  *  that particular pointer.
  */
-#define sx_pointer(sx) ((void *)(((int_pointer)(sx)) & (~0x7)))
+#define sx_pointer(sx) ((void *)(((int_pointer)(sx)) & (~0x1)))
 
 /*! \brief Access the car of a Cons
  *  \param[in] sx The cons.
