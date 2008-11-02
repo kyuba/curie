@@ -90,7 +90,7 @@ static struct target *create_library (sexpr definition)
 {
     struct target *context = get_context();
 
-    context->name = car(context);
+    context->name = car(definition);
     sx_xref (context->name);
 
     definition = cdr(definition);
@@ -118,8 +118,19 @@ static struct target *create_library (sexpr definition)
     return context;
 }
 
+static void do_build_target(struct target *t)
+{
+    fprintf (stdout, "building: %s\n", sx_string(t->name));
+}
+
 static void build_target (struct tree *targets, const char *target)
 {
+    struct tree_node *node = tree_get_node_string(targets, (char *)target);
+    
+    if (node != (struct tree_node *)0)
+    {
+        do_build_target (node_get_value(node));
+    }
 }
 
 static void print_help(char *binaryname)
@@ -134,12 +145,17 @@ static void print_help(char *binaryname)
         binaryname);
 }
 
+static void target_map_build (struct tree_node *node, void *u)
+{
+    do_build_target(node_get_value(node));
+}
+
 int main (int argc, char **argv)
 {
     struct sexpr_io *io;
     sexpr r;
     struct tree targets = TREE_INITIALISER;
-    int i = 0;
+    int i = 1;
     char *target_architecture = (char *)0;
     sexpr buildtargets = sx_end_of_list;
 
@@ -211,9 +227,9 @@ int main (int argc, char **argv)
         sx_destroy (r);
     }
 
-    if (buildtargets == sx_end_of_list)
+    if (eolp(buildtargets))
     {
-        /* build all */
+        tree_map (&targets, target_map_build, (void *)0);
     }
     else while (consp(buildtargets))
     {
