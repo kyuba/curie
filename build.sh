@@ -2,7 +2,7 @@
 # Build System Bootstrap
 # POSIX/sh Variant
 
-CURIE_BUILD_FILES="build sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable"
+ICEMAKE_FILES="build sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable"
 
 if [ ! -n "${CC}" ]; then CC='cc'; fi
 if [ ! -n "${LD}" ]; then LD='cc'; fi
@@ -74,7 +74,7 @@ linkbinary() {
     ${TOOLCHAINTYPE}_linkbinary $@;
 }
 
-buildall ${CURIE_BUILD_FILES}
-BINARY=curie-build linkbinary ${CURIE_BUILD_FILES}
+buildall ${ICEMAKE_FILES}
+BINARY=icemake linkbinary ${ICEMAKE_FILES}
 
-exec build/curie-build $@
+exec build/icemake $@

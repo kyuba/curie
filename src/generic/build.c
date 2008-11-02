@@ -141,7 +141,7 @@ static void print_help(char *binaryname)
         " -h          Print help and exit\n"
         " -t <chost>  Specify target CHOST\n\n"
         "The [targets] specify a list of things to build, according to the\n"
-        "curie-build.sx file located in the current working directory.\n\n",
+        "icemake.sx file located in the current working directory.\n\n",
         binaryname);
 }
 
@@ -203,7 +203,7 @@ int main (int argc, char **argv)
     sym_code    = make_symbol ("code");
     stdio = sx_open_stdio();
 
-    io = sx_open_io (io_open_read("curie-build.sx"), io_open(-1));
+    io = sx_open_io (io_open_read("icemake.sx"), io_open(-1));
 
     while (!eofp(r = sx_read (io)))
     {
