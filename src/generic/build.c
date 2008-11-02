@@ -45,14 +45,22 @@
 
 #define BUFFERSIZE 4096
 
-static sexpr sym_library = sx_false;
-static sexpr sym_code    = sx_false;
+static sexpr sym_library   = sx_false;
+static sexpr sym_programme = sx_false;
+static sexpr sym_code      = sx_false;
 
 static struct sexpr_io *stdio;
 
 struct target {
     sexpr name;
+    sexpr library;
     sexpr code;
+};
+
+enum fs_layout
+{
+    fs_fhs,
+    fs_sheer
 };
 
 static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
@@ -67,12 +75,56 @@ static void *gm_recover(unsigned long int s)
     return (void *)0;
 }
 
+static sexpr sx_string_dir_prefix (sexpr file, sexpr p)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), sx_string(file));
+
+    return make_string(buffer);
+}
+
+static sexpr find_code_in_permutations (sexpr file)
+{
+    sexpr r;
+
+    r = sx_string_dir_prefix (file, make_string("src/generic"));
+
+    sx_write (stdio, r);
+
+    sx_destroy (r);
+    sx_destroy (file);
+
+    return sx_false;
+}
+
+static sexpr find_code_with_suffix (sexpr file, char *s)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "%s%s", sx_string(file), s);
+
+    return find_code_in_permutations (make_string(buffer));
+}
+
+static sexpr find_code_c (sexpr file)
+{
+    return find_code_with_suffix (file, ".c");
+}
+
 static void find_code (struct target *context, sexpr file)
 {
+    sexpr r;
+
+    if (!stringp (file)) return;
+
     sx_xref (file);
     sx_xref (file);
 
-    context->code = cons (cons(file, file), context->code);
+    if (stringp (r = find_code_c (file)))
+    {
+        context->code = cons (cons(file, file), context->code);
+    }
 }
 
 static struct target *get_context()
@@ -80,21 +132,15 @@ static struct target *get_context()
     static struct memory_pool pool = MEMORY_POOL_INITIALISER (sizeof(struct target));
     struct target *context = get_pool_mem (&pool);
 
-    context->code = sx_false;
-    context->code = sx_end_of_list;
+    context->code    = sx_false;
+    context->library = sx_false;
+    context->code    = sx_end_of_list;
 
     return context;
 }
 
-static struct target *create_library (sexpr definition)
+static void process_definition (struct target *context, sexpr definition)
 {
-    struct target *context = get_context();
-
-    context->name = car(definition);
-    sx_xref (context->name);
-
-    definition = cdr(definition);
-
     while (consp(definition))
     {
         sexpr sxcar = car (definition);
@@ -114,6 +160,29 @@ static struct target *create_library (sexpr definition)
 
         definition = cdr (definition);
     }
+}
+
+static struct target *create_library (sexpr definition)
+{
+    struct target *context = get_context();
+
+    context->name = car(definition);
+    context->library = sx_true;
+    sx_xref (context->name);
+
+    process_definition (context, cdr(definition));
+
+    return context;
+}
+
+static struct target *create_programme (sexpr definition)
+{
+    struct target *context = get_context();
+
+    context->name = car(definition);
+    sx_xref (context->name);
+
+    process_definition (context, cdr(definition));
 
     return context;
 }
@@ -199,8 +268,9 @@ int main (int argc, char **argv)
     {
     }
 
-    sym_library = make_symbol ("library");
-    sym_code    = make_symbol ("code");
+    sym_library   = make_symbol ("library");
+    sym_programme = make_symbol ("programme");
+    sym_code      = make_symbol ("code");
     stdio = sx_open_stdio();
 
     io = sx_open_io (io_open_read("icemake.sx"), io_open(-1));
@@ -217,6 +287,11 @@ int main (int argc, char **argv)
             {
                 t = create_library (cdr (r));
             }
+            else if (truep(equalp(sxcar, sym_programme)))
+            {
+                t = create_programme (cdr (r));
+            }
+
         }
 
         if (t != (struct target *)0)
