@@ -34,3 +34,11 @@
   (headers "int" "io" "multiplex")
 
   (test-cases "objects"))
+
+(programme "icemake"
+  (name "ICE make")
+  (description "simple build tool for curie")
+  (version 1)
+  
+  (code "build" "sexpr" "memory" memory-pool" "memory-allocator" "io" "string"
+        "io-system" "sexpr-read-write" "sexpr-library" "tree" "immutable"))
