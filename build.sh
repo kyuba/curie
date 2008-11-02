@@ -43,7 +43,7 @@ gcc_buildall() {
 
 buildfile() {
     if [ -e build/${2}.o ]; then
-        if [ "$(stat -c %Y build/${2}.o)" -lt "$(stat -c %Y ${1})" ]; then
+        if [ build/${2}.o -ot ${1} ]; then
             rm build/${2}.o;
         else
 #            echo File exists: build/${2}.o;
@@ -61,7 +61,7 @@ buildall() {
 linkbinary() {
     if [ -e build/${BINARY} ]; then
         for i in $@; do
-            if [ "$(stat -c %Y build/${BINARY})" -lt "$(stat -c %Y build/${i}.o)" ]; then
+            if [ build/${BINARY} -ot build/${i}.o ]; then
                 rm build/${BINARY};
                 ${TOOLCHAINTYPE}_linkbinary $@;
                 return;
