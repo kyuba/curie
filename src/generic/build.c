@@ -66,9 +66,15 @@ static char uname_vendor [UNAMELENGTH] = "unknown";
 
 static enum toolchain uname_toolchain;
 
+static char archbuffer   [BUFFERSIZE];
+static char *archprefix;
+
 static sexpr sym_library   = sx_false;
 static sexpr sym_programme = sx_false;
 static sexpr sym_code      = sx_false;
+static sexpr sym_assembly  = sx_false;
+static sexpr sym_cpp       = sx_false;
+static sexpr sym_c         = sx_false;
 
 static struct sexpr_io *stdio;
 
@@ -247,7 +253,11 @@ static sexpr find_in_permutations (sexpr p, sexpr file)
     }
     else
 #endif
-    if (sx_xref(p), (r = find_in_permutations_os (p, file)), stringp(r))
+    if ((r = find_in_permutations_os (sx_string_dir_prefix_c ("internal", p), file)), stringp(r))
+    {
+        goto ret;
+    }
+    else if (sx_xref(p), (r = find_in_permutations_os (p, file)), stringp(r))
     {
         goto ret;
     }
@@ -292,24 +302,55 @@ static sexpr find_code_S (sexpr file)
     return find_code_with_suffix (file, ".S");
 }
 
+
+
+static sexpr generate_object_file_name (sexpr name, sexpr file)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.o", sx_string(name), archprefix, sx_string(file));
+
+    return make_string(buffer);
+}
+
 static void find_code (struct target *context, sexpr file)
 {
     sexpr r;
 
-    if (!stringp (file)) return;
-
-    sx_xref (file);
-    sx_xref (file);
-
     if (((r = find_code_S (file)), stringp(r)) ||
         ((r = find_code_s (file)), stringp(r)))
     {
-        context->code = cons (cons(file, file), context->code);
+        char buffer[BUFFERSIZE];
+        sexpr subfile;
+
+        context->code = cons (cons(sym_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list))), context->code);
+
+        snprintf (buffer, BUFFERSIZE, "%s-highlevel", sx_string (file));
+        subfile = make_string (buffer);
+
+        if (((r = find_code_cpp (subfile)), stringp(r)))
+        {
+            context->code = cons (cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list))), context->code);
+        }
+        else if (((r = find_code_c (subfile)), stringp(r)))
+        {
+            context->code = cons (cons(sym_c, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list))), context->code);
+        }
+
+        sx_destroy (subfile);
     }
-    else if (((r = find_code_cpp (file)), stringp(r)) ||
-             ((r = find_code_c (file)), stringp(r)))
+    else if (((r = find_code_cpp (file)), stringp(r)))
     {
-        context->code = cons (cons(file, file), context->code);
+        context->code = cons (cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list))), context->code);
+    }
+    else if (((r = find_code_c (file)), stringp(r)))
+    {
+        context->code = cons (cons(sym_c, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list))), context->code);
+    }
+    else
+    {
+        fprintf (stderr, "missing code file: %s\n", sx_string(file));
+        exit(20);
     }
 }
 
@@ -327,6 +368,8 @@ static struct target *get_context()
 
 static void process_definition (struct target *context, sexpr definition)
 {
+    char buffer[BUFFERSIZE];
+
     while (consp(definition))
     {
         sexpr sxcar = car (definition);
@@ -346,6 +389,14 @@ static void process_definition (struct target *context, sexpr definition)
 
         definition = cdr (definition);
     }
+
+    snprintf (buffer, BUFFERSIZE, "build/%s", sx_string(context->name));
+
+    mkdir (buffer, 0755);
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s", sx_string(context->name), archprefix);
+
+    mkdir (buffer, 0755);
 }
 
 static struct target *create_library (sexpr definition)
@@ -376,6 +427,7 @@ static struct target *create_programme (sexpr definition)
 static void do_build_target(struct target *t)
 {
     fprintf (stdout, "building: %s\n", sx_string(t->name));
+    sx_write (stdio, t->code);
 }
 
 static void build_target (struct tree *targets, const char *target)
@@ -405,7 +457,7 @@ static void target_map_build (struct tree_node *node, void *u)
     do_build_target(node_get_value(node));
 }
 
-static void write_uname_element (char *source, char *target)
+static void write_uname_element (char *source, char *target, int tlen)
 {
     int i = 0;
 
@@ -422,7 +474,7 @@ static void write_uname_element (char *source, char *target)
 
         i++;
 
-        if (i >= (UNAMELENGTH-1))
+        if ((i >= (UNAMELENGTH - 1)) || (i >= tlen))
         {
             target[i] = 0;
             return;
@@ -466,6 +518,8 @@ int main (int argc, char **argv)
                         print_help (argv[0]);
                         return 0;
                 }
+
+                y++;
             }
 
             i = xn;
@@ -479,25 +533,99 @@ int main (int argc, char **argv)
 
     if (target_architecture != (char *)0)
     {
+        int j = 0;
+
+        archprefix = target_architecture;
+
+        for (j = 0; target_architecture[j] != 0; j++)
+        {
+            if (target_architecture[j] == '-')
+            {
+                write_uname_element(target_architecture, uname_arch, j);
+                j++;
+
+                break;
+            }
+        }
+
+        target_architecture += j;
+        for (j = 0; target_architecture[j] != 0; j++)
+        {
+            if (target_architecture[j] == '-')
+            {
+                write_uname_element(target_architecture, uname_vendor, j);
+                j++;
+
+                break;
+            }
+        }
+
+        target_architecture += j;
+        for (j = 0; target_architecture[j] != 0; j++)
+        {
+            if (target_architecture[j] == '-')
+            {
+                write_uname_element(target_architecture, uname_os, j);
+                j++;
+
+                break;
+            }
+        }
+
+        if (target_architecture[j] == 0)
+        {
+            fprintf (stderr, "Bad CHOST: %s\n", target_architecture);
+            exit (14);
+        }
+
+        /* target_architecture => toolchain ID */
+
+        uname_toolchain = tc_gcc;
     }
-#ifdef POSIX
     else
     {
+        char *os     = uname_os;
+        char *vendor = uname_vendor;
+        char *arch   = uname_arch;
+        char *toolchain;
+
+        uname_toolchain = tc_gcc;
+
+#ifdef POSIX
         struct utsname un;
 
         if (uname (&un) >= 0)
         {
-            write_uname_element(un.sysname, uname_os);
-            write_uname_element(un.machine, uname_arch);
+            write_uname_element(un.sysname, uname_os, UNAMELENGTH - 1);
+            write_uname_element(un.machine, uname_arch, UNAMELENGTH - 1);
         }
 
-        uname_toolchain = tc_gcc;
-    }
+        os = un.sysname;
+        arch = un.machine;
 #endif
+
+        switch (uname_toolchain)
+        {
+            case tc_gcc: toolchain = "gnu"; break;
+        }
+
+        snprintf (archbuffer, BUFFERSIZE, "%s-%s-%s-%s",
+                  arch, vendor, os, toolchain);
+
+        for (int j = 0; archbuffer[j]; j++)
+        {
+            archbuffer[j] = tolower(archbuffer[j]);
+        }
+
+        archprefix = archbuffer;
+    }
 
     sym_library   = make_symbol ("library");
     sym_programme = make_symbol ("programme");
     sym_code      = make_symbol ("code");
+    sym_assembly  = make_symbol ("assembly");
+    sym_cpp       = make_symbol ("C++");
+    sym_c         = make_symbol ("C");
     stdio = sx_open_stdio();
 
     io = sx_open_io (io_open_read("icemake.sx"), io_open(-1));
