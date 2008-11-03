@@ -43,10 +43,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef POSIX
+#include <sys/utsname.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <ctype.h>
+
 #define BUFFERSIZE 4096
+#define UNAMELENGTH 128
+
+enum toolchain
+{
+    tc_gcc
+};
+
+static char uname_os     [UNAMELENGTH] = "generic";
+static char uname_arch   [UNAMELENGTH] = "generic";
+static char uname_vendor [UNAMELENGTH] = "unknown";
+
+static enum toolchain uname_toolchain;
 
 static sexpr sym_library   = sx_false;
 static sexpr sym_programme = sx_false;
@@ -100,12 +118,10 @@ static sexpr find_actual_file (sexpr p, sexpr file)
 {
     sexpr r = sx_string_dir_prefix (file, p);
     struct stat st;
-    
+
     sx_destroy (p);
 
-    sx_write (stdio, r);
-
-    if (stat (sx_string (file), &st) == 0)
+    if (stat (sx_string (r), &st) == 0)
     {
         return r;
     }
@@ -121,9 +137,16 @@ static sexpr find_in_permutations_vendor (sexpr p, sexpr file)
 {
     sexpr r;
 
-    stringp(r = find_actual_file (sx_string_dir_prefix_c ("unknown", p), file)) ||
-    (sx_xref(p), stringp(r = find_actual_file (p, file)));
+    if ((r = find_actual_file (sx_string_dir_prefix_c (uname_vendor, p), file)), stringp(r))
+    {
+        goto ret;
+    }
+    else if (sx_xref(p), (r = find_actual_file (p, file)), stringp(r))
+    {
+        goto ret;
+    }
 
+    ret:
     sx_destroy (p);
 
     return r;
@@ -133,8 +156,22 @@ static sexpr find_in_permutations_toolchain (sexpr p, sexpr file)
 {
     sexpr r;
 
-    (sx_xref(p), stringp(r = find_in_permutations_vendor (p, file)));
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            if ((r = find_in_permutations_vendor (sx_string_dir_prefix_c ("gnu", p), file)), stringp(r))
+            {
+                goto ret;
+            }
+            break;
+    }
 
+    if (sx_xref(p), (r = find_in_permutations_vendor (p, file)), stringp(r))
+    {
+        goto ret;
+    }
+
+    ret:
     sx_destroy (p);
 
     return r;
@@ -144,8 +181,16 @@ static sexpr find_in_permutations_arch (sexpr p, sexpr file)
 {
     sexpr r;
 
-    (sx_xref(p), stringp(r = find_in_permutations_toolchain (p, file)));
+    if ((r = find_in_permutations_toolchain (sx_string_dir_prefix_c (uname_arch, p), file)), stringp(r))
+    {
+        goto ret;
+    }
+    else if (sx_xref(p), (r = find_in_permutations_toolchain (p, file)), stringp(r))
+    {
+        goto ret;
+    }
 
+    ret:
     sx_destroy (p);
 
     return r;
@@ -155,13 +200,30 @@ static sexpr find_in_permutations_os (sexpr p, sexpr file)
 {
     sexpr r;
 
+    if ((r = find_in_permutations_arch (sx_string_dir_prefix_c (uname_os, p), file)), stringp(r))
+    {
+        goto ret;
+    }
 #ifdef POSIX
-    stringp(r = find_in_permutations_arch (sx_string_dir_prefix_c ("posix", p), file)) ||
+    else if ((r = find_in_permutations_arch (sx_string_dir_prefix_c ("posix", p), file)), stringp(r))
+    {
+        goto ret;
+    }
 #endif
-    stringp(r = find_in_permutations_arch (sx_string_dir_prefix_c ("ansi", p), file)) ||
-    stringp(r = find_in_permutations_arch (sx_string_dir_prefix_c ("generic", p), file)) ||
-    (sx_xref(p), stringp(r = find_in_permutations_arch (p, file)));
+    else if ((r = find_in_permutations_arch (sx_string_dir_prefix_c ("ansi", p), file)), stringp(r))
+    {
+        goto ret;
+    }
+    else if ((r = find_in_permutations_arch (sx_string_dir_prefix_c ("generic", p), file)), stringp(r))
+    {
+        goto ret;
+    }
+    else if (sx_xref(p), (r = find_in_permutations_arch (p, file)), stringp(r))
+    {
+        goto ret;
+    }
 
+    ret:
     sx_destroy (p);
 
     return r;
@@ -172,13 +234,25 @@ static sexpr find_in_permutations (sexpr p, sexpr file)
     sexpr r;
 
 #ifdef VALGRIND
-    stringp(r = find_in_permutations_os (sx_string_dir_prefix_c ("valgrind", p), file)) ||
+    if ((r = find_in_permutations_os (sx_string_dir_prefix_c ("valgrind", p), file)), stringp(r))
+    {
+        goto ret;
+    }
+    else
 #endif
 #ifdef DEBUG
-    stringp(r = find_in_permutations_os (sx_string_dir_prefix_c ("debug", p), file)) ||
+    if ((r = find_in_permutations_os (sx_string_dir_prefix_c ("debug", p), file)), stringp(r))
+    {
+        goto ret;
+    }
+    else
 #endif
-    (sx_xref(p), stringp(r = find_in_permutations_os (p, file)));
-    
+    if (sx_xref(p), (r = find_in_permutations_os (p, file)), stringp(r))
+    {
+        goto ret;
+    }
+
+    ret:
     sx_destroy(p);
 
     return r;
@@ -227,13 +301,13 @@ static void find_code (struct target *context, sexpr file)
     sx_xref (file);
     sx_xref (file);
 
-    if (stringp (r = find_code_S (file)) ||
-        stringp (r = find_code_s (file)))
+    if (((r = find_code_S (file)), stringp(r)) ||
+        ((r = find_code_s (file)), stringp(r)))
     {
         context->code = cons (cons(file, file), context->code);
     }
-    else if (stringp (r = find_code_cpp (file)) ||
-             stringp (r = find_code_c (file)))
+    else if (((r = find_code_cpp (file)), stringp(r)) ||
+             ((r = find_code_c (file)), stringp(r)))
     {
         context->code = cons (cons(file, file), context->code);
     }
@@ -307,7 +381,7 @@ static void do_build_target(struct target *t)
 static void build_target (struct tree *targets, const char *target)
 {
     struct tree_node *node = tree_get_node_string(targets, (char *)target);
-    
+
     if (node != (struct tree_node *)0)
     {
         do_build_target (node_get_value(node));
@@ -329,6 +403,33 @@ static void print_help(char *binaryname)
 static void target_map_build (struct tree_node *node, void *u)
 {
     do_build_target(node_get_value(node));
+}
+
+static void write_uname_element (char *source, char *target)
+{
+    int i = 0;
+
+    while (source[i] != 0)
+    {
+        if (isalnum(source[i]))
+        {
+            target[i] = tolower(source[i]);
+        }
+        else
+        {
+            target[i] = '-';
+        }
+
+        i++;
+
+        if (i >= (UNAMELENGTH-1))
+        {
+            target[i] = 0;
+            return;
+        }
+    }
+
+    target[i] = 0;
 }
 
 int main (int argc, char **argv)
@@ -379,6 +480,20 @@ int main (int argc, char **argv)
     if (target_architecture != (char *)0)
     {
     }
+#ifdef POSIX
+    else
+    {
+        struct utsname un;
+
+        if (uname (&un) >= 0)
+        {
+            write_uname_element(un.sysname, uname_os);
+            write_uname_element(un.machine, uname_arch);
+        }
+
+        uname_toolchain = tc_gcc;
+    }
+#endif
 
     sym_library   = make_symbol ("library");
     sym_programme = make_symbol ("programme");
