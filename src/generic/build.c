@@ -43,6 +43,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #define BUFFERSIZE 4096
 
 static sexpr sym_library   = sx_false;
@@ -75,41 +78,144 @@ static void *gm_recover(unsigned long int s)
     return (void *)0;
 }
 
-static sexpr sx_string_dir_prefix (sexpr file, sexpr p)
+static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), sx_string(file));
+    snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), sx_string(f));
 
     return make_string(buffer);
 }
 
-static sexpr find_code_in_permutations (sexpr file)
+static sexpr sx_string_dir_prefix_c (char *f, sexpr p)
 {
-    sexpr r;
+    char buffer[BUFFERSIZE];
 
-    r = sx_string_dir_prefix (file, make_string("src/generic"));
+    snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), f);
+
+    return make_string(buffer);
+}
+
+static sexpr find_actual_file (sexpr p, sexpr file)
+{
+    sexpr r = sx_string_dir_prefix (file, p);
+    struct stat st;
+    
+    sx_destroy (p);
 
     sx_write (stdio, r);
 
-    sx_destroy (r);
-    sx_destroy (file);
+    if (stat (sx_string (file), &st) == 0)
+    {
+        return r;
+    }
+    else
+    {
+        sx_destroy (r);
+    }
 
     return sx_false;
+}
+
+static sexpr find_in_permutations_vendor (sexpr p, sexpr file)
+{
+    sexpr r;
+
+    stringp(r = find_actual_file (sx_string_dir_prefix_c ("unknown", p), file)) ||
+    (sx_xref(p), stringp(r = find_actual_file (p, file)));
+
+    sx_destroy (p);
+
+    return r;
+}
+
+static sexpr find_in_permutations_toolchain (sexpr p, sexpr file)
+{
+    sexpr r;
+
+    (sx_xref(p), stringp(r = find_in_permutations_vendor (p, file)));
+
+    sx_destroy (p);
+
+    return r;
+}
+
+static sexpr find_in_permutations_arch (sexpr p, sexpr file)
+{
+    sexpr r;
+
+    (sx_xref(p), stringp(r = find_in_permutations_toolchain (p, file)));
+
+    sx_destroy (p);
+
+    return r;
+}
+
+static sexpr find_in_permutations_os (sexpr p, sexpr file)
+{
+    sexpr r;
+
+#ifdef POSIX
+    stringp(r = find_in_permutations_arch (sx_string_dir_prefix_c ("posix", p), file)) ||
+#endif
+    stringp(r = find_in_permutations_arch (sx_string_dir_prefix_c ("ansi", p), file)) ||
+    stringp(r = find_in_permutations_arch (sx_string_dir_prefix_c ("generic", p), file)) ||
+    (sx_xref(p), stringp(r = find_in_permutations_arch (p, file)));
+
+    sx_destroy (p);
+
+    return r;
+}
+
+static sexpr find_in_permutations (sexpr p, sexpr file)
+{
+    sexpr r;
+
+#ifdef VALGRIND
+    stringp(r = find_in_permutations_os (sx_string_dir_prefix_c ("valgrind", p), file)) ||
+#endif
+#ifdef DEBUG
+    stringp(r = find_in_permutations_os (sx_string_dir_prefix_c ("debug", p), file)) ||
+#endif
+    (sx_xref(p), stringp(r = find_in_permutations_os (p, file)));
+    
+    sx_destroy(p);
+
+    return r;
 }
 
 static sexpr find_code_with_suffix (sexpr file, char *s)
 {
     char buffer[BUFFERSIZE];
+    sexpr r, sr;
 
     snprintf (buffer, BUFFERSIZE, "%s%s", sx_string(file), s);
 
-    return find_code_in_permutations (make_string(buffer));
+    r = find_in_permutations (make_string("src"), (sr = make_string (buffer)));
+
+    sx_destroy (sr);
+
+    return r;
 }
 
 static sexpr find_code_c (sexpr file)
 {
     return find_code_with_suffix (file, ".c");
+}
+
+static sexpr find_code_cpp (sexpr file)
+{
+    return find_code_with_suffix (file, ".c++");
+}
+
+static sexpr find_code_s (sexpr file)
+{
+    return find_code_with_suffix (file, ".s");
+}
+
+static sexpr find_code_S (sexpr file)
+{
+    return find_code_with_suffix (file, ".S");
 }
 
 static void find_code (struct target *context, sexpr file)
@@ -121,7 +227,13 @@ static void find_code (struct target *context, sexpr file)
     sx_xref (file);
     sx_xref (file);
 
-    if (stringp (r = find_code_c (file)))
+    if (stringp (r = find_code_S (file)) ||
+        stringp (r = find_code_s (file)))
+    {
+        context->code = cons (cons(file, file), context->code);
+    }
+    else if (stringp (r = find_code_cpp (file)) ||
+             stringp (r = find_code_c (file)))
     {
         context->code = cons (cons(file, file), context->code);
     }
