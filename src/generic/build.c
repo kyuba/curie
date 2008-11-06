@@ -78,6 +78,11 @@ static sexpr sym_c         = sx_false;
 
 static struct sexpr_io *stdio;
 
+static sexpr p_c_compiler;
+static sexpr p_cpp_compiler;
+static sexpr p_assembler;
+static sexpr p_linker;
+
 struct target {
     sexpr name;
     sexpr library;
@@ -424,10 +429,72 @@ static struct target *create_programme (sexpr definition)
     return context;
 }
 
+static void build_object_gcc_assembly (const char *source, const char *target)
+{
+    const char *exec[] = { sx_string (p_assembler), "-c", source, "-o", target, (const char *)0};
+
+    fprintf (stdout, "%s -c %s -o %s\n", sx_string (p_assembler), source, target);
+}
+
+static void build_object_gcc_c (const char *source, const char *target)
+{
+    const char *exec[] = { sx_string (p_c_compiler), "-c", source, "-o", target, (const char *)0};
+
+    fprintf (stdout, "%s -c %s -o %s\n", sx_string (p_c_compiler), source, target);
+}
+
+static void build_object_gcc_cpp (const char *source, const char *target)
+{
+    const char *exec[] = { sx_string (p_cpp_compiler), "-c", source, "-o", target, (const char *)0};
+
+    fprintf (stdout, "%s -c %s -o %s\n", sx_string (p_cpp_compiler), source, target);
+}
+
+static void build_object_gcc (sexpr type, sexpr source, sexpr target)
+{
+    if (truep(equalp(type, sym_assembly)))
+    {
+        build_object_gcc_assembly (sx_string(source), sx_string(target));
+    }
+    else if (truep(equalp(type, sym_c)))
+    {
+        build_object_gcc_c (sx_string(source), sx_string(target));
+    }
+    else if (truep(equalp(type, sym_cpp)))
+    {
+        build_object_gcc_cpp (sx_string(source), sx_string(target));
+    }
+    else
+    {
+        fprintf (stderr, "Unknown code file type: %s\n", sx_symbol(type));
+        exit (20);
+    }
+}
+
+static void build_object(sexpr desc)
+{
+    sexpr type = car(desc);
+    sexpr source = car(cdr(desc));
+    sexpr target = car(cdr(cdr(desc)));
+
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            build_object_gcc (type, source, target); break;
+    }
+}
+
 static void do_build_target(struct target *t)
 {
+    sexpr c = t->code;
     fprintf (stdout, "building: %s\n", sx_string(t->name));
-    sx_write (stdio, t->code);
+
+    while (consp (c))
+    {
+        build_object(car(c));
+
+        c = cdr (c);
+    }
 }
 
 static void build_target (struct tree *targets, const char *target)
@@ -482,6 +549,122 @@ static void write_uname_element (char *source, char *target, int tlen)
     }
 
     target[i] = 0;
+}
+
+static sexpr which (char *programme)
+{
+    char buffer[BUFFERSIZE];
+    char *x = getenv("PATH"), *y = buffer, *cur = x;
+
+    if (x == (char *)0) return sx_false;
+
+    while ((*x != 0) && (y < (buffer + BUFFERSIZE - 1)))
+    {
+        if ((*x == ':') || (*x == ';'))
+        {
+            char subbuffer[BUFFERSIZE];
+            struct stat st;
+
+            *y = 0;
+            y = buffer;
+
+            snprintf (subbuffer, BUFFERSIZE, "%s/%s", buffer, programme);
+
+            if (stat (subbuffer, &st) == 0)
+            {
+                return make_string (subbuffer);
+            }
+        }
+        else
+        {
+            *y = *x;
+            y++;
+        }
+
+        x++;
+    }
+
+    return sx_false;
+}
+
+static void initialise_toolchain_gcc()
+{
+    char buffer[BUFFERSIZE];
+    sexpr w;
+
+    if (snprintf (buffer, BUFFERSIZE, "%s-gcc", archprefix),
+        (w = which (buffer)), stringp(w))
+    {
+        p_c_compiler = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "%s-cc", archprefix),
+             (w = which (buffer)), stringp(w))
+    {
+        p_c_compiler = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "gcc"),
+             (w = which (buffer)), stringp(w))
+    {
+        p_c_compiler = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "cc"),
+             (w = which (buffer)), stringp(w))
+    {
+        p_c_compiler = w;
+    }
+    else
+    {
+        fprintf (stderr, "cannot find C compiler.\n");
+        exit (21);
+    }
+
+    if (snprintf (buffer, BUFFERSIZE, "%s-g++", archprefix),
+        (w = which (buffer)), stringp(w))
+    {
+        p_cpp_compiler = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "g++"),
+             (w = which (buffer)), stringp(w))
+    {
+        p_cpp_compiler = w;
+    }
+    else
+    {
+        fprintf (stderr, "cannot find C++ compiler.\n");
+        exit (22);
+    }
+
+    if (snprintf (buffer, BUFFERSIZE, "%s-as", archprefix),
+        (w = which (buffer)), stringp(w))
+    {
+        p_assembler = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "as"),
+             (w = which (buffer)), stringp(w))
+    {
+        p_assembler = w;
+    }
+    else
+    {
+        fprintf (stderr, "cannot find assembler.\n");
+        exit (23);
+    }
+
+    if (snprintf (buffer, BUFFERSIZE, "%s-ld", archprefix),
+        (w = which (buffer)), stringp(w))
+    {
+        p_linker = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "ld"),
+             (w = which (buffer)), stringp(w))
+    {
+        p_linker = w;
+    }
+    else
+    {
+        fprintf (stderr, "cannot find linker.\n");
+        exit (23);
+    }
 }
 
 int main (int argc, char **argv)
@@ -618,6 +801,11 @@ int main (int argc, char **argv)
         }
 
         archprefix = archbuffer;
+    }
+
+    switch (uname_toolchain)
+    {
+        case tc_gcc: initialise_toolchain_gcc(); break;
     }
 
     sym_library   = make_symbol ("library");
