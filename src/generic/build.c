@@ -68,6 +68,7 @@ static enum toolchain uname_toolchain;
 
 static char archbuffer   [BUFFERSIZE];
 static char *archprefix;
+static char *tcversion = (char *)0;
 
 static sexpr sym_library   = sx_false;
 static sexpr sym_programme = sx_false;
@@ -512,8 +513,9 @@ static void print_help(char *binaryname)
     fprintf (stdout,
         "Usage: %s [options] [targets]\n\n"
         "Options:\n"
-        " -h          Print help and exit\n"
-        " -t <chost>  Specify target CHOST\n\n"
+        " -h           Print help and exit\n"
+        " -t <chost>   Specify target CHOST\n"
+        " -z <version> Specify target toolchain version\n\n"
         "The [targets] specify a list of things to build, according to the\n"
         "icemake.sx file located in the current working directory.\n\n",
         binaryname);
@@ -592,7 +594,13 @@ static void initialise_toolchain_gcc()
     char buffer[BUFFERSIZE];
     sexpr w;
 
-    if (snprintf (buffer, BUFFERSIZE, "%s-gcc", archprefix),
+    if ((tcversion != (char *)0) &&
+        (snprintf (buffer, BUFFERSIZE, "%s-gcc-%s", archprefix, tcversion),
+         (w = which (buffer)), stringp(w)))
+    {
+        p_c_compiler = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "%s-gcc", archprefix),
         (w = which (buffer)), stringp(w))
     {
         p_c_compiler = w;
@@ -618,7 +626,13 @@ static void initialise_toolchain_gcc()
         exit (21);
     }
 
-    if (snprintf (buffer, BUFFERSIZE, "%s-g++", archprefix),
+    if ((tcversion != (char *)0) &&
+        (snprintf (buffer, BUFFERSIZE, "%s-g++-%s", archprefix, tcversion),
+         (w = which (buffer)), stringp(w)))
+    {
+        p_cpp_compiler = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "%s-g++", archprefix),
         (w = which (buffer)), stringp(w))
     {
         p_cpp_compiler = w;
@@ -634,7 +648,13 @@ static void initialise_toolchain_gcc()
         exit (22);
     }
 
-    if (snprintf (buffer, BUFFERSIZE, "%s-as", archprefix),
+    if ((tcversion != (char *)0) &&
+        (snprintf (buffer, BUFFERSIZE, "%s-as-%s", archprefix, tcversion),
+         (w = which (buffer)), stringp(w)))
+    {
+        p_assembler = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "%s-as", archprefix),
         (w = which (buffer)), stringp(w))
     {
         p_assembler = w;
@@ -650,7 +670,13 @@ static void initialise_toolchain_gcc()
         exit (23);
     }
 
-    if (snprintf (buffer, BUFFERSIZE, "%s-ld", archprefix),
+    if ((tcversion != (char *)0) &&
+        (snprintf (buffer, BUFFERSIZE, "%s-ld-%s", archprefix, tcversion),
+         (w = which (buffer)), stringp(w)))
+    {
+        p_linker = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "%s-ld", archprefix),
         (w = which (buffer)), stringp(w))
     {
         p_linker = w;
@@ -693,6 +719,13 @@ int main (int argc, char **argv)
                         if (xn < argc)
                         {
                             target_architecture = argv[xn];
+                            xn++;
+                        }
+                        break;
+                    case 'z':
+                        if (xn < argc)
+                        {
+                            tcversion = argv[xn];
                             xn++;
                         }
                         break;
@@ -755,15 +788,16 @@ int main (int argc, char **argv)
             }
         }
 
-        if (target_architecture[j] == 0)
+        target_architecture += j;
+        if (target_architecture != 0)
         {
-            fprintf (stderr, "Bad CHOST: %s\n", target_architecture);
-            exit (14);
+            /* target_architecture => toolchain ID */
+            uname_toolchain = tc_gcc;
         }
-
-        /* target_architecture => toolchain ID */
-
-        uname_toolchain = tc_gcc;
+        else
+        {
+            uname_toolchain = tc_gcc;
+        }
     }
     else
     {
@@ -783,8 +817,8 @@ int main (int argc, char **argv)
             write_uname_element(un.machine, uname_arch, UNAMELENGTH - 1);
         }
 
-        os = un.sysname;
-        arch = un.machine;
+        os = uname_os;
+        arch = uname_arch;
 #endif
 
         switch (uname_toolchain)
