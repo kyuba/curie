@@ -105,7 +105,7 @@ struct target {
 enum fs_layout
 {
     fs_fhs,
-    fs_sheer
+    fs_proper
 };
 
 static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
@@ -839,7 +839,10 @@ static void print_help(char *binaryname)
         "Options:\n"
         " -h           Print help and exit\n"
         " -t <chost>   Specify target CHOST\n"
-        " -z <version> Specify target toolchain version\n\n"
+        " -z <version> Specify target toolchain version\n"
+        " -i <destdir> Install resulting binaries to the given destdir\n"
+        " -f           Use the FHS layout for installation\n"
+        " -s           Use the default FS layout for installation\n\n"
         "The [targets] specify a list of things to build, according to the\n"
         "icemake.sx file located in the current working directory.\n\n",
         binaryname);
@@ -1228,6 +1231,10 @@ static void post_process (sexpr buildtargets, struct tree *targets)
     loop_processes();
 }
 
+static void install (sexpr destdir, enum fs_layout fsl, sexpr buildtargets, struct tree *targets)
+{
+}
+
 int main (int argc, char **argv, char **environ)
 {
     struct sexpr_io *io;
@@ -1236,6 +1243,8 @@ int main (int argc, char **argv, char **environ)
     int i = 1;
     char *target_architecture = (char *)0;
     sexpr buildtargets = sx_end_of_list;
+    sexpr install_destdir = sx_false;
+    enum fs_layout i_fsl;
 
     xenviron = environ;
 
@@ -1265,6 +1274,19 @@ int main (int argc, char **argv, char **environ)
                             tcversion = argv[xn];
                             xn++;
                         }
+                        break;
+                    case 'i':
+                        if (xn < argc)
+                        {
+                            install_destdir = make_string(argv[xn]);
+                            xn++;
+                        }
+                        break;
+                    case 'f':
+                        i_fsl = fs_fhs;
+                        break;
+                    case 's':
+                        i_fsl = fs_proper;
                         break;
                     case 'h':
                     case '-':
@@ -1430,6 +1452,11 @@ int main (int argc, char **argv, char **environ)
     build (buildtargets, &targets);
     link (buildtargets, &targets);
     post_process (buildtargets, &targets);
+
+    if (!falsep(install_destdir))
+    {
+        install (install_destdir, i_fsl, buildtargets, &targets);
+    }
 
     return 0;
 }
