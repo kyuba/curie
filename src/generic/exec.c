@@ -55,7 +55,7 @@ struct exec_context *execute(unsigned int options,
 {
     struct exec_context *context =
         (struct exec_context *)get_pool_mem(&exec_context_pool);
-    int pid, i;
+    int pid, i, retries = 0;
     struct io *proc_stdout_in, *proc_stdout_out,
               *proc_stdin_in,  *proc_stdin_out;
 
@@ -74,19 +74,26 @@ struct exec_context *execute(unsigned int options,
         net_open_loop(&proc_stdin_in, &proc_stdin_out);
     }
 
-    pid = a_fork();
+    while (((pid = a_fork()) == -1) && (retries < 10))
+    {
+        retries++;
+    }
+
     context->pid = pid;
 
     switch (pid) {
         case -1:
-            io_close (proc_stdout_in);
-            io_close (proc_stdout_out);
-            io_close (proc_stdin_in);
-            io_close (proc_stdin_out);
+            if ((options & EXEC_CALL_NO_IO) == 0) {
+                io_close (proc_stdout_in);
+                io_close (proc_stdout_out);
+                io_close (proc_stdin_in);
+                io_close (proc_stdin_out);
+            }
 
             context->in = (struct io *)0;
             context->out = (struct io *)0;
-            break;
+            context->status = ps_terminated;
+            return context;
         case 0:
             if (options & EXEC_CALL_CREATE_SESSION)
             {

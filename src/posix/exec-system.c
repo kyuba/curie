@@ -52,19 +52,26 @@ int a_fork() {
 }
 
 enum wait_return a_wait(int pid, int *status) {
-    int st;
+    int st = 0;
     enum wait_return r;
 
     /*@-checkstrictglobs@*/
     (void)waitpid((pid_t)pid, &st, WNOHANG);
     /*@=checkstrictglobs@*/
 
-    if (WIFEXITED(st) != 0) {
+    if (WIFEXITED(st)) {
         r = wr_exited;
-        *status = WEXITSTATUS(st);
-    } else {
-        r = (WIFSIGNALED(st) != 0) ? wr_killed : wr_running;
-        *status = 0;
+        *status = (int)(char)(WEXITSTATUS(st));
+    }
+    else if (WIFSIGNALED(st))
+    {
+        r = wr_killed;
+        *status = (int)(char)-(WTERMSIG(st));
+    }
+    else
+    {
+        r = wr_running;
+        *status = (int)(char)0;
     }
 
     return r;
