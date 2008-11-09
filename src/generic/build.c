@@ -93,6 +93,8 @@ static sexpr p_c_compiler;
 static sexpr p_cpp_compiler;
 static sexpr p_assembler;
 static sexpr p_linker;
+static sexpr p_archiver;
+static sexpr p_archive_indexer;
 
 struct target {
     sexpr name;
@@ -226,12 +228,10 @@ static sexpr find_in_permutations_os (sexpr p, sexpr file)
     {
         goto ret;
     }
-#ifdef POSIX
     else if ((r = find_in_permutations_arch (sx_string_dir_prefix_c ("posix", p), file)), stringp(r))
     {
         goto ret;
     }
-#endif
     else if ((r = find_in_permutations_arch (sx_string_dir_prefix_c ("ansi", p), file)), stringp(r))
     {
         goto ret;
@@ -502,9 +502,7 @@ static sexpr permutate_paths_os (sexpr p, sexpr lis)
     sx_xref(p);
 
     lis = permutate_paths_arch (sx_string_dir_prefix_c (uname_os, p), lis);
-#ifdef POSIX
     lis = permutate_paths_arch (sx_string_dir_prefix_c ("posix", p), lis);
-#endif
     lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
     lis = permutate_paths_arch (sx_string_dir_prefix_c ("generic", p), lis);
     lis = permutate_paths_arch (p, lis);
@@ -567,6 +565,7 @@ static void build_object_gcc_c (const char *source, const char *target)
 {
     workstack
         = cons (cons (p_c_compiler,
+                  cons (make_string ("-DPOSIX"),
                   cons (make_string ("--std=c99"),
                     cons (make_string ("-Wall"),
                       cons (make_string ("-pedantic"),
@@ -574,7 +573,7 @@ static void build_object_gcc_c (const char *source, const char *target)
                           cons (make_string ("-c"),
                             cons (make_string (source),
                               cons (make_string ("-o"),
-                                cons (make_string(target), sx_end_of_list)))))))))
+                                cons (make_string(target), sx_end_of_list))))))))))
                 , workstack);
 }
 
@@ -582,11 +581,13 @@ static void build_object_gcc_cpp (const char *source, const char *target)
 {
     workstack
         = cons (cons (p_cpp_compiler,
-                  prepend_includes_gcc (
-                    cons (make_string ("-c"),
-                      cons (make_string (source),
-                        cons (make_string ("-o"),
-                          cons (make_string(target), sx_end_of_list))))))
+                  cons (make_string ("-DPOSIX"),
+                  cons (make_string ("-fno-exceptions"),
+                    prepend_includes_gcc (
+                      cons (make_string ("-c"),
+                        cons (make_string (source),
+                          cons (make_string ("-o"),
+                            cons (make_string(target), sx_end_of_list))))))))
                 , workstack);
 }
 
@@ -617,11 +618,116 @@ static void build_object(sexpr desc)
     sexpr source = car(cdr(desc));
     sexpr target = car(cdr(cdr(desc)));
 
+    struct stat sst, tst;
+    if ((stat (sx_string (source), &sst) == 0) &&
+        (stat (sx_string (target), &tst) == 0) &&
+        (tst.st_mtime > sst.st_mtime)) return;
+
     switch (uname_toolchain)
     {
         case tc_gcc:
             build_object_gcc (type, source, target); break;
     }
+}
+
+static void link_library_gcc (sexpr name, sexpr code, struct target *t)
+{
+    char buffer[BUFFERSIZE];
+    sexpr sx = sx_end_of_list;
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(name), archprefix, sx_string(name));
+    
+    while (consp (code))
+    {
+        sx = cons (car (cdr (cdr (car (code)))), sx);
+
+        code = cdr (code);
+    }
+
+/*    sx_write (stdio, sx);*/
+
+    workstack
+        = cons (cons (p_archiver,
+                  cons (make_string ("-r"),
+                    cons (make_string (buffer),
+                          sx)))
+                , workstack);
+}
+
+static void link_programme_gcc (sexpr name, sexpr code, struct target *t)
+{
+    char buffer[BUFFERSIZE];
+    sexpr sx = sx_end_of_list;
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", sx_string(name), archprefix, sx_string(name));
+    
+    while (consp (code))
+    {
+        sx = cons (car (cdr (cdr (car (code)))), sx);
+
+        code = cdr (code);
+    }
+
+/*    sx_write (stdio, sx);*/
+
+    workstack
+        = cons (cons (p_linker,
+                  cons (make_string ("-o"),
+                    cons (make_string (buffer),
+                          sx)))
+                , workstack);
+}
+
+static void post_process_library_gcc (sexpr name, struct target *t)
+{
+    char buffer[BUFFERSIZE];
+    sexpr sx = sx_end_of_list;
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(name), archprefix, sx_string(name));
+
+/*    sx_write (stdio, sx);*/
+
+    workstack
+        = cons (cons (p_archive_indexer,
+                  cons (make_string (buffer),
+                        sx))
+                , workstack);
+}
+
+static void link_library (sexpr name, sexpr code, struct target *t)
+{
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            link_library_gcc (name, code, t); break;
+    }
+}
+
+static void link_programme (sexpr name, sexpr code, struct target *t)
+{
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            link_programme_gcc (name, code, t); break;
+    }
+}
+
+static void post_process_library (sexpr name, struct target *t)
+{
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            post_process_library_gcc (name, t); break;
+    }
+}
+
+static void post_process_programme (sexpr name, struct target *t)
+{
+/*    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            post_process_programme_gcc (name, t); break;
+    }*/
 }
 
 static void do_build_target(struct target *t)
@@ -639,12 +745,26 @@ static void do_build_target(struct target *t)
 static void do_link_target(struct target *t)
 {
     sexpr c = t->code;
-
-    while (consp (c))
+    
+    if (truep(t->library))
     {
-/*        link_object(car(c));*/
+        link_library (t->name, c, t);
+    }
+    else
+    {
+        link_programme (t->name, c, t);
+    }
+}
 
-        c = cdr (c);
+static void do_post_process_target(struct target *t)
+{    
+    if (truep(t->library))
+    {
+        post_process_library (t->name, t);
+    }
+    else
+    {
+        post_process_programme (t->name, t);
     }
 }
 
@@ -665,6 +785,16 @@ static void link_target (struct tree *targets, const char *target)
     if (node != (struct tree_node *)0)
     {
         do_link_target (node_get_value(node));
+    }
+}
+
+static void post_process_target (struct tree *targets, const char *target)
+{
+    struct tree_node *node = tree_get_node_string(targets, (char *)target);
+
+    if (node != (struct tree_node *)0)
+    {
+        do_post_process_target (node_get_value(node));
     }
 }
 
@@ -689,6 +819,11 @@ static void target_map_build (struct tree_node *node, void *u)
 static void target_map_link (struct tree_node *node, void *u)
 {
     do_link_target(node_get_value(node));
+}
+
+static void target_map_post_process (struct tree_node *node, void *u)
+{
+    do_post_process_target(node_get_value(node));
 }
 
 static void write_uname_element (char *source, char *target, int tlen)
@@ -763,26 +898,31 @@ static void initialise_toolchain_gcc()
         (snprintf (buffer, BUFFERSIZE, "%s-gcc-%s", archprefix, tcversion),
          (w = which (buffer)), stringp(w)))
     {
+        p_linker = w;
         p_c_compiler = w;
     }
     else if (snprintf (buffer, BUFFERSIZE, "%s-gcc", archprefix),
         (w = which (buffer)), stringp(w))
     {
+        p_linker = w;
         p_c_compiler = w;
     }
     else if (snprintf (buffer, BUFFERSIZE, "%s-cc", archprefix),
              (w = which (buffer)), stringp(w))
     {
+        p_linker = w;
         p_c_compiler = w;
     }
     else if (snprintf (buffer, BUFFERSIZE, "gcc"),
              (w = which (buffer)), stringp(w))
     {
+        p_linker = w;
         p_c_compiler = w;
     }
     else if (snprintf (buffer, BUFFERSIZE, "cc"),
              (w = which (buffer)), stringp(w))
     {
+        p_linker = w;
         p_c_compiler = w;
     }
     else
@@ -835,7 +975,7 @@ static void initialise_toolchain_gcc()
         exit (23);
     }
 
-    if ((tcversion != (char *)0) &&
+/*    if ((tcversion != (char *)0) &&
         (snprintf (buffer, BUFFERSIZE, "%s-ld-%s", archprefix, tcversion),
          (w = which (buffer)), stringp(w)))
     {
@@ -854,6 +994,50 @@ static void initialise_toolchain_gcc()
     else
     {
         fprintf (stderr, "cannot find linker.\n");
+        exit (23);
+    }*/
+
+    if ((tcversion != (char *)0) &&
+        (snprintf (buffer, BUFFERSIZE, "%s-ar-%s", archprefix, tcversion),
+         (w = which (buffer)), stringp(w)))
+    {
+        p_archiver = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "%s-ar", archprefix),
+        (w = which (buffer)), stringp(w))
+    {
+        p_archiver = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "ar"),
+             (w = which (buffer)), stringp(w))
+    {
+        p_archiver = w;
+    }
+    else
+    {
+        fprintf (stderr, "cannot find archiver.\n");
+        exit (23);
+    }
+
+    if ((tcversion != (char *)0) &&
+        (snprintf (buffer, BUFFERSIZE, "%s-ranlib-%s", archprefix, tcversion),
+         (w = which (buffer)), stringp(w)))
+    {
+        p_archive_indexer = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "%s-ranlib", archprefix),
+        (w = which (buffer)), stringp(w))
+    {
+        p_archive_indexer = w;
+    }
+    else if (snprintf (buffer, BUFFERSIZE, "ranlib"),
+             (w = which (buffer)), stringp(w))
+    {
+        p_archive_indexer = w;
+    }
+    else
+    {
+        fprintf (stderr, "cannot find archive indexer.\n");
         exit (23);
     }
 }
@@ -947,6 +1131,69 @@ enum signal_callback_result cb_on_bad_signal(enum signal s, void *p)
     return scr_keep;
 }
 
+static void loop_processes()
+{
+    spawn_stack_items ();
+
+    while (alive_processes > 0)
+    {
+        multiplex();
+        spawn_stack_items ();
+    }
+}
+
+static void build (sexpr buildtargets, struct tree *targets)
+{
+    sexpr cursor = buildtargets;
+
+    if (eolp(cursor))
+    {
+        tree_map (targets, target_map_build, (void *)0);
+    }
+    else while (consp(cursor))
+    {
+        sexpr sxcar = car(cursor);
+        build_target (targets, sx_string(sxcar));
+        cursor = cdr(cursor);
+    }
+
+    loop_processes();
+}
+
+static void link (sexpr buildtargets, struct tree *targets)
+{
+    sexpr cursor = buildtargets;
+    if (eolp(cursor))
+    {
+        tree_map (targets, target_map_link, (void *)0);
+    }
+    else while (consp(cursor))
+    {
+        sexpr sxcar = car(cursor);
+        link_target (targets, sx_string(sxcar));
+        cursor = cdr(cursor);
+    }
+
+    loop_processes();
+}
+
+static void post_process (sexpr buildtargets, struct tree *targets)
+{
+    sexpr cursor = buildtargets;
+    if (eolp(cursor))
+    {
+        tree_map (targets, target_map_post_process, (void *)0);
+    }
+    else while (consp(cursor))
+    {
+        sexpr sxcar = car(cursor);
+        post_process_target (targets, sx_string(sxcar));
+        cursor = cdr(cursor);
+    }
+
+    loop_processes();
+}
+
 int main (int argc, char **argv, char **environ)
 {
     struct sexpr_io *io;
@@ -954,7 +1201,7 @@ int main (int argc, char **argv, char **environ)
     struct tree targets = TREE_INITIALISER;
     int i = 1;
     char *target_architecture = (char *)0;
-    sexpr buildtargets = sx_end_of_list, cursor;
+    sexpr buildtargets = sx_end_of_list;
 
     xenviron = environ;
 
@@ -1146,46 +1393,9 @@ int main (int argc, char **argv, char **environ)
         sx_destroy (r);
     }
 
-    cursor = buildtargets;
-
-    if (eolp(cursor))
-    {
-        tree_map (&targets, target_map_build, (void *)0);
-    }
-    else while (consp(cursor))
-    {
-        sexpr sxcar = car(cursor);
-        build_target (&targets, sx_string(sxcar));
-        cursor = cdr(cursor);
-    }
-
-    spawn_stack_items ();
-
-    while (alive_processes > 0)
-    {
-        multiplex();
-        spawn_stack_items ();
-    }
-
-    cursor = buildtargets;
-    if (eolp(cursor))
-    {
-        tree_map (&targets, target_map_link, (void *)0);
-    }
-    else while (consp(cursor))
-    {
-        sexpr sxcar = car(cursor);
-        link_target (&targets, sx_string(sxcar));
-        cursor = cdr(cursor);
-    }
-
-    spawn_stack_items ();
-
-    while (alive_processes > 0)
-    {
-        multiplex();
-        spawn_stack_items ();
-    }
+    build (buildtargets, &targets);
+    link (buildtargets, &targets);
+    post_process (buildtargets, &targets);
 
     return 0;
 }
