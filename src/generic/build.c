@@ -633,15 +633,32 @@ static void build_object(sexpr desc)
 static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE];
+    struct stat res, st;
+    char havelib;
     sexpr sx = sx_end_of_list;
 
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(name), archprefix, sx_string(name));
-    
+
+    havelib = (stat (buffer, &res) == 0);
+
     while (consp (code))
     {
-        sx = cons (car (cdr (cdr (car (code)))), sx);
+        sexpr objectfile = car (cdr (cdr (car (code))));
+        sx_xref (objectfile);
+        sx = cons (objectfile, sx);
+
+        if (havelib &&
+            (stat (sx_string(objectfile), &st) == 0) &&
+            (st.st_mtime > res.st_mtime))
+        {
+            havelib = 0;
+        }
 
         code = cdr (code);
+    }
+
+    if (havelib) {
+        return;
     }
 
 /*    sx_write (stdio, sx);*/
@@ -657,15 +674,32 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 static void link_programme_gcc (sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE];
+    struct stat res, st;
+    char havebin;
     sexpr sx = sx_end_of_list;
 
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", sx_string(name), archprefix, sx_string(name));
-    
+
+    havebin = (stat (buffer, &res) == 0);
+
     while (consp (code))
     {
-        sx = cons (car (cdr (cdr (car (code)))), sx);
+        sexpr objectfile = car (cdr (cdr (car (code))));
+        sx_xref (objectfile);
+        sx = cons (objectfile, sx);
+
+        if (havebin &&
+            (stat (sx_string(objectfile), &st) == 0) &&
+            (st.st_mtime > res.st_mtime))
+        {
+            havebin = 0;
+        }
 
         code = cdr (code);
+    }
+
+    if (havebin) {
+        return;
     }
 
 /*    sx_write (stdio, sx);*/
