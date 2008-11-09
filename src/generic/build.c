@@ -81,7 +81,7 @@ static sexpr sym_cpp       = sx_false;
 static sexpr sym_c         = sx_false;
 
 static int alive_processes = 0;
-static int max_processes   = 2;
+static int max_processes   = 1;
 
 static struct sexpr_io *stdio;
 
@@ -460,8 +460,8 @@ static sexpr permutate_paths_vendor (sexpr p, sexpr lis)
 {
     sx_xref(p);
 
-    lis = f_exist_add (p, lis);
     lis = f_exist_add (sx_string_dir_prefix_c (uname_vendor, p), lis);
+    lis = f_exist_add (p, lis);
 
     sx_destroy (p);
 
@@ -472,14 +472,13 @@ static sexpr permutate_paths_toolchain (sexpr p, sexpr lis)
 {
     sx_xref(p);
 
-    lis = permutate_paths_vendor (p, lis);
-
     switch (uname_toolchain)
     {
         case tc_gcc:
             lis = permutate_paths_vendor (sx_string_dir_prefix_c ("gnu", p), lis);
             break;
     }
+    lis = permutate_paths_vendor (p, lis);
 
     sx_destroy (p);
 
@@ -490,8 +489,8 @@ static sexpr permutate_paths_arch (sexpr p, sexpr lis)
 {
     sx_xref(p);
 
-    lis = permutate_paths_toolchain (p, lis);
     lis = permutate_paths_toolchain (sx_string_dir_prefix_c (uname_arch, p), lis);
+    lis = permutate_paths_toolchain (p, lis);
 
     sx_destroy (p);
 
@@ -502,13 +501,13 @@ static sexpr permutate_paths_os (sexpr p, sexpr lis)
 {
     sx_xref(p);
 
-    lis = permutate_paths_arch (p, lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("generic", p), lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c (uname_os, p), lis);
 #ifdef POSIX
     lis = permutate_paths_arch (sx_string_dir_prefix_c ("posix", p), lis);
 #endif
-    lis = permutate_paths_arch (sx_string_dir_prefix_c (uname_os, p), lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c ("generic", p), lis);
+    lis = permutate_paths_arch (p, lis);
 
     sx_destroy (p);
 
@@ -521,10 +520,10 @@ static sexpr permutate_paths (sexpr p)
 
     sx_xref(p);
 
-    lis = permutate_paths_os (p, lis);
-    lis = permutate_paths_os (sx_string_dir_prefix_c ("internal", p), lis);
-    lis = permutate_paths_os (sx_string_dir_prefix_c ("debug", p), lis);
     lis = permutate_paths_os (sx_string_dir_prefix_c ("valgrind", p), lis);
+    lis = permutate_paths_os (sx_string_dir_prefix_c ("debug", p), lis);
+    lis = permutate_paths_os (sx_string_dir_prefix_c ("internal", p), lis);
+    lis = permutate_paths_os (p, lis);
 
     sx_destroy(p);
 
@@ -628,7 +627,6 @@ static void build_object(sexpr desc)
 static void do_build_target(struct target *t)
 {
     sexpr c = t->code;
-    fprintf (stdout, "building: %s\n", sx_string(t->name));
 
     while (consp (c))
     {
@@ -636,14 +634,11 @@ static void do_build_target(struct target *t)
 
         c = cdr (c);
     }
-
-    fprintf (stdout, "done collecting: %s\n", sx_string(t->name));
 }
 
 static void do_link_target(struct target *t)
 {
     sexpr c = t->code;
-    fprintf (stdout, "linking: %s\n", sx_string(t->name));
 
     while (consp (c))
     {
@@ -651,8 +646,6 @@ static void do_link_target(struct target *t)
 
         c = cdr (c);
     }
-
-    fprintf (stdout, "done collecting: %s\n", sx_string(t->name));
 }
 
 static void build_target (struct tree *targets, const char *target)
@@ -1166,8 +1159,6 @@ int main (int argc, char **argv, char **environ)
         cursor = cdr(cursor);
     }
 
-    fprintf (stderr, "done collecting targets\n");
-
     spawn_stack_items ();
 
     while (alive_processes > 0)
@@ -1175,8 +1166,6 @@ int main (int argc, char **argv, char **environ)
         multiplex();
         spawn_stack_items ();
     }
-
-    fprintf (stderr, "done processing\n");
 
     cursor = buildtargets;
     if (eolp(cursor))
@@ -1190,7 +1179,13 @@ int main (int argc, char **argv, char **environ)
         cursor = cdr(cursor);
     }
 
-    fprintf (stderr, "done linking\n");
+    spawn_stack_items ();
+
+    while (alive_processes > 0)
+    {
+        multiplex();
+        spawn_stack_items ();
+    }
 
     return 0;
 }
