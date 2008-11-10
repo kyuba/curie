@@ -63,6 +63,18 @@ enum toolchain
     tc_gcc
 };
 
+struct target {
+    sexpr name;
+    sexpr library;
+    sexpr code;
+};
+
+enum fs_layout
+{
+    fs_fhs,
+    fs_proper
+};
+
 static char uname_os     [UNAMELENGTH] = "generic";
 static char uname_arch   [UNAMELENGTH] = "generic";
 static char uname_vendor [UNAMELENGTH] = "unknown";
@@ -87,6 +99,9 @@ static struct sexpr_io *stdio;
 
 static sexpr workstack     = sx_end_of_list;
 
+static enum fs_layout i_fsl= fs_proper;
+static sexpr i_destdir     = sx_false;
+
 static char **xenviron;
 
 static sexpr p_c_compiler;
@@ -95,18 +110,6 @@ static sexpr p_assembler;
 static sexpr p_linker;
 static sexpr p_archiver;
 static sexpr p_archive_indexer;
-
-struct target {
-    sexpr name;
-    sexpr library;
-    sexpr code;
-};
-
-enum fs_layout
-{
-    fs_fhs,
-    fs_proper
-};
 
 static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
 {
@@ -802,6 +805,18 @@ static void do_post_process_target(struct target *t)
     }
 }
 
+static void do_install_target(struct target *t)
+{    
+    if (truep(t->library))
+    {
+/*        install_library (t->name, t); */
+    }
+    else
+    {
+/*        install_programme (t->name, t); */
+    }
+}
+
 static void build_target (struct tree *targets, const char *target)
 {
     struct tree_node *node = tree_get_node_string(targets, (char *)target);
@@ -829,6 +844,16 @@ static void post_process_target (struct tree *targets, const char *target)
     if (node != (struct tree_node *)0)
     {
         do_post_process_target (node_get_value(node));
+    }
+}
+
+static void install_target (struct tree *targets, const char *target)
+{
+    struct tree_node *node = tree_get_node_string(targets, (char *)target);
+
+    if (node != (struct tree_node *)0)
+    {
+        do_install_target (node_get_value(node));
     }
 }
 
@@ -861,6 +886,11 @@ static void target_map_link (struct tree_node *node, void *u)
 static void target_map_post_process (struct tree_node *node, void *u)
 {
     do_post_process_target(node_get_value(node));
+}
+
+static void target_map_install (struct tree_node *node, void *u)
+{
+    do_install_target(node_get_value(node));
 }
 
 static void write_uname_element (char *source, char *target, int tlen)
@@ -1231,8 +1261,25 @@ static void post_process (sexpr buildtargets, struct tree *targets)
     loop_processes();
 }
 
-static void install (sexpr destdir, enum fs_layout fsl, sexpr buildtargets, struct tree *targets)
+static void install (sexpr buildtargets, struct tree *targets)
 {
+    sexpr cursor = buildtargets;
+
+    if (falsep(i_destdir))
+    {
+        return;
+    }
+
+    if (eolp(cursor))
+    {
+        tree_map (targets, target_map_install, (void *)0);
+    }
+    else while (consp(cursor))
+    {
+        sexpr sxcar = car(cursor);
+        install_target (targets, sx_string(sxcar));
+        cursor = cdr(cursor);
+    }
 }
 
 int main (int argc, char **argv, char **environ)
@@ -1243,8 +1290,6 @@ int main (int argc, char **argv, char **environ)
     int i = 1;
     char *target_architecture = (char *)0;
     sexpr buildtargets = sx_end_of_list;
-    sexpr install_destdir = sx_false;
-    enum fs_layout i_fsl;
 
     xenviron = environ;
 
@@ -1278,7 +1323,7 @@ int main (int argc, char **argv, char **environ)
                     case 'i':
                         if (xn < argc)
                         {
-                            install_destdir = make_string(argv[xn]);
+                            i_destdir = make_string(argv[xn]);
                             xn++;
                         }
                         break;
@@ -1452,11 +1497,7 @@ int main (int argc, char **argv, char **environ)
     build (buildtargets, &targets);
     link (buildtargets, &targets);
     post_process (buildtargets, &targets);
-
-    if (!falsep(install_destdir))
-    {
-        install (install_destdir, i_fsl, buildtargets, &targets);
-    }
+    install (buildtargets, &targets);
 
     return 0;
 }
