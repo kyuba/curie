@@ -733,7 +733,7 @@ static sexpr get_library_install_path (sexpr name)
     switch (i_fsl)
     {
         case fs_fhs:
-            snprintf (buffer, BUFFERSIZE, "%s/usr/lib/lib%s.a", sx_string(i_destdir), sx_string(name));
+            snprintf (buffer, BUFFERSIZE, "%s/lib/lib%s.a", sx_string(i_destdir), sx_string(name));
             return make_string (buffer);
             break;
         case fs_proper:
@@ -754,7 +754,7 @@ static sexpr get_programme_install_path (sexpr name)
     switch (i_fsl)
     {
         case fs_fhs:
-            snprintf (buffer, BUFFERSIZE, "%s/usr/bin/%s", sx_string(i_destdir), sx_string(name));
+            snprintf (buffer, BUFFERSIZE, "%s/bin/%s", sx_string(i_destdir), sx_string(name));
             return make_string (buffer);
             break;
         case fs_proper:
@@ -1218,6 +1218,8 @@ static void spawn_item (sexpr sx)
     struct exec_context *context;
     int c;
 
+    sx_write (stdio, sx);
+
     while (consp (cur))
     {
         c++;
@@ -1237,8 +1239,6 @@ static void spawn_item (sexpr sx)
         cur = cdr (cur);
     }
     ex[c] = (char *)0;
-
-    sx_write(stdio, sx);
 
     context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex, xenviron);
 
@@ -1294,15 +1294,11 @@ static void mkdir_p (sexpr path)
     struct stat st;
     const char *p = sx_string (path);
 
-    fprintf (stderr, "file: %s\n", p);
-
     for (int i = 0; (p[i] != 0) && (i < (BUFFERSIZE - 2)); i++)
     {
         if (((p[i] == '/') || (p[i] == '\\')) && (i > 0))
         {
             buffer[i] = 0;
-
-            fprintf (stderr, "file: %s\n", buffer);
 
             if (stat(buffer, &st) != 0)
             {
@@ -1341,8 +1337,6 @@ static void install_close (struct io *io, void *aux)
 static void loop_install()
 {
     struct stat st;
-
-    sx_write (stdio, workstack);
 
     while (consp (workstack))
     {
