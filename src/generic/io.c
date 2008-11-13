@@ -114,6 +114,18 @@ struct io *io_open_write (const char *path)
     return io;
 }
 
+struct io *io_open_create (const char *path, int mode)
+{
+    int fd = a_create (path, mode);
+    struct io *io = io_open(fd);
+
+    if (io == (struct io *)0) return (struct io *)0;
+
+    io->type = iot_write;
+
+    return io;
+}
+
 static void relocate_buffer_contents (struct io *io)
 {
     if (io->buffer == (char *)0) return;

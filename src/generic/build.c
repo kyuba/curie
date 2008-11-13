@@ -93,6 +93,7 @@ static sexpr sym_cpp       = sx_false;
 static sexpr sym_c         = sx_false;
 
 static int alive_processes = 0;
+static int files_open      = 0;
 static int max_processes   = 1;
 
 static struct sexpr_io *stdio;
@@ -664,8 +665,6 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
         return;
     }
 
-/*    sx_write (stdio, sx);*/
-
     workstack
         = cons (cons (p_archiver,
                   cons (make_string ("-r"),
@@ -705,8 +704,6 @@ static void link_programme_gcc (sexpr name, sexpr code, struct target *t)
         return;
     }
 
-/*    sx_write (stdio, sx);*/
-
     workstack
         = cons (cons (p_linker,
                   cons (make_string ("-o"),
@@ -722,12 +719,76 @@ static void post_process_library_gcc (sexpr name, struct target *t)
 
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(name), archprefix, sx_string(name));
 
-/*    sx_write (stdio, sx);*/
-
     workstack
         = cons (cons (p_archive_indexer,
                   cons (make_string (buffer),
                         sx))
+                , workstack);
+}
+
+static sexpr get_library_install_path (sexpr name)
+{
+    char buffer[BUFFERSIZE];
+
+    switch (i_fsl)
+    {
+        case fs_fhs:
+            snprintf (buffer, BUFFERSIZE, "%s/usr/lib/lib%s.a", sx_string(i_destdir), sx_string(name));
+            return make_string (buffer);
+            break;
+        case fs_proper:
+            snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.a",
+                      sx_string(i_destdir), uname_os, uname_arch,
+                      sx_string(name));
+            return make_string (buffer);
+            break;
+    }
+
+    return sx_false;
+}
+
+static sexpr get_programme_install_path (sexpr name)
+{
+    char buffer[BUFFERSIZE];
+
+    switch (i_fsl)
+    {
+        case fs_fhs:
+            snprintf (buffer, BUFFERSIZE, "%s/usr/bin/%s", sx_string(i_destdir), sx_string(name));
+            return make_string (buffer);
+            break;
+        case fs_proper:
+            snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s",
+                      sx_string(i_destdir), uname_os, uname_arch,
+                      sx_string(name));
+            return make_string (buffer);
+            break;
+    }
+
+    return sx_false;
+}
+
+static void install_library_gcc (sexpr name, struct target *t)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(name), archprefix, sx_string(name));
+
+    workstack
+        = cons (cons (make_string (buffer),
+                      get_library_install_path(name))
+                , workstack);
+}
+
+static void install_programme_gcc (sexpr name, struct target *t)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", sx_string(name), archprefix, sx_string(name));
+
+    workstack
+        = cons (cons (make_string (buffer),
+                      get_programme_install_path(name))
                 , workstack);
 }
 
@@ -765,6 +826,24 @@ static void post_process_programme (sexpr name, struct target *t)
         case tc_gcc:
             post_process_programme_gcc (name, t); break;
     }*/
+}
+
+static void install_library (sexpr name, struct target *t)
+{
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            install_library_gcc (name, t); break;
+    }
+}
+
+static void install_programme (sexpr name, struct target *t)
+{
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            install_programme_gcc (name, t); break;
+    }
 }
 
 static void do_build_target(struct target *t)
@@ -809,11 +888,11 @@ static void do_install_target(struct target *t)
 {    
     if (truep(t->library))
     {
-/*        install_library (t->name, t); */
+        install_library (t->name, t);
     }
     else
     {
-/*        install_programme (t->name, t); */
+        install_programme (t->name, t);
     }
 }
 
@@ -1209,6 +1288,91 @@ static void loop_processes()
     }
 }
 
+static void mkdir_p (sexpr path)
+{
+    char buffer[BUFFERSIZE];
+    struct stat st;
+    const char *p = sx_string (path);
+
+    fprintf (stderr, "file: %s\n", p);
+
+    for (int i = 0; (p[i] != 0) && (i < (BUFFERSIZE - 2)); i++)
+    {
+        if (((p[i] == '/') || (p[i] == '\\')) && (i > 0))
+        {
+            buffer[i] = 0;
+
+            fprintf (stderr, "file: %s\n", buffer);
+
+            if (stat(buffer, &st) != 0)
+            {
+                if (mkdir (buffer, 0777) != 0)
+                {
+                    perror ("mkdir");
+                    exit (67);
+                }
+            }
+        }
+
+        buffer[i] = p[i];
+    }
+}
+
+static void install_read (struct io *in, void *aux)
+{
+    struct io *out = (struct io *)aux;
+
+    io_write (out,
+              (in->buffer) + (in->position),
+              (in->length) - (in->position));
+
+    in->position = in->length;
+}
+
+static void install_close (struct io *io, void *aux)
+{
+    struct io *out = (struct io *)aux;
+
+    files_open--;
+
+    multiplex_del_io (out);
+}
+
+static void loop_install()
+{
+    struct stat st;
+
+    sx_write (stdio, workstack);
+
+    while (consp (workstack))
+    {
+        sexpr spec = car (workstack);
+        sexpr source = car (spec);
+        sexpr target = cdr (spec);
+        struct io *in, *out;
+
+        if (stat (sx_string (source), &st) == 0)
+        {
+            mkdir_p (target);
+
+            files_open ++;
+
+            in  = io_open_read   (sx_string (source));
+            out = io_open_create (sx_string (target), st.st_mode);
+
+            multiplex_add_io (in, install_read, install_close, (void *)out);
+            multiplex_add_io_no_callback (out);
+        }
+
+        workstack = cdr(workstack);
+    }
+
+    while (files_open > 0)
+    {
+        multiplex();
+    }
+}
+
 static void build (sexpr buildtargets, struct tree *targets)
 {
     sexpr cursor = buildtargets;
@@ -1280,6 +1444,8 @@ static void install (sexpr buildtargets, struct tree *targets)
         install_target (targets, sx_string(sxcar));
         cursor = cdr(cursor);
     }
+
+    loop_install();
 }
 
 int main (int argc, char **argv, char **environ)

@@ -271,6 +271,19 @@ struct io {
 /*@null@*/ /*@only@*/ struct io *io_open_write
         (/*@notnull@*/ const char *filename);
 
+/*! \brief Open File for writing
+ *  \param[in] filename The file to open for writing.
+ *  \param[in] mode     The mode for the new file.
+ *  \return A new struct io. (struct io *)0 is only returned for memory
+ *          allocation errors.
+ *
+ *  The given filename is opened for writing. The file is created with the
+ *  given mode. As usual, a struct io is always created even if the file could
+ *  not be created, but in that case it will have an fd of -1.
+ */
+/*@null@*/ /*@only@*/ struct io *io_open_create
+        (/*@notnull@*/ const char *filename, int mode);
+
 /*! \brief Create Special I/O Structure
  *  \return A new struct io. (struct io *)0 is only returned for memory
  *          allocation errors.
