@@ -6,43 +6,47 @@
   (code "sexpr" "io" "memory-pool" "tree" "exec" "multiplex" "string"
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
-        "immutable" "graph" "filesystem" "io-system" "memory" "bootstrap"
-        "network-system" "exec-system" "multiplex-system" "signal-system")
+        "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
+        "exec-system" "multiplex-system" "signal-system")
 
-  (standalone-if-assembly "io-system" "memory" "bootstrap" "network-system"
-                          "exec-system" "multiplex-system" "signal-system")
+  (headers
+        "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
+        "int" "io" "immutable" "constants" "graph" "filesystem")
 
-  (headers "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
-           "int" "io" "immutable" "constants" "graph" "filesystem")
+  (freestanding-if-assembly
+        "io-system" "memory" "bootstrap" "network-system" "exec-system"
+        "multiplex-system" "signal-system")
 
-  (test-cases "bad-allocation" "bad-resize" "curie-main" "environment"
-              "execute-fork" "execute-fork-purge" "exit" "filesystem" "graph"
-              "immutable" "io" "memory-allocator" "memory-pool"
-              "memory-primitives" "multiplex-all-processes" "multiplex-io"
-              "multiplex-network" "multiplex-process" "multiplex-sexpr"
-              "multiplex-signal" "network-loop" "read-write" "sexpr-read"
-              "sexpr-write" "tree-node-removal" "tree-plain" "tree-random"
-              "tree-random-node-removal" "tree-value"))
+  (bootstrap
+        "bootstrap")
+
+  (test-cases
+        "bad-allocation" "bad-resize" "curie-main" "environment" "execute-fork"
+        "execute-fork-purge" "exit" "filesystem" "graph" "immutable" "io"
+        "memory-allocator" "memory-pool" "memory-primitives"
+        "multiplex-all-processes" "multiplex-io" "multiplex-network"
+        "multiplex-process" "multiplex-sexpr" "multiplex-signal" "network-loop"
+        "read-write" "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
+        "tree-random" "tree-random-node-removal" "tree-value"))
 
 (library "curie++"
   (name "Curie++")
   (description "C++ bindings for libcurie")
-  (requires "curie")
+  (use-objects "curie")
   (version 4)
 
   (code "memory++" "io++")
 
-  (headers "int" "io" "multiplex")
+  (headers
+        "int" "io" "multiplex")
 
-  (test-cases "objects"))
+  (test-cases
+        "objects"))
 
 (programme "icemake"
   (name "ICE make")
-  (description "simple build tool for curie")
+  (description "simple build tool for curie, based on curie")
+  (use-objects "curie")
   (version 1)
 
-  (code "build" "sexpr" "memory" "memory-pool" "memory-allocator" "io" "string"
-        "io-system" "sexpr-read-write" "sexpr-library" "tree" "immutable"
-        "multiplex" "multiplex-signal" "multiplex-process" "multiplex-io"
-        "multiplex-system" "signal-system" "exec" "exec-system" "network"
-        "network-system" "multiplex-sexpr"))
+  (code "build"))

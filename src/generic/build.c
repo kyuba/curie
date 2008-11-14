@@ -67,6 +67,7 @@ struct target {
     sexpr name;
     sexpr library;
     sexpr code;
+    sexpr use_objects;
 };
 
 enum fs_layout
@@ -85,23 +86,25 @@ static char archbuffer   [BUFFERSIZE];
 static char *archprefix;
 static char *tcversion = (char *)0;
 
-static sexpr sym_library   = sx_false;
-static sexpr sym_programme = sx_false;
-static sexpr sym_code      = sx_false;
-static sexpr sym_assembly  = sx_false;
-static sexpr sym_cpp       = sx_false;
-static sexpr sym_c         = sx_false;
+static sexpr sym_library      = sx_false;
+static sexpr sym_programme    = sx_false;
+static sexpr sym_code         = sx_false;
+static sexpr sym_link         = sx_false;
+static sexpr sym_use_objects  = sx_false;
+static sexpr sym_assembly     = sx_false;
+static sexpr sym_cpp          = sx_false;
+static sexpr sym_c            = sx_false;
 
-static int alive_processes = 0;
-static int files_open      = 0;
-static int max_processes   = 1;
+static int alive_processes    = 0;
+static int files_open         = 0;
+static int max_processes      = 1;
 
 static struct sexpr_io *stdio;
 
-static sexpr workstack     = sx_end_of_list;
+static sexpr workstack        = sx_end_of_list;
 
-static enum fs_layout i_fsl= fs_proper;
-static sexpr i_destdir     = sx_false;
+static enum fs_layout i_fsl   = fs_proper;
+static sexpr i_destdir        = sx_false;
 
 static char **xenviron;
 
@@ -379,9 +382,9 @@ static struct target *get_context()
     static struct memory_pool pool = MEMORY_POOL_INITIALISER (sizeof(struct target));
     struct target *context = get_pool_mem (&pool);
 
-    context->code    = sx_false;
-    context->library = sx_false;
-    context->code    = sx_end_of_list;
+    context->library     = sx_false;
+    context->code        = sx_end_of_list;
+    context->use_objects = sx_end_of_list;
 
     return context;
 }
@@ -406,6 +409,18 @@ static void process_definition (struct target *context, sexpr definition)
                 sxc = cdr (sxc);
             }
         }
+        else if (truep(equalp(sxcaar, sym_use_objects)))
+        {
+            sexpr sxc = cdr (sxcar);
+
+            while (consp (sxc))
+            {
+                context->use_objects = cons (car(sxc), context->use_objects);
+
+                sxc = cdr (sxc);
+            }
+        }
+
 
         definition = cdr (definition);
     }
@@ -597,6 +612,8 @@ static void build_object_gcc_cpp (const char *source, const char *target)
 
 static void build_object_gcc (sexpr type, sexpr source, sexpr target)
 {
+    if (truep(equalp(type, sym_link))) return;
+
     if (truep(equalp(type, sym_assembly)))
     {
         build_object_gcc_assembly (sx_string(source), sx_string(target));
@@ -715,14 +732,13 @@ static void link_programme_gcc (sexpr name, sexpr code, struct target *t)
 static void post_process_library_gcc (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
-    sexpr sx = sx_end_of_list;
 
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(name), archprefix, sx_string(name));
 
     workstack
         = cons (cons (p_archive_indexer,
                   cons (make_string (buffer),
-                        sx))
+                        sx_end_of_list))
                 , workstack);
 }
 
@@ -843,6 +859,23 @@ static void install_programme (sexpr name, struct target *t)
     {
         case tc_gcc:
             install_programme_gcc (name, t); break;
+    }
+}
+
+static void do_cross_link (struct target *target, struct target *source)
+{
+    sexpr cur = source->code;
+
+    while (consp (cur))
+    {
+         sexpr ccar = car (cur);
+         sexpr cccdr = cdr (ccar);
+
+         sx_xref (cccdr);
+
+         target->code = cons (cons (sym_link, cccdr), target->code);
+
+         cur = cdr (cur);
     }
 }
 
@@ -970,6 +1003,36 @@ static void target_map_post_process (struct tree_node *node, void *u)
 static void target_map_install (struct tree_node *node, void *u)
 {
     do_install_target(node_get_value(node));
+}
+
+static void target_map_cross_link (struct tree_node *node, void *u)
+{
+    struct tree *t = (struct tree *)u;
+    struct target *target = (struct target *) node_get_value (node);
+    
+    if (!eolp (target->use_objects))
+    {
+        sexpr cur = target->use_objects;
+        
+        while (consp (cur))
+        {
+            sexpr o = car (cur);
+            struct tree_node *n1
+                = tree_get_node_string (t, (char *)sx_string (o));
+            struct target *s;
+
+            if (n1 == (struct tree_node *)0)
+            {
+                exit (68);
+            }
+
+            s = (struct target *) node_get_value (n1);
+
+            do_cross_link (target, s);
+
+            cur = cdr(cur);
+        }
+    }
 }
 
 static void write_uname_element (char *source, char *target, int tlen)
@@ -1216,7 +1279,7 @@ static void spawn_item (sexpr sx)
 {
     sexpr cur = sx;
     struct exec_context *context;
-    int c;
+    int c = 0;
 
     sx_write (stdio, sx);
 
@@ -1367,9 +1430,15 @@ static void loop_install()
     }
 }
 
+static void crosslink_objects (struct tree *targets)
+{
+    tree_map (targets, target_map_cross_link, (void *)targets);
+}
+
 static void build (sexpr buildtargets, struct tree *targets)
 {
     sexpr cursor = buildtargets;
+    sexpr use_objects = sx_end_of_list;
 
     if (eolp(cursor))
     {
@@ -1378,9 +1447,71 @@ static void build (sexpr buildtargets, struct tree *targets)
     else while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
-        build_target (targets, sx_string(sxcar));
+        const char *target = sx_string (sxcar);
+
+        struct tree_node *node = tree_get_node_string(targets, (char *)target);
+
+        if (node != (struct tree_node *)0)
+        {
+            struct target *t = (struct target *)node_get_value(node);
+
+            if (!eolp (t->use_objects))
+            {
+                sexpr cuo = t->use_objects;
+                
+                while (consp (cuo))
+                {
+                    sexpr tx = use_objects;
+                    sexpr cuocar = car (cuo);
+                    char doadd = 1;
+
+                    while (consp (tx))
+                    {
+                        if (truep(equalp(cuocar, car (tx))))
+                        {
+                            doadd = 0;
+                            break;
+                        }
+                        tx = cdr (tx);
+                    }
+                    
+                    tx = buildtargets;
+
+                    if (doadd) while (consp (tx))
+                    {
+                        if (truep(equalp(cuocar, car (tx))))
+                        {
+                            doadd = 0;
+                            break;
+                        }
+                        tx = cdr (tx);
+                    }
+
+                    if (doadd)
+                    {
+                        sx_xref (cuocar);
+                        use_objects = cons (cuocar, use_objects);
+                    }
+
+                    cuo = cdr (cuo);
+                }
+            }
+        }
+
+        build_target (targets, target);
         cursor = cdr(cursor);
     }
+
+    cursor = use_objects;
+
+    while (consp(cursor))
+    {
+        sexpr sxcar = car(cursor);
+        build_target (targets, sx_string (sxcar));
+        cursor = cdr(cursor);
+    }
+
+    sx_destroy (use_objects);
 
     loop_processes();
 }
@@ -1606,15 +1737,18 @@ int main (int argc, char **argv, char **environ)
         case tc_gcc: initialise_toolchain_gcc(); break;
     }
 
-    sym_library   = make_symbol ("library");
-    sym_programme = make_symbol ("programme");
-    sym_code      = make_symbol ("code");
-    sym_assembly  = make_symbol ("assembly");
-    sym_cpp       = make_symbol ("C++");
-    sym_c         = make_symbol ("C");
+    sym_library     = make_symbol ("library");
+    sym_programme   = make_symbol ("programme");
+    sym_code        = make_symbol ("code");
+    sym_use_objects = make_symbol ("use-objects");
+    sym_assembly    = make_symbol ("assembly");
+    sym_cpp         = make_symbol ("C++");
+    sym_c           = make_symbol ("C");
+    sym_link        = make_symbol ("link");
 
-    stdio         = sx_open_stdio();
+    stdio           = sx_open_stdio();
 
+    multiplex_io();
     multiplex_process();
     multiplex_sexpr();
     multiplex_signal();
@@ -1653,6 +1787,8 @@ int main (int argc, char **argv, char **environ)
 
         sx_destroy (r);
     }
+
+    crosslink_objects (&targets);
 
     build (buildtargets, &targets);
     link (buildtargets, &targets);
