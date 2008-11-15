@@ -67,6 +67,7 @@ struct target {
     sexpr name;
     sexpr library;
     sexpr code;
+    sexpr headers;
     sexpr use_objects;
 };
 
@@ -84,27 +85,28 @@ static enum toolchain uname_toolchain;
 
 static char archbuffer   [BUFFERSIZE];
 static char *archprefix;
-static char *tcversion = (char *)0;
+static char *tcversion                 = (char *)0;
 
-static sexpr sym_library      = sx_false;
-static sexpr sym_programme    = sx_false;
-static sexpr sym_code         = sx_false;
-static sexpr sym_link         = sx_false;
-static sexpr sym_use_objects  = sx_false;
-static sexpr sym_assembly     = sx_false;
-static sexpr sym_cpp          = sx_false;
-static sexpr sym_c            = sx_false;
+static sexpr sym_library               = sx_false;
+static sexpr sym_programme             = sx_false;
+static sexpr sym_code                  = sx_false;
+static sexpr sym_headers               = sx_false;
+static sexpr sym_link                  = sx_false;
+static sexpr sym_use_objects           = sx_false;
+static sexpr sym_assembly              = sx_false;
+static sexpr sym_cpp                   = sx_false;
+static sexpr sym_c                     = sx_false;
 
-static int alive_processes    = 0;
-static int files_open         = 0;
-static int max_processes      = 1;
+static int alive_processes             = 0;
+static int files_open                  = 0;
+static int max_processes               = 1;
 
 static struct sexpr_io *stdio;
 
-static sexpr workstack        = sx_end_of_list;
+static sexpr workstack                 = sx_end_of_list;
 
-static enum fs_layout i_fsl   = fs_proper;
-static sexpr i_destdir        = sx_false;
+static enum fs_layout i_fsl            = fs_proper;
+static sexpr i_destdir                 = sx_false;
 
 static char **xenviron;
 
@@ -325,7 +327,24 @@ static sexpr find_code_S (sexpr file)
     return find_code_with_suffix (file, ".S");
 }
 
+static sexpr find_header_with_suffix (sexpr name, sexpr file, char *s)
+{
+    char buffer[BUFFERSIZE];
+    sexpr r, sr;
 
+    snprintf (buffer, BUFFERSIZE, "%s/%s%s", sx_string(name), sx_string(file), s);
+
+    r = find_in_permutations (make_string("include"), (sr = make_string (buffer)));
+
+    sx_destroy (sr);
+
+    return r;
+}
+
+static sexpr find_header_h (sexpr name, sexpr file)
+{
+    return find_header_with_suffix (name, file, ".h");
+}
 
 static sexpr generate_object_file_name (sexpr name, sexpr file)
 {
@@ -377,6 +396,21 @@ static void find_code (struct target *context, sexpr file)
     }
 }
 
+static void find_header (struct target *context, sexpr file)
+{
+    sexpr r;
+
+    if ((r = find_header_h (context->name, file)), stringp(r))
+    {
+        context->headers = cons (cons(r, sx_end_of_list), context->headers);
+    }
+    else
+    {
+        fprintf (stderr, "missing header file: %s\n", sx_string(file));
+        exit(21);
+    }
+}
+
 static struct target *get_context()
 {
     static struct memory_pool pool = MEMORY_POOL_INITIALISER (sizeof(struct target));
@@ -384,6 +418,7 @@ static struct target *get_context()
 
     context->library     = sx_false;
     context->code        = sx_end_of_list;
+    context->headers     = sx_end_of_list;
     context->use_objects = sx_end_of_list;
 
     return context;
@@ -405,6 +440,17 @@ static void process_definition (struct target *context, sexpr definition)
             while (consp (sxc))
             {
                 find_code (context, car (sxc));
+
+                sxc = cdr (sxc);
+            }
+        }
+        else if (truep(equalp(sxcaar, sym_headers)))
+        {
+            sexpr sxc = cdr (sxcar);
+
+            while (consp (sxc))
+            {
+                find_header (context, car (sxc));
 
                 sxc = cdr (sxc);
             }
@@ -569,6 +615,16 @@ static sexpr prepend_includes_gcc (sexpr x)
     return x;
 }
 
+static sexpr prepend_cflags_gcc (sexpr x)
+{
+    return x;
+}
+
+static sexpr prepend_cxxflags_gcc (sexpr x)
+{
+    return x;
+}
+
 static void build_object_gcc_assembly (const char *source, const char *target)
 {
     workstack
@@ -585,14 +641,16 @@ static void build_object_gcc_c (const char *source, const char *target)
     workstack
         = cons (cons (p_c_compiler,
                   cons (make_string ("-DPOSIX"),
+                  cons (make_string ("-DGCC"),
                   cons (make_string ("--std=c99"),
                     cons (make_string ("-Wall"),
                       cons (make_string ("-pedantic"),
+                        prepend_cflags_gcc (
                         prepend_includes_gcc (
                           cons (make_string ("-c"),
                             cons (make_string (source),
                               cons (make_string ("-o"),
-                                cons (make_string(target), sx_end_of_list))))))))))
+                                cons (make_string(target), sx_end_of_list))))))))))))
                 , workstack);
 }
 
@@ -601,12 +659,14 @@ static void build_object_gcc_cpp (const char *source, const char *target)
     workstack
         = cons (cons (p_cpp_compiler,
                   cons (make_string ("-DPOSIX"),
+                  cons (make_string ("-DGCC"),
                   cons (make_string ("-fno-exceptions"),
+                    prepend_cxxflags_gcc (
                     prepend_includes_gcc (
                       cons (make_string ("-c"),
                         cons (make_string (source),
                           cons (make_string ("-o"),
-                            cons (make_string(target), sx_end_of_list))))))))
+                            cons (make_string(target), sx_end_of_list))))))))))
                 , workstack);
 }
 
@@ -1740,6 +1800,7 @@ int main (int argc, char **argv, char **environ)
     sym_library     = make_symbol ("library");
     sym_programme   = make_symbol ("programme");
     sym_code        = make_symbol ("code");
+    sym_headers     = make_symbol ("headers");
     sym_use_objects = make_symbol ("use-objects");
     sym_assembly    = make_symbol ("assembly");
     sym_cpp         = make_symbol ("C++");
