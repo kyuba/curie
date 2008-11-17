@@ -57,11 +57,22 @@ enum toolchain
     tc_gcc
 };
 
+enum operating_system
+{
+    os_unknown,
+    os_darwin,
+    os_linux
+};
+
 struct target {
     sexpr name;
     sexpr library;
+    sexpr libraries;
     sexpr hosted;
+    sexpr use_curie;
     sexpr code;
+    sexpr test_cases;
+    sexpr bootstrap;
     sexpr headers;
     sexpr use_objects;
 };

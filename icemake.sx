@@ -1,4 +1,4 @@
-(library "curie"
+(library "curie" libcurie
   (name "Curie")
   (description "minimalistic, sexpr-based, non-posix(!), non-ansi(!) libc")
   (version 4)
@@ -17,9 +17,6 @@
         "io-system" "memory" "bootstrap" "network-system" "exec-system"
         "multiplex-system" "signal-system")
 
-  (bootstrap
-        "bootstrap")
-
   (test-cases
         "bad-allocation" "bad-resize" "curie-main" "environment" "execute-fork"
         "execute-fork-purge" "exit" "filesystem" "graph" "immutable" "io"
@@ -29,10 +26,9 @@
         "read-write" "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
         "tree-random" "tree-random-node-removal" "tree-value"))
 
-(library "curie++"
+(library "curie++" libcurie
   (name "Curie++")
   (description "C++ bindings for libcurie")
-  (use-objects "curie")
   (version 4)
 
   (code "memory++" "io++")
@@ -43,10 +39,9 @@
   (test-cases
         "objects"))
 
-(programme "icemake" hosted
+(programme "icemake" hosted libcurie
   (name "ICE make")
   (description "simple build tool for curie, based on curie")
-  (use-objects "curie")
   (version 1)
 
   (code "icemake"))

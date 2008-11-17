@@ -38,18 +38,15 @@
 
 #include <curie/main.h>
 
-#define ARGV0 "./tests/environment"
-
 int cmain(void) {
     unsigned int i;
 
     if (curie_argv == (char **)0)
         return 1;
 
-    for (i = 0; (curie_argv[0][i] == ARGV0[i]) &&
-                (ARGV0[i] != (char)0); i++);
+    for (i = 0; curie_argv[0][i]; i++);
 
-    if (ARGV0[i] != (char)0) return 3;
+    if (i < 12) return 3;
 
     if (curie_environment == (char **)0)
         return 2;

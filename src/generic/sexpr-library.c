@@ -38,7 +38,8 @@
 
 #include <curie/sexpr.h>
 
-sexpr equalp (sexpr a, sexpr b) {
+sexpr equalp (sexpr a, sexpr b)
+{
     if (a == b) return sx_true;
 
     if (!pointerp(a) || !pointerp(b)) return sx_false;
@@ -53,7 +54,8 @@ sexpr equalp (sexpr a, sexpr b) {
         for (i = 0; (sa->character_data[i] == sb->character_data[i]) &&
                     (sa->character_data[i] != (char)0); i++);
 
-        return (sa->character_data[i] == (char)0) ? sx_true : sx_false;
+        return ((sa->character_data[i] == (char)0) &&
+                (sb->character_data[i] == (char)0)) ? sx_true : sx_false;
     }
     else if (consp(a) && consp(b))
     {

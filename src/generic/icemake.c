@@ -69,6 +69,8 @@ static char *archprefix;
 static char *tcversion                 = (char *)0;
 
 static sexpr sym_library               = sx_false;
+static sexpr sym_libraries             = sx_false;
+static sexpr sym_test_cases            = sx_false;
 static sexpr sym_programme             = sx_false;
 static sexpr sym_hosted                = sx_false;
 static sexpr sym_code                  = sx_false;
@@ -78,17 +80,33 @@ static sexpr sym_use_objects           = sx_false;
 static sexpr sym_assembly              = sx_false;
 static sexpr sym_cpp                   = sx_false;
 static sexpr sym_c                     = sx_false;
+static sexpr sym_libc                  = sx_false;
+static sexpr sym_libcurie              = sx_false;
+static sexpr sym_freestanding          = sx_false;
+static sexpr sym_freestanding_if_asm   = sx_false;
+static sexpr str_bootstrap             = sx_false;
+static sexpr str_curie                 = sx_false;
+static sexpr str_curie_bootstrap       = sx_false;
+static sexpr str_static                = sx_false;
+static sexpr str_lc                    = sx_false;
 
 static int alive_processes             = 0;
 static int files_open                  = 0;
 static int max_processes               = 1;
+
+static sexpr co_freestanding           = sx_false;
 
 static struct sexpr_io *stdio;
 
 static sexpr workstack                 = sx_end_of_list;
 
 static enum fs_layout i_fsl            = fs_proper;
+static enum operating_system i_os      = os_unknown;
 static sexpr i_destdir                 = sx_false;
+static sexpr do_tests                  = sx_false;
+static sexpr do_install                = sx_false;
+
+struct tree targets                    = TREE_INITIALISER;
 
 static char **xenviron;
 
@@ -98,6 +116,8 @@ static sexpr p_assembler;
 static sexpr p_linker;
 static sexpr p_archiver;
 static sexpr p_archive_indexer;
+
+static void link_programme_gcc_filename (sexpr, sexpr, sexpr, struct target *);
 
 static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
 {
@@ -289,6 +309,20 @@ static sexpr find_code_with_suffix (sexpr file, char *s)
     return r;
 }
 
+static sexpr find_test_case_with_suffix (sexpr file, char *s)
+{
+    char buffer[BUFFERSIZE];
+    sexpr r, sr;
+
+    snprintf (buffer, BUFFERSIZE, "%s%s", sx_string(file), s);
+
+    r = find_in_permutations (make_string("tests"), (sr = make_string (buffer)));
+
+    sx_destroy (sr);
+
+    return r;
+}
+
 static sexpr find_code_c (sexpr file)
 {
     return find_code_with_suffix (file, ".c");
@@ -307,6 +341,16 @@ static sexpr find_code_s (sexpr file)
 static sexpr find_code_S (sexpr file)
 {
     return find_code_with_suffix (file, ".S");
+}
+
+static sexpr find_test_case_c (sexpr file)
+{
+    return find_test_case_with_suffix (file, ".c");
+}
+
+static sexpr find_test_case_cpp (sexpr file)
+{
+    return find_test_case_with_suffix (file, ".c++");
 }
 
 static sexpr find_header_with_suffix (sexpr name, sexpr file, char *s)
@@ -337,9 +381,29 @@ static sexpr generate_object_file_name (sexpr name, sexpr file)
     return make_string(buffer);
 }
 
+static sexpr generate_test_object_file_name (sexpr name, sexpr file)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s.o", sx_string(name), archprefix, sx_string(file));
+
+    return make_string(buffer);
+}
+
+static sexpr generate_test_executable_file_name (sexpr name, sexpr file)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s", sx_string(name), archprefix, sx_string(file));
+
+    return make_string(buffer);
+}
+
 static void find_code (struct target *context, sexpr file)
 {
     sexpr r;
+    sexpr primus   = sx_false;
+    sexpr secundus = sx_false;
 
     if (((r = find_code_S (file)), stringp(r)) ||
         ((r = find_code_s (file)), stringp(r)))
@@ -347,35 +411,74 @@ static void find_code (struct target *context, sexpr file)
         char buffer[BUFFERSIZE];
         sexpr subfile;
 
-        context->code = cons (cons(sym_assembly, cons (r, cons (generate_object_file_name(context->name, file), cons(file, sx_end_of_list)))), context->code);
+        primus = cons(sym_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
 
         snprintf (buffer, BUFFERSIZE, "%s-highlevel", sx_string (file));
         subfile = make_string (buffer);
 
         if (((r = find_code_cpp (subfile)), stringp(r)))
         {
-            context->code = cons (cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, subfile), cons(file, sx_end_of_list)))), context->code);
+            secundus = cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list)));
         }
         else if (((r = find_code_c (subfile)), stringp(r)))
         {
-            context->code = cons (cons(sym_c, cons (r, cons (generate_object_file_name(context->name, subfile), cons(file, sx_end_of_list)))), context->code);
+            secundus = cons(sym_c, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list)));
         }
 
         sx_destroy (subfile);
     }
     else if (((r = find_code_cpp (file)), stringp(r)))
     {
-        context->code = cons (cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, file), cons(file, sx_end_of_list)))), context->code);
+        primus = cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
     }
     else if (((r = find_code_c (file)), stringp(r)))
     {
-        context->code = cons (cons(sym_c, cons (r, cons (generate_object_file_name(context->name, file), cons(file, sx_end_of_list)))), context->code);
+        primus = cons(sym_c, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
     }
     else
     {
         fprintf (stderr, "missing code file: %s\n", sx_string(file));
         exit(20);
     }
+
+    if (truep(equalp(file, str_bootstrap)))
+    {
+        context->bootstrap = cons (primus, context->bootstrap);
+        if (!falsep(secundus))
+        {
+            context->bootstrap = cons (secundus, context->bootstrap);
+        }
+    }
+    else
+    {
+        context->code = cons (primus, context->code);
+        if (!falsep(secundus))
+        {
+            context->code = cons (secundus, context->code);
+        }
+    }
+}
+
+static void find_test_case (struct target *context, sexpr file)
+{
+    sexpr r;
+    sexpr primus   = sx_false;
+
+    if (((r = find_test_case_cpp (file)), stringp(r)))
+    {
+        primus = cons(sym_cpp, cons (r, cons (generate_test_object_file_name(context->name, file), cons (generate_test_executable_file_name(context->name, file), sx_end_of_list))));
+    }
+    else if (((r = find_test_case_c (file)), stringp(r)))
+    {
+        primus = cons(sym_c, cons (r, cons (generate_test_object_file_name(context->name, file), cons (generate_test_executable_file_name(context->name, file), sx_end_of_list))));
+    }
+    else
+    {
+        fprintf (stderr, "missing test case: %s\n", sx_string(file));
+        exit(20);
+    }
+
+    context->test_cases = cons (primus, context->test_cases);
 }
 
 static void find_header (struct target *context, sexpr file)
@@ -400,7 +503,11 @@ static struct target *get_context()
 
     context->library     = sx_false;
     context->hosted      = sx_false;
+    context->use_curie   = sx_false;
+    context->libraries   = sx_end_of_list;
     context->code        = sx_end_of_list;
+    context->test_cases  = sx_end_of_list;
+    context->bootstrap   = sx_end_of_list;
     context->headers     = sx_end_of_list;
     context->use_objects = sx_end_of_list;
 
@@ -418,14 +525,20 @@ static void process_definition (struct target *context, sexpr definition)
 
         if (truep(equalp(sxcar, sym_hosted)))
         {
-            sexpr sxc = cdr (sxcar);
+            context->hosted = sx_true;
 
-            while (consp (sxc))
+            context->libraries = cons (str_lc, context->libraries);
+        }
+        else if (truep(equalp(sxcar, sym_libcurie)))
+        {
+            context->use_curie = sx_true;
+
+            if (falsep (context->hosted))
             {
-                context->hosted = sx_true;
-
-                sxc = cdr (sxc);
+                context->libraries = cons (str_curie_bootstrap, context->libraries);
             }
+
+            context->libraries = cons (str_curie, context->libraries);
         }
         else if (truep(equalp(sxcaar, sym_code)))
         {
@@ -434,6 +547,28 @@ static void process_definition (struct target *context, sexpr definition)
             while (consp (sxc))
             {
                 find_code (context, car (sxc));
+
+                sxc = cdr (sxc);
+            }
+        }
+        else if (truep(equalp(sxcaar, sym_libraries)))
+        {
+            sexpr sxc = cdr (sxcar);
+
+            while (consp (sxc))
+            {
+                context->libraries = cons (car (sxc), context->libraries);
+
+                sxc = cdr (sxc);
+            }
+        }
+        else if (truep(equalp(sxcaar, sym_test_cases)))
+        {
+            sexpr sxc = cdr (sxcar);
+
+            while (consp (sxc))
+            {
+                find_test_case (context, car (sxc));
 
                 sxc = cdr (sxc);
             }
@@ -460,6 +595,29 @@ static void process_definition (struct target *context, sexpr definition)
                 sxc = cdr (sxc);
             }
         }
+        else if (truep(equalp(sxcaar, sym_freestanding_if_asm)))
+        {
+            sexpr sxc = cdr (sxcar);
+
+            co_freestanding = sx_true;
+
+            while (consp (sxc))
+            {
+                sexpr r;
+
+                if (((r = find_code_s(car(sxc))), !falsep(r)) ||
+                    ((r = find_code_S(car(sxc))), !falsep(r)))
+                {
+                    sx_destroy (r);
+                    sxc = cdr (sxc);
+                }
+                else
+                {
+                    co_freestanding = sx_false;
+                    break;
+                }
+            }
+        }
 
         definition = cdr (definition);
     }
@@ -469,6 +627,10 @@ static void process_definition (struct target *context, sexpr definition)
     mkdir (buffer, 0755);
 
     snprintf (buffer, BUFFERSIZE, "build/%s/%s", sx_string(context->name), archprefix);
+
+    mkdir (buffer, 0755);
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests", sx_string(context->name), archprefix);
 
     mkdir (buffer, 0755);
 }
@@ -482,6 +644,11 @@ static struct target *create_library (sexpr definition)
     sx_xref (context->name);
 
     process_definition (context, cdr(definition));
+
+    if (falsep(equalp(str_curie, context->name)))
+    {
+        context->libraries = cons (context->name, context->libraries);
+    }
 
     return context;
 }
@@ -602,20 +769,49 @@ static sexpr prepend_includes_gcc (sexpr x)
 
         cur = cdr (cur);
     }
-    
+
     sx_destroy (include_paths);
+
+    return x;
+}
+
+static sexpr prepend_ccflags_gcc (sexpr x)
+{
+    if (truep(co_freestanding))
+    {
+        switch (i_os)
+        {
+            case os_darwin:
+                x = cons (str_static, x);
+                break;
+            default:
+                break;
+        }
+    }
 
     return x;
 }
 
 static sexpr prepend_cflags_gcc (sexpr x)
 {
-    return x;
+    static sexpr str_ffreestanding = sx_false;
+
+    if (falsep(str_ffreestanding))
+    {
+        str_ffreestanding = make_string ("-ffreestanding");
+    }
+
+    if (truep (co_freestanding))
+    {
+        x = cons (str_ffreestanding, x);
+    }
+
+    return prepend_ccflags_gcc(x);
 }
 
 static sexpr prepend_cxxflags_gcc (sexpr x)
 {
-    return x;
+    return prepend_ccflags_gcc(x);
 }
 
 static void build_object_gcc_assembly (const char *source, const char *target)
@@ -710,7 +906,27 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
     char havelib;
     sexpr sx = sx_end_of_list;
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(name), archprefix, sx_string(name));
+    if (truep(equalp(name, str_curie)))
+    {
+        struct sexpr_io *io;
+
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", sx_string(t->name), archprefix, sx_string(name));
+
+        io = sx_open_io(io_open(-1), io_open_create(buffer, 0644));
+
+        if (truep(co_freestanding))
+        {
+            sx_write (io, sym_freestanding);
+        }
+        else
+        {
+            sx_write (io, sym_hosted);
+        }
+
+        multiplex_add_sexpr (io, (void *)0, (void *)0);
+    }
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(t->name), archprefix, sx_string(name));
 
     havelib = (stat (buffer, &res) == 0);
 
@@ -730,28 +946,125 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
         code = cdr (code);
     }
 
-    if (havelib) {
-        return;
+    if (!havelib) {
+        workstack
+                = cons (cons (p_archiver,
+                        cons (make_string ("-r"),
+                              cons (make_string (buffer),
+                                    sx)))
+                , workstack);
     }
 
-    workstack
-        = cons (cons (p_archiver,
-                  cons (make_string ("-r"),
-                    cons (make_string (buffer),
-                          sx)))
-                , workstack);
+    if (truep(do_tests))
+    {
+        sexpr s = t->test_cases;
+
+        while (consp (s))
+        {
+            sexpr s2 = cdr(cdr(car(s)));
+            sexpr s3 = car(s2);
+            sexpr s4 = car(cdr(s2));
+            sexpr s5 = cons(cons (sym_c, cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
+
+            sx_xref (s3);
+            sx_xref (s4);
+
+            link_programme_gcc_filename (s4, name, s5, t);
+
+            sx_destroy (s5);
+
+            s = cdr (s);
+        }
+    }
 }
 
-static void link_programme_gcc (sexpr name, sexpr code, struct target *t)
+static void map_includes_gcc (struct tree_node *node, void *psx)
+{
+    sexpr *sx = (sexpr *)psx;
+    char buffer[BUFFERSIZE];
+    struct target *t = node_get_value (node);
+
+    snprintf (buffer, BUFFERSIZE, "-Lbuild/%s/%s", sx_string(t->name), archprefix);
+
+    *sx = cons (make_string (buffer), *sx);
+}
+
+static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
+{
+    static sexpr str_u                 = sx_false;
+    static sexpr str_e                 = sx_false;
+    static sexpr str_start             = sx_false;
+    static sexpr str_nostdlib          = sx_false;
+    static sexpr str_nostartfiles      = sx_false;
+    static sexpr str_nodefaultlibs     = sx_false;
+
+    if (falsep(str_u))
+    {
+        str_u                          = make_string ("-u");
+        str_e                          = make_string ("-e");
+        str_start                      = make_string ("_start");
+        str_nostdlib                   = make_string ("-nostdlib");
+        str_nostartfiles               = make_string ("-nostartfiles");
+        str_nodefaultlibs              = make_string ("-nodefaultlibs");
+    }
+
+    if (truep(t->use_curie))
+    {
+        if (truep(t->hosted))
+        {
+            sx = cons (str_nodefaultlibs, sx);
+        }
+        else
+        {
+            if (truep(co_freestanding))
+            {
+                sx = cons (str_static, sx);
+
+                switch (i_os)
+                {
+                    case os_darwin:
+                        sx = cons (str_e, cons (str_start, sx));
+                    default:
+                        sx = cons (str_u, cons (str_start, sx));
+                        break;
+                }
+
+                sx = cons (str_nostdlib, cons (str_nostartfiles, cons (str_nodefaultlibs, sx)));
+            }
+        }
+    }
+
+    return sx;
+}
+
+static sexpr get_special_linker_options_gcc (sexpr sx)
+{
+    tree_map (&targets, map_includes_gcc, (void *)&sx);
+
+    return sx;
+}
+
+static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE];
     struct stat res, st;
     char havebin;
-    sexpr sx = sx_end_of_list;
+    sexpr sx = sx_end_of_list, cur;
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", sx_string(name), archprefix, sx_string(name));
+    havebin = (stat (sx_string (ofile), &res) == 0);
 
-    havebin = (stat (buffer, &res) == 0);
+    cur = t->libraries;
+
+    while (consp (cur))
+    {
+        sexpr libname = car (cur);
+
+        snprintf (buffer, BUFFERSIZE, "-l%s", sx_string (libname));
+
+        sx = cons (make_string (buffer), sx);
+
+        cur = cdr (cur);
+    }
 
     while (consp (code))
     {
@@ -769,23 +1082,46 @@ static void link_programme_gcc (sexpr name, sexpr code, struct target *t)
         code = cdr (code);
     }
 
-    if (havebin) {
-        return;
-    }
-
-    workstack
-        = cons (cons (p_linker,
-                  cons (make_string ("-o"),
-                    cons (make_string (buffer),
-                          sx)))
+    if (!havebin) {
+        workstack
+                = cons (cons (p_linker,
+                        get_libc_linker_options_gcc (t,
+                                get_special_linker_options_gcc (
+                                        cons (make_string ("-o"),
+                                              cons (ofile,
+                                                      sx)))))
                 , workstack);
+    }
+}
+
+static void link_programme_gcc (sexpr name, sexpr code, struct target *t)
+{
+    char buffer[BUFFERSIZE];
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", sx_string(t->name), archprefix, sx_string(name));
+
+    link_programme_gcc_filename (make_string (buffer), name, code, t);
+}
+
+static void run_tests_library_gcc (sexpr name, struct target *t)
+{
+    sexpr s = t->test_cases;
+
+    while (consp (s))
+    {
+        sexpr r = cdr(cdr(cdr(car(s))));
+        sx_xref (r);
+
+        workstack = cons (r, workstack);
+
+        s = cdr (s);
+    }
 }
 
 static void post_process_library_gcc (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(name), archprefix, sx_string(name));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(t->name), archprefix, sx_string(name));
 
     workstack
         = cons (cons (p_archive_indexer,
@@ -840,7 +1176,7 @@ static void install_library_gcc (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(name), archprefix, sx_string(name));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(t->name), archprefix, sx_string(name));
 
     workstack
         = cons (cons (make_string (buffer),
@@ -852,7 +1188,7 @@ static void install_programme_gcc (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", sx_string(name), archprefix, sx_string(name));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", sx_string(t->name), archprefix, sx_string(name));
 
     workstack
         = cons (cons (make_string (buffer),
@@ -875,6 +1211,15 @@ static void link_programme (sexpr name, sexpr code, struct target *t)
     {
         case tc_gcc:
             link_programme_gcc (name, code, t); break;
+    }
+}
+
+static void run_tests_library (sexpr name, struct target *t)
+{
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            run_tests_library_gcc (name, t); break;
     }
 }
 
@@ -941,24 +1286,51 @@ static void do_build_target(struct target *t)
 
         c = cdr (c);
     }
+
+    c = t->bootstrap;
+
+    while (consp (c))
+    {
+        build_object(car(c));
+
+        c = cdr (c);
+    }
+
+    if (truep(do_tests))
+    {
+        c = t->test_cases;
+
+        while (consp (c))
+        {
+            build_object(car(c));
+
+            c = cdr (c);
+        }
+    }
 }
 
 static void do_link_target(struct target *t)
 {
-    sexpr c = t->code;
-    
     if (truep(t->library))
     {
-        link_library (t->name, c, t);
+        link_library (t->name, t->code, t);
+
+        if (!eolp(t->bootstrap))
+        {
+            char buffer[BUFFERSIZE];
+            snprintf (buffer, BUFFERSIZE, "%s-bootstrap", sx_string(t->name));
+
+            link_library (make_string(buffer), t->bootstrap, t);
+        }
     }
     else
     {
-        link_programme (t->name, c, t);
+        link_programme (t->name, t->code, t);
     }
 }
 
 static void do_post_process_target(struct target *t)
-{    
+{
     if (truep(t->library))
     {
         post_process_library (t->name, t);
@@ -969,11 +1341,27 @@ static void do_post_process_target(struct target *t)
     }
 }
 
+static void do_run_tests_target(struct target *t)
+{
+    if (truep(t->library))
+    {
+        run_tests_library (t->name, t);
+    }
+}
+
 static void do_install_target(struct target *t)
-{    
+{
     if (truep(t->library))
     {
         install_library (t->name, t);
+
+        if (!eolp(t->bootstrap))
+        {
+            char buffer[BUFFERSIZE];
+            snprintf (buffer, BUFFERSIZE, "%s-bootstrap", sx_string(t->name));
+
+            install_library (make_string(buffer), t);
+        }
     }
     else
     {
@@ -981,9 +1369,9 @@ static void do_install_target(struct target *t)
     }
 }
 
-static void build_target (struct tree *targets, const char *target)
+static void build_target (const char *target)
 {
-    struct tree_node *node = tree_get_node_string(targets, (char *)target);
+    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
 
     if (node != (struct tree_node *)0)
     {
@@ -991,9 +1379,9 @@ static void build_target (struct tree *targets, const char *target)
     }
 }
 
-static void link_target (struct tree *targets, const char *target)
+static void link_target (const char *target)
 {
-    struct tree_node *node = tree_get_node_string(targets, (char *)target);
+    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
 
     if (node != (struct tree_node *)0)
     {
@@ -1001,9 +1389,9 @@ static void link_target (struct tree *targets, const char *target)
     }
 }
 
-static void post_process_target (struct tree *targets, const char *target)
+static void post_process_target (const char *target)
 {
-    struct tree_node *node = tree_get_node_string(targets, (char *)target);
+    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
 
     if (node != (struct tree_node *)0)
     {
@@ -1011,9 +1399,19 @@ static void post_process_target (struct tree *targets, const char *target)
     }
 }
 
-static void install_target (struct tree *targets, const char *target)
+static void run_tests_target (const char *target)
 {
-    struct tree_node *node = tree_get_node_string(targets, (char *)target);
+    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
+
+    if (node != (struct tree_node *)0)
+    {
+        do_run_tests_target (node_get_value(node));
+    }
+}
+
+static void install_target (const char *target)
+{
+    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
 
     if (node != (struct tree_node *)0)
     {
@@ -1029,7 +1427,9 @@ static void print_help(char *binaryname)
         " -h           Print help and exit\n"
         " -t <chost>   Specify target CHOST\n"
         " -z <version> Specify target toolchain version\n"
-        " -i <destdir> Install resulting binaries to the given destdir\n"
+        " -d <destdir> Specify the directory to install to.\n"
+        " -i           Install resulting binaries\n"
+        " -r           Execute runtime tests\n"
         " -f           Use the FHS layout for installation\n"
         " -s           Use the default FS layout for installation\n\n"
         "The [targets] specify a list of things to build, according to the\n"
@@ -1052,6 +1452,11 @@ static void target_map_post_process (struct tree_node *node, void *u)
     do_post_process_target(node_get_value(node));
 }
 
+static void target_map_run_tests (struct tree_node *node, void *u)
+{
+    do_run_tests_target(node_get_value(node));
+}
+
 static void target_map_install (struct tree_node *node, void *u)
 {
     do_install_target(node_get_value(node));
@@ -1059,18 +1464,17 @@ static void target_map_install (struct tree_node *node, void *u)
 
 static void target_map_cross_link (struct tree_node *node, void *u)
 {
-    struct tree *t = (struct tree *)u;
     struct target *target = (struct target *) node_get_value (node);
-    
+
     if (!eolp (target->use_objects))
     {
         sexpr cur = target->use_objects;
-        
+
         while (consp (cur))
         {
             sexpr o = car (cur);
             struct tree_node *n1
-                = tree_get_node_string (t, (char *)sx_string (o));
+                = tree_get_node_string (&targets, (char *)sx_string (o));
             struct target *s;
 
             if (n1 == (struct tree_node *)0)
@@ -1388,7 +1792,7 @@ enum signal_callback_result cb_on_bad_signal(enum signal s, void *p)
 {
     fprintf (stderr, "problematic signal received: %i\n", s);
     exit (s);
-    
+
     return scr_keep;
 }
 
@@ -1482,26 +1886,26 @@ static void loop_install()
     }
 }
 
-static void crosslink_objects (struct tree *targets)
+static void crosslink_objects ()
 {
-    tree_map (targets, target_map_cross_link, (void *)targets);
+    tree_map (&targets, target_map_cross_link, (void *)0);
 }
 
-static void build (sexpr buildtargets, struct tree *targets)
+static void build (sexpr buildtargets)
 {
     sexpr cursor = buildtargets;
     sexpr use_objects = sx_end_of_list;
 
     if (eolp(cursor))
     {
-        tree_map (targets, target_map_build, (void *)0);
+        tree_map (&targets, target_map_build, (void *)0);
     }
     else while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
         const char *target = sx_string (sxcar);
 
-        struct tree_node *node = tree_get_node_string(targets, (char *)target);
+        struct tree_node *node = tree_get_node_string(&targets, (char *)target);
 
         if (node != (struct tree_node *)0)
         {
@@ -1550,7 +1954,7 @@ static void build (sexpr buildtargets, struct tree *targets)
             }
         }
 
-        build_target (targets, target);
+        build_target (target);
         cursor = cdr(cursor);
     }
 
@@ -1559,7 +1963,7 @@ static void build (sexpr buildtargets, struct tree *targets)
     while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
-        build_target (targets, sx_string (sxcar));
+        build_target (sx_string (sxcar));
         cursor = cdr(cursor);
     }
 
@@ -1568,41 +1972,58 @@ static void build (sexpr buildtargets, struct tree *targets)
     loop_processes();
 }
 
-static void link (sexpr buildtargets, struct tree *targets)
+static void link (sexpr buildtargets)
 {
     sexpr cursor = buildtargets;
     if (eolp(cursor))
     {
-        tree_map (targets, target_map_link, (void *)0);
+        tree_map (&targets, target_map_link, (void *)0);
     }
     else while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
-        link_target (targets, sx_string(sxcar));
+        link_target (sx_string(sxcar));
         cursor = cdr(cursor);
     }
 
     loop_processes();
 }
 
-static void post_process (sexpr buildtargets, struct tree *targets)
+static void post_process (sexpr buildtargets)
 {
     sexpr cursor = buildtargets;
     if (eolp(cursor))
     {
-        tree_map (targets, target_map_post_process, (void *)0);
+        tree_map (&targets, target_map_post_process, (void *)0);
     }
     else while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
-        post_process_target (targets, sx_string(sxcar));
+        post_process_target (sx_string(sxcar));
         cursor = cdr(cursor);
     }
 
     loop_processes();
 }
 
-static void install (sexpr buildtargets, struct tree *targets)
+static void run_tests (sexpr buildtargets)
+{
+    sexpr cursor = buildtargets;
+    if (eolp(cursor))
+    {
+        tree_map (&targets, target_map_run_tests, (void *)0);
+    }
+    else while (consp(cursor))
+    {
+        sexpr sxcar = car(cursor);
+        run_tests_target (sx_string(sxcar));
+        cursor = cdr(cursor);
+    }
+
+    loop_processes();
+}
+
+static void install (sexpr buildtargets)
 {
     sexpr cursor = buildtargets;
 
@@ -1613,24 +2034,91 @@ static void install (sexpr buildtargets, struct tree *targets)
 
     if (eolp(cursor))
     {
-        tree_map (targets, target_map_install, (void *)0);
+        tree_map (&targets, target_map_install, (void *)0);
     }
     else while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
-        install_target (targets, sx_string(sxcar));
+        install_target (sx_string(sxcar));
         cursor = cdr(cursor);
     }
 
     loop_install();
 }
 
+static sexpr initialise_libcurie_filename (char *filename)
+{
+    struct sexpr_io *io;
+    sexpr r;
+    struct stat st;
+
+    if (stat(filename, &st) != 0) return sx_false;
+
+    io = sx_open_io(io_open_read(filename), io_open(-1));
+
+    while (!eofp(r = sx_read (io)))
+    {
+        if (truep(equalp(r, sym_freestanding)))
+        {
+            co_freestanding = sx_true;
+        }
+        else if (truep(equalp(r, sym_hosted)))
+        {
+            co_freestanding = sx_false;
+        }
+    }
+
+    sx_close_io (io);
+
+    return sx_true;
+}
+
+static void initialise_libcurie()
+{
+    char buffer[BUFFERSIZE];
+
+    if (snprintf (buffer, BUFFERSIZE, "build/curie/%s/libcurie.sx", archprefix),
+        truep(initialise_libcurie_filename(buffer))) return;
+
+    if (!falsep(i_destdir))
+    {
+        if (snprintf (buffer, BUFFERSIZE, "%s/lib/libcurie.sx", sx_string(i_destdir)),
+            truep(initialise_libcurie_filename(buffer))) return;
+
+        switch (i_fsl)
+        {
+            case fs_fhs:
+                if (snprintf (buffer, BUFFERSIZE, "%s/usr/lib/libcurie.sx", sx_string(i_destdir)),
+                    truep(initialise_libcurie_filename(buffer))) return;
+                break;
+            case fs_proper:
+                if (snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/libcurie.sx", sx_string(i_destdir), uname_os, uname_arch),
+                    truep(initialise_libcurie_filename(buffer))) return;
+                break;
+        }
+    }
+
+    if (snprintf (buffer, BUFFERSIZE, "/lib/libcurie.sx"),
+        truep(initialise_libcurie_filename(buffer))) return;
+
+    switch (i_fsl)
+    {
+        case fs_fhs:
+            if (snprintf (buffer, BUFFERSIZE, "/usr/lib/libcurie.sx"),
+                truep(initialise_libcurie_filename(buffer))) return;
+            break;
+        case fs_proper:
+            if (snprintf (buffer, BUFFERSIZE, "/%s/%s/lib/libcurie.sx", uname_os, uname_arch),
+                truep(initialise_libcurie_filename(buffer))) return;
+            break;
+    }
+}
+
 int main (int argc, char **argv, char **environ)
 {
     struct sexpr_io *io;
     sexpr r;
-    struct tree targets = TREE_INITIALISER;
-    int i = 1;
+    int i = 1, q;
     char *target_architecture = (char *)0;
     sexpr buildtargets = sx_end_of_list;
 
@@ -1663,18 +2151,24 @@ int main (int argc, char **argv, char **environ)
                             xn++;
                         }
                         break;
-                    case 'i':
+                    case 'd':
                         if (xn < argc)
                         {
                             i_destdir = make_string(argv[xn]);
                             xn++;
                         }
                         break;
+                    case 'i':
+                        do_install = sx_true;
+                        break;
                     case 'f':
                         i_fsl = fs_fhs;
                         break;
                     case 's':
                         i_fsl = fs_proper;
+                        break;
+                    case 'r':
+                        do_tests = sx_true;
                         break;
                     case 'h':
                     case '-':
@@ -1789,18 +2283,34 @@ int main (int argc, char **argv, char **environ)
         case tc_gcc: initialise_toolchain_gcc(); break;
     }
 
-    sym_library     = make_symbol ("library");
-    sym_programme   = make_symbol ("programme");
-    sym_hosted      = make_symbol ("hosted");
-    sym_code        = make_symbol ("code");
-    sym_headers     = make_symbol ("headers");
-    sym_use_objects = make_symbol ("use-objects");
-    sym_assembly    = make_symbol ("assembly");
-    sym_cpp         = make_symbol ("C++");
-    sym_c           = make_symbol ("C");
-    sym_link        = make_symbol ("link");
+    for (q = 0; uname_os[q] && "darwin"[q]; q++);
+    if ((q == 6) && (uname_os[q] == 0)) i_os = os_darwin;
+    for (q = 0; uname_os[q] && "linux"[q]; q++);
+    if ((q == 5) && (uname_os[q] == 0)) i_os = os_linux;
 
-    stdio           = sx_open_stdio();
+    sym_library             = make_symbol ("library");
+    sym_libraries           = make_symbol ("libraries");
+    sym_test_cases          = make_symbol ("test-cases");
+    sym_programme           = make_symbol ("programme");
+    sym_hosted              = make_symbol ("hosted");
+    sym_code                = make_symbol ("code");
+    sym_headers             = make_symbol ("headers");
+    sym_use_objects         = make_symbol ("use-objects");
+    sym_assembly            = make_symbol ("assembly");
+    sym_cpp                 = make_symbol ("C++");
+    sym_c                   = make_symbol ("C");
+    sym_link                = make_symbol ("link");
+    sym_libc                = make_symbol ("libc");
+    sym_libcurie            = make_symbol ("libcurie");
+    sym_freestanding        = make_symbol ("freestanding");
+    sym_freestanding_if_asm = make_symbol ("freestanding-if-assembly");
+    str_bootstrap           = make_string ("bootstrap");
+    str_curie               = make_string ("curie");
+    str_curie_bootstrap     = make_string ("curie-bootstrap");
+    str_static              = make_string ("-static");
+    str_lc                  = make_string ("c");
+
+    stdio                   = sx_open_stdio();
 
     multiplex_io();
     multiplex_process();
@@ -1810,8 +2320,11 @@ int main (int argc, char **argv, char **environ)
     multiplex_add_signal (sig_segv, cb_on_bad_signal, (void *)0);
     multiplex_add_signal (sig_int,  cb_on_bad_signal, (void *)0);
     multiplex_add_signal (sig_term, cb_on_bad_signal, (void *)0);
+    multiplex_add_signal (sig_bus,  cb_on_bad_signal, (void *)0);
 
     multiplex_add_sexpr (stdio, (void *)0, (void *)0);
+
+    initialise_libcurie();
 
     io = sx_open_io (io_open_read("icemake.sx"), io_open(-1));
 
@@ -1842,12 +2355,23 @@ int main (int argc, char **argv, char **environ)
         sx_destroy (r);
     }
 
-    crosslink_objects (&targets);
+    sx_close_io (io);
 
-    build (buildtargets, &targets);
-    link (buildtargets, &targets);
-    post_process (buildtargets, &targets);
-    install (buildtargets, &targets);
+    crosslink_objects ();
+
+    build (buildtargets);
+    link (buildtargets);
+    post_process (buildtargets);
+
+    if (truep (do_tests))
+    {
+        run_tests (buildtargets);
+    }
+
+    if (truep (do_install))
+    {
+        install (buildtargets);
+    }
 
     return 0;
 }
