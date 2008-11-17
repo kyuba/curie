@@ -49,4 +49,4 @@
   (use-objects "curie")
   (version 1)
 
-  (code "build"))
+  (code "icemake"))

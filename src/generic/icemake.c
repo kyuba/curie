@@ -1,8 +1,9 @@
 /*
- *  build.c
+ *  icemake.c
  *  libcurie
  *
  *  Created by Magnus Deininger on 01/11/2008.
+ *  Renamed from build.c by Magnus Deininger on 17/11/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */

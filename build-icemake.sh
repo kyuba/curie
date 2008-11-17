@@ -2,7 +2,7 @@
 # Build System Bootstrap
 # POSIX/sh Variant
 
-ICEMAKE_FILES="build sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr"
+ICEMAKE_FILES="icemake sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr"
 
 if [ ! -n "${CC}" ]; then CC='cc'; fi
 if [ ! -n "${LD}" ]; then LD='cc'; fi
