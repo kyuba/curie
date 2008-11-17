@@ -1,8 +1,8 @@
 /*
- *  linux-x86-64-gnu/signal-system.S
+ *  linux-ppc-gnu/multiplex-system.S
  *  libcurie
  *
- *  Created by Magnus Deininger on 10/08/2008.
+ *  Created by Magnus Deininger on 17/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -39,58 +39,15 @@
 .text
         .align 8
 
-.globl  __a_set_signal_handler
-        .type __a_set_signal_handler, @function
-.globl  a_getpid
-        .type a_getpid,          @function
-.globl  __a_send_signal
-        .type __a_send_signal,   @function
+.globl  __a_select
+.type __a_select,                @function
 
-.globl  __a_sigreturn
-        .type __a_sigreturn,     @function
+__a_select:
+        li      0, 82 /* sys_select */
+        li      6, 0 /* no tertiary fdset */
+        li      7, 0 /* no timeout */
 
-/* C-functions: */
-/* rdi rsi rdx rcx r8 r9 */
-/* kernel: */
-/* rdi rsi rdx r10 r8 r9 */
+        sc
+        blr
 
-__a_set_signal_handler:
-    pushq   %rbp
-    movq    %rsp, %rbp
-
-    movq $13, %rax /* sys_sigaction */
-    /* %rdi and %rsi are inherited */
-    movq $0, %rdx /* don't care about the old handler */
-    movq $8, %r10 /* sizeof(sigset_t) */
-
-    syscall
-    leave
-    ret
-
-__a_send_signal:
-    pushq   %rbp
-    movq    %rsp, %rbp
-
-    movq $62, %rax /* sys_kill */
-    syscall
-    leave
-    ret
-
-a_getpid:
-    pushq   %rbp
-    movq    %rsp, %rbp
-
-    movq $39, %rax /* sys_getpid */
-    syscall
-    leave
-    ret
-
-__a_sigreturn:
-    movq $15, %rax /* sys_sigreturn */
-    syscall
-    ret
-
-#if defined(__ELF__)
-          .section .note.GNU-stack,"",%progbits
-#endif
-
+.section .note.GNU-stack,"",%progbits

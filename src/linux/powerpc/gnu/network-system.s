@@ -1,5 +1,5 @@
 /*
- *  linux-ppc-gnu/multiplex-system.S
+ *  linux-ppc-gnu/network-system.S
  *  libcurie
  *
  *  Created by Magnus Deininger on 17/08/2008.
@@ -36,21 +36,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+.globl __a_socketcall
+
+.type __a_socketcall,              @function
+
 .text
         .align 8
 
-.globl  __a_select
-.type __a_select,                @function
-
-__a_select:
-        li      0, 82 /* sys_select */
-        li      6, 0 /* no tertiary fdset */
-        li      7, 0 /* no timeout */
+__a_socketcall:
+        li      0, 102 /* sys_socketcall */
 
         sc
+
+        cmpwi   3, 0
+        blt     negative_result
+        blr
+negative_result:
+        cmpwi   3, -11 /* EAGAIN, as well as EWOULDBLOCK*/
+        beq     recoverable
+        cmpwi   3, -4 /* EINTR */
+        beq     recoverable
+        li      3, -1
+        blr
+recoverable:
+        li      3, -2
         blr
 
-#if defined(__ELF__)
-          .section .note.GNU-stack,"",%progbits
-#endif
-
+.section .note.GNU-stack,"",%progbits

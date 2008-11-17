@@ -1,5 +1,5 @@
 /*
- *  linux-x86-64-gnu/exec-system.S
+ *  linux-x86-64-gnu/signal-system.S
  *  libcurie
  *
  *  Created by Magnus Deininger on 10/08/2008.
@@ -39,123 +39,55 @@
 .text
         .align 8
 
-.globl  a_fork
-.globl  a_exec
-.globl  a_wait
-.globl  a_wait_all
-.globl  a_set_sid
+.globl  __a_set_signal_handler
+        .type __a_set_signal_handler, @function
+.globl  a_getpid
+        .type a_getpid,          @function
+.globl  __a_send_signal
+        .type __a_send_signal,   @function
 
-.type a_fork,                    @function
-.type a_exec,                    @function
-.type a_wait,                    @function
-.type a_wait_all,                @function
-.type a_set_sid,                 @function
+.globl  __a_sigreturn
+        .type __a_sigreturn,     @function
 
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */
 /* kernel: */
 /* rdi rsi rdx r10 r8 r9 */
 
-a_fork:
+__a_set_signal_handler:
     pushq   %rbp
     movq    %rsp, %rbp
 
-    movq $57, %rax /* sys_fork */
+    movq $13, %rax /* sys_sigaction */
+    /* %rdi and %rsi are inherited */
+    movq $0, %rdx /* don't care about the old handler */
+    movq $8, %r10 /* sizeof(sigset_t) */
 
     syscall
     leave
     ret
 
-a_exec:
+__a_send_signal:
     pushq   %rbp
     movq    %rsp, %rbp
 
-    movq $59, %rax /* sys_execve */
-
+    movq $62, %rax /* sys_kill */
     syscall
     leave
     ret
 
-a_wait:
+a_getpid:
     pushq   %rbp
     movq    %rsp, %rbp
 
-    movq $61, %rax /* sys_wait4 */
-    movq $1, %rdx /* WNOHNANG */
-    movq $0, %r10 /* we don't care about the rusage field */
-
-    syscall
-
-    cmp %rax, %rdi /* see if the return value is the pid we passed */
-    jz wait_examine
-
-    movq $0, %rax /* wr_running */
-    leave
-    ret
-
-wait_examine:
-    movl (%rsi), %eax
-    and $0x7f, %eax
-    jz exited_normally /* normal exit if that mask is 0 */
-
-    movq $2, %rax /* wr_killed */
-    leave
-    ret
-
-exited_normally:
-    pushq %rbx
-
-    movl (%rsi), %eax
-    xor %rbx, %rbx
-
-    movb  %ah, %bl /* use the high-order bits of the lower 16 bits only */
-    movl %ebx, (%rsi)
-
-    popq %rbx
-
-    movq $1, %rax /* wr_exited */
-    leave
-    ret
-
-
-a_wait_all:
-    pushq   %rbp
-    movq    %rsp, %rbp
-
-    movq %rdi, %rsi /* arg1 -> arg2 */
-    movq $-1, %rdi /* wait for anything */
-    movq $61, %rax /* sys_wait4 */
-    movq $1, %rdx /* WNOHNANG */
-    movq $0, %r10 /* we don't care about the rusage field */
-
-    syscall
-
-    pushq %rbx
-    pushq %rcx
-
-    movl (%rsi), %ecx
-    xor %rbx, %rbx
-
-    movb  %ch, %bl /* use the high-order bits of the lower 16 bits only */
-    movl %ebx, (%rsi)
-
-    popq %rcx
-    popq %rbx
-
-    leave
-    ret
-
-a_set_sid:
-    pushq   %rbp
-    movq    %rsp, %rbp
-
-    movq $112, %rax /* sys_setsid */
-
+    movq $39, %rax /* sys_getpid */
     syscall
     leave
     ret
 
-#if defined(__ELF__)
-          .section .note.GNU-stack,"",%progbits
-#endif
+__a_sigreturn:
+    movq $15, %rax /* sys_sigreturn */
+    syscall
+    ret
 
+.section .note.GNU-stack,"",%progbits

@@ -38,9 +38,6 @@
 
 .data
 
-#define _PAGESIZE         0x1000
-#define _PAGESIZE_INVERSE ~0x0fff
-
 .globl get_mem
 .globl free_mem
 .globl resize_mem
@@ -86,13 +83,13 @@ set_resize_mem_recovery_function:
 cmopsass:
         mr      9, 4
 
-        lis     10, _PAGESIZE_INVERSE@ha
-        addi    10, 10, _PAGESIZE_INVERSE@l
+        lis     10, ~0x0fff@ha
+        addi    10, 10, ~0x0fff@l
 
         and     4, 4, 10
         cmpw    9, 4
         beq     do_syscall
-        addi    4, 4, _PAGESIZE 
+        addi    4, 4, 0x1000 
 do_syscall:
         sc
 
@@ -128,7 +125,7 @@ recover:
         bctr
 
 get_mem_chunk:
-        li      4, _PAGESIZE
+        li      4, 0x1000
         b       get_mem_innards
 get_mem:
         mr      4, 3
@@ -178,13 +175,13 @@ resize_mem:
 
         mr      9, 5
 
-        lis     10, _PAGESIZE_INVERSE@ha
-        addi    10, 10, _PAGESIZE_INVERSE@l
+        lis     10, ~0x0fff@ha
+        addi    10, 10, ~0x0fff@l
 
         and     5, 5, 10
         cmpw    9, 5
         beq     cmopsass
-        addi    5, 5, _PAGESIZE
+        addi    5, 5, 0x1000
 
         b       cmopsass
 
@@ -220,6 +217,4 @@ swap_first_and_second_arg_sc:
 
         b       cmopsass
 
-#if defined(__ELF__)
-          .section .note.GNU-stack,"",%progbits
-#endif
+.section .note.GNU-stack,"",%progbits

@@ -1,8 +1,8 @@
 /*
- *  linux-ppc-gnu/signal-system.S
+ *  linux-x86-64-gnu/multiplex-system.S
  *  libcurie
  *
- *  Created by Magnus Deininger on 17/08/2008.
+ *  Created by Magnus Deininger on 10/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -39,39 +39,25 @@
 .text
         .align 8
 
-.globl  __a_set_signal_handler
-.globl  a_getpid
-.globl  __a_send_signal
-.globl  __a_sigreturn
+.globl  __a_select
+        .type __a_select,        @function
 
-.type __a_set_signal_handler,    @function
-.type a_getpid,                  @function
-.type __a_send_signal,           @function
-.type __a_sigreturn,             @function
+/* C-functions: */
+/* rdi rsi rdx rcx r8 r9 */
+/* kernel: */
+/* rdi rsi rdx r10 r8 r9 */
 
-__a_set_signal_handler:
-        li      0, 67 /* sys_sigaction */
-        li      5, 0 /* don't care about the old handler */
+__a_select:
+    pushq   %rbp
+    movq    %rsp, %rbp
 
-        sc
-        blr
+    movq $23, %rax /* sys_select */
+    /* %rdi, %rsi and %rdx are inherited */
+    movq $0, %r10 /* no tertiary fdset */
+    movq $0, %r8 /* no timeout */
 
-__a_send_signal:
-        li      0, 37 /* sys_kill */
-        sc
-        blr
+    syscall
+    leave
+    ret
 
-a_getpid:
-        li      0, 20 /* sys_getpid */
-        sc
-        blr
-
-__a_sigreturn:
-        li      0, 119 /* sys_sigreturn */
-        sc
-        blr
-
-#if defined(__ELF__)
-          .section .note.GNU-stack,"",%progbits
-#endif
-
+.section .note.GNU-stack,"",%progbits

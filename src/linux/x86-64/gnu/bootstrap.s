@@ -1,8 +1,8 @@
 /*
- *  linux-ppc-gnu/bootstrap.S
+ *  linux-x86-64-gnu/bootstrap.S
  *  libcurie
  *
- *  Created by Magnus Deininger on 17/08/2008.
+ *  Created by Magnus Deininger on 14/06/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,71 +36,91 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.data
-
 .globl curie_argv
-.globl curie_environment
+        .data
+        .type curie_argv, @object
+        .size curie_argv, 8
 
 curie_argv:
-        .long 0x0
+        .quad 0x0
+
+.globl curie_environment
+        .data
+        .type curie_environment, @object
+        .size curie_environment, 8
 
 curie_environment:
-        .long 0x0
-
-.globl _start
-.globl cexit
-
-.type _start,                    @function
-.type cexit,                     @function
+        .quad 0x0
 
 .text
+        .align 8
+
+.globl cmain
+        .type cmain,              @function
+.globl _start
+        .type _start,             @function
+.globl cexit
+        .type cexit,              @function
+
+
+/* C-functions: */
+/* rdi rsi rdx rcx r8 r9 */
+/* kernel: */
+/* rdi rsi rdx r10 r8 r9 */
 
 _start:
-        cmpwi   3, 0
-        bne     _3
+/* parse argv */
+        popq    %rbx
+        inc     %rbx
+        movq    $8, %rax
+        mulq    %rbx
 
-        mr      3, 1
+        movq    %rax, %rdi
 
-        li      4, 0
+        call    aalloc
 
-_1:
-        addi    1, 1, 4
-        addi    4, 4, 1
-        l       9, 0(1)
-        cmpwi   9, 0
-        bne     _1
+        movq    %rax, curie_argv(%rip)
 
-        li      5, 0
+redo_argv:
+        popq    %rcx
+        movq    %rcx, (%rax)
+        cmpq    $0x0, %rcx
+        jz      argv_done
+        addq    $8, %rax
 
-_2:
-        addi    1, 1, 4
-        addi    5, 5, 1
-        l       9, 0(1)
-        cmpwi   9, 0
-        bne     _2
+        jmp     redo_argv
 
-        mr      1, 3
-        addi    1, 1, -16
+argv_done:
 
-        bl      __do_startup
-        mr      1, 3
-        b       _4
+/* parse envp */
+        movq    $0x1000, %rdi
 
-_3:
-        lis     16, curie_argv@ha
-        stw     4, curie_argv@l(16)
-        lis     16, curie_environment@ha
-        stw     5, curie_environment@l(16)
+        call    get_mem
 
-_4:
-        addi    1, 1, -16
-        bl      cmain
+        movq    %rax, curie_environment(%rip)
+        movq    $0x1fe, %r11
 
+redo_environment:
+        popq    %rcx
+        movq    %rcx, (%rax)
+        cmpq    $0x0, %rcx
+        jz      environment_done
+
+        addq    $8, %rax
+
+        dec     %r11
+        jz      environment_done_prematurely
+
+        jmp     redo_environment
+
+environment_done_prematurely:
+        movq    $0, (%rax)
+environment_done:
+
+        call cmain
+        movq %rax, %rdi
 cexit:
-        li      0, 1
-        sc
+        movq $60, %rax /* sys_exit */
+        syscall
 
-#if defined(__ELF__)
-          .section .note.GNU-stack,"",%progbits
-#endif
-
+.section .note.GNU-stack,"",%progbits

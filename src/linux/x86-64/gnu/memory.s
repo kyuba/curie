@@ -36,9 +36,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define _PAGESIZE         0x1000
-#define _PAGESIZE_INVERSE ~0x0fff
-
 .globl get_mem
 .globl free_mem
 .globl resize_mem
@@ -87,10 +84,10 @@ cmopsass:
    argument. after that, do the actual syscall that was prepared in advance.
    input length is expected to be in %rsi as well. */
         movq %rsi, %r11
-        andq $_PAGESIZE_INVERSE, %rsi
+        andq $~0x0fff, %rsi
         cmpq %rsi, %r11
         jz do_syscall
-        addq $_PAGESIZE, %rsi
+        addq $0x1000, %rsi
 do_syscall:
         syscall
         cmp $0, %rax
@@ -119,7 +116,7 @@ negative_result:
 rnr:    ret
 
 get_mem_chunk:
-        movq $_PAGESIZE, %rsi
+        movq $0x1000, %rsi
         jmp get_mem_innards
 get_mem:
         movq %rdi, %rsi
@@ -166,10 +163,10 @@ resize_mem:
         movq $0x0, %r8
 
         movq %rdx, %r11
-        andq $_PAGESIZE_INVERSE, %rdx
+        andq $~0x0fff, %rdx
         cmpq %rdx, %r11
         jz cmopsass
-        addq $_PAGESIZE, %rdx
+        addq $0x1000, %rdx
         jmp cmopsass
 
 mark_mem_rx:
@@ -198,7 +195,4 @@ xor_first_and_second_arg_sc:
 
         jmp cmopsass
 
-#if defined(__ELF__)
-          .section .note.GNU-stack,"",%progbits
-#endif
-
+.section .note.GNU-stack,"",%progbits

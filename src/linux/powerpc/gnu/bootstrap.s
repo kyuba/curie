@@ -1,8 +1,8 @@
 /*
- *  linux-x86-64-gnu/multiplex-system.S
+ *  linux-ppc-gnu/bootstrap.S
  *  libcurie
  *
- *  Created by Magnus Deininger on 10/08/2008.
+ *  Created by Magnus Deininger on 17/08/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,31 +36,68 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+.data
+
+.globl curie_argv
+.globl curie_environment
+
+curie_argv:
+        .long 0x0
+
+curie_environment:
+        .long 0x0
+
+.globl _start
+.globl cexit
+
+.type _start,                    @function
+.type cexit,                     @function
+
 .text
-        .align 8
 
-.globl  __a_select
-        .type __a_select,        @function
+_start:
+        cmpwi   3, 0
+        bne     _3
 
-/* C-functions: */
-/* rdi rsi rdx rcx r8 r9 */
-/* kernel: */
-/* rdi rsi rdx r10 r8 r9 */
+        mr      3, 1
 
-__a_select:
-    pushq   %rbp
-    movq    %rsp, %rbp
+        li      4, 0
 
-    movq $23, %rax /* sys_select */
-    /* %rdi, %rsi and %rdx are inherited */
-    movq $0, %r10 /* no tertiary fdset */
-    movq $0, %r8 /* no timeout */
+_1:
+        addi    1, 1, 4
+        addi    4, 4, 1
+        l       9, 0(1)
+        cmpwi   9, 0
+        bne     _1
 
-    syscall
-    leave
-    ret
+        li      5, 0
 
-#if defined(__ELF__)
-          .section .note.GNU-stack,"",%progbits
-#endif
+_2:
+        addi    1, 1, 4
+        addi    5, 5, 1
+        l       9, 0(1)
+        cmpwi   9, 0
+        bne     _2
 
+        mr      1, 3
+        addi    1, 1, -16
+
+        bl      __do_startup
+        mr      1, 3
+        b       _4
+
+_3:
+        lis     16, curie_argv@ha
+        stw     4, curie_argv@l(16)
+        lis     16, curie_environment@ha
+        stw     5, curie_environment@l(16)
+
+_4:
+        addi    1, 1, -16
+        bl      cmain
+
+cexit:
+        li      0, 1
+        sc
+
+.section .note.GNU-stack,"",%progbits

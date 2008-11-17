@@ -152,7 +152,4 @@ recoverable:
     li      3, -1
     blr
 
-#if defined(__ELF__)
-          .section .note.GNU-stack,"",%progbits
-#endif
-
+.section .note.GNU-stack,"",%progbits
