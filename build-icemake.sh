@@ -77,4 +77,4 @@ linkbinary() {
 buildall ${ICEMAKE_FILES}
 BINARY=b-icemake linkbinary ${ICEMAKE_FILES}
 
-./build/b-icemake $@ icemake -i build/ -f
+./build/b-icemake $@ icemake

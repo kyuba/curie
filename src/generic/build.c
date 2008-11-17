@@ -629,10 +629,9 @@ static void build_object_gcc_assembly (const char *source, const char *target)
 {
     workstack
         = cons (cons (p_assembler,
-                  cons (make_string ("-c"),
                     cons (make_string (source),
                       cons (make_string ("-o"),
-                        cons (make_string(target), sx_end_of_list)))))
+                        cons (make_string(target), sx_end_of_list))))
                 , workstack);
 }
 
