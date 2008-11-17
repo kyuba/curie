@@ -548,10 +548,10 @@ static sexpr permutate_paths_os (sexpr p, sexpr lis)
     sx_xref(p);
 
     lis = permutate_paths_arch (sx_string_dir_prefix_c (uname_os, p), lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("posix", p), lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("generic", p), lis);
     lis = permutate_paths_arch (p, lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c ("generic", p), lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c ("posix", p), lis);
 
     sx_destroy (p);
 
@@ -564,10 +564,10 @@ static sexpr permutate_paths (sexpr p)
 
     sx_xref(p);
 
-    lis = permutate_paths_os (sx_string_dir_prefix_c ("valgrind", p), lis);
-    lis = permutate_paths_os (sx_string_dir_prefix_c ("debug", p), lis);
-    lis = permutate_paths_os (sx_string_dir_prefix_c ("internal", p), lis);
     lis = permutate_paths_os (p, lis);
+    lis = permutate_paths_os (sx_string_dir_prefix_c ("internal", p), lis);
+    lis = permutate_paths_os (sx_string_dir_prefix_c ("debug", p), lis);
+    lis = permutate_paths_os (sx_string_dir_prefix_c ("valgrind", p), lis);
 
     sx_destroy(p);
 
@@ -1498,7 +1498,7 @@ static void build (sexpr buildtargets, struct tree *targets)
             if (!eolp (t->use_objects))
             {
                 sexpr cuo = t->use_objects;
-                
+
                 while (consp (cuo))
                 {
                     sexpr tx = use_objects;
@@ -1514,7 +1514,7 @@ static void build (sexpr buildtargets, struct tree *targets)
                         }
                         tx = cdr (tx);
                     }
-                    
+
                     tx = buildtargets;
 
                     if (doadd) while (consp (tx))
