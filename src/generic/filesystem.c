@@ -36,20 +36,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <curie/sexpr.h>
 #include <curie/filesystem.h>
 #include <curie/internal-constants.h>
 #include <curie/io-system.h>
 
-unsigned char filep(const char *path)
+sexpr filep(sexpr path)
 {
     char stat_buffer[LIBCURIE_STAT_BUFFER_SIZE];
+    const char *p = sx_string (path);
 
-    return (a_stat(path, (void *)stat_buffer) == 0) ? 1 : 0;
+    return (a_stat(p, (void *)stat_buffer) == 0) ? sx_true : sx_false;
 }
 
-unsigned char linkp(const char *path)
+sexpr linkp(sexpr path)
 {
     char stat_buffer[LIBCURIE_STAT_BUFFER_SIZE];
+    const char *p = sx_string (path);
 
-    return (a_lstat(path, (void *)stat_buffer) == 0) ? 1 : 0;
+    return (a_lstat(p, (void *)stat_buffer) == 0) ? sx_true : sx_false;
 }

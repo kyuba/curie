@@ -50,23 +50,25 @@
 extern "C" {
 #endif
 
+#include <curie/sexpr.h>
+
 /*! \brief Check if a File exists
  *  \param[in] path The path to check.
- *  \return 0 if the file does not exist, 1 if it does exist.
+ *  \return sx_false if the file does not exist, sx_true if it does exist.
  *
  *  This function basically uses stat() to figure out if the given file exists.
  */
-unsigned char filep(const char *path);
+sexpr filep(sexpr path);
 
 /*! \brief Check if a Link exists
  *  \param[in] path The path to check.
- *  \return 0 if the link does not exist, 1 if it does exist.
+ *  \return sx_false if the link does not exist, sx_true if it does exist.
  *
  *  Same as filep(), but for symlinks it only checks the presence of the
  *  symlink, as opposed to checking for the actual file referenced by the
  *  symlink.
  */
-unsigned char linkp(const char *path);
+sexpr linkp(sexpr path);
 
 #ifdef __cplusplus
 }

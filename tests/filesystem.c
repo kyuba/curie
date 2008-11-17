@@ -39,10 +39,13 @@
 #include "curie/filesystem.h"
 
 int cmain(void) {
-    if (filep ("tess")) return 1;
-    if (linkp ("tess")) return 2;
-    if (!filep ("tests")) return 3;
-    if (!linkp ("tests")) return 4;
+    sexpr tess  = make_string("tess");
+    sexpr tests = make_string("tests");
+
+    if (truep (filep (tess))) return 1;
+    if (truep (linkp (tess))) return 2;
+    if (falsep (filep (tests))) return 3;
+    if (falsep (linkp (tests))) return 4;
 
     return 0;
 }

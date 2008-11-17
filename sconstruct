@@ -134,7 +134,7 @@ except:
   print ('build directory existed')
 
 def normalise(str):
-  return str.replace(' ', '').replace('_', '-')
+  return str.replace(' ', '-').replace('_', '-')
 
 
 def pathPermutateVendor(prefix):
