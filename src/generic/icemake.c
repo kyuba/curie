@@ -1,6 +1,6 @@
 /*
  *  icemake.c
- *  libcurie
+ *  libcurie/icemake
  *
  *  Created by Magnus Deininger on 01/11/2008.
  *  Renamed from build.c by Magnus Deininger on 17/11/2008.
@@ -56,27 +56,7 @@
 
 #include <ctype.h>
 
-#define BUFFERSIZE 4096
-#define UNAMELENGTH 128
-
-enum toolchain
-{
-    tc_gcc
-};
-
-struct target {
-    sexpr name;
-    sexpr library;
-    sexpr code;
-    sexpr headers;
-    sexpr use_objects;
-};
-
-enum fs_layout
-{
-    fs_fhs,
-    fs_proper
-};
+#include <icemake/icemake.h>
 
 static char uname_os     [UNAMELENGTH] = "generic";
 static char uname_arch   [UNAMELENGTH] = "generic";
