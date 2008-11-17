@@ -60,6 +60,7 @@ enum toolchain
 struct target {
     sexpr name;
     sexpr library;
+    sexpr hosted;
     sexpr code;
     sexpr headers;
     sexpr use_objects;

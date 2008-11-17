@@ -70,6 +70,7 @@ static char *tcversion                 = (char *)0;
 
 static sexpr sym_library               = sx_false;
 static sexpr sym_programme             = sx_false;
+static sexpr sym_hosted                = sx_false;
 static sexpr sym_code                  = sx_false;
 static sexpr sym_headers               = sx_false;
 static sexpr sym_link                  = sx_false;
@@ -346,29 +347,29 @@ static void find_code (struct target *context, sexpr file)
         char buffer[BUFFERSIZE];
         sexpr subfile;
 
-        context->code = cons (cons(sym_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list))), context->code);
+        context->code = cons (cons(sym_assembly, cons (r, cons (generate_object_file_name(context->name, file), cons(file, sx_end_of_list)))), context->code);
 
         snprintf (buffer, BUFFERSIZE, "%s-highlevel", sx_string (file));
         subfile = make_string (buffer);
 
         if (((r = find_code_cpp (subfile)), stringp(r)))
         {
-            context->code = cons (cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list))), context->code);
+            context->code = cons (cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, subfile), cons(file, sx_end_of_list)))), context->code);
         }
         else if (((r = find_code_c (subfile)), stringp(r)))
         {
-            context->code = cons (cons(sym_c, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list))), context->code);
+            context->code = cons (cons(sym_c, cons (r, cons (generate_object_file_name(context->name, subfile), cons(file, sx_end_of_list)))), context->code);
         }
 
         sx_destroy (subfile);
     }
     else if (((r = find_code_cpp (file)), stringp(r)))
     {
-        context->code = cons (cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list))), context->code);
+        context->code = cons (cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, file), cons(file, sx_end_of_list)))), context->code);
     }
     else if (((r = find_code_c (file)), stringp(r)))
     {
-        context->code = cons (cons(sym_c, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list))), context->code);
+        context->code = cons (cons(sym_c, cons (r, cons (generate_object_file_name(context->name, file), cons(file, sx_end_of_list)))), context->code);
     }
     else
     {
@@ -398,6 +399,7 @@ static struct target *get_context()
     struct target *context = get_pool_mem (&pool);
 
     context->library     = sx_false;
+    context->hosted      = sx_false;
     context->code        = sx_end_of_list;
     context->headers     = sx_end_of_list;
     context->use_objects = sx_end_of_list;
@@ -414,7 +416,18 @@ static void process_definition (struct target *context, sexpr definition)
         sexpr sxcar = car (definition);
         sexpr sxcaar = car (sxcar);
 
-        if (truep(equalp(sxcaar, sym_code)))
+        if (truep(equalp(sxcar, sym_hosted)))
+        {
+            sexpr sxc = cdr (sxcar);
+
+            while (consp (sxc))
+            {
+                context->hosted = sx_true;
+
+                sxc = cdr (sxc);
+            }
+        }
+        else if (truep(equalp(sxcaar, sym_code)))
         {
             sexpr sxc = cdr (sxcar);
 
@@ -447,7 +460,6 @@ static void process_definition (struct target *context, sexpr definition)
                 sxc = cdr (sxc);
             }
         }
-
 
         definition = cdr (definition);
     }
@@ -1779,6 +1791,7 @@ int main (int argc, char **argv, char **environ)
 
     sym_library     = make_symbol ("library");
     sym_programme   = make_symbol ("programme");
+    sym_hosted      = make_symbol ("hosted");
     sym_code        = make_symbol ("code");
     sym_headers     = make_symbol ("headers");
     sym_use_objects = make_symbol ("use-objects");

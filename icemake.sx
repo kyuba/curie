@@ -1,13 +1,13 @@
 (library "curie"
   (name "Curie")
-  (description "minimalistic, sexpr-based, non-posix(!) libc")
+  (description "minimalistic, sexpr-based, non-posix(!), non-ansi(!) libc")
   (version 4)
 
   (code "sexpr" "io" "memory-pool" "tree" "exec" "multiplex" "string"
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
         "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
-        "exec-system" "multiplex-system" "signal-system")
+        "exec-system" "multiplex-system" "signal-system" "bootstrap")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
@@ -43,7 +43,7 @@
   (test-cases
         "objects"))
 
-(programme "icemake"
+(programme "icemake" hosted
   (name "ICE make")
   (description "simple build tool for curie, based on curie")
   (use-objects "curie")
