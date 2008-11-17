@@ -628,17 +628,30 @@ void sx_xref
 
 /*! @} */
 
-#if 0
-/* not implemented yet. */
+/*! \brief List Map
+ *  \param[in] list The list to map.
+ *  \param[in] f    The function to apply.
+ *
+ *  This function applies the given function to each element of f.
+ */
+void sx_list_map
+        (sexpr list,
+         /*@notnull@*/ void (*f)(sexpr));
 
-void *sx_list_map
-        (/*@notnull@*/ sexpr,
-         /*@notnull@*/ void (*)(sexpr, void *),
-         /*@null@*/ void *);
-/*@notnull@*/ /*@shared@*/ sexpr sx_list_fold
-        (/*@notnull@*/ sexpr,
-         /*@notnull@*/ void (*)(sexpr));
-#endif
+/*! \brief List Fold
+ *  \param[in] list The list to fold.
+ *  \param[in] f    The function to apply.
+ *  \param[in] seed The seed value to use.
+ *  \return The value constructed by f().
+ *
+ *  This function applies the given function to each element of f, passing the
+ *  return value of f to the next function call and ultimately returning the
+ *  return value of the last call to f().
+ */
+sexpr sx_list_fold
+        (sexpr list,
+         /*@notnull@*/ sexpr (*f)(sexpr, sexpr),
+         sexpr seed);
 
 #ifdef __cplusplus
 }

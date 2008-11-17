@@ -38,13 +38,6 @@
 
 #include <curie/sexpr.h>
 
-#if 0
-/* not implemented yet */
-
-void *sx_list_map (sexpr sx, void (*callback)(sexpr, void *), void *p);
-sexpr sx_list_fold (sexpr sx, void (*callback)(sexpr ));
-#endif
-
 sexpr equalp (sexpr a, sexpr b) {
     if (a == b) return sx_true;
 
@@ -70,4 +63,26 @@ sexpr equalp (sexpr a, sexpr b) {
     }
 
     return sx_false;
+}
+
+void sx_list_map (sexpr list, void (*f)(sexpr))
+{
+    while (consp (list))
+    {
+        f(car(list));
+
+        list = cdr (list);
+    }
+}
+
+sexpr sx_list_fold (sexpr list, sexpr (*f)(sexpr, sexpr), sexpr seed)
+{
+    while (consp (list))
+    {
+        seed = f(car(list), seed);
+
+        list = cdr (list);
+    }
+
+    return seed;
 }
