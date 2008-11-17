@@ -1012,7 +1012,14 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
     {
         if (truep(t->hosted))
         {
-            sx = cons (str_nodefaultlibs, sx);
+            switch (i_os)
+            {
+                case os_darwin:
+                    break;
+                default:
+                    sx = cons (str_nodefaultlibs, sx);
+                    break;
+            }
         }
         else
         {
@@ -1024,6 +1031,7 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
                 {
                     case os_darwin:
                         sx = cons (str_e, cons (str_start, sx));
+                        break;
                     default:
                         sx = cons (str_u, cons (str_start, sx));
                         break;
