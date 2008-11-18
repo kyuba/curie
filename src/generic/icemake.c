@@ -1150,7 +1150,39 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
 
 static sexpr get_special_linker_options_gcc (sexpr sx)
 {
+    char *f = getenv ("LDFLAGS");
+
     tree_map (&targets, map_includes_gcc, (void *)&sx);
+
+    if (f != (char *)0)
+    {
+        char buffer[BUFFERSIZE];
+        int j = 0;
+
+        for (int i = 0; f[i] != 0; i++)
+        {
+            if (f[i] == ' ')
+            {
+                buffer[j] = 0;
+
+                sx = cons (make_string (buffer), sx);
+
+                j = 0;
+            }
+            else
+            {
+                buffer[j] = f[i];
+                j++;
+            }
+        }
+
+        if (j != 0)
+        {
+            buffer[j] = 0;
+
+            sx = cons (make_string (buffer), sx);
+        }
+    }
 
     return sx;
 }
