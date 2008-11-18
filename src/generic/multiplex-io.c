@@ -138,7 +138,7 @@ static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
 }
 
 static void mx_f_callback(int *rs, int r, int *ws, int w) {
-    struct io_list *l = list, **p = &list;
+    struct io_list *l = list;
 
     while (l != (struct io_list *)0) {
         struct io *io = l->io;
@@ -189,31 +189,26 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
             }
         }
 
+        next:
+        l = l->next;
+    }
+
+    retry:
+    l = list;
+
+    while (l != (struct io_list *)0) {
+        struct io *io = l->io;
+
         if (((io->fd == -1) &&
              (io->type != iot_special_read) &&
              (io->type != iot_special_write)) ||
             (io->status == io_end_of_file) ||
             (io->status == io_unrecoverable_error))
         {
-            struct io_list *t = l;
-
-            *p = l->next;
-            p = &(l->next);
-            l = *p;
-
-            if (t->on_close != (void *)0)
-            {
-                t->on_close (t->io, t->data);
-            }
-
-            io_close (t->io);
-
-            free_pool_mem (t);
-            continue;
+            multiplex_del_io (io);
+            goto retry;
         }
 
-        next:
-        p = &(l->next);
         l = l->next;
     }
 }
@@ -265,35 +260,37 @@ void multiplex_add_io_no_callback (/*@notnull@*/ /*@only@*/ struct io *io)
 
 /*@-branchstate*/
 void multiplex_del_io (struct io *io) {
-    struct io_list *l = list, *p = (struct io_list *)0;
+    struct io_list *l = list, **p;
+
+    while (l != (struct io_list *)0) {
+        if (l->io == io)
+        {
+            if (l->on_close != (void *)0)
+            {
+                l->on_close (l->io, l->data);
+            }
+        }
+
+        l = l->next;
+    }
+
+    l = list;
+    p = &list;
 
     while (l != (struct io_list *)0) {
         if (l->io == io)
         {
             struct io_list *t = l;
 
-            /*@-mustfree@*/
-            if (p == (struct io_list *)0)
-            {
-                list = l->next;
-            }
-            else
-            {
-                p->next = l->next;
-            }
-            /*@=mustfree@*/
-            l = l->next;
-
-            if (t->on_close != (void *)0)
-            {
-                t->on_close (t->io, t->data);
-            }
+            *p = l->next;
+            p = &(l->next);
+            l = *p;
 
             free_pool_mem (t);
             continue;
         }
 
-        p = l;
+        p = &(l->next);
         l = l->next;
     }
 

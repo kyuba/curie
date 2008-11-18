@@ -45,6 +45,7 @@
 #include <curie/signal.h>
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 
 #ifdef POSIX
@@ -71,6 +72,7 @@ static char *tcversion                 = (char *)0;
 static sexpr sym_library               = sx_false;
 static sexpr sym_libraries             = sx_false;
 static sexpr sym_test_cases            = sx_false;
+static sexpr sym_test_case_reference   = sx_false;
 static sexpr sym_programme             = sx_false;
 static sexpr sym_hosted                = sx_false;
 static sexpr sym_code                  = sx_false;
@@ -95,6 +97,10 @@ static int files_open                  = 0;
 static int max_processes               = 1;
 
 static sexpr co_freestanding           = sx_false;
+
+static sexpr i_optimise_linking        = sx_false;
+static sexpr i_valgrind                = sx_false;
+static sexpr i_debug                   = sx_false;
 
 static struct sexpr_io *stdio;
 
@@ -266,20 +272,15 @@ static sexpr find_in_permutations (sexpr p, sexpr file)
 {
     sexpr r;
 
-#ifdef VALGRIND
-    if ((r = find_in_permutations_os (sx_string_dir_prefix_c ("valgrind", p), file)), stringp(r))
+    if (truep(i_valgrind) && ((r = find_in_permutations_os (sx_string_dir_prefix_c ("valgrind", p), file)), stringp(r)))
+    {
+        goto ret;
+    }
+    else if (truep(i_debug) && ((r = find_in_permutations_os (sx_string_dir_prefix_c ("debug", p), file)), stringp(r)))
     {
         goto ret;
     }
     else
-#endif
-#ifdef DEBUG
-    if ((r = find_in_permutations_os (sx_string_dir_prefix_c ("debug", p), file)), stringp(r))
-    {
-        goto ret;
-    }
-    else
-#endif
     if ((r = find_in_permutations_os (sx_string_dir_prefix_c ("internal", p), file)), stringp(r))
     {
         goto ret;
@@ -487,7 +488,7 @@ static void find_header (struct target *context, sexpr file)
 
     if ((r = find_header_h (context->name, file)), stringp(r))
     {
-        context->headers = cons (cons(r, sx_end_of_list), context->headers);
+        context->headers = cons (cons(file, cons (r, sx_end_of_list)), context->headers);
     }
     else
     {
@@ -501,15 +502,16 @@ static struct target *get_context()
     static struct memory_pool pool = MEMORY_POOL_INITIALISER (sizeof(struct target));
     struct target *context = get_pool_mem (&pool);
 
-    context->library     = sx_false;
-    context->hosted      = sx_false;
-    context->use_curie   = sx_false;
-    context->libraries   = sx_end_of_list;
-    context->code        = sx_end_of_list;
-    context->test_cases  = sx_end_of_list;
-    context->bootstrap   = sx_end_of_list;
-    context->headers     = sx_end_of_list;
-    context->use_objects = sx_end_of_list;
+    context->library        = sx_false;
+    context->hosted         = sx_false;
+    context->use_curie      = sx_false;
+    context->libraries      = sx_end_of_list;
+    context->code           = sx_end_of_list;
+    context->test_cases     = sx_end_of_list;
+    context->test_reference = sx_end_of_list;
+    context->bootstrap      = sx_end_of_list;
+    context->headers        = sx_end_of_list;
+    context->use_objects    = sx_end_of_list;
 
     return context;
 }
@@ -591,6 +593,18 @@ static void process_definition (struct target *context, sexpr definition)
             while (consp (sxc))
             {
                 context->use_objects = cons (car(sxc), context->use_objects);
+
+                sxc = cdr (sxc);
+            }
+        }
+        else if (truep(equalp(sxcaar, sym_test_case_reference)))
+        {
+            sexpr sxc = cdr (sxcar);
+
+            while (consp (sxc))
+            {
+                context->test_reference
+                        = cons (car(sxc), context->test_reference);
 
                 sxc = cdr (sxc);
             }
@@ -795,6 +809,37 @@ static sexpr prepend_ccflags_gcc (sexpr x)
 static sexpr prepend_cflags_gcc (sexpr x)
 {
     static sexpr str_ffreestanding = sx_false;
+    char *f = getenv ("CFLAGS");
+
+    if (f != (char *)0)
+    {
+        char buffer[BUFFERSIZE];
+        int j = 0;
+
+        for (int i = 0; f[i] != 0; i++)
+        {
+            if (f[i] == ' ')
+            {
+                buffer[j] = 0;
+
+                x = cons (make_string (buffer), x);
+
+                j = 0;
+            }
+            else
+            {
+                buffer[j] = f[i];
+                j++;
+            }
+        }
+
+        if (j != 0)
+        {
+            buffer[j] = 0;
+
+            x = cons (make_string (buffer), x);
+        }
+    }
 
     if (falsep(str_ffreestanding))
     {
@@ -811,6 +856,38 @@ static sexpr prepend_cflags_gcc (sexpr x)
 
 static sexpr prepend_cxxflags_gcc (sexpr x)
 {
+    char *f = getenv ("CXXFLAGS");
+
+    if (f != (char *)0)
+    {
+        char buffer[BUFFERSIZE];
+        int j = 0;
+
+        for (int i = 0; f[i] != 0; i++)
+        {
+            if (f[i] == ' ')
+            {
+                buffer[j] = 0;
+
+                x = cons (make_string (buffer), x);
+
+                j = 0;
+            }
+            else
+            {
+                buffer[j] = f[i];
+                j++;
+            }
+        }
+
+        if (j != 0)
+        {
+            buffer[j] = 0;
+
+            x = cons (make_string (buffer), x);
+        }
+    }
+
     return prepend_ccflags_gcc(x);
 }
 
@@ -997,6 +1074,12 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
     static sexpr str_nostdlib          = sx_false;
     static sexpr str_nostartfiles      = sx_false;
     static sexpr str_nodefaultlibs     = sx_false;
+    static sexpr str_Wlx               = sx_false;
+    static sexpr str_Wls               = sx_false;
+    static sexpr str_Wlznoexecstack    = sx_false;
+    static sexpr str_Wlznorelro        = sx_false;
+    static sexpr str_Wlgcsections      = sx_false;
+    static sexpr str_Wlsortcommon      = sx_false;
 
     if (falsep(str_u))
     {
@@ -1006,6 +1089,26 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
         str_nostdlib                   = make_string ("-nostdlib");
         str_nostartfiles               = make_string ("-nostartfiles");
         str_nodefaultlibs              = make_string ("-nodefaultlibs");
+        str_Wlx                        = make_string ("-Wl,-x");
+        str_Wls                        = make_string ("-Wl,-s");
+        str_Wlznoexecstack             = make_string ("-Wl,-z,noexecstack");
+        str_Wlznorelro                 = make_string ("-Wl,-z,norelro");
+        str_Wlgcsections               = make_string ("-Wl,--gc-sections");
+        str_Wlsortcommon               = make_string ("-Wl,--sort-common");
+    }
+
+    if (truep(i_optimise_linking))
+    {
+        sx = cons (str_Wlx, sx);
+
+        switch (i_os)
+        {
+            case os_linux:
+                sx = cons (str_Wls, cons (str_Wlznoexecstack, cons (str_Wlznorelro, cons (str_Wlgcsections, cons (str_Wlsortcommon, sx)))));
+                break;
+            default:
+                break;
+        }
     }
 
     if (truep(t->use_curie))
@@ -1180,6 +1283,27 @@ static sexpr get_programme_install_path (sexpr name)
     return sx_false;
 }
 
+static sexpr get_header_install_path (sexpr name, sexpr file)
+{
+    char buffer[BUFFERSIZE];
+
+    switch (i_fsl)
+    {
+        case fs_fhs:
+            snprintf (buffer, BUFFERSIZE, "%s/include/%s/%s.h", sx_string(i_destdir), sx_string(name), sx_string (file));
+            return make_string (buffer);
+            break;
+        case fs_proper:
+            snprintf (buffer, BUFFERSIZE, "%s/%s/%s/include/%s/%s.h",
+                      sx_string(i_destdir), uname_os, uname_arch,
+                                sx_string(name), sx_string (file));
+            return make_string (buffer);
+            break;
+    }
+
+    return sx_false;
+}
+
 static void install_library_gcc (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
@@ -1200,8 +1324,29 @@ static void install_programme_gcc (sexpr name, struct target *t)
 
     workstack
         = cons (cons (make_string (buffer),
-                      get_programme_install_path(name))
-                , workstack);
+                      get_programme_install_path(name)), workstack);
+}
+
+static void install_headers_gcc (sexpr name, struct target *t)
+{
+    sexpr c = t->headers;
+
+    sx_xref (c);
+
+    while (consp (c))
+    {
+        sexpr c2 = car(c);
+        sexpr c3 = car(c2);
+        sexpr c4 = car(cdr(c2));
+
+        sx_xref (c3);
+        sx_xref (c4);
+
+        workstack = cons (cons (c4, get_header_install_path(name, c3)),
+                          workstack);
+
+        c = cdr (c);
+    }
 }
 
 static void link_library (sexpr name, sexpr code, struct target *t)
@@ -1224,6 +1369,17 @@ static void link_programme (sexpr name, sexpr code, struct target *t)
 
 static void run_tests_library (sexpr name, struct target *t)
 {
+    sexpr cur = t->test_reference;
+
+    while (consp (cur))
+    {
+        sexpr r = car (cur);
+
+        unlink (sx_string (r));
+
+        cur = cdr (cur);
+    }
+
     switch (uname_toolchain)
     {
         case tc_gcc:
@@ -1255,6 +1411,15 @@ static void install_library (sexpr name, struct target *t)
     {
         case tc_gcc:
             install_library_gcc (name, t); break;
+    }
+}
+
+static void install_headers (sexpr name, struct target *t)
+{
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            install_headers_gcc (name, t); break;
     }
 }
 
@@ -1375,6 +1540,8 @@ static void do_install_target(struct target *t)
     {
         install_programme (t->name, t);
     }
+
+    install_headers (t->name, t);
 }
 
 static void build_target (const char *target)
@@ -1440,6 +1607,9 @@ static void print_help(char *binaryname)
         " -r           Execute runtime tests\n"
         " -f           Use the FHS layout for installation\n"
         " -s           Use the default FS layout for installation\n\n"
+        " -L           Optimise linking.\n\n"
+        " -V           Use valgrindable code, if available.\n\n"
+        " -D           Use debug code, if available.\n\n"
         "The [targets] specify a list of things to build, according to the\n"
         "icemake.sx file located in the current working directory.\n\n",
         binaryname);
@@ -1845,20 +2015,32 @@ static void install_read (struct io *in, void *aux)
 {
     struct io *out = (struct io *)aux;
 
-    io_write (out,
-              (in->buffer) + (in->position),
-              (in->length) - (in->position));
+    if (((in->length) - (in->position)) > 0)
+    {
+        io_write (out,
+                  (in->buffer) + (in->position),
+                  (in->length) - (in->position));
 
-    in->position = in->length;
+        in->position = in->length;
+    }
 }
 
-static void install_close (struct io *io, void *aux)
+static void install_close (struct io *in, void *aux)
 {
     struct io *out = (struct io *)aux;
 
-    files_open--;
+    if (((in->length) - (in->position)) > 0)
+    {
+        io_write (out,
+                  (in->buffer) + (in->position),
+                  (in->length) - (in->position));
+
+        in->position = in->length;
+    }
 
     multiplex_del_io (out);
+
+    files_open--;
 }
 
 static void loop_install()
@@ -1876,7 +2058,7 @@ static void loop_install()
         {
             mkdir_p (target);
 
-            files_open ++;
+            files_open++;
 
             in  = io_open_read   (sx_string (source));
             out = io_open_create (sx_string (target), st.st_mode);
@@ -1980,7 +2162,7 @@ static void build (sexpr buildtargets)
     loop_processes();
 }
 
-static void link (sexpr buildtargets)
+static void ice_link (sexpr buildtargets)
 {
     sexpr cursor = buildtargets;
     if (eolp(cursor))
@@ -2127,7 +2309,7 @@ int main (int argc, char **argv, char **environ)
     struct sexpr_io *io;
     sexpr r;
     int i = 1, q;
-    char *target_architecture = (char *)0;
+    char *target_architecture = (char *)getenv("CHOST");
     sexpr buildtargets = sx_end_of_list;
 
     xenviron = environ;
@@ -2168,6 +2350,15 @@ int main (int argc, char **argv, char **environ)
                         break;
                     case 'i':
                         do_install = sx_true;
+                        break;
+                    case 'L':
+                        i_optimise_linking = sx_true;
+                        break;
+                    case 'D':
+                        i_debug = sx_true;
+                        break;
+                    case 'V':
+                        i_valgrind = sx_true;
                         break;
                     case 'f':
                         i_fsl = fs_fhs;
@@ -2299,6 +2490,7 @@ int main (int argc, char **argv, char **environ)
     sym_library             = make_symbol ("library");
     sym_libraries           = make_symbol ("libraries");
     sym_test_cases          = make_symbol ("test-cases");
+    sym_test_case_reference = make_symbol ("test-case-reference");
     sym_programme           = make_symbol ("programme");
     sym_hosted              = make_symbol ("hosted");
     sym_code                = make_symbol ("code");
@@ -2368,7 +2560,7 @@ int main (int argc, char **argv, char **environ)
     crosslink_objects ();
 
     build (buildtargets);
-    link (buildtargets);
+    ice_link (buildtargets);
     post_process (buildtargets);
 
     if (truep (do_tests))

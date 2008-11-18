@@ -116,8 +116,13 @@ struct io *io_open_write (const char *path)
 
 struct io *io_open_create (const char *path, int mode)
 {
-    int fd = a_create (path, mode);
-    struct io *io = io_open(fd);
+    int fd = 0;
+    struct io *io = (struct io *)0;
+
+    a_unlink (path);
+
+    fd = a_create (path, mode);
+    io = io_open(fd);
 
     if (io == (struct io *)0) return (struct io *)0;
 

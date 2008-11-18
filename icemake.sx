@@ -24,7 +24,17 @@
         "multiplex-all-processes" "multiplex-io" "multiplex-network"
         "multiplex-process" "multiplex-sexpr" "multiplex-signal" "network-loop"
         "read-write" "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
-        "tree-random" "tree-random-node-removal" "tree-value"))
+        "tree-random" "tree-random-node-removal" "tree-value")
+
+  (test-case-reference
+        ("temporary-curie-test-data" . "tests/reference/curie-test-data")
+        ("temporary-io-test-file" . "tests/reference/io-test-file")
+        ("temporary-multiplexer-sexpr-test-data" .
+         "tests/reference/multiplexer-sexpr-test-data")
+        ("temporary-multiplexer-test-data" .
+         "tests/reference/multiplexer-test-data")
+        ("temporary-sexpr-read" . "tests/reference/sexpr-read")
+        ("temporary-sexpr-write" . "tests/reference/sexpr-write")))
 
 (library "curie++" libcurie
   (name "Curie++")

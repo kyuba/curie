@@ -72,6 +72,7 @@ struct target {
     sexpr use_curie;
     sexpr code;
     sexpr test_cases;
+    sexpr test_reference;
     sexpr bootstrap;
     sexpr headers;
     sexpr use_objects;
