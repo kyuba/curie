@@ -1863,6 +1863,7 @@ static void initialise_toolchain_gcc()
     }
 
     p_linker = p_c_compiler;
+    p_assembler = p_c_compiler;
 
     p_cpp_compiler = xwhich ("g++");
     if (falsep(p_cpp_compiler))
@@ -1871,12 +1872,12 @@ static void initialise_toolchain_gcc()
         exit (22);
     }
 
-    p_assembler = xwhich ("as");
+/*    p_assembler = xwhich ("as");
     if (falsep(p_assembler))
     {
         fprintf (stderr, "cannot find assembler.\n");
         exit (23);
-    }
+    }*/
 
     p_archiver = xwhich ("ar");
     if (falsep(p_archiver))
