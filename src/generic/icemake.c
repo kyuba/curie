@@ -880,7 +880,7 @@ static sexpr prepend_cflags_gcc (sexpr x)
             t = cons (make_string (buffer), t);
         }
 
-        while (consp (t)) { x = cons (t, x); t = cdr (t); }
+        while (consp (t)) { sx = cons (car(t), sx); t = cdr (t); }
     }
 
     if (falsep(str_ffreestanding))
@@ -930,7 +930,7 @@ static sexpr prepend_cxxflags_gcc (sexpr x)
             t = cons (make_string (buffer), t);
         }
 
-        while (consp (t)) { x = cons (t, x); t = cdr (t); }
+        while (consp (t)) { sx = cons (car(t), sx); t = cdr (t); }
     }
 
     return prepend_ccflags_gcc(x);
@@ -1230,7 +1230,7 @@ static sexpr get_special_linker_options_gcc (sexpr sx)
             t = cons (make_string (buffer), t);
         }
 
-        while (consp (t)) { sx = cons (t, sx); t = cdr (t); }
+        while (consp (t)) { sx = cons (car(t), sx); t = cdr (t); }
     }
 
     return sx;
