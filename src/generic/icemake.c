@@ -122,6 +122,7 @@ static sexpr p_assembler;
 static sexpr p_linker;
 static sexpr p_archiver;
 static sexpr p_archive_indexer;
+static sexpr p_diff;
 
 static void link_programme_gcc_filename (sexpr, sexpr, sexpr, struct target *);
 
@@ -1260,6 +1261,21 @@ static void run_tests_library_gcc (sexpr name, struct target *t)
     }
 }
 
+static void diff_test_reference_library_gcc (sexpr name, struct target *t)
+{
+    sexpr cur = t->test_reference;
+
+    while (consp (cur))
+    {
+        sexpr r = car (cur);
+        sexpr o = car (r), g = cdr (r);
+
+        workstack = cons (cons (p_diff, cons (o, cons (g, sx_end_of_list))), workstack);
+
+        cur = cdr (cur);
+    }
+}
+
 static void post_process_library_gcc (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
@@ -1432,7 +1448,7 @@ static void run_tests_library (sexpr name, struct target *t)
 
     while (consp (cur))
     {
-        sexpr r = car (cur);
+        sexpr r = car (car (cur));
 
         unlink (sx_string (r));
 
@@ -1443,6 +1459,15 @@ static void run_tests_library (sexpr name, struct target *t)
     {
         case tc_gcc:
             run_tests_library_gcc (name, t); break;
+    }
+}
+
+static void diff_test_reference_library (sexpr name, struct target *t)
+{
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            diff_test_reference_library_gcc (name, t); break;
     }
 }
 
@@ -1586,6 +1611,7 @@ static void do_run_tests_target(struct target *t)
 {
     if (truep(t->library))
     {
+        diff_test_reference_library (t->name, t);
         run_tests_library (t->name, t);
     }
 }
@@ -1801,156 +1827,76 @@ static sexpr which (char *programme)
     return sx_false;
 }
 
-static void initialise_toolchain_gcc()
+static sexpr xwhich (char *programme)
 {
     char buffer[BUFFERSIZE];
     sexpr w;
 
     if ((tcversion != (char *)0) &&
-        (snprintf (buffer, BUFFERSIZE, "%s-gcc-%s", archprefix, tcversion),
-         (w = which (buffer)), stringp(w)))
+         (snprintf (buffer, BUFFERSIZE, "%s-%s-%s", archprefix, programme, tcversion),
+          (w = which (buffer)), stringp(w)))
     {
-        p_linker = w;
-        p_c_compiler = w;
+        return w;
     }
-    else if (snprintf (buffer, BUFFERSIZE, "%s-gcc", archprefix),
-        (w = which (buffer)), stringp(w))
-    {
-        p_linker = w;
-        p_c_compiler = w;
-    }
-    else if (snprintf (buffer, BUFFERSIZE, "%s-cc", archprefix),
+    else if (snprintf (buffer, BUFFERSIZE, "%s-%s", archprefix, programme),
              (w = which (buffer)), stringp(w))
     {
-        p_linker = w;
-        p_c_compiler = w;
+        return w;
     }
-    else if (snprintf (buffer, BUFFERSIZE, "gcc"),
-             (w = which (buffer)), stringp(w))
+    else if (snprintf (buffer, BUFFERSIZE, "ar"),
+             (w = which (programme)), stringp(w))
     {
-        p_linker = w;
-        p_c_compiler = w;
+        return w;
     }
-    else if (snprintf (buffer, BUFFERSIZE, "cc"),
-             (w = which (buffer)), stringp(w))
-    {
-        p_linker = w;
-        p_c_compiler = w;
-    }
-    else
+
+    return sx_false;
+}
+
+static void initialise_toolchain_gcc()
+{
+    p_c_compiler = xwhich ("gcc");
+    if (falsep(p_c_compiler)) { p_c_compiler = xwhich ("cc"); }
+    if (falsep(p_c_compiler))
     {
         fprintf (stderr, "cannot find C compiler.\n");
         exit (21);
     }
 
-    if ((tcversion != (char *)0) &&
-        (snprintf (buffer, BUFFERSIZE, "%s-g++-%s", archprefix, tcversion),
-         (w = which (buffer)), stringp(w)))
-    {
-        p_cpp_compiler = w;
-    }
-    else if (snprintf (buffer, BUFFERSIZE, "%s-g++", archprefix),
-        (w = which (buffer)), stringp(w))
-    {
-        p_cpp_compiler = w;
-    }
-    else if (snprintf (buffer, BUFFERSIZE, "g++"),
-             (w = which (buffer)), stringp(w))
-    {
-        p_cpp_compiler = w;
-    }
-    else
+    p_linker = p_c_compiler;
+
+    p_cpp_compiler = xwhich ("g++");
+    if (falsep(p_cpp_compiler))
     {
         fprintf (stderr, "cannot find C++ compiler.\n");
         exit (22);
     }
 
-    if ((tcversion != (char *)0) &&
-        (snprintf (buffer, BUFFERSIZE, "%s-as-%s", archprefix, tcversion),
-         (w = which (buffer)), stringp(w)))
-    {
-        p_assembler = w;
-    }
-    else if (snprintf (buffer, BUFFERSIZE, "%s-as", archprefix),
-        (w = which (buffer)), stringp(w))
-    {
-        p_assembler = w;
-    }
-    else if (snprintf (buffer, BUFFERSIZE, "as"),
-             (w = which (buffer)), stringp(w))
-    {
-        p_assembler = w;
-    }
-    else
+    p_assembler = xwhich ("as");
+    if (falsep(p_assembler))
     {
         fprintf (stderr, "cannot find assembler.\n");
         exit (23);
     }
 
-/*    if ((tcversion != (char *)0) &&
-        (snprintf (buffer, BUFFERSIZE, "%s-ld-%s", archprefix, tcversion),
-         (w = which (buffer)), stringp(w)))
-    {
-        p_linker = w;
-    }
-    else if (snprintf (buffer, BUFFERSIZE, "%s-ld", archprefix),
-        (w = which (buffer)), stringp(w))
-    {
-        p_linker = w;
-    }
-    else if (snprintf (buffer, BUFFERSIZE, "ld"),
-             (w = which (buffer)), stringp(w))
-    {
-        p_linker = w;
-    }
-    else
-    {
-        fprintf (stderr, "cannot find linker.\n");
-        exit (23);
-    }*/
-
-    if ((tcversion != (char *)0) &&
-        (snprintf (buffer, BUFFERSIZE, "%s-ar-%s", archprefix, tcversion),
-         (w = which (buffer)), stringp(w)))
-    {
-        p_archiver = w;
-    }
-    else if (snprintf (buffer, BUFFERSIZE, "%s-ar", archprefix),
-        (w = which (buffer)), stringp(w))
-    {
-        p_archiver = w;
-    }
-    else if (snprintf (buffer, BUFFERSIZE, "ar"),
-             (w = which (buffer)), stringp(w))
-    {
-        p_archiver = w;
-    }
-    else
+    p_archiver = xwhich ("ar");
+    if (falsep(p_archiver))
     {
         fprintf (stderr, "cannot find archiver.\n");
-        exit (23);
+        exit (25);
     }
 
-    if ((tcversion != (char *)0) &&
-        (snprintf (buffer, BUFFERSIZE, "%s-ranlib-%s", archprefix, tcversion),
-         (w = which (buffer)), stringp(w)))
-    {
-        p_archive_indexer = w;
-    }
-    else if (snprintf (buffer, BUFFERSIZE, "%s-ranlib", archprefix),
-        (w = which (buffer)), stringp(w))
-    {
-        p_archive_indexer = w;
-    }
-    else if (snprintf (buffer, BUFFERSIZE, "ranlib"),
-             (w = which (buffer)), stringp(w))
-    {
-        p_archive_indexer = w;
-    }
-    else
+    p_archive_indexer = xwhich ("ranlib");
+    if (falsep(p_archive_indexer))
     {
         fprintf (stderr, "cannot find archive indexer.\n");
-        exit (23);
+        exit (26);
+    }
+
+    p_diff = xwhich ("diff");
+    if (falsep(p_diff))
+    {
+        fprintf (stderr, "cannot find diff programme.\n");
+        exit (27);
     }
 }
 
