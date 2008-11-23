@@ -2363,8 +2363,8 @@ static void initialise_libcurie()
     {
         case fs_fhs:
             if (truep(initialise_libcurie_filename("/usr/lib/libcurie.sx"))) return;
-            break;
             if (snprintf (buffer, BUFFERSIZE, "/%s/%s/lib/libcurie.sx", uname_os, uname_arch), truep(initialise_libcurie_filename(buffer))) return;
+            break;
         case fs_proper:
             if (snprintf (buffer, BUFFERSIZE, "/%s/%s/lib/libcurie.sx", uname_os, uname_arch), truep(initialise_libcurie_filename(buffer))) return;
             if (truep(initialise_libcurie_filename("/usr/lib/libcurie.sx"))) return;
