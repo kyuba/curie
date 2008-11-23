@@ -77,7 +77,7 @@ a_wait:
         blr
 
 wait_examine:
-        lwz     3, 0(16)
+        l       3, 0(16)
         andi.   3, 3, 0x7f
         beq     exited_normally /* normal exit if that mask is 0 */
 
@@ -85,7 +85,7 @@ wait_examine:
         blr
 
 exited_normally:
-        lwz     3, 0(16)
+        l       3, 0(16)
         li      4, 0
 
         rotrwi  3, 3, 8 /* use the high-order bits of the lower 16 bits only */
@@ -107,7 +107,7 @@ a_wait_all:
 
         sc
 
-        lwz     4, 0(16)
+        l       4, 0(16)
 
         rotrwi  4, 4, 8 /* use the high-order bits of the lower 16 bits only */
         andi.   4, 4, 0x7f

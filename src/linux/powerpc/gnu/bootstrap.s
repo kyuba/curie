@@ -66,7 +66,7 @@ _start:
 _1:
         addi    1, 1, 4
         addi    4, 4, 1
-        lwz     9, 0(1)
+        l       9, 0(1)
         cmpwi   9, 0
         bne     _1
 
@@ -75,7 +75,7 @@ _1:
 _2:
         addi    1, 1, 4
         addi    5, 5, 1
-        lwz     9, 0(1)
+        l       9, 0(1)
         cmpwi   9, 0
         bne     _2
 
