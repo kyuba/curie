@@ -854,6 +854,7 @@ static sexpr prepend_cflags_gcc (sexpr x)
     {
         char buffer[BUFFERSIZE];
         int j = 0;
+        sexpr t = sx_end_of_list;
 
         for (int i = 0; f[i] != 0; i++)
         {
@@ -861,7 +862,7 @@ static sexpr prepend_cflags_gcc (sexpr x)
             {
                 buffer[j] = 0;
 
-                x = cons (make_string (buffer), x);
+                t = cons (make_string (buffer), t);
 
                 j = 0;
             }
@@ -876,8 +877,10 @@ static sexpr prepend_cflags_gcc (sexpr x)
         {
             buffer[j] = 0;
 
-            x = cons (make_string (buffer), x);
+            t = cons (make_string (buffer), t);
         }
+
+        while (consp (t)) { x = cons (t, x); t = cdr (t); }
     }
 
     if (falsep(str_ffreestanding))
@@ -901,6 +904,7 @@ static sexpr prepend_cxxflags_gcc (sexpr x)
     {
         char buffer[BUFFERSIZE];
         int j = 0;
+        sexpr t = sx_end_of_list;
 
         for (int i = 0; f[i] != 0; i++)
         {
@@ -908,7 +912,7 @@ static sexpr prepend_cxxflags_gcc (sexpr x)
             {
                 buffer[j] = 0;
 
-                x = cons (make_string (buffer), x);
+                t = cons (make_string (buffer), t);
 
                 j = 0;
             }
@@ -923,8 +927,10 @@ static sexpr prepend_cxxflags_gcc (sexpr x)
         {
             buffer[j] = 0;
 
-            x = cons (make_string (buffer), x);
+            t = cons (make_string (buffer), t);
         }
+
+        while (consp (t)) { x = cons (t, x); t = cdr (t); }
     }
 
     return prepend_ccflags_gcc(x);
@@ -1198,6 +1204,7 @@ static sexpr get_special_linker_options_gcc (sexpr sx)
     {
         char buffer[BUFFERSIZE];
         int j = 0;
+        sexpr t = sx_end_of_list;
 
         for (int i = 0; f[i] != 0; i++)
         {
@@ -1205,7 +1212,7 @@ static sexpr get_special_linker_options_gcc (sexpr sx)
             {
                 buffer[j] = 0;
 
-                sx = cons (make_string (buffer), sx);
+                t = cons (make_string (buffer), t);
 
                 j = 0;
             }
@@ -1220,8 +1227,10 @@ static sexpr get_special_linker_options_gcc (sexpr sx)
         {
             buffer[j] = 0;
 
-            sx = cons (make_string (buffer), sx);
+            t = cons (make_string (buffer), t);
         }
+
+        while (consp (t)) { sx = cons (t, sx); t = cdr (t); }
     }
 
     return sx;
