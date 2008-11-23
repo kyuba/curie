@@ -2311,6 +2311,8 @@ static sexpr initialise_libcurie_filename (char *filename)
     sexpr r;
     struct stat st;
 
+    fprintf (stderr, "%s\n", filename);
+
     if (stat(filename, &st) != 0) return sx_false;
 
     io = sx_open_io(io_open_read(filename), io_open(-1));
@@ -2357,18 +2359,17 @@ static void initialise_libcurie()
         }
     }
 
-    if (snprintf (buffer, BUFFERSIZE, "/lib/libcurie.sx"),
-        truep(initialise_libcurie_filename(buffer))) return;
+    if (truep(initialise_libcurie_filename("/lib/libcurie.sx"))) return;
 
     switch (i_fsl)
     {
         case fs_fhs:
-            if (snprintf (buffer, BUFFERSIZE, "/usr/lib/libcurie.sx"),
-                truep(initialise_libcurie_filename(buffer))) return;
+            if (truep(initialise_libcurie_filename("/usr/lib/libcurie.sx"))) return;
             break;
+            if (snprintf (buffer, BUFFERSIZE, "/%s/%s/lib/libcurie.sx", uname_os, uname_arch), truep(initialise_libcurie_filename(buffer))) return;
         case fs_proper:
-            if (snprintf (buffer, BUFFERSIZE, "/%s/%s/lib/libcurie.sx", uname_os, uname_arch),
-                truep(initialise_libcurie_filename(buffer))) return;
+            if (snprintf (buffer, BUFFERSIZE, "/%s/%s/lib/libcurie.sx", uname_os, uname_arch), truep(initialise_libcurie_filename(buffer))) return;
+            if (truep(initialise_libcurie_filename("/usr/lib/libcurie.sx"))) return;
             break;
     }
 }
