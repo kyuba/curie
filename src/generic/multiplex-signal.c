@@ -87,8 +87,7 @@ static void queue_on_read (struct io *qin, /*@unused@*/ void *u) {
     enum signal *buffer = (enum signal *)qin->buffer;
     if (buffer == (enum signal *)0) return;
 
-    while (position < (length / sizeof (enum signal)))
-    {
+    while (position < length) {
         invoke (buffer[position]);
 
         position++;
