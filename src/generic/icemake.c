@@ -2414,11 +2414,18 @@ int main (int argc, char **argv, char **environ)
     int i = 1, q;
     char *target_architecture = (char *)getenv("CHOST");
     sexpr buildtargets = sx_end_of_list;
+    struct stat st;
 
     xenviron = environ;
 
     set_resize_mem_recovery_function(rm_recover);
     set_get_mem_recovery_function(gm_recover);
+
+    if (stat ("icemake.sx", &st) != 0)
+    {
+        perror ("icemake.sx");
+        exit (15);
+    }
 
     mkdir ("build", 0755);
 
