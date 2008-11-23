@@ -76,6 +76,7 @@ struct target {
     sexpr bootstrap;
     sexpr headers;
     sexpr use_objects;
+    sexpr data;
 };
 
 enum fs_layout

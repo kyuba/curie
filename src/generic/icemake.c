@@ -86,6 +86,7 @@ static sexpr sym_libc                  = sx_false;
 static sexpr sym_libcurie              = sx_false;
 static sexpr sym_freestanding          = sx_false;
 static sexpr sym_freestanding_if_asm   = sx_false;
+static sexpr sym_data                  = sx_false;
 static sexpr str_bootstrap             = sx_false;
 static sexpr str_curie                 = sx_false;
 static sexpr str_curie_bootstrap       = sx_false;
@@ -498,6 +499,19 @@ static void find_header (struct target *context, sexpr file)
     }
 }
 
+static sexpr find_data (struct target *context, sexpr file)
+{
+    sexpr r;
+
+    if ((r = find_in_permutations (make_string("data"), file)), !stringp(r))
+    {
+        fprintf (stderr, "missing data file: %s\n", sx_string(file));
+        exit(21);
+    }
+
+    return r;
+}
+
 static struct target *get_context()
 {
     static struct memory_pool pool = MEMORY_POOL_INITIALISER (sizeof(struct target));
@@ -513,6 +527,7 @@ static struct target *get_context()
     context->bootstrap      = sx_end_of_list;
     context->headers        = sx_end_of_list;
     context->use_objects    = sx_end_of_list;
+    context->data           = sx_end_of_list;
 
     return context;
 }
@@ -585,6 +600,29 @@ static void process_definition (struct target *context, sexpr definition)
                 find_header (context, car (sxc));
 
                 sxc = cdr (sxc);
+            }
+        }
+        else if (truep(equalp(sxcaar, sym_data)))
+        {
+            sexpr name = cdr (sxcar);
+
+            if (consp (name))
+            {
+                sexpr d = sx_end_of_list;
+                sexpr sxc = cdr (name);
+                name = car (name);
+
+                while (consp (sxc))
+                {
+                    sexpr filename = car (sxc);
+                    d = cons (cons (filename, find_data (context, filename)), d);
+
+                    sxc = cdr (sxc);
+                }
+
+                d = cons (name, d);
+
+                context->data = cons (d, context->data);
             }
         }
         else if (truep(equalp(sxcaar, sym_use_objects)))
@@ -1353,6 +1391,25 @@ static sexpr get_header_install_path (sexpr name, sexpr file)
     return sx_false;
 }
 
+static sexpr get_data_install_path (sexpr name, sexpr file)
+{
+    char buffer[BUFFERSIZE];
+
+    switch (i_fsl)
+    {
+        case fs_fhs:
+            snprintf (buffer, BUFFERSIZE, "%s/etc/%s/%s", sx_string(i_destdir), sx_string(name), sx_string (file));
+            return make_string (buffer);
+            break;
+        case fs_proper:
+            snprintf (buffer, BUFFERSIZE, "%s/generic/configuration/%s/%s", sx_string(i_destdir), sx_string(name), sx_string (file));
+            return make_string (buffer);
+            break;
+    }
+
+    return sx_false;
+}
+
 static void install_library_gcc (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
@@ -1400,6 +1457,8 @@ static void install_headers_gcc (sexpr name, struct target *t)
 
 static void install_support_files_gcc (sexpr name, struct target *t)
 {
+    sexpr cur = t->data, dname;
+
     if (truep(equalp(name, str_curie)))
     {
         char buffer[BUFFERSIZE];
@@ -1422,6 +1481,25 @@ static void install_support_files_gcc (sexpr name, struct target *t)
         }
 
         workstack = cons (cons (source, target), workstack);
+    }
+
+    while (consp (cur))
+    {
+        sexpr item = car (cur);
+
+        dname = car (item);
+        sexpr ccur = cdr (item);
+
+        while (consp(ccur))
+        {
+            sexpr s = car (ccur);
+
+            workstack = cons (cons (cdr (s), get_data_install_path (dname, car (s))), workstack);
+
+            ccur = cdr (ccur);
+        }
+
+        cur = cdr (cur);
     }
 }
 
@@ -1702,9 +1780,9 @@ static void print_help(char *binaryname)
         " -i           Install resulting binaries\n"
         " -r           Execute runtime tests\n"
         " -f           Use the FHS layout for installation\n"
-        " -s           Use the default FS layout for installation\n\n"
-        " -L           Optimise linking.\n\n"
-        " -V           Use valgrindable code, if available.\n\n"
+        " -s           Use the default FS layout for installation\n"
+        " -L           Optimise linking.\n"
+        " -V           Use valgrindable code, if available.\n"
         " -D           Use debug code, if available.\n\n"
         "The [targets] specify a list of things to build, according to the\n"
         "icemake.sx file located in the current working directory.\n\n",
@@ -2522,6 +2600,7 @@ int main (int argc, char **argv, char **environ)
     sym_libcurie            = make_symbol ("libcurie");
     sym_freestanding        = make_symbol ("freestanding");
     sym_freestanding_if_asm = make_symbol ("freestanding-if-assembly");
+    sym_data                = make_symbol ("data");
     str_bootstrap           = make_string ("bootstrap");
     str_curie               = make_string ("curie");
     str_curie_bootstrap     = make_string ("curie-bootstrap");
