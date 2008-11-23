@@ -1381,6 +1381,33 @@ static void install_headers_gcc (sexpr name, struct target *t)
     }
 }
 
+static void install_support_files_gcc (sexpr name, struct target *t)
+{
+    if (truep(equalp(name, str_curie)))
+    {
+        char buffer[BUFFERSIZE];
+        sexpr source, target;
+
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/libcurie.sx", sx_string(t->name), archprefix);
+
+        source = make_string (buffer);
+
+        switch (i_fsl)
+        {
+            case fs_fhs:
+                snprintf (buffer, BUFFERSIZE, "%s/lib/libcurie.sx", sx_string(i_destdir));
+                target = make_string (buffer);
+                break;
+            case fs_proper:
+                snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/libcurie.sx", sx_string(i_destdir), uname_os, uname_arch);
+                target = make_string (buffer);
+                break;
+        }
+
+        workstack = cons (cons (source, target), workstack);
+    }
+}
+
 static void link_library (sexpr name, sexpr code, struct target *t)
 {
     switch (uname_toolchain)
@@ -1452,6 +1479,15 @@ static void install_headers (sexpr name, struct target *t)
     {
         case tc_gcc:
             install_headers_gcc (name, t); break;
+    }
+}
+
+static void install_support_files (sexpr name, struct target *t)
+{
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            install_support_files_gcc (name, t); break;
     }
 }
 
@@ -1574,6 +1610,7 @@ static void do_install_target(struct target *t)
     }
 
     install_headers (t->name, t);
+    install_support_files (t->name, t);
 }
 
 static void build_target (const char *target)
