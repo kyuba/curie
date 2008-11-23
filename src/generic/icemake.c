@@ -2349,6 +2349,8 @@ int main (int argc, char **argv, char **environ)
     set_resize_mem_recovery_function(rm_recover);
     set_get_mem_recovery_function(gm_recover);
 
+    mkdir ("build", 0755);
+
     while (i < argc)
     {
         if (argv[i][0] == '-')
