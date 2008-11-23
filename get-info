@@ -1,5 +1,0 @@
-#/bin/sh
-
-for i in $(find ./information ! \( -type d -o \( -name '*.c' -o -name '*.o' \) \) ); do
-    $i
-done

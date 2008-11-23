@@ -1,8 +1,0 @@
-Name: libcurie
-Description: minimalistic, sexpr-based, non-posix(!) libc
-Version: 4
-URL: http://kyuba.org/
-Requires:
-Conflicts:
-Libs:
-Cflags:
