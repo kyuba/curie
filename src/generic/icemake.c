@@ -1403,7 +1403,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
     if (truep(equalp(name, str_curie)))
     {
         char buffer[BUFFERSIZE];
-        sexpr source, target;
+        sexpr source = sx_false, target = sx_false;
 
         snprintf (buffer, BUFFERSIZE, "build/%s/%s/libcurie.sx", sx_string(t->name), archprefix);
 
