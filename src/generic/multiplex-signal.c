@@ -106,9 +106,9 @@ static void queue_on_close (/*@unused@*/ struct io *qin, /*@unused@*/ void *u) {
 
 static void generic_signal_handler (enum signal signal) {
     if (signal_queue_out == (struct io *)0) return;
-    (void)io_collect (signal_queue_out,
-                      (char *)&signal,
-                      (unsigned int)sizeof(enum signal));
+    (void)io_write (signal_queue_out,
+                    (char *)&signal,
+                    (unsigned int)sizeof(enum signal));
 }
 
 /*@-globstate -memtrans@*/
