@@ -2311,8 +2311,6 @@ static sexpr initialise_libcurie_filename (char *filename)
     sexpr r;
     struct stat st;
 
-    fprintf (stderr, "%s\n", filename);
-
     if (stat(filename, &st) != 0) return sx_false;
 
     io = sx_open_io(io_open_read(filename), io_open(-1));
