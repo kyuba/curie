@@ -559,19 +559,19 @@ static void process_definition (struct target *context, sexpr definition)
         }
         else if (truep(equalp(sxcaar, sym_name)))
         {
-            context->dname = car(cdr(car(definition)));
+            context->dname = car(cdr(sxcar));
         }
         else if (truep(equalp(sxcaar, sym_description)))
         {
-            context->description = car(cdr(car(definition)));
+            context->description = car(cdr(sxcar));
         }
         else if (truep(equalp(sxcaar, sym_version)))
         {
-            context->dversion = car(cdr(car(definition)));
+            context->dversion = car(cdr(sxcar));
         }
         else if (truep(equalp(sxcaar, sym_url)))
         {
-            context->durl = car(cdr(car(definition)));
+            context->durl = car(cdr(sxcar));
         }
         else if (truep(equalp(sxcar, sym_libcurie)))
         {
