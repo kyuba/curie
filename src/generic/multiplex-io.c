@@ -139,6 +139,7 @@ static void mx_f_augment(int *rs, int *r, int *ws, int *w) {
 
 static void mx_f_callback(int *rs, int r, int *ws, int w) {
     struct io_list *l = list;
+    char changes = 1;
 
     while (l != (struct io_list *)0) {
         struct io *io = l->io;
@@ -191,6 +192,37 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
 
         next:
         l = l->next;
+    }
+
+    while (changes)
+    {
+        changes = 0;
+        l = list;
+
+        while (l != (struct io_list *)0) {
+            struct io *io = l->io;
+
+            if (io->fd == -1)
+            {
+                switch (io->type) {
+                    case iot_special_read:
+                    case iot_special_write:
+                        if (l->on_read != (void *)0)
+                        {
+                            if (io_read(io) == io_changes)
+                            {
+                                l->on_read (io, l->data);
+                                changes = 1;
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            l = l->next;
+        }
     }
 
     retry:
