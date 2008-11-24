@@ -1,6 +1,0 @@
-#/bin/sh
-
-for i in $(find ./tests ! \( -type d -o \( -name '*.c' -o -name '*.o' \) \) ); do
-    echo "stripping file: ${i}"
-    strip -s -R .comment ${i}
-done
