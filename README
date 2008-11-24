@@ -1,21 +1,16 @@
 ###- QUICK AND DIRTY: COMPILATION AND INSTALLATION -############################
-  You'll need scons and pkg-config. No ifs or buts.
+  Don't really need anything...
 
-    $ scons install
-    $ scons hosted=yes install
+    $ ./build.sh -dif /usr
 
 
 ################################################################################
 
 
 NOTE:
-  This is an early version of this library; It has been tested with the included
-  test-suite on a number of systems of differing architectures as well as
-  different operating systems. However, there hasn't been any large-scale field
-  testing just yet, nor has there been any extensive code review.
-
-  Also, library documentation is still scarce, that's planned for a future
-  release.
+  Library documentation has gotten somewhat better, but this new build system
+  could have made things a tiny bit trickier. This has been tested on
+  linux/x86-64, linux/powerpc and darwin/powerpc though.
 
 NOTE.2:
   Please take note of the library licence (the COPYING file), as well as the
@@ -25,40 +20,45 @@ NOTE.2:
 ###- DETAILS -##################################################################
 
 Compilation:
-  Make sure you have scons installed, then:
+  If you have icemake installed already, for whatever reason that may be, just
+  call:
 
-    $ scons library
+    $ icemake
 
-  This will compile the library itself; if you also want test cases and the
-  helper programme, use this:
+  otherwise (which should be the most common case), use:
 
-    $ scons
+    $ ./build.sh
+
+  This will compile the library itself.
 
   A number of compilation options are available if you run into issues. To see
-  them, use:
+  them, use one of these:
 
-    $ scons --help
+    $ icemake --help
+  -- or --
+    $ ./build.sh --help
 
 Installation:
-  use this command to install regularly (usually into /usr):
+  use this command to install regularly (for example into /usr, in the example):
 
-    $ scons install
+    $ icemake -dif /usr
+  -- or --
+    $ ./build.sh -dif /usr
 
-  To add an installation-only prefix, use:
+Compiling/Installing icemake:
+  Installing icemake separately is fairly simple:
 
-    $ scons destdir=/some/prefix install
+    $ icemake -dif /usr icemake
+  -- or --
+    $ ./build.sh -dif /usr icemake
 
-Compiling/Installing special 'hosted' Versions:
-  If you intend to use libcurie with the host libc, you should also do the
-  following to install special host-libc versions:
+  Icemake will heed the environment variables CHOST, CFLAGS, CXXFLAGS and
+  LDFLAGS. Other flags, such as CC, are ignored, because you /should/ set the
+  proper CHOST instead. The bootstrap version of icemake, used to build the
+  initial icemake and libcurie, does heed CC instead of the other environment
+  variables though.
 
-    $ scons hosted=yes library
-    $ scons hosted=yes install
-
-  You should do this AFTER you've compiled and installed the non-hosted variant.
-  Alternatively, just the install-command alone would do too.
-
-Linking against libcurie:
+Linking against libcurie without using icemake:
   Use pkg-config to retrieve the flags needed to link with libcurie:
 
     $ pkg-config --cflags --libs libcurie
@@ -70,13 +70,14 @@ Linking against libcurie:
   Check pkg-config's documentation for more details.
 
 Testing:
-  Please help by giving this library's test suite a shot:
+  Please help by giving this libraries' test suites a shot:
 
-    $ scons
-    $ ./run-tests
+    $ icemake -r
+  -- or --
+    $ ./build.sh -r
 
   When running this suite, please take note of the memory use with a tool like
-  top. Afterwards, just send the output of the ./run-tests command to
+  top. Afterwards, just send the output of the command to
   <magnus.deininger@student.uni-tuebingen.de>, or drop by on IRC
 
 CONTACT:
