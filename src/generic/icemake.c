@@ -44,6 +44,7 @@
 #include <curie/exec.h>
 #include <curie/signal.h>
 
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -87,6 +88,10 @@ static sexpr sym_libcurie              = sx_false;
 static sexpr sym_freestanding          = sx_false;
 static sexpr sym_freestanding_if_asm   = sx_false;
 static sexpr sym_data                  = sx_false;
+static sexpr sym_description           = sx_false;
+static sexpr sym_version               = sx_false;
+static sexpr sym_name                  = sx_false;
+static sexpr sym_url                   = sx_false;
 static sexpr str_bootstrap             = sx_false;
 static sexpr str_curie                 = sx_false;
 static sexpr str_curie_bootstrap       = sx_false;
@@ -521,6 +526,7 @@ static struct target *get_context()
     context->hosted         = sx_false;
     context->use_curie      = sx_false;
     context->libraries      = sx_end_of_list;
+    context->olibraries     = sx_end_of_list;
     context->code           = sx_end_of_list;
     context->test_cases     = sx_end_of_list;
     context->test_reference = sx_end_of_list;
@@ -528,6 +534,10 @@ static struct target *get_context()
     context->headers        = sx_end_of_list;
     context->use_objects    = sx_end_of_list;
     context->data           = sx_end_of_list;
+    context->dname          = sx_false;
+    context->description    = sx_false;
+    context->dversion       = sx_false;
+    context->durl           = sx_false;
 
     return context;
 }
@@ -547,6 +557,22 @@ static void process_definition (struct target *context, sexpr definition)
 
             context->libraries = cons (str_lc, context->libraries);
         }
+        else if (truep(equalp(sxcaar, sym_name)))
+        {
+            context->dname = car(cdr(car(definition)));
+        }
+        else if (truep(equalp(sxcaar, sym_description)))
+        {
+            context->description = car(cdr(car(definition)));
+        }
+        else if (truep(equalp(sxcaar, sym_version)))
+        {
+            context->dversion = car(cdr(car(definition)));
+        }
+        else if (truep(equalp(sxcaar, sym_url)))
+        {
+            context->durl = car(cdr(car(definition)));
+        }
         else if (truep(equalp(sxcar, sym_libcurie)))
         {
             context->use_curie = sx_true;
@@ -557,6 +583,11 @@ static void process_definition (struct target *context, sexpr definition)
             }
 
             context->libraries = cons (str_curie, context->libraries);
+
+            if (falsep(equalp(str_curie, context->name)))
+            {
+                context->olibraries = cons (str_curie, context->olibraries);
+            }
         }
         else if (truep(equalp(sxcaar, sym_code)))
         {
@@ -576,6 +607,7 @@ static void process_definition (struct target *context, sexpr definition)
             while (consp (sxc))
             {
                 context->libraries = cons (car (sxc), context->libraries);
+                context->olibraries = cons (car (sxc), context->olibraries);
 
                 sxc = cdr (sxc);
             }
@@ -1022,12 +1054,90 @@ static void build_object(sexpr desc)
     }
 }
 
+static void write_curie_linker_flags_gcc (struct io *o, struct target *t)
+{
+    if (truep(t->use_curie))
+    {
+        if (truep(t->hosted))
+        {
+            switch (i_os)
+            {
+                case os_darwin:
+                    break;
+                default:
+                    io_collect (o, " -nodefaultlibs -lc", 19);
+                    break;
+            }
+        }
+        else
+        {
+            if (truep(co_freestanding))
+            {
+                io_collect (o, " -static -nodefaultlibs -nostartfiles -nostdlib", 47);
+
+                switch (i_os)
+                {
+                    case os_darwin:
+                        io_collect (o, " -e _start -lcurie-bootstrap", 28);
+                        break;
+                    default:
+                        io_collect (o, " -u _start -lcurie-bootstrap", 28);
+                        break;
+                }
+            }
+        }
+    }
+}
+
 static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE];
     struct stat res, st;
     char havelib;
-    sexpr sx = sx_end_of_list;
+    sexpr sx = sx_end_of_list, cur;
+    struct io *pcfile, *pcfile_hosted;
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.pc", sx_string(t->name), archprefix, sx_string(name));
+
+    multiplex_add_io_no_callback (pcfile = io_open_create (buffer, 0644));
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s-hosted.pc", sx_string(t->name), archprefix, sx_string(name));
+
+    multiplex_add_io_no_callback (pcfile_hosted = io_open_create (buffer, 0644));
+
+    snprintf (buffer, BUFFERSIZE, "Name: %s\nDescription: %s\nVersion: %s\nURL: %s\nRequires:", sx_string (t->dname), sx_string (t->description), sx_string (t->dversion), sx_string (t->durl));
+
+    io_collect (pcfile, buffer, strlen(buffer));
+    io_collect (pcfile_hosted, buffer, strlen(buffer));
+
+    cur = t->olibraries;
+    while (consp (cur))
+    {
+        sexpr ca = car (cur);
+
+        snprintf (buffer, BUFFERSIZE, " lib%s", sx_string (ca));
+        io_collect (pcfile, buffer, strlen(buffer));
+
+        snprintf (buffer, BUFFERSIZE, " lib%s-hosted", sx_string (ca));
+        io_collect (pcfile_hosted, buffer, strlen(buffer));
+
+        cur = cdr (cur);
+    }
+
+    snprintf (buffer, BUFFERSIZE, "\nConflicts:\nLibs:");
+
+    io_collect (pcfile, buffer, strlen(buffer));
+    if (truep(equalp(name, str_curie)))
+    {
+        write_curie_linker_flags_gcc (pcfile, t);
+    }
+
+    io_collect (pcfile_hosted, buffer, strlen(buffer));
+
+    snprintf (buffer, BUFFERSIZE, " -l%s\nCflags: -fno-exceptions -ffreestanding\n", sx_string(t->name));
+
+    io_collect (pcfile, buffer, strlen(buffer));
+    io_collect (pcfile_hosted, buffer, strlen(buffer));
 
     if (truep(equalp(name, str_curie)))
     {
@@ -1491,6 +1601,49 @@ static void install_support_files_gcc (sexpr name, struct target *t)
 
         workstack = cons (cons (source, target), workstack);
     }
+
+    if (truep(t->library))
+    {
+        char buffer[BUFFERSIZE];
+        sexpr source = sx_false, target = sx_false;
+
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.pc", sx_string(t->name), archprefix, sx_string(t->name));
+
+        source = make_string (buffer);
+
+        switch (i_fsl)
+        {
+            case fs_fhs:
+                snprintf (buffer, BUFFERSIZE, "%s/lib/pkgconfig/lib%s.pc", sx_string(i_destdir), sx_string(t->name));
+                target = make_string (buffer);
+                break;
+            case fs_proper:
+                snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.pc", sx_string(i_destdir), uname_os, uname_arch, sx_string(t->name));
+                target = make_string (buffer);
+                break;
+        }
+
+        workstack = cons (cons (source, target), workstack);
+
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s-hosted.pc", sx_string(t->name), archprefix, sx_string(t->name));
+
+        source = make_string (buffer);
+
+        switch (i_fsl)
+        {
+            case fs_fhs:
+                snprintf (buffer, BUFFERSIZE, "%s/lib/pkgconfig/lib%s-hosted.pc", sx_string(i_destdir), sx_string(t->name));
+                target = make_string (buffer);
+                break;
+            case fs_proper:
+                snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s-hosted.pc", sx_string(i_destdir), uname_os, uname_arch, sx_string(t->name));
+                target = make_string (buffer);
+                break;
+        }
+
+        workstack = cons (cons (source, target), workstack);
+    }
+
 
     while (consp (cur))
     {
@@ -2617,6 +2770,10 @@ int main (int argc, char **argv, char **environ)
     sym_freestanding        = make_symbol ("freestanding");
     sym_freestanding_if_asm = make_symbol ("freestanding-if-assembly");
     sym_data                = make_symbol ("data");
+    sym_description         = make_symbol ("description");
+    sym_name                = make_symbol ("name");
+    sym_version             = make_symbol ("version");
+    sym_url                 = make_symbol ("url");
     str_bootstrap           = make_string ("bootstrap");
     str_curie               = make_string ("curie");
     str_curie_bootstrap     = make_string ("curie-bootstrap");

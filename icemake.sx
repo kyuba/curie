@@ -1,7 +1,8 @@
 (library "curie" libcurie
   (name "Curie")
   (description "minimalistic, sexpr-based, non-posix(!), non-ansi(!) libc")
-  (version 4)
+  (version "4")
+  (url "http://kyuba.org/")
 
   (code "sexpr" "io" "memory-pool" "tree" "exec" "multiplex" "string"
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
@@ -39,7 +40,8 @@
 (library "curie++" libcurie
   (name "Curie++")
   (description "C++ bindings for libcurie")
-  (version 4)
+  (version "4")
+  (url "http://kyuba.org/")
 
   (code "memory++" "io++")
 
@@ -52,6 +54,6 @@
 (programme "icemake" hosted libcurie
   (name "ICE make")
   (description "simple build tool for curie, based on curie")
-  (version 1)
+  (version "1")
 
   (code "icemake"))

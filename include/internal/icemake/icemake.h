@@ -68,6 +68,7 @@ struct target {
     sexpr name;
     sexpr library;
     sexpr libraries;
+    sexpr olibraries;
     sexpr hosted;
     sexpr use_curie;
     sexpr code;
@@ -77,6 +78,10 @@ struct target {
     sexpr headers;
     sexpr use_objects;
     sexpr data;
+    sexpr dname;
+    sexpr description;
+    sexpr dversion;
+    sexpr durl;
 };
 
 enum fs_layout
