@@ -62,7 +62,7 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr) {
     rv->references = 1;
 
     /*@-memtrans -mustfree@*/
-    return (sexpr)(((int_pointer)rv) | sx_mask_pointer);
+    return (sexpr)rv;
     /*@=memtrans =mustfree@*/
 }
 
@@ -80,7 +80,7 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr) {
              != (struct sexpr_string_or_symbol *)0)
         {
             (s->references)++;
-            return (sexpr)(((int_pointer)s) | sx_mask_pointer);
+            return (sexpr)s;
         }
     }
 
@@ -101,7 +101,7 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr) {
     s->type = (symbol == (char)1) ? sxt_symbol : sxt_string;
 
     /*@-memtrans -mustfree@*/
-    return (sexpr)(((int_pointer)s) | sx_mask_pointer);
+    return (sexpr)s;
     /*@=memtrans =mustfree@*/
 }
 

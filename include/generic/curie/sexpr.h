@@ -262,7 +262,7 @@ void sx_write
  *  integer as its value.
  */
 #define make_integer(integer)\
-        ((sexpr)((((int_pointer_s)(integer)) << 3) | 0x2))
+        ((sexpr)((((int_pointer_s)(integer)) << 3) | 0x3))
 
 /*! \brief Encode a Special S-Expression
  *  \param[in] code The value of the new s-expression.
@@ -271,7 +271,7 @@ void sx_write
  *  These s-expressions may be used as sentinel values and the like.
  */
 #define make_special(code)\
-        ((sexpr)((((int_pointer)(code)) << 3) | 0x4))
+        ((sexpr)((((int_pointer)(code)) << 3) | 0x5))
 
 /*! \brief Create a new String
  *  \param[in] string The string to use.
@@ -381,10 +381,10 @@ void sx_xref
 
 /*! \brief S-Expression Pointer Flag
  *
- *  This flag is set in the memory encoding of an s-expression if it's a pointer
- *  instead of the literal value.
+ *  This flag is not set in the memory encoding of an s-expression if it's a
+ *  pointer instead of the literal value.
  */
-#define sx_mask_pointer 0x1
+#define sx_mask_no_pointer 0x1
 
 /*! @} */
 
@@ -429,7 +429,7 @@ void sx_xref
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define specialp(sx) ((((int_pointer)(sx)) & 0x4) == 0x4)
+#define specialp(sx) ((((int_pointer)(sx)) & 0x7) == 0x5)
 
 /*! \brief Check if the S-Expression is a Pointer
  *  \param[in] sx The s-expression to check.
@@ -438,7 +438,7 @@ void sx_xref
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define pointerp(sx) ((((int_pointer)(sx)) & 0x1) == 0x1)
+#define pointerp(sx) ((((int_pointer)(sx)) & sx_mask_no_pointer) == 0x0)
 
 /*! \brief Check if the S-Expression is the NIL Expression
  *  \param[in] sx The s-expression to check.
@@ -555,7 +555,7 @@ void sx_xref
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define integerp(sx) ((((int_pointer)(sx)) & 0x2) == 0x2)
+#define integerp(sx) ((((int_pointer)(sx)) & 0x7) == 0x3)
 
 /*! @} */
 
@@ -576,7 +576,7 @@ void sx_xref
  *  For s-expressions that are used to encode a pointer, this macro retrieves
  *  that particular pointer.
  */
-#define sx_pointer(sx) ((void *)(((int_pointer)(sx)) & (~0x1)))
+#define sx_pointer(sx) ((void *)sx)
 
 /*! \brief Access the car of a Cons
  *  \param[in] sx The cons.
@@ -598,13 +598,13 @@ void sx_xref
 
 /*! \brief Access the Integer Value of an Integer
  *  \param[in] sx The integer.
- *  \return The integer value, or -1 if sx is not an integer.
+ *  \return The integer value, or an unspecified value if sx is not an integer.
  *
  *  Since the -1 return value for non-integer objects is a valid integer itself,
  *  you should always make sure to check the type of sx yourself if it's
  *  actually important.
  */
-#define sx_integer(sx) ((int_pointer_s)(((int_pointer)sx_pointer(sx)) & (~0x7)) >> 3)
+#define sx_integer(sx) ((int_pointer_s)(sx & (~0x7)) >> 3)
 
 /*! \brief Access the String Value of a String
  *  \param[in] sx The string.
