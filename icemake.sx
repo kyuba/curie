@@ -1,7 +1,7 @@
 (library "curie" libcurie
   (name "Curie")
   (description "minimalistic, sexpr-based, non-posix(!), non-ansi(!) libc")
-  (version "5")
+  (version "6")
   (url "http://kyuba.org/")
 
   (code "sexpr" "io" "memory-pool" "tree" "exec" "multiplex" "string"
@@ -40,7 +40,7 @@
 (library "curie++" libcurie
   (name "Curie++")
   (description "C++ bindings for libcurie")
-  (version "5")
+  (version "6")
   (url "http://kyuba.org/")
 
   (code "memory++" "io++")
