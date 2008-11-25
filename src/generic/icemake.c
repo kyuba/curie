@@ -105,7 +105,6 @@ static int max_processes               = 1;
 static sexpr co_freestanding           = sx_false;
 
 static sexpr i_optimise_linking        = sx_false;
-static sexpr i_valgrind                = sx_false;
 static sexpr i_debug                   = sx_false;
 
 static struct sexpr_io *stdio;
@@ -279,11 +278,7 @@ static sexpr find_in_permutations (sexpr p, sexpr file)
 {
     sexpr r;
 
-    if (truep(i_valgrind) && ((r = find_in_permutations_os (sx_string_dir_prefix_c ("valgrind", p), file)), stringp(r)))
-    {
-        goto ret;
-    }
-    else if (truep(i_debug) && ((r = find_in_permutations_os (sx_string_dir_prefix_c ("debug", p), file)), stringp(r)))
+    if (truep(i_debug) && ((r = find_in_permutations_os (sx_string_dir_prefix_c ("debug", p), file)), stringp(r)))
     {
         goto ret;
     }
@@ -554,8 +549,6 @@ static void process_definition (struct target *context, sexpr definition)
         if (truep(equalp(sxcar, sym_hosted)))
         {
             context->hosted = sx_true;
-
-            context->libraries = cons (str_lc, context->libraries);
         }
         else if (truep(equalp(sxcaar, sym_name)))
         {
@@ -718,6 +711,11 @@ static void process_definition (struct target *context, sexpr definition)
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests", sx_string(context->name), archprefix);
 
     mkdir (buffer, 0755);
+
+    if (truep(context->hosted))
+    {
+        context->libraries = cons (str_lc, context->libraries);
+    }
 }
 
 static struct target *create_library (sexpr definition)
@@ -1944,7 +1942,6 @@ static void print_help(char *binaryname)
         " -f           Use the FHS layout for installation\n"
         " -s           Use the default FS layout for installation\n"
         " -L           Optimise linking.\n"
-        " -V           Use valgrindable code, if available.\n"
         " -D           Use debug code, if available.\n\n"
         "The [targets] specify a list of things to build, according to the\n"
         "icemake.sx file located in the current working directory.\n\n",
@@ -2621,9 +2618,6 @@ int main (int argc, char **argv, char **environ)
                         break;
                     case 'D':
                         i_debug = sx_true;
-                        break;
-                    case 'V':
-                        i_valgrind = sx_true;
                         break;
                     case 'f':
                         i_fsl = fs_fhs;

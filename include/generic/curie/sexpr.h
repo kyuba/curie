@@ -145,13 +145,6 @@ struct sexpr_string_or_symbol {
      */
     signed int references;
 
-    /*! \brief String Length
-     *  \todo Implement this.
-     *
-     *  This is the length of the contained string.
-     */
-    unsigned int length;
-
     /*! \brief String
      *
      *  The contained string itself. It's 0-terminated, too.

@@ -114,6 +114,8 @@ sexpr make_symbol(const char *symbol) {
 }
 
 void sx_destroy(sexpr sxx) {
+    return;
+
     if (!pointerp(sxx)) return;
 
     if (stringp(sxx) || symbolp(sxx))
