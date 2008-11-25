@@ -166,15 +166,9 @@ static sexpr find_actual_file (sexpr p, sexpr file)
     sexpr r = sx_string_dir_prefix (file, p);
     struct stat st;
 
-    sx_destroy (p);
-
     if (stat (sx_string (r), &st) == 0)
     {
         return r;
-    }
-    else
-    {
-        sx_destroy (r);
     }
 
     return sx_false;
@@ -186,17 +180,14 @@ static sexpr find_in_permutations_vendor (sexpr p, sexpr file)
 
     if ((r = find_actual_file (sx_string_dir_prefix_c (uname_vendor, p), file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
-    else if (sx_xref(p), (r = find_actual_file (p, file)), stringp(r))
+    else if ((r = find_actual_file (p, file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
 
-    ret:
-    sx_destroy (p);
-
-    return r;
+    return sx_false;
 }
 
 static sexpr find_in_permutations_toolchain (sexpr p, sexpr file)
@@ -208,20 +199,17 @@ static sexpr find_in_permutations_toolchain (sexpr p, sexpr file)
         case tc_gcc:
             if ((r = find_in_permutations_vendor (sx_string_dir_prefix_c ("gnu", p), file)), stringp(r))
             {
-                goto ret;
+                return r;
             }
             break;
     }
 
-    if (sx_xref(p), (r = find_in_permutations_vendor (p, file)), stringp(r))
+    if ((r = find_in_permutations_vendor (p, file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
 
-    ret:
-    sx_destroy (p);
-
-    return r;
+    return sx_false;
 }
 
 static sexpr find_in_permutations_arch (sexpr p, sexpr file)
@@ -230,17 +218,14 @@ static sexpr find_in_permutations_arch (sexpr p, sexpr file)
 
     if ((r = find_in_permutations_toolchain (sx_string_dir_prefix_c (uname_arch, p), file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
-    else if (sx_xref(p), (r = find_in_permutations_toolchain (p, file)), stringp(r))
+    else if ((r = find_in_permutations_toolchain (p, file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
 
-    ret:
-    sx_destroy (p);
-
-    return r;
+    return sx_false;
 }
 
 static sexpr find_in_permutations_os (sexpr p, sexpr file)
@@ -249,29 +234,26 @@ static sexpr find_in_permutations_os (sexpr p, sexpr file)
 
     if ((r = find_in_permutations_arch (sx_string_dir_prefix_c (uname_os, p), file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
     else if ((r = find_in_permutations_arch (sx_string_dir_prefix_c ("posix", p), file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
     else if ((r = find_in_permutations_arch (sx_string_dir_prefix_c ("ansi", p), file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
     else if ((r = find_in_permutations_arch (sx_string_dir_prefix_c ("generic", p), file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
-    else if (sx_xref(p), (r = find_in_permutations_arch (p, file)), stringp(r))
+    else if ((r = find_in_permutations_arch (p, file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
 
-    ret:
-    sx_destroy (p);
-
-    return r;
+    return sx_false;
 }
 
 static sexpr find_in_permutations (sexpr p, sexpr file)
@@ -280,22 +262,19 @@ static sexpr find_in_permutations (sexpr p, sexpr file)
 
     if (truep(i_debug) && ((r = find_in_permutations_os (sx_string_dir_prefix_c ("debug", p), file)), stringp(r)))
     {
-        goto ret;
+        return r;
     }
     else
     if ((r = find_in_permutations_os (sx_string_dir_prefix_c ("internal", p), file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
-    else if (sx_xref(p), (r = find_in_permutations_os (p, file)), stringp(r))
+    else if ((r = find_in_permutations_os (p, file)), stringp(r))
     {
-        goto ret;
+        return r;
     }
 
-    ret:
-    sx_destroy(p);
-
-    return r;
+    return sx_false;
 }
 
 static sexpr find_code_with_suffix (sexpr file, char *s)
@@ -306,8 +285,6 @@ static sexpr find_code_with_suffix (sexpr file, char *s)
     snprintf (buffer, BUFFERSIZE, "%s%s", sx_string(file), s);
 
     r = find_in_permutations (make_string("src"), (sr = make_string (buffer)));
-
-    sx_destroy (sr);
 
     return r;
 }
@@ -320,8 +297,6 @@ static sexpr find_test_case_with_suffix (sexpr file, char *s)
     snprintf (buffer, BUFFERSIZE, "%s%s", sx_string(file), s);
 
     r = find_in_permutations (make_string("tests"), (sr = make_string (buffer)));
-
-    sx_destroy (sr);
 
     return r;
 }
@@ -364,8 +339,6 @@ static sexpr find_header_with_suffix (sexpr name, sexpr file, char *s)
     snprintf (buffer, BUFFERSIZE, "%s/%s%s", sx_string(name), sx_string(file), s);
 
     r = find_in_permutations (make_string("include"), (sr = make_string (buffer)));
-
-    sx_destroy (sr);
 
     return r;
 }
@@ -427,8 +400,6 @@ static void find_code (struct target *context, sexpr file)
         {
             secundus = cons(sym_c, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list)));
         }
-
-        sx_destroy (subfile);
     }
     else if (((r = find_code_cpp (file)), stringp(r)))
     {
@@ -686,7 +657,6 @@ static void process_definition (struct target *context, sexpr definition)
                 if (((r = find_code_s(car(sxc))), !falsep(r)) ||
                     ((r = find_code_S(car(sxc))), !falsep(r)))
                 {
-                    sx_destroy (r);
                     sxc = cdr (sxc);
                 }
                 else
@@ -724,7 +694,6 @@ static struct target *create_library (sexpr definition)
 
     context->name = car(definition);
     context->library = sx_true;
-    sx_xref (context->name);
 
     process_definition (context, cdr(definition));
 
@@ -741,7 +710,6 @@ static struct target *create_programme (sexpr definition)
     struct target *context = get_context();
 
     context->name = car(definition);
-    sx_xref (context->name);
 
     process_definition (context, cdr(definition));
 
@@ -756,30 +724,20 @@ static sexpr f_exist_add (sexpr f, sexpr lis)
     {
         return cons (f, lis);
     }
-    else
-    {
-        sx_destroy (f);
-    }
 
     return lis;
 }
 
 static sexpr permutate_paths_vendor (sexpr p, sexpr lis)
 {
-    sx_xref(p);
-
     lis = f_exist_add (sx_string_dir_prefix_c (uname_vendor, p), lis);
     lis = f_exist_add (p, lis);
-
-    sx_destroy (p);
 
     return lis;
 }
 
 static sexpr permutate_paths_toolchain (sexpr p, sexpr lis)
 {
-    sx_xref(p);
-
     switch (uname_toolchain)
     {
         case tc_gcc:
@@ -788,34 +746,24 @@ static sexpr permutate_paths_toolchain (sexpr p, sexpr lis)
     }
     lis = permutate_paths_vendor (p, lis);
 
-    sx_destroy (p);
-
     return lis;
 }
 
 static sexpr permutate_paths_arch (sexpr p, sexpr lis)
 {
-    sx_xref(p);
-
     lis = permutate_paths_toolchain (sx_string_dir_prefix_c (uname_arch, p), lis);
     lis = permutate_paths_toolchain (p, lis);
-
-    sx_destroy (p);
 
     return lis;
 }
 
 static sexpr permutate_paths_os (sexpr p, sexpr lis)
 {
-    sx_xref(p);
-
     lis = permutate_paths_arch (sx_string_dir_prefix_c (uname_os, p), lis);
     lis = permutate_paths_arch (p, lis);
     lis = permutate_paths_arch (sx_string_dir_prefix_c ("generic", p), lis);
     lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
     lis = permutate_paths_arch (sx_string_dir_prefix_c ("posix", p), lis);
-
-    sx_destroy (p);
 
     return lis;
 }
@@ -824,14 +772,10 @@ static sexpr permutate_paths (sexpr p)
 {
     sexpr lis = sx_end_of_list;
 
-    sx_xref(p);
-
     lis = permutate_paths_os (p, lis);
     lis = permutate_paths_os (sx_string_dir_prefix_c ("internal", p), lis);
     lis = permutate_paths_os (sx_string_dir_prefix_c ("debug", p), lis);
     lis = permutate_paths_os (sx_string_dir_prefix_c ("valgrind", p), lis);
-
-    sx_destroy(p);
 
     return lis;
 }
@@ -852,8 +796,6 @@ static sexpr prepend_includes_gcc (sexpr x)
 
         cur = cdr (cur);
     }
-
-    sx_destroy (include_paths);
 
     return x;
 }
@@ -1164,7 +1106,6 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
     while (consp (code))
     {
         sexpr objectfile = car (cdr (cdr (car (code))));
-        sx_xref (objectfile);
         sx = cons (objectfile, sx);
 
         if (havelib &&
@@ -1197,12 +1138,7 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
             sexpr s4 = car(cdr(s2));
             sexpr s5 = cons(cons (sym_c, cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
 
-            sx_xref (s3);
-            sx_xref (s4);
-
             link_programme_gcc_filename (s4, name, s5, t);
-
-            sx_destroy (s5);
 
             s = cdr (s);
         }
@@ -1369,7 +1305,6 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
     while (consp (code))
     {
         sexpr objectfile = car (cdr (cdr (car (code))));
-        sx_xref (objectfile);
         sx = cons (objectfile, sx);
 
         if (havebin &&
@@ -1409,7 +1344,6 @@ static void run_tests_library_gcc (sexpr name, struct target *t)
     while (consp (s))
     {
         sexpr r = cdr(cdr(cdr(car(s))));
-        sx_xref (r);
 
         workstack = cons (r, workstack);
 
@@ -1554,16 +1488,11 @@ static void install_headers_gcc (sexpr name, struct target *t)
 {
     sexpr c = t->headers;
 
-    sx_xref (c);
-
     while (consp (c))
     {
         sexpr c2 = car(c);
         sexpr c3 = car(c2);
         sexpr c4 = car(cdr(c2));
-
-        sx_xref (c3);
-        sx_xref (c4);
 
         workstack = cons (cons (c4, get_header_install_path(name, c3)),
                           workstack);
@@ -1772,8 +1701,6 @@ static void do_cross_link (struct target *target, struct target *source)
     {
          sexpr ccar = car (cur);
          sexpr cccdr = cdr (ccar);
-
-         sx_xref (cccdr);
 
          target->code = cons (cons (sym_link, cccdr), target->code);
 
@@ -2158,7 +2085,6 @@ static void process_on_death(struct exec_context *context, void *p)
             exit (24);
         }
 
-        sx_destroy (sx);
         free_exec_context (context);
     }
 }
@@ -2200,7 +2126,6 @@ static void spawn_item (sexpr sx)
         case 0:  fprintf (stderr, "failed to execute binary image\n");
                  exit (23);
         default: alive_processes++;
-                 sx_xref (sx);
                  multiplex_add_process (context, process_on_death, (void *)sx);
                  return;
     }
@@ -2214,8 +2139,6 @@ static void spawn_stack_items ()
 
         spawn_item (car (workstack));
 
-        sx_xref (wcdr);
-        sx_destroy (workstack);
         workstack = wcdr;
     }
 }
@@ -2389,7 +2312,6 @@ static void build (sexpr buildtargets)
 
                     if (doadd)
                     {
-                        sx_xref (cuocar);
                         use_objects = cons (cuocar, use_objects);
                     }
 
@@ -2410,8 +2332,6 @@ static void build (sexpr buildtargets)
         build_target (sx_string (sxcar));
         cursor = cdr(cursor);
     }
-
-    sx_destroy (use_objects);
 
     loop_processes();
 }
@@ -2815,8 +2735,6 @@ int main (int argc, char **argv, char **environ)
         {
             tree_add_node_string_value (&targets, (char *)sx_string(t->name), t);
         }
-
-        sx_destroy (r);
     }
 
     sx_close_io (io);
