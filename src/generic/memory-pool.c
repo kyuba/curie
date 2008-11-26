@@ -45,41 +45,17 @@
 
 static struct memory_pool *static_pools[LIBCURIE_PAGE_SIZE / ENTITY_ALIGNMENT];
 
-/*@-fixedformalarray@*/
-static unsigned int bitmap_getslot(unsigned int b)
-{
-    return (unsigned int)(b / BITSPERBITMAPENTITY);
-}
+#define bitmap_getslot(b) ((unsigned int)((b) / BITSPERBITMAPENTITY))
 
-static void bitmap_set(pool_bitmap m, unsigned int b)
-{
-    unsigned int s = bitmap_getslot(b);
-    m[s] |= 1 << (b%BITSPERBITMAPENTITY);
-}
+#define bitmap_set(m,b)\
+    m[bitmap_getslot(b)] |= 1 << (b%BITSPERBITMAPENTITY)
 
-static void bitmap_clear(pool_bitmap m, unsigned int b)
-{
-    unsigned int s = bitmap_getslot(b);
-    m[s] &= ~(1 << (b%BITSPERBITMAPENTITY));
-}
+#define bitmap_clear(m,b)\
+    m[bitmap_getslot(b)] &= ~(1 << (b%BITSPERBITMAPENTITY))
 
-static unsigned char bitmap_isset(pool_bitmap m, unsigned int b)
-{
-    unsigned int s = bitmap_getslot(b);
-
-    return (unsigned char)((m[s] & (1 << (b%BITSPERBITMAPENTITY))) != 0);
-}
-
-static unsigned char bitmap_isempty(pool_bitmap m)
-{
-    unsigned int i;
-    for (i = 0; i < BITMAPMAPSIZE; i++) {
-        if (m[i] != 0) return (unsigned char)0;
-    }
-
-    return (unsigned char)1;
-}
-/*@=fixedformalarray@*/
+#define bitmap_isset(m,b)\
+    ((unsigned char)((m[bitmap_getslot(b)] &\
+        (1 << (b%BITSPERBITMAPENTITY))) != 0))
 
 struct memory_pool *create_memory_pool (unsigned long int entitysize)
 {
@@ -232,6 +208,7 @@ void optimise_memory_pool(struct memory_pool *pool)
     struct memory_pool_frame_header
         *cursor = (struct memory_pool_frame_header *)pool,
         *last = (struct memory_pool_frame_header *)0;
+    unsigned int i;
 
     if (cursor->type != mpft_frame) return;
 
@@ -241,7 +218,13 @@ void optimise_memory_pool(struct memory_pool *pool)
         last = cursor;
         cursor = cursor->next;
 
-        if (bitmap_isempty(cursor->map) == (unsigned char)1) {
+        for (i = 0; i < BITMAPMAPSIZE; i++)
+        {
+            if (cursor->map[i] != 0) break;
+        }
+
+        if (i == BITMAPMAPSIZE)
+        {
             /*@-mustfree@*/
             last->next = cursor->next;
             /*@=mustfree@*/
