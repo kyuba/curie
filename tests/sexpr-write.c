@@ -46,7 +46,7 @@
 int cmain(void) {
     struct io *out = io_open_write ("temporary-sexpr-write"), *in = io_open (0);
     struct sexpr_io *io = sx_open_io (in, out);
-    sexpr s = make_string (SX_TEST_STRING);
+    sexpr s  = make_string (SX_TEST_STRING);
     sexpr s1 = make_string (SX_TEST_STRING);
     sexpr s2 = make_integer(SX_TEST_INTEGER);
     sexpr list;
@@ -66,6 +66,9 @@ int cmain(void) {
     sx_write (io, s);
 
     sx_destroy (s);
+
+    sx_xref (s1);
+    sx_xref (s2);
 
     list = cons(s1, s2);
 

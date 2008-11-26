@@ -36,33 +36,42 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <curie/internal-constants.h>
 #include <curie/memory.h>
+#include <curie/memory-internal.h>
 #include <curie/int.h>
 
 #define AUTOOPT_N 300
 
+static struct memory_pool *static_pools[LIBCURIE_PAGE_SIZE / ENTITY_ALIGNMENT];
+
 /*@-fixedformalarray@*/
-static unsigned int bitmap_getslot(unsigned int b) {
+static unsigned int bitmap_getslot(unsigned int b)
+{
     return (unsigned int)(b / BITSPERBITMAPENTITY);
 }
 
-static void bitmap_set(pool_bitmap m, unsigned int b) {
+static void bitmap_set(pool_bitmap m, unsigned int b)
+{
     unsigned int s = bitmap_getslot(b);
     m[s] |= 1 << (b%BITSPERBITMAPENTITY);
 }
 
-static void bitmap_clear(pool_bitmap m, unsigned int b) {
+static void bitmap_clear(pool_bitmap m, unsigned int b)
+{
     unsigned int s = bitmap_getslot(b);
     m[s] &= ~(1 << (b%BITSPERBITMAPENTITY));
 }
 
-static unsigned char bitmap_isset(pool_bitmap m, unsigned int b) {
+static unsigned char bitmap_isset(pool_bitmap m, unsigned int b)
+{
     unsigned int s = bitmap_getslot(b);
 
     return (unsigned char)((m[s] & (1 << (b%BITSPERBITMAPENTITY))) != 0);
 }
 
-static unsigned char bitmap_isempty(pool_bitmap m) {
+static unsigned char bitmap_isempty(pool_bitmap m)
+{
     unsigned int i;
     for (i = 0; i < BITMAPMAPSIZE; i++) {
         if (m[i] != 0) return (unsigned char)0;
@@ -72,21 +81,18 @@ static unsigned char bitmap_isempty(pool_bitmap m) {
 }
 /*@=fixedformalarray@*/
 
-struct memory_pool *create_memory_pool (unsigned long int entitysize) {
-    struct memory_pool *pool = get_mem_chunk();
-    unsigned short r;
+struct memory_pool *create_memory_pool (unsigned long int entitysize)
+{
+    struct memory_pool_frame_header *pool = get_mem_chunk();
     unsigned int i;
 
-    if (pool == (struct memory_pool *)0) return (struct memory_pool *)0;
-
-    r = (unsigned short)(entitysize & ~(ENTITY_ALIGNMENT - 1));
-    if (r != (unsigned short)entitysize) {
-        r += ENTITY_ALIGNMENT;
+    if (pool == (struct memory_pool_frame_header *)0) {
+        return (struct memory_pool *)0;
     }
 
-    pool->entitysize = r;
+    pool->entitysize = calculate_aligned_memory_size(entitysize);
 
-    pool->maxentities = (unsigned short)((LIBCURIE_PAGE_SIZE - sizeof(struct memory_pool)) / pool->entitysize);
+    pool->maxentities = (unsigned short)((LIBCURIE_PAGE_SIZE - sizeof(struct memory_pool_frame_header)) / pool->entitysize);
 
     for (i = 0; i < BITMAPMAPSIZE; i++) {
         pool->map[i] = 0;
@@ -95,22 +101,34 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize) {
     if (pool->maxentities > BITMAPMAXBLOCKENTRIES) pool->maxentities = BITMAPMAXBLOCKENTRIES;
 
     /*@-mustfree@*/
-    pool->next = (struct memory_pool *)0;
+    pool->next = (struct memory_pool_frame_header *)0;
     /*@=mustfree@*/
+
+    pool->type = mpft_frame;
 
     pool->optimise_counter = AUTOOPT_N;
 
-    return pool;
+    return (struct memory_pool *)pool;
 }
 
-void free_memory_pool (struct memory_pool *pool) {
-    if (pool->next != ((void *)0)) free_memory_pool (pool->next);
-    free_mem_chunk((struct memory_pool *)pool);
+void free_memory_pool (struct memory_pool *pool)
+{
+    if (pool->type == mpft_frame)
+    {
+        struct memory_pool_frame_header *h
+            = (struct memory_pool_frame_header *)pool;
+
+        if (h->next != ((void *)0))
+            free_memory_pool ((struct memory_pool *)h->next);
+
+        free_mem_chunk((struct memory_pool *)pool);
+    }
 }
 
 /*@-memtrans -branchstate@*/
 /*@null@*/ /*@only@*/ static void *get_pool_mem_inner
-        (struct memory_pool *pool, struct memory_pool *frame)
+    (struct memory_pool_frame_header *pool,
+     struct memory_pool_frame_header *frame)
 {
     unsigned int index = 0;
 
@@ -121,13 +139,13 @@ void free_memory_pool (struct memory_pool *pool) {
 
             bitmap_set(frame->map, index);
 
-            frame_mem_start = (char *)frame + sizeof(struct memory_pool);
+            frame_mem_start = (char *)frame + sizeof(struct memory_pool_frame_header);
 
             if ((pool != frame) &&
-                (pool->next != (struct memory_pool *)0) &&
+                (pool->next != (struct memory_pool_frame_header *)0) &&
                 (pool->next != frame))
             {
-                struct memory_pool *cursor = pool->next;
+                struct memory_pool_frame_header *cursor = pool->next;
 
                 while (cursor->next != frame) {
                     cursor = cursor->next;
@@ -146,35 +164,61 @@ void free_memory_pool (struct memory_pool *pool) {
         }
     }
 
-    if (frame->next == (struct memory_pool *)0) {
+    if (frame->next == (struct memory_pool_frame_header *)0) {
         struct memory_pool *n = create_memory_pool (frame->entitysize);
         if (n == (struct memory_pool *)0) return (void *)0;
 
-        frame->next = n;
+        frame->next = (struct memory_pool_frame_header *)n;
     }
 
     return get_pool_mem_inner(pool, frame->next);
 }
 /*@=memtrans =branchstate@*/
 
-void *get_pool_mem(struct memory_pool *pool) {
-    pool->optimise_counter--;
-    if (pool->optimise_counter == 0) {
-        pool->optimise_counter = AUTOOPT_N;
-        optimise_memory_pool (pool);
+void *get_pool_mem(struct memory_pool *pool)
+{
+    switch (pool->type)
+    {
+        case mpft_frame:
+        {
+            struct memory_pool_frame_header *h
+                = (struct memory_pool_frame_header *)pool;
+
+            h->optimise_counter--;
+            if (h->optimise_counter == 0) {
+                h->optimise_counter = AUTOOPT_N;
+                optimise_memory_pool (pool);
+            }
+        }
+        return get_pool_mem_inner((struct memory_pool_frame_header *)pool,
+                                  (struct memory_pool_frame_header *)pool);
+
+        case mpft_static_header:
+        {
+            unsigned short r = (pool->entitysize / ENTITY_ALIGNMENT) - 1;
+
+            if (static_pools[r] == (struct memory_pool *)0)
+            {
+                static_pools[r] = create_memory_pool(pool->entitysize);
+            }
+
+            return get_pool_mem (static_pools[r]);
+        }
     }
-    return get_pool_mem_inner(pool, pool);
+
+    return (void *)0;
 }
 
 /*@-mustfree@*/
-void free_pool_mem(void *mem) {
+void free_pool_mem(void *mem)
+{
 /* actually we /can/ derive the start address of a pool frame using an
    address that points into the pool...
    this is because get_mem_chunk() is supposed to use an address that is
    pagesize-aligned. */
 
-    struct memory_pool *pool = (struct memory_pool *)((((int_pointer)(((int_pointer)mem)) / LIBCURIE_PAGE_SIZE)) * LIBCURIE_PAGE_SIZE);
-    char *pool_mem_start = (char *)pool + sizeof(struct memory_pool);
+    struct memory_pool_frame_header *pool = (struct memory_pool_frame_header *)((((int_pointer)(((int_pointer)mem)) / LIBCURIE_PAGE_SIZE)) * LIBCURIE_PAGE_SIZE);
+    char *pool_mem_start = (char *)pool + sizeof(struct memory_pool_frame_header);
 
     unsigned int index = (unsigned int)(((char*)mem - pool_mem_start) / pool->entitysize);
 
@@ -183,11 +227,17 @@ void free_pool_mem(void *mem) {
 /*@=mustfree@*/
 
 /*@-branchstate -memtrans@*/
-void optimise_memory_pool(struct memory_pool *pool) {
-    struct memory_pool *cursor = pool, *last = (struct memory_pool *)0;
+void optimise_memory_pool(struct memory_pool *pool)
+{
+    struct memory_pool_frame_header
+        *cursor = (struct memory_pool_frame_header *)pool,
+        *last = (struct memory_pool_frame_header *)0;
 
-    while ((cursor != (struct memory_pool *)0) &&
-            (cursor->next != (struct memory_pool *)0)) {
+    if (cursor->type != mpft_frame) return;
+
+    while ((cursor != (struct memory_pool_frame_header *)0) &&
+           (cursor->next != (struct memory_pool_frame_header *)0))
+    {
         last = cursor;
         cursor = cursor->next;
 

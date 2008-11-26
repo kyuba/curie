@@ -211,14 +211,12 @@ void mark_mem_rx (unsigned long int size, /*@notnull@*/ void *block);
  *  @{
  */
 
-/*! \brief Bitmap to keep track of used Entities in memory_pool
- *  \internal
- *
- *  This type is used to keep track of which entities in a memory pool are used.
- */
-typedef BITMAPENTITYTYPE pool_bitmap[BITMAPMAPSIZE];
+enum memory_pool_frame_type {
+    mpft_static_header = 0x0,
+    mpft_frame         = 0x1
+};
 
-/*! \brief Memory Pool Page Header
+/*! \brief Memory Pool Header
  *  \internal
  *
  *  Each memory pool page uses this struct as its header. It's used to keep
@@ -226,42 +224,26 @@ typedef BITMAPENTITYTYPE pool_bitmap[BITMAPMAPSIZE];
  *  entities in the pool are, etc.
  */
 struct memory_pool {
+    enum memory_pool_frame_type type;
+
     /*! \brief Entity Size
      *
      *  All elements of this pool frame have exactly this size, in bytes.
      */
-    unsigned long int entitysize;
-
-    /*! \brief Maximal Number of Elements
-     *
-     *  This is the number of entities that can be allocated from this pool
-     *  frame. The number is calculated when the pool frame is allocated.
-     */
-    unsigned short maxentities;
-
-    /*! \brief Optimisation Counter
-     *
-     *  Once this counter reaches zero, the pool is optimised, i.e. empty frames
-     *  are removed.
-     */
-    unsigned short optimise_counter;
-
-    /*! \brief Next Frame
-     *
-     *  This is a pointer to the next pool frame, or (struct memory_pool *)0 if
-     *  there is no next frame.
-     */
-    /*@null@*/ /*@only@*/ struct memory_pool *next;
-
-    /*! \brief Allocation Bitmap
-     *
-     *  This bitmap is used to keep track of which entities are still available.
-     *  When an entity is given out by get_pool_mem(), the corresponding bit in
-     *  this bitmap is set to 1, so that it won't be given out again. Once it's
-     *  deallocated with free_pool_mem(), it's set to 0.
-     */
-    pool_bitmap map;
+    unsigned int entitysize;
 };
+
+/*! \brief Calculate aligned Memory Size
+ *  \param[in] a The (potentially) unaligned size, in bytes.
+ *  \return The aligned size, in bytes.
+ *
+ *  This macro is used to determine the number of bytes that you would get
+ *  from any memory allocation functions.
+ */
+#define calculate_aligned_memory_size(a)\
+    ((((unsigned long)a) & ~(ENTITY_ALIGNMENT - 1)) +\
+      (((((unsigned long)a) & ~(ENTITY_ALIGNMENT - 1)) != ((unsigned long)a)) ?\
+         ENTITY_ALIGNMENT : 0))
 
 /*! \brief Static Memory Pool Initialiser
  *  \param[in] size The size of the entities to get from the pool.
@@ -271,7 +253,8 @@ struct memory_pool {
  *  initialiser, that is it's legit to use it when defining file-scope variables
  *  or static variables.
  */
-#define MEMORY_POOL_INITIALISER(size) { size, 0, 300, (struct memory_pool *)0 }
+#define MEMORY_POOL_INITIALISER(size)\
+    { mpft_static_header, calculate_aligned_memory_size(size) }
 
 /*! \brief Create a new Memory Pool
  *  \param[in] entitysize The size of the entities to get from the pool.

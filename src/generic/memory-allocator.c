@@ -39,58 +39,19 @@
 #include <curie/memory.h>
 #include <curie/tree.h>
 
-static struct tree alloc_pools = TREE_INITIALISER;
-
-/* pools themselves actually do this optimisation, but we use a lot of
-   different pools, so this is a cleanup that may help */
-#define OPTIMISE_THRESHOLD 500
-
-static unsigned int optimise_threshold = OPTIMISE_THRESHOLD;
-
-static unsigned long calculate_aligned_size (unsigned long a) {
-    unsigned long r;
-
-    r = (unsigned long)(a & ~(ENTITY_ALIGNMENT - 1));
-    if (r != (unsigned long)a) {
-        r += ENTITY_ALIGNMENT;
-    }
-
-    return r;
-}
-
 void *aalloc   (unsigned long size) {
-    void *p;
-    unsigned long msize = calculate_aligned_size (size);
+    if (size < CURIE_POOL_CUTOFF) {
+        struct memory_pool pool = MEMORY_POOL_INITIALISER(size);
 
-    if (msize < CURIE_POOL_CUTOFF) {
-        struct tree_node *n = tree_get_node(&alloc_pools, msize);
-        struct memory_pool *pool = (struct memory_pool *)0;
-
-        if (n != (struct tree_node *)0) {
-            pool = (struct memory_pool *)node_get_value (n);
-        }
-
-        if (pool == (struct memory_pool *)0) {
-            pool = create_memory_pool (msize);
-
-            if (pool == (struct memory_pool *)0) {
-                return (void *)0;
-            }
-
-            tree_add_node_value (&alloc_pools, msize, pool);
-        }
-
-        p = get_pool_mem (pool);
+        return get_pool_mem (&pool);
     } else {
-        p = get_mem (msize);
+        return get_mem (calculate_aligned_memory_size (size));
     }
-
-    return p;
 }
 
 void *arealloc (unsigned long size, void *p, unsigned long new_size) {
-    unsigned long msize = calculate_aligned_size (size);
-    unsigned long mnew_size = calculate_aligned_size (new_size);
+    unsigned long msize = calculate_aligned_memory_size (size);
+    unsigned long mnew_size = calculate_aligned_memory_size (new_size);
 
     if (msize != mnew_size) {
         if ((msize >= CURIE_POOL_CUTOFF) &&
@@ -127,22 +88,10 @@ void *arealloc (unsigned long size, void *p, unsigned long new_size) {
     return p;
 }
 
-static void pool_tree_optimiser(struct tree_node *node, /*@unused@*/ void *p) {
-    struct memory_pool *pool = (struct memory_pool *)node_get_value (node);
-    if (pool != (struct memory_pool *)0) optimise_memory_pool(pool);
-}
-
 void afree     (unsigned long size, void *p) {
-    unsigned long msize = calculate_aligned_size (size);
-
-    if (msize < CURIE_POOL_CUTOFF) {
+    if (size < CURIE_POOL_CUTOFF) {
         free_pool_mem (p);
-        optimise_threshold--;
-        if (optimise_threshold == 0) {
-            optimise_threshold = OPTIMISE_THRESHOLD;
-            tree_map(&alloc_pools, pool_tree_optimiser, (void*)0);
-        }
     } else {
-        free_mem (msize, p);
+        free_mem (calculate_aligned_memory_size (size), p);
     }
 }
