@@ -106,48 +106,63 @@ void free_memory_pool (struct memory_pool *pool)
     (struct memory_pool_frame_header *pool,
      struct memory_pool_frame_header *frame)
 {
-    unsigned int index = 0;
+    do {
+        unsigned int index = 0, cell = 0;
 
-    for (; index < frame->maxentities; index++) {
-        if (bitmap_isset(frame->map, index) == (unsigned char)0)
-        {
-            char *frame_mem_start;
-
-            bitmap_set(frame->map, index);
-
-            frame_mem_start = (char *)frame + sizeof(struct memory_pool_frame_header);
-
-            if ((pool != frame) &&
-                (pool->next != (struct memory_pool_frame_header *)0) &&
-                (pool->next != frame))
+        do {
+            if (frame->map[cell] == ((BITMAPENTITYTYPE)(~0)))
             {
-                struct memory_pool_frame_header *cursor = pool->next;
+                index += BITSPERBITMAPENTITY;
+            }
+            else
+            {
+                unsigned int high = index + BITSPERBITMAPENTITY;
+                if (high > frame->maxentities) high = frame->maxentities;
 
-                while (cursor->next != frame) {
-                    cursor = cursor->next;
-                }
+                do {
+                    if (bitmap_isset(frame->map, index) == (unsigned char)0)
+                    {
+                        char *frame_mem_start = (char *)frame + sizeof(struct memory_pool_frame_header);
 
-                /*@-mustfree@*/
-                cursor->next = frame->next;
-                frame->next = pool->next;
-                pool->next = frame;
-                /*@=mustfree@*/
+                        bitmap_set(frame->map, index);
+
+                        if ((pool != frame) &&
+                            (pool->next != (struct memory_pool_frame_header *)0)
+                            && (pool->next != frame))
+                        {
+                            struct memory_pool_frame_header *cursor = pool->next;
+
+                            while (cursor->next != frame)
+                            {
+                                cursor = cursor->next;
+                            }
+
+                            /*@-mustfree@*/
+                            cursor->next = frame->next;
+                            frame->next = pool->next;
+                            pool->next = frame;
+                            /*@=mustfree@*/
+                        }
+
+                        /*@-usedef@*/
+                        return (void *)(frame_mem_start
+                                + (index * (frame->entitysize)));
+                        /*@=usedef@*/
+                    }
+                    index++;
+                } while (index < high);
             }
 
-            /*@-usedef@*/
-            return (void *)(frame_mem_start + (index * (frame->entitysize)));
-            /*@=usedef@*/
+            cell++;
+        } while (index < frame->maxentities);
+
+        if (frame->next == (struct memory_pool_frame_header *)0) {
+            frame->next = (struct memory_pool_frame_header *)
+                          create_memory_pool (frame->entitysize);
         }
-    }
+    } while ((frame = frame->next) != (struct memory_pool_frame_header *)0);
 
-    if (frame->next == (struct memory_pool_frame_header *)0) {
-        struct memory_pool *n = create_memory_pool (frame->entitysize);
-        if (n == (struct memory_pool *)0) return (void *)0;
-
-        frame->next = (struct memory_pool_frame_header *)n;
-    }
-
-    return get_pool_mem_inner(pool, frame->next);
+    return (void *)0;
 }
 /*@=memtrans =branchstate@*/
 
