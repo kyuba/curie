@@ -59,8 +59,10 @@
 .data
 get_mem_recovery:
         .long 0x0
+        .long 0x0
 
 resize_mem_recovery:
+        .long 0x0
         .long 0x0
 
 .text
@@ -108,12 +110,12 @@ negative_result:
         popq %rsi
         popq %rdi
 
-        leave
         cmp $0, %r11
         jz rnr
-        jmp *%r11
+        call %r11
 
-rnr:    ret
+rnr:    leave
+        ret
 
 get_mem_chunk:
         movq $0x1000, %rsi

@@ -47,15 +47,14 @@ static struct memory_pool *static_pools[LIBCURIE_PAGE_SIZE / ENTITY_ALIGNMENT];
 
 #define bitmap_getslot(b) ((unsigned int)((b) / BITSPERBITMAPENTITY))
 
-#define bitmap_set(m,b)\
-    m[bitmap_getslot(b)] |= 1 << (b%BITSPERBITMAPENTITY)
+#define bitmap_set(m,b,c)\
+    m[c] |= 1 << (b%BITSPERBITMAPENTITY)
+
+#define bitmap_isset(m,b,c)\
+    ((unsigned char)((m[c] & (1 << (b%BITSPERBITMAPENTITY))) != 0))
 
 #define bitmap_clear(m,b)\
     m[bitmap_getslot(b)] &= ~(1 << (b%BITSPERBITMAPENTITY))
-
-#define bitmap_isset(m,b)\
-    ((unsigned char)((m[bitmap_getslot(b)] &\
-        (1 << (b%BITSPERBITMAPENTITY))) != 0))
 
 struct memory_pool *create_memory_pool (unsigned long int entitysize)
 {
@@ -120,11 +119,12 @@ void free_memory_pool (struct memory_pool *pool)
                 if (high > frame->maxentities) high = frame->maxentities;
 
                 do {
-                    if (bitmap_isset(frame->map, index) == (unsigned char)0)
+                    if (bitmap_isset(frame->map, index, cell)
+                        == (unsigned char)0)
                     {
                         char *frame_mem_start = (char *)frame + sizeof(struct memory_pool_frame_header);
 
-                        bitmap_set(frame->map, index);
+                        bitmap_set(frame->map, index, cell);
 
                         if ((pool != frame) &&
                             (pool->next != (struct memory_pool_frame_header *)0)
