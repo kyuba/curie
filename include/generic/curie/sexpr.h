@@ -266,6 +266,15 @@ void sx_write
 #define make_special(code)\
         ((sexpr)((((int_pointer)(code)) << 3) | 0x5))
 
+#define define_sosi(t,n,s) \
+    static const struct sexpr_string_or_symbol sexpr_payload_ ## n =\
+        { t, -1, s };\
+    static const sexpr n = ((const sexpr)&(sexpr_payload_ ## n))
+
+#define define_string(name,value) define_sosi(sxt_string,name,value)
+
+#define define_symbol(name,value) define_sosi(sxt_symbol,name,value)
+
 /*! \brief Create a new String
  *  \param[in] string The string to use.
  *  \return The new s-expression, or sx_nonexistent if there's not enough

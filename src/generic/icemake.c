@@ -70,33 +70,47 @@ static char archbuffer   [BUFFERSIZE];
 static char *archprefix;
 static char *tcversion                 = (char *)0;
 
-static sexpr sym_library               = sx_false;
-static sexpr sym_libraries             = sx_false;
-static sexpr sym_test_cases            = sx_false;
-static sexpr sym_test_case_reference   = sx_false;
-static sexpr sym_programme             = sx_false;
-static sexpr sym_hosted                = sx_false;
-static sexpr sym_code                  = sx_false;
-static sexpr sym_headers               = sx_false;
-static sexpr sym_link                  = sx_false;
-static sexpr sym_use_objects           = sx_false;
-static sexpr sym_assembly              = sx_false;
-static sexpr sym_cpp                   = sx_false;
-static sexpr sym_c                     = sx_false;
-static sexpr sym_libc                  = sx_false;
-static sexpr sym_libcurie              = sx_false;
-static sexpr sym_freestanding          = sx_false;
-static sexpr sym_freestanding_if_asm   = sx_false;
-static sexpr sym_data                  = sx_false;
-static sexpr sym_description           = sx_false;
-static sexpr sym_version               = sx_false;
-static sexpr sym_name                  = sx_false;
-static sexpr sym_url                   = sx_false;
-static sexpr str_bootstrap             = sx_false;
-static sexpr str_curie                 = sx_false;
-static sexpr str_curie_bootstrap       = sx_false;
-static sexpr str_static                = sx_false;
-static sexpr str_lc                    = sx_false;
+define_symbol (sym_library,             "library");
+define_symbol (sym_libraries,           "libraries");
+define_symbol (sym_test_cases,          "test-cases");
+define_symbol (sym_test_case_reference, "test-case-reference");
+define_symbol (sym_programme,           "programme");
+define_symbol (sym_hosted,              "hosted");
+define_symbol (sym_code,                "code");
+define_symbol (sym_headers,             "headers");
+define_symbol (sym_link,                "link");
+define_symbol (sym_use_objects,         "use-objects");
+define_symbol (sym_assembly,            "assembly");
+define_symbol (sym_cpp,                 "C++");
+define_symbol (sym_c,                   "C");
+define_symbol (sym_libc,                "libc");
+define_symbol (sym_libcurie,            "libcurie");
+define_symbol (sym_freestanding,        "freestanding");
+define_symbol (sym_freestanding_if_asm, "freestanding-if-assembly");
+define_symbol (sym_data,                "data");
+define_symbol (sym_description,         "description");
+define_symbol (sym_version,             "version");
+define_symbol (sym_name,                "name");
+define_symbol (sym_url,                 "url");
+define_symbol (sym_failed,              "failed");
+define_string (str_bootstrap,           "bootstrap");
+define_string (str_curie,               "curie");
+define_string (str_curie_bootstrap,     "curie-bootstrap");
+define_string (str_static,              "-static");
+define_string (str_lc,                  "c");
+define_string (str_do,                  "-o");
+define_string (str_dc,                  "-c");
+define_string (str_dr,                  "-r");
+define_string (str_dposix,              "-DPOSIX");
+define_string (str_dgcc,                "-DGCC");
+define_string (str_fnoexceptions,       "-fno-exceptions");
+define_string (str_src,                 "src");
+define_string (str_tests,               "tests");
+define_string (str_include,             "include");
+define_string (str_data,                "data");
+define_string (str_stdc99,              "--std=c99");
+define_string (str_wall,                "-Wall");
+define_string (str_pedantic,            "-pedantic");
 
 static int alive_processes             = 0;
 static int files_open                  = 0;
@@ -284,7 +298,7 @@ static sexpr find_code_with_suffix (sexpr file, char *s)
 
     snprintf (buffer, BUFFERSIZE, "%s%s", sx_string(file), s);
 
-    r = find_in_permutations (make_string("src"), (sr = make_string (buffer)));
+    r = find_in_permutations (str_src, (sr = make_string (buffer)));
 
     return r;
 }
@@ -296,7 +310,7 @@ static sexpr find_test_case_with_suffix (sexpr file, char *s)
 
     snprintf (buffer, BUFFERSIZE, "%s%s", sx_string(file), s);
 
-    r = find_in_permutations (make_string("tests"), (sr = make_string (buffer)));
+    r = find_in_permutations (str_tests, (sr = make_string (buffer)));
 
     return r;
 }
@@ -338,7 +352,7 @@ static sexpr find_header_with_suffix (sexpr name, sexpr file, char *s)
 
     snprintf (buffer, BUFFERSIZE, "%s/%s%s", sx_string(name), sx_string(file), s);
 
-    r = find_in_permutations (make_string("include"), (sr = make_string (buffer)));
+    r = find_in_permutations (str_include, (sr = make_string (buffer)));
 
     return r;
 }
@@ -474,7 +488,7 @@ static sexpr find_data (struct target *context, sexpr file)
 {
     sexpr r;
 
-    if ((r = find_in_permutations (make_string("data"), file)), !stringp(r))
+    if ((r = find_in_permutations (str_data, file)), !stringp(r))
     {
         fprintf (stderr, "missing data file: %s\n", sx_string(file));
         exit(21);
@@ -782,7 +796,7 @@ static sexpr permutate_paths (sexpr p)
 
 static sexpr prepend_includes_gcc (sexpr x)
 {
-    sexpr include_paths = permutate_paths (make_string ("include"));
+    sexpr include_paths = permutate_paths (str_include);
     sexpr cur = include_paths;
 
     while (consp (cur))
@@ -819,7 +833,8 @@ static sexpr prepend_ccflags_gcc (sexpr x)
 
 static sexpr prepend_cflags_gcc (sexpr x)
 {
-    static sexpr str_ffreestanding = sx_false;
+    define_string (str_ffreestanding, "-ffreestanding");
+
     char *f = getenv ("CFLAGS");
 
     if (f != (char *)0)
@@ -853,11 +868,6 @@ static sexpr prepend_cflags_gcc (sexpr x)
         }
 
         while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
-    }
-
-    if (falsep(str_ffreestanding))
-    {
-        str_ffreestanding = make_string ("-ffreestanding");
     }
 
     if (truep (co_freestanding))
@@ -912,9 +922,9 @@ static void build_object_gcc_assembly (const char *source, const char *target)
 {
     workstack
         = cons (cons (p_assembler,
-/*                  cons (make_string ("-c"),*/
+/*                  cons (str_dc,*/
                     cons (make_string (source),
-                      cons (make_string ("-o"),
+                      cons (str_do,
                         cons (make_string(target), sx_end_of_list))))/*)*/
                 , workstack);
 }
@@ -923,16 +933,16 @@ static void build_object_gcc_c (const char *source, const char *target)
 {
     workstack
         = cons (cons (p_c_compiler,
-                  cons (make_string ("-DPOSIX"),
-                  cons (make_string ("-DGCC"),
-                  cons (make_string ("--std=c99"),
-                    cons (make_string ("-Wall"),
-                      cons (make_string ("-pedantic"),
+                  cons (str_dposix,
+                  cons (str_dgcc,
+                  cons (str_stdc99,
+                    cons (str_wall,
+                      cons (str_pedantic,
                         prepend_cflags_gcc (
                         prepend_includes_gcc (
-                          cons (make_string ("-c"),
+                          cons (str_dc,
                             cons (make_string (source),
-                              cons (make_string ("-o"),
+                              cons (str_do,
                                 cons (make_string(target), sx_end_of_list))))))))))))
                 , workstack);
 }
@@ -941,14 +951,14 @@ static void build_object_gcc_cpp (const char *source, const char *target)
 {
     workstack
         = cons (cons (p_cpp_compiler,
-                  cons (make_string ("-DPOSIX"),
-                  cons (make_string ("-DGCC"),
-                  cons (make_string ("-fno-exceptions"),
+                  cons (str_dposix,
+                  cons (str_dgcc,
+                  cons (str_fnoexceptions,
                     prepend_cxxflags_gcc (
                     prepend_includes_gcc (
-                      cons (make_string ("-c"),
+                      cons (str_dc,
                         cons (make_string (source),
-                          cons (make_string ("-o"),
+                          cons (str_do,
                             cons (make_string(target), sx_end_of_list))))))))))
                 , workstack);
 }
@@ -1121,7 +1131,7 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
     if (!havelib) {
         workstack
                 = cons (cons (p_archiver,
-                        cons (make_string ("-r"),
+                        cons (str_dr,
                               cons (make_string (buffer),
                                     sx)))
                 , workstack);
@@ -1158,34 +1168,18 @@ static void map_includes_gcc (struct tree_node *node, void *psx)
 
 static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
 {
-    static sexpr str_u                 = sx_false;
-    static sexpr str_e                 = sx_false;
-    static sexpr str_start             = sx_false;
-    static sexpr str_nostdlib          = sx_false;
-    static sexpr str_nostartfiles      = sx_false;
-    static sexpr str_nodefaultlibs     = sx_false;
-    static sexpr str_Wlx               = sx_false;
-    static sexpr str_Wls               = sx_false;
-    static sexpr str_Wlznoexecstack    = sx_false;
-    static sexpr str_Wlznorelro        = sx_false;
-    static sexpr str_Wlgcsections      = sx_false;
-    static sexpr str_Wlsortcommon      = sx_false;
-
-    if (falsep(str_u))
-    {
-        str_u                          = make_string ("-u");
-        str_e                          = make_string ("-e");
-        str_start                      = make_string ("_start");
-        str_nostdlib                   = make_string ("-nostdlib");
-        str_nostartfiles               = make_string ("-nostartfiles");
-        str_nodefaultlibs              = make_string ("-nodefaultlibs");
-        str_Wlx                        = make_string ("-Wl,-x");
-        str_Wls                        = make_string ("-Wl,-s");
-        str_Wlznoexecstack             = make_string ("-Wl,-z,noexecstack");
-        str_Wlznorelro                 = make_string ("-Wl,-z,norelro");
-        str_Wlgcsections               = make_string ("-Wl,--gc-sections");
-        str_Wlsortcommon               = make_string ("-Wl,--sort-common");
-    }
+    define_string (str_u,              "-u");
+    define_string (str_e,              "-e");
+    define_string (str_start,          "_start");
+    define_string (str_nostdlib,       "-nostdlib");
+    define_string (str_nodefaultlibs,  "-nodefaultlibs");
+    define_string (str_nostartfiles,   "-nostartfiles");
+    define_string (str_Wlx,            "-Wl,-x");
+    define_string (str_Wls,            "-Wl,-s");
+    define_string (str_Wlznoexecstack, "-Wl,-z,noexecstack");
+    define_string (str_Wlznorelro,     "-Wl,-z,norelro");
+    define_string (str_Wlgcsections,   "-Wl,--gc-sections");
+    define_string (str_Wlsortcommon,   "-Wl,--sort-common");
 
     if (truep(i_optimise_linking))
     {
@@ -1322,7 +1316,7 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
                 = cons (cons (p_linker,
                         get_libc_linker_options_gcc (t,
                                 get_special_linker_options_gcc (
-                                        cons (make_string ("-o"),
+                                        cons (str_do,
                                               cons (ofile,
                                                       sx)))))
                 , workstack);
@@ -2077,7 +2071,7 @@ static void process_on_death(struct exec_context *context, void *p)
 
         if (context->exitstatus != 0)
         {
-            sx_write (stdio, cons (make_symbol ("failed"),
+            sx_write (stdio, cons (sym_failed,
                                    cons (make_integer (context->exitstatus),
                                          cons (sx,
                                              sx_end_of_list))));
@@ -2665,34 +2659,6 @@ int main (int argc, char **argv, char **environ)
     if ((q == 6) && (uname_os[q] == 0)) i_os = os_darwin;
     for (q = 0; uname_os[q] && "linux"[q]; q++);
     if ((q == 5) && (uname_os[q] == 0)) i_os = os_linux;
-
-    sym_library             = make_symbol ("library");
-    sym_libraries           = make_symbol ("libraries");
-    sym_test_cases          = make_symbol ("test-cases");
-    sym_test_case_reference = make_symbol ("test-case-reference");
-    sym_programme           = make_symbol ("programme");
-    sym_hosted              = make_symbol ("hosted");
-    sym_code                = make_symbol ("code");
-    sym_headers             = make_symbol ("headers");
-    sym_use_objects         = make_symbol ("use-objects");
-    sym_assembly            = make_symbol ("assembly");
-    sym_cpp                 = make_symbol ("C++");
-    sym_c                   = make_symbol ("C");
-    sym_link                = make_symbol ("link");
-    sym_libc                = make_symbol ("libc");
-    sym_libcurie            = make_symbol ("libcurie");
-    sym_freestanding        = make_symbol ("freestanding");
-    sym_freestanding_if_asm = make_symbol ("freestanding-if-assembly");
-    sym_data                = make_symbol ("data");
-    sym_description         = make_symbol ("description");
-    sym_name                = make_symbol ("name");
-    sym_version             = make_symbol ("version");
-    sym_url                 = make_symbol ("url");
-    str_bootstrap           = make_string ("bootstrap");
-    str_curie               = make_string ("curie");
-    str_curie_bootstrap     = make_string ("curie-bootstrap");
-    str_static              = make_string ("-static");
-    str_lc                  = make_string ("c");
 
     stdio                   = sx_open_stdio();
 

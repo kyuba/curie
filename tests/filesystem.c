@@ -39,8 +39,8 @@
 #include "curie/filesystem.h"
 
 int cmain(void) {
-    sexpr tess  = make_string("tess");
-    sexpr tests = make_string("tests");
+    define_string (tess, "tess");
+    define_string (tests, "tests");
 
     if (truep (filep (tess))) return 1;
     if (truep (linkp (tess))) return 2;

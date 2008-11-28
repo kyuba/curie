@@ -39,15 +39,16 @@
 #include "curie/io.h"
 #include "curie/sexpr.h"
 
-#define SX_TEST_STRING "hello world!"
+define_string(str_hello_world, "hello world!");
+
 #define SX_TEST_INTEGER (signed long int)1337
 #define SX_TEST_INTEGER2 (signed long int)-23
 
 int cmain(void) {
     struct io *out = io_open_write ("temporary-sexpr-write"), *in = io_open (0);
     struct sexpr_io *io = sx_open_io (in, out);
-    sexpr s  = make_string (SX_TEST_STRING);
-    sexpr s1 = make_string (SX_TEST_STRING);
+    sexpr s  = str_hello_world;
+    sexpr s1 = str_hello_world;
     sexpr s2 = make_integer(SX_TEST_INTEGER);
     sexpr list;
 

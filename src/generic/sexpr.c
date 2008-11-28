@@ -121,6 +121,8 @@ void sx_destroy(sexpr sxx) {
         struct sexpr_string_or_symbol *sx
                 = (struct sexpr_string_or_symbol *)sx_pointer(sxx);
 
+        if (sx->references == -1) return;
+
         if (sx->references > 1)
         {
             (sx->references)--;
@@ -146,6 +148,8 @@ void sx_destroy(sexpr sxx) {
         struct sexpr_cons *sx
                 = (struct sexpr_cons *)sx_pointer(sxx);
 
+        if (sx->references == -1) return;
+
         sx_destroy ((sexpr) car (sx));
         sx_destroy ((sexpr) cdr (sx));
 
@@ -168,6 +172,8 @@ void sx_xref(sexpr sxx) {
         struct sexpr_string_or_symbol *sx
                 = (struct sexpr_string_or_symbol *)sx_pointer(sxx);
 
+        if (sx->references == -1) return;
+
         (sx->references) += 1;
     }
     else if (consp(sxx))
@@ -177,6 +183,8 @@ void sx_xref(sexpr sxx) {
 
         sx_xref(car(sx));
         sx_xref(cdr(sx));
+
+        if (sx->references == -1) return;
 
         (sx->references) += 1;
     }

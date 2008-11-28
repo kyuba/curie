@@ -41,8 +41,10 @@
 
 #include <curie/sexpr-internal.h>
 
-#define TEST_STRING_1 "hello-world!"
-#define TEST_STRING_2 "hello \"world\"!"
+define_symbol(test_symbol_1, "hello-world!");
+define_string(test_string_1, "hello \"world\"!");
+define_symbol(sym_success, "success");
+define_symbol(sym_failure, "failure");
 
 int cmain(void) {
     struct io *in, *out;
@@ -55,8 +57,8 @@ int cmain(void) {
     io = sx_open_io(in, out);
     stdio = sx_open_stdio();
 
-    t1 = make_symbol(TEST_STRING_1);
-    t2 = make_string(TEST_STRING_2);
+    t1 = test_symbol_1;
+    t2 = test_string_1;
 
     sx_write (io, t1);
     sx_write (io, t2);
@@ -87,9 +89,9 @@ int cmain(void) {
     rv |= (nexp(i) ? 0 : 1) << 3;
 
     if (rv != 0) {
-        sx_write (stdio, (i = make_symbol("failure")));
+        sx_write (stdio, sym_failure);
     } else {
-        sx_write (stdio, (i = make_symbol("success")));
+        sx_write (stdio, sym_success);
     }
 
     sx_destroy (i);

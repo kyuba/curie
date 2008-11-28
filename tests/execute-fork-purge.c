@@ -44,13 +44,18 @@
 #define TEST_STRING_1 "hello-world!"
 #define TEST_STRING_2 "hello \"world\"!"
 
+define_symbol(test_symbol_1, "hello-world!");
+define_string(test_string_1, "hello \"world\"!");
+define_symbol(sym_success, "success");
+define_symbol(sym_failure, "failure");
+
 int cmain(void) {
     struct exec_context *context;
     int rv = 0;
     sexpr i,
-          t1 = make_symbol (TEST_STRING_1),
-          t2 = make_string (TEST_STRING_2),
-          t3 = make_symbol ("success");
+          t1 = test_symbol_1,
+          t2 = test_string_1,
+          t3 = sym_success;
     struct sexpr_io *io, *stdio;
 
     context = execute(EXEC_CALL_PURGE, (char **)0, (char **)0);
@@ -59,8 +64,7 @@ int cmain(void) {
 
     switch (context->pid) {
         case -1: /* only way this would fail ... */
-            sx_write (stdio, (i = make_symbol ("failure")));
-            sx_destroy (i);
+            sx_write (stdio, sym_failure);
             return 1;
         case 0:
             {
@@ -108,10 +112,8 @@ int cmain(void) {
     }
 
     if (rv != 0) {
-        sx_write (stdio, (i = make_symbol ("failure")));
-        sx_destroy (i);
-        sx_write (stdio, (i = make_integer (rv)));
-        sx_destroy (i);
+        sx_write (stdio, sym_failure);
+        sx_write (stdio, make_integer (rv));
     } else {
         sx_write (stdio, t3);
     }

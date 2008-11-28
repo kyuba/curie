@@ -69,7 +69,7 @@ static void sx_read_parent(sexpr sx, struct sexpr_io *io, sexpr sx_tests[4])
 {
     static int num = 0;
 
-    if (equalp(sx, sx_tests[num])) {
+    if (truep(equalp(sx, sx_tests[num]))) {
         if (num == 3) {
             sx_close_io (io);
             cexit (0);
@@ -92,19 +92,22 @@ static void sx_on_connect(struct sexpr_io *io, sexpr sx_tests[4]) {
 
 static void sx_read_child_confirmation(sexpr sx, struct sexpr_io *io, void *d)
 {
-    if ((void *)sx == d) {
+    if (truep(equalp(sx, (sexpr)d))) {
         multiplex_add_socket_sx ("test-socket-sexpr-io", sx_read_child, (void *)0);
     }
 }
 
 int cmain(void) {
+    define_string (str_hello_world, "hello world!");
+    define_symbol (sym_meow, "meow");
+    define_symbol (commence, "commence");
+
     struct exec_context *context;
-    sexpr commence = make_symbol ("commence");
 
     sexpr sx_tests[4] = {
-        make_string ("hello world!"),
+        str_hello_world,
         make_integer (1337),
-        make_symbol ("meow"),
+        sym_meow,
         make_integer (-23)
     };
 
