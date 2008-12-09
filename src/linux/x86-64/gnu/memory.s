@@ -112,7 +112,7 @@ negative_result:
 
         cmp $0, %r11
         jz rnr
-        call %r11
+        call *%r11
 
 rnr:    leave
         ret
