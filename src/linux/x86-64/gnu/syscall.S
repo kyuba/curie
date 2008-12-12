@@ -36,6 +36,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* C-functions: */
+/* rdi rsi rdx rcx r8 r9 */
+/* kernel: */
+/* rdi rsi rdx r10 r8 r9 */
+
 #define define_syscall0(a,b,c,r)\
 .globl c;\
 .type c, @function;\
@@ -44,11 +49,21 @@ c:\
         syscall;\
         ret;
 
+#define define_syscall4(a,b,c,r,p1,p2,p3,p4)\
+.globl c;\
+.type c, @function;\
+c:\
+        movq %rcx, %r10
+        movq a, %rdi;\
+        syscall;\
+        ret;
+
 #define define_syscall1(a,b,c,r,p1) define_syscall0(a,b,c,r)
 #define define_syscall2(a,b,c,r,p1,p2) define_syscall0(a,b,c,r)
 #define define_syscall3(a,b,c,r,p1,p2,p3) define_syscall0(a,b,c,r)
-#define define_syscall4(a,b,c,r,p1,p2,p3,p4) define_syscall0(a,b,c,r)
-#define define_syscall5(a,b,c,r,p1,p2,p3,p4,p5) define_syscall0(a,b,c,r)
-#define define_syscall6(a,b,c,r,p1,p2,p3,p4,p5,p6) define_syscall0(a,b,c,r)
+#define define_syscall5(a,b,c,r,p1,p2,p3,p4,p5) define_syscall4(a,b,c,r,p1,p2,p3,p4)
+#define define_syscall6(a,b,c,r,p1,p2,p3,p4,p5,p6) define_syscall4(a,b,c,r,p1,p2,p3,p4)
 
 #include <syscall/syscall.h>
+
+.section .note.GNU-stack,"",%progbits
