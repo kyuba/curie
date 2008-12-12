@@ -81,6 +81,7 @@ define_symbol (sym_headers,             "headers");
 define_symbol (sym_link,                "link");
 define_symbol (sym_use_objects,         "use-objects");
 define_symbol (sym_assembly,            "assembly");
+define_symbol (sym_preproc_assembly,    "preprocessed-assembly");
 define_symbol (sym_cpp,                 "C++");
 define_symbol (sym_c,                   "C");
 define_symbol (sym_libc,                "libc");
@@ -389,31 +390,44 @@ static sexpr generate_test_executable_file_name (sexpr name, sexpr file)
     return make_string(buffer);
 }
 
+static sexpr find_code_highlevel (struct target *context, sexpr file)
+{
+    sexpr r;
+    char buffer[BUFFERSIZE];
+    sexpr subfile;
+
+    snprintf (buffer, BUFFERSIZE, "%s-highlevel", sx_string (file));
+    subfile = make_string (buffer);
+
+    if (((r = find_code_cpp (subfile)), stringp(r)))
+    {
+        return cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list)));
+    }
+    else if (((r = find_code_c (subfile)), stringp(r)))
+    {
+        return cons(sym_c, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list)));
+    }
+
+    return sx_false;
+}
+
 static void find_code (struct target *context, sexpr file)
 {
     sexpr r;
     sexpr primus   = sx_false;
     sexpr secundus = sx_false;
 
-    if (((r = find_code_S (file)), stringp(r)) ||
-        ((r = find_code_s (file)), stringp(r)))
+    if ((r = find_code_S (file)), stringp(r))
     {
-        char buffer[BUFFERSIZE];
-        sexpr subfile;
+        primus = cons(sym_preproc_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
 
+        secundus = find_code_highlevel(context, file);
+    }
+    else if ((r = find_code_s (file)), stringp(r))
+    {
         primus = cons(sym_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
 
-        snprintf (buffer, BUFFERSIZE, "%s-highlevel", sx_string (file));
-        subfile = make_string (buffer);
-
-        if (((r = find_code_cpp (subfile)), stringp(r)))
-        {
-            secundus = cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list)));
-        }
-        else if (((r = find_code_c (subfile)), stringp(r)))
-        {
-            secundus = cons(sym_c, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list)));
-        }
+        secundus = find_code_highlevel(context, file);
     }
     else if (((r = find_code_cpp (file)), stringp(r)))
     {
@@ -929,6 +943,18 @@ static void build_object_gcc_assembly (const char *source, const char *target)
                 , workstack);
 }
 
+static void build_object_gcc_preproc_assembly (const char *source, const char *target)
+{
+    workstack
+        = cons (cons (p_c_compiler,
+                  prepend_includes_gcc (
+                    cons (str_dc,
+                      cons (make_string (source),
+                        cons (str_do,
+                          cons (make_string(target), sx_end_of_list))))))
+                , workstack);
+}
+
 static void build_object_gcc_c (const char *source, const char *target)
 {
     workstack
@@ -970,6 +996,10 @@ static void build_object_gcc (sexpr type, sexpr source, sexpr target)
     if (truep(equalp(type, sym_assembly)))
     {
         build_object_gcc_assembly (sx_string(source), sx_string(target));
+    }
+    else if (truep(equalp(type, sym_preproc_assembly)))
+    {
+        build_object_gcc_preproc_assembly (sx_string(source), sx_string(target));
     }
     else if (truep(equalp(type, sym_c)))
     {

@@ -54,6 +54,17 @@
 (programme "icemake" hosted libcurie
   (name "ICE make")
   (description "simple build tool for curie, based on curie")
-  (version "1")
+  (version "2")
 
   (code "icemake"))
+
+(library "syscall" libcurie
+  (name "libsyscall")
+  (description "raw syscall library, useful for implementing libcs and low-level system tools")
+  (version "1")
+
+  (code "syscall")
+
+  (headers
+        "syscall"))
+
