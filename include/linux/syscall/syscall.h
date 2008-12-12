@@ -40,7 +40,7 @@
  *  \brief Syscall Header (Linux)
  */
 
-
+#ifndef LIBSYSCALL_SYSCALL_H
 #define LIBSYSCALL_SYSCALL_H
 
 #define linux_syscalls
@@ -77,8 +77,7 @@
 
 #ifdef __NR_read
 define_syscall0 (__NR_read, read, linux_read, void)
-
-
+#endif
 #ifdef __NR_write
 define_syscall0 (__NR_write, write, linux_write, void)
 #endif
