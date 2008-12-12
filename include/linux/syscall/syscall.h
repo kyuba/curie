@@ -48,31 +48,38 @@
 #include <asm/unistd.h>
 
 #ifndef define_syscall0
-#define define_syscall0(num,id,rid,rettype)
+#define define_syscall0(num,id,rid,rettype)\
+rettype rid ();
 #endif
 
 #ifndef define_syscall1
-#define define_syscall1(num,id,rid,rettype,p1type)
+#define define_syscall1(num,id,rid,rettype,p1type)\
+rettype rid (p1type a1);
 #endif
 
 #ifndef define_syscall2
-#define define_syscall2(num,id,rid,rettype,p1type,p2type)
+#define define_syscall2(num,id,rid,rettype,p1type,p2type)\
+rettype rid (p1type a1, p2type a2);
 #endif
 
 #ifndef define_syscall3
-#define define_syscall3(num,id,rid,rettype,p1type,p2type,p3type)
+#define define_syscall3(num,id,rid,rettype,p1type,p2type,p3type)\
+rettype rid (p1type a1, p2type a2, p3type a3);
 #endif
 
 #ifndef define_syscall4
-#define define_syscall4(num,id,rid,rettype,p1type,p2type,p3type,p4type)
+#define define_syscall4(num,id,rid,rettype,p1type,p2type,p3type,p4type)\
+rettype rid (p1type a1, p2type a2, p3type a3, p4type a4);
 #endif
 
 #ifndef define_syscall5
-#define define_syscall5(num,id,rid,rettype,p1type,p2type,p3type,p4type,p5type)
+#define define_syscall5(num,id,rid,rettype,p1type,p2type,p3type,p4type,p5type)\
+rettype rid (p1type a1, p2type a2, p3type a3, p4type a4, p5type a5);
 #endif
 
 #ifndef define_syscall6
-#define define_syscall6(num,id,rid,rettype,p1type,p2type,p3type,p4type,p5type,p6type)
+#define define_syscall6(num,id,rid,rettype,p1type,p2type,p3type,p4type,p5type,p6type)\
+rettype rid (p1type a1, p2type a2, p3type a3, p4type a4, p5type a5, p6type a6);
 #endif
 
 #ifdef __NR_read
