@@ -83,7 +83,7 @@ rettype rid (p1type a1, p2type a2, p3type a3, p4type a4, p5type a5, p6type a6);
 #endif
 
 #ifdef __NR_read
-define_syscall0 (__NR_read, read, linux_read, int)
+define_syscall3 (__NR_read, read, linux_read, int, int, void *, int)
 #endif
 #ifdef __NR_write
 define_syscall0 (__NR_write, write, linux_write, int)

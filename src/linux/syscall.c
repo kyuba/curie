@@ -50,7 +50,7 @@ r c (p1 a1) { return (r)syscall(a, a1); }
 r c (p1 a1, p2 a2) { return (r)syscall(a, a1, a2); }
 
 #define define_syscall3(a,b,c,r,p1,p2,p3)\
-r c (p1 a1, p2 a2, p3, a3) { return (r)syscall(a, a1, a2, a3); }
+r c (p1 a1, p2 a2, p3 a3) { return (r)syscall(a, a1, a2, a3); }
 
 #define define_syscall4(a,b,c,r,p1,p2,p3,p4)\
 r c (p1 a1, p2 a2, p3 a3, p4 a4) { return (r)syscall(a, a1, a2, a3, a4); }
