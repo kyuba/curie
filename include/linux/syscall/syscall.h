@@ -83,41 +83,42 @@ rettype rid (p1type a1, p2type a2, p3type a3, p4type a4, p5type a5, p6type a6);
 #endif
 
 #ifdef __NR_read
-define_syscall3 (__NR_read, read, linux_read, int, int, void *, int)
+define_syscall3 (__NR_read, read, linux_read, signed int, unsigned int, void *, unsigned int)
 #endif
 #ifdef __NR_write
-define_syscall0 (__NR_write, write, linux_write, int)
+define_syscall3 (__NR_write, write, linux_write, signed int, unsigned int, void *, unsigned int)
 #endif
 #ifdef __NR_open
-define_syscall0 (__NR_open, open, linux_open, int)
+define_syscall3 (__NR_open, open, linux_open, long, const char *, int, int)
 #endif
 #ifdef __NR_close
-define_syscall0 (__NR_close, close, linux_close, int)
+define_syscall1 (__NR_close, close, linux_close, long, unsigned int)
 #endif
 #ifdef __NR_stat
-define_syscall0 (__NR_stat, stat, linux_stat, int)
+define_syscall2 (__NR_stat, stat, linux_stat, long, char *, void *)
 #endif
 #ifdef __NR_fstat
-define_syscall0 (__NR_fstat, fstat, linux_fstat, int)
+define_syscall2 (__NR_fstat, fstat, linux_fstat, long, unsigned int, void *)
 #endif
 #ifdef __NR_lstat
-define_syscall0 (__NR_lstat, lstat, linux_lstat, int)
+define_syscall2 (__NR_lstat, lstat, linux_lstat, long, char *, void *)
 #endif
 #ifdef __NR_poll
-define_syscall0 (__NR_poll, poll, linux_poll, int)
+define_syscall3 (__NR_poll, poll, linux_poll, long, void *, unsigned int, long)
 #endif
 #ifdef __NR_lseek
-define_syscall0 (__NR_lseek, lseek, linux_lseek, int)
+define_syscall3 (__NR_lseek, lseek, linux_lseek, int, unsigned int, int, unsigned int)
 #endif
 #ifdef __NR_mmap
-define_syscall0 (__NR_mmap, mmap, linux_mmap, int)
+define_syscall5 (__NR_mmap, mmap, linux_mmap, void *, void *, int, int, int, int)
 #endif
 #ifdef __NR_mprotect
-define_syscall0 (__NR_mprotect, mprotect, linux_mprotect, int)
+define_syscall3 (__NR_mprotect, mprotect, linux_mprotect, int, void *, int, int)
 #endif
 #ifdef __NR_munmap
-define_syscall0 (__NR_munmap, munmap, linux_munmap, int)
+define_syscall2 (__NR_munmap, munmap, linux_munmap, int, void *, int)
 #endif
+#if 0
 #ifdef __NR_brk
 define_syscall0 (__NR_brk, brk, linux_brk, int)
 #endif
@@ -939,6 +940,7 @@ define_syscall0 (__NR_eventfd, eventfd, linux_eventfd, int)
 #endif
 #ifdef __NR_fallocate
 define_syscall0 (__NR_fallocate, fallocate, linux_fallocate, int)
+#endif
 #endif
 
 #endif
