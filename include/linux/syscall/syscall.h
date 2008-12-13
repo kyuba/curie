@@ -310,23 +310,23 @@ define_syscall3 (__NR_getpeername, getpeername, sys_getpeername, long, int, void
 #define have_sys_socketpair
 define_syscall4 (__NR_socketpair, socketpair, sys_socketpair, long, int, int, int, int *)
 #endif
-#if 0
 #ifdef __NR_setsockopt
 #define have_sys_setsockopt
-define_syscall0 (__NR_setsockopt, setsockopt, sys_setsockopt, int)
+define_syscall5 (__NR_setsockopt, setsockopt, sys_setsockopt, long, int, int, int, char *, int *)
 #endif
 #ifdef __NR_getsockopt
 #define have_sys_getsockopt
-define_syscall0 (__NR_getsockopt, getsockopt, sys_getsockopt, int)
+define_syscall5 (__NR_getsockopt, getsockopt, sys_getsockopt, long, int, int, int, char *, int *)
 #endif
 #ifdef __NR_clone
 #define have_sys_clone
-define_syscall0 (__NR_clone, clone, sys_clone, int)
+define_syscall6 (__NR_clone, clone, sys_clone, int, unsigned long, unsigned long, int *, void *, int *, int)
 #endif
 #ifdef __NR_fork
 #define have_sys_fork
-define_syscall0 (__NR_fork, fork, sys_fork, int)
+define_syscall6 (__NR_fork, fork, sys_fork, int, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long)
 #endif
+#if 0
 #ifdef __NR_vfork
 #define have_sys_vfork
 define_syscall0 (__NR_vfork, vfork, sys_vfork, int)
