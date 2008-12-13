@@ -320,7 +320,7 @@ define_syscall5 (__NR_getsockopt, getsockopt, sys_getsockopt, long, int, int, in
 #endif
 #ifdef __NR_clone
 #define have_sys_clone
-define_syscall2 (__NR_clone, clone, sys_clone, int, unsigned long, unsigned long)
+define_syscall2 (__NR_clone, clone, sys_clone, int, void *, unsigned long)
 #endif
 #ifdef __NR_fork
 #define have_sys_fork
