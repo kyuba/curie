@@ -91,6 +91,10 @@ enum sx_type {
     sxt_string = 4,           /*!< String, i.e. "string" */
     sxt_symbol = 5,           /*!< Symbol, i.e. symbol */
     sxt_cons = 6,             /*!< Cons, i.e. (x . y) */
+    sxt_vector = 20,
+    sxt_graph_root = 21,
+    sxt_tree_root = 22,
+    sxt_tree_leaf = 23
 };
 
 /*! \brief S-Expression Header
