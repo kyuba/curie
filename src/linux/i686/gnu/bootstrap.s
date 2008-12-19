@@ -6,7 +6,6 @@
  *  Based on Magnus Deininger's x86-64 bootstrap code.
  *  Copyright 2008 Joshua Keyes. All rights reserved.
  *
- *  Doesn't support argv||envp due to x86 assembly failure.
  */
 
 /*
@@ -65,12 +64,25 @@ curie_environment:
         .type cexit,              @function
 
 _start:
-        pushl	%ebp
-        movl	%esp, %ebp
+        /* Fox! Clear the frame pointer! */
+        xorl    %ebp, %ebp
+
+        /* The frame pointer is cleared; argc is in %esi and argv is
+         * perched neatly on top of the stack. Don't prod it, for it
+         * is quick to anger and could may maul your face. CRIKEY! */
+        popl    %esi
+        movl    %esp, %ecx
+
+        /* Remember that the stack can be finicky. Like woman, when one
+           disturbs the specimen unnecessarily, results can be violent 
+           and likely fatal. Push top of stack anyway along with argc 
+           and argv respectively, and hope for the best. */
+        pushl   %esp
+        pushl   %ecx
+        pushl   %esi
 
         call    cmain
 
-        popl    %ebp
         movl    %eax, %ebx
 
 cexit:
