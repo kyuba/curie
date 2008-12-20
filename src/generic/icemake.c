@@ -417,30 +417,37 @@ static void find_code (struct target *context, sexpr file)
     sexpr primus   = sx_false;
     sexpr secundus = sx_false;
 
-    if ((r = find_code_S (file)), stringp(r))
+    if (falsep(equalp(str_bootstrap, file)) || truep (co_freestanding))
     {
-        primus = cons(sym_preproc_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+        if ((r = find_code_S (file)), stringp(r))
+        {
+            primus = cons(sym_preproc_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
 
-        secundus = find_code_highlevel(context, file);
-    }
-    else if ((r = find_code_s (file)), stringp(r))
-    {
-        primus = cons(sym_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+            secundus = find_code_highlevel(context, file);
+        }
+        else if ((r = find_code_s (file)), stringp(r))
+        {
+            primus = cons(sym_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
 
-        secundus = find_code_highlevel(context, file);
+            secundus = find_code_highlevel(context, file);
+        }
     }
-    else if (((r = find_code_cpp (file)), stringp(r)))
+
+    if (falsep(primus))
     {
-        primus = cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
-    }
-    else if (((r = find_code_c (file)), stringp(r)))
-    {
-        primus = cons(sym_c, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
-    }
-    else
-    {
-        fprintf (stderr, "missing code file: %s\n", sx_string(file));
-        exit(20);
+        if (((r = find_code_cpp (file)), stringp(r)))
+        {
+            primus = cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+        }
+        else if (((r = find_code_c (file)), stringp(r)))
+        {
+            primus = cons(sym_c, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+        }
+        else
+        {
+            fprintf (stderr, "missing code file: %s\n", sx_string(file));
+            exit(20);
+        }
     }
 
     if (truep(equalp(file, str_bootstrap)))

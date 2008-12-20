@@ -4,6 +4,10 @@
   (version "6")
   (url "http://kyuba.org/")
 
+  (freestanding-if-assembly
+        "io-system" "memory" "bootstrap" "network-system" "exec-system"
+        "multiplex-system" "signal-system")
+
   (code "sexpr" "io" "memory-pool" "tree" "exec" "multiplex" "string"
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
@@ -13,10 +17,6 @@
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
         "int" "io" "immutable" "constants" "graph" "filesystem")
-
-  (freestanding-if-assembly
-        "io-system" "memory" "bootstrap" "network-system" "exec-system"
-        "multiplex-system" "signal-system")
 
   (test-cases
         "bad-allocation" "bad-resize" "curie-main" "environment" "execute-fork"
