@@ -39,9 +39,9 @@
 #include <curie/graph.h>
 #include <curie/memory.h>
 #include <curie/immutable.h>
-#include <curie/sexpr.h>
 
-struct graph * graph_create() {
+struct graph * graph_create()
+{
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph));
 
     struct graph *gr = (struct graph *) get_pool_mem(&pool);
@@ -50,7 +50,8 @@ struct graph * graph_create() {
     return gr;
 }
 
-struct graph_node * graph_add_node(struct graph * gr, sexpr label) {
+struct graph_node * graph_add_node(struct graph * gr, sexpr label)
+{
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_node));
     struct graph_node *node = (struct graph_node *) get_pool_mem(&pool);
 
@@ -62,23 +63,26 @@ struct graph_node * graph_add_node(struct graph * gr, sexpr label) {
     {
       gr->nodes = (struct graph_node **) aalloc(sizeof(struct graph_node *));
     }
-    
+
     node->edge_count = 0;
     node->edges = (struct graph_edge **)0;
     node->label = label;
-    
+
     gr->nodes[gr->node_count] = node;
     gr->node_count++;
     return node;
 }
 
 
-void graph_destroy (struct graph * gr) {
-    afree(sizeof(struct graph_node *) * gr->node_count, gr->nodes);   
+void graph_destroy (struct graph * gr)
+{
+    afree(sizeof(struct graph_node *) * gr->node_count, gr->nodes);
+    free_pool_mem ((void *)gr);
 }
 
 
-struct graph_node * graph_search_node(struct graph *gr, sexpr label) {
+struct graph_node * graph_search_node(struct graph *gr, sexpr label)
+{
     for(int i = 0; i < gr->node_count; i++) {
         if(truep(equalp(gr->nodes[i]->label, label)))
            return gr->nodes[i];
@@ -87,30 +91,32 @@ struct graph_node * graph_search_node(struct graph *gr, sexpr label) {
     return (struct graph_node *)0;
 }
 
-struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_node *target, sexpr label) {
-
+struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_node *target, sexpr label)
+{
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_edge));
     struct graph_edge *edge = (struct graph_edge *) get_pool_mem(&pool);
 
     if(node->edge_count > 0) {
-         node->edges = (struct graph_edge **) arealloc(sizeof(struct graph_edge *) * node->edge_count, node->edges, sizeof(struct graph_edge *) * (node->edge_count + 1));   
+         node->edges = (struct graph_edge **) arealloc(sizeof(struct graph_edge *) * node->edge_count, node->edges, sizeof(struct graph_edge *) * (node->edge_count + 1));
     }
     else {
         node->edges = (struct graph_edge **)aalloc(sizeof(struct graph_edge *));
     }
-    
+
     edge->target = target;
-    edge->label = label;   
-    
+    edge->label = label;
+
     node->edges[node->edge_count] = edge;
     node->edge_count++;
     return edge;
 }
 
-struct graph_edge * graph_node_search_edge(struct graph_node *node, sexpr label) {
+struct graph_edge * graph_node_search_edge(struct graph_node *node, sexpr label)
+{
     for(int i = 0; i < node->edge_count; i++) {
         if(truep(equalp(node->edges[i]->label, label)))
            return node->edges[i];
     }
+
     return (struct graph_edge *)0;
 }

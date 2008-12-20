@@ -104,18 +104,18 @@ struct graph_node {
  *  An edge in the digraph. Kind of like a pointer with a label, really.
  */
 struct graph_edge {
-    /*! \brief Target Node
-     *
-     *  This is the node that the edge connects to.
-     */
-    struct graph_node *target;
-
     /*! \brief Edge Label
      *
      *  The edge's label. Used in search operations, when a specific edge is
      *  needed.
      */
     sexpr label;
+
+    /*! \brief Target Node
+     *
+     *  This is the node that the edge connects to.
+     */
+    struct graph_node *target;
 };
 
 /*! \brief Create a new Graph
