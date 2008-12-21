@@ -180,6 +180,23 @@ struct graph_edge *graph_node_add_edge
 struct graph_edge *graph_node_search_edge
         (struct graph_node *node, sexpr label);
 
+/*! \brief Turn Graph into an S-Expression
+ *  \param[in] graph The graph to convert.
+ *  \return S-expression representation of the graph.
+ *
+ *  This function turns a graph into an s-expression suitable for storage and
+ *  later reconstruction. Should be useful for caching, exports and the like.
+ */
+sexpr graph_to_sexpr (struct graph *graph);
+
+/*! \brief Reconstruct a Graph from its S-Expression Representation
+ *  \param[in] graph The graph to convert.
+ *  \return The reconstructed graph.
+ *
+ *  This is the inverse of graph_to_sexpr().
+ */
+struct graph *sexpr_to_graph (sexpr graph);
+
 #ifdef __cplusplus
 }
 #endif

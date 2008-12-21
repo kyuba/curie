@@ -120,3 +120,96 @@ struct graph_edge * graph_node_search_edge(struct graph_node *node, sexpr label)
 
     return (struct graph_edge *)0;
 }
+
+sexpr graph_to_sexpr (struct graph *g)
+{
+    sexpr sx = sx_false;
+
+    if (g != (struct graph *)0)
+    {
+        sexpr nodes = sx_end_of_list;
+        sexpr edges = sx_end_of_list;
+
+        for (unsigned int i = 0; i < g->node_count; i++)
+        {
+            struct graph_node *n = g->nodes[i];
+            sexpr sxx = n->label;
+            sexpr sxn = make_integer(n);
+            sx_xref (sxx);
+
+            nodes = cons (cons (sxn, sxx), nodes);
+
+            for (unsigned int j = 0; j < n->edge_count; j++)
+            {
+                struct graph_edge *e = n->edges[j];
+                edges = cons (cons (sxn,
+                                    cons (make_integer(e->target),
+                                          e->label)),
+                              edges);
+            }
+        }
+
+        sx = cons (nodes, edges);
+    }
+
+    return sx;
+}
+
+struct graph *sexpr_to_graph (sexpr sx)
+{
+    struct graph *g = graph_create ();
+    sexpr c = car(sx);
+
+    while (consp(c))
+    {
+        sexpr cx    = car (c);
+        sexpr cxcar = car (cx);
+
+        graph_add_node (g, cxcar);
+
+        c = cdr (c);
+    }
+
+    c = cdr(sx);
+
+    while (consp(c))
+    {
+        sexpr cx     = car (c);
+        sexpr cxcar  = car (cx);
+        sexpr cxcdr  = cdr (cx);
+        sexpr cxcadr = car (cxcdr);
+        sexpr cxcddr = cdr (cxcdr);
+
+        struct graph_node *ns = graph_search_node (g, cxcar);
+        struct graph_node *nt = graph_search_node (g, cxcadr);
+
+        if ((ns != (struct graph_node *)0) && (nt != (struct graph_node *)0))
+        {
+            sx_xref(cxcddr);
+            graph_node_add_edge (ns, nt, cxcddr);
+        }
+
+        c = cdr (c);
+    }
+
+    c = car(sx);
+
+    while (consp(c))
+    {
+        sexpr cx    = car (c);
+        sexpr cxcar = car (cx);
+        sexpr cxcdr = cdr (cx);
+
+        struct graph_node *n = graph_search_node (g, cxcar);
+
+        if (n != (struct graph_node *)0)
+        {
+            sx_xref(cxcdr);
+            n->label = cxcdr;
+        }
+
+        c = cdr (c);
+    }
+
+    return g;
+}
