@@ -134,7 +134,7 @@ sexpr graph_to_sexpr (struct graph *g)
         {
             struct graph_node *n = g->nodes[i];
             sexpr sxx = n->label;
-            sexpr sxn = make_integer(n);
+            sexpr sxn = make_integer(i);
             sx_xref (sxx);
 
             nodes = cons (cons (sxn, sxx), nodes);
@@ -142,10 +142,17 @@ sexpr graph_to_sexpr (struct graph *g)
             for (unsigned int j = 0; j < n->edge_count; j++)
             {
                 struct graph_edge *e = n->edges[j];
-                edges = cons (cons (sxn,
-                                    cons (make_integer(e->target),
-                                          e->label)),
-                              edges);
+
+                for (unsigned int k = 0; k < g->node_count; k++)
+                {
+                    if (g->nodes[k] == e->target)
+                    {
+                        edges = cons (cons (sxn,
+                                            cons (make_integer(k),
+                                                  e->label)),
+                                      edges);
+                    }
+                }
             }
         }
 
