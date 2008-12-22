@@ -107,12 +107,12 @@ void free_memory_pool (struct memory_pool *pool)
      struct memory_pool_frame_header *frame)
 {
     do {
-        unsigned int index = 0, cell = 0;
+        unsigned int cell = 0;
 
         do {
             if (frame->map[cell] != ((BITMAPENTITYTYPE)(~0)))
             {
-                index = cell * BITSPERBITMAPENTITY;
+                unsigned int index = cell * BITSPERBITMAPENTITY;
 
                 for (BITMAPENTITYTYPE x = frame->map[cell];
                      x & 1; /* see if x is congruent (mod 2) to 0 */
@@ -149,7 +149,7 @@ void free_memory_pool (struct memory_pool *pool)
             }
 
             cell++;
-        } while (index < frame->maxentities);
+        } while (cell < BITMAPMAPSIZE);
 
         if (frame->next == (struct memory_pool_frame_header *)0) {
             frame->next = (struct memory_pool_frame_header *)
