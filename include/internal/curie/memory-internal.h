@@ -82,13 +82,6 @@ struct memory_pool_frame_header {
      */
     unsigned short maxentities;
 
-    /*! \brief Optimisation Counter
-     *
-     *  Once this counter reaches zero, the pool is optimised, i.e. empty frames
-     *  are removed.
-     */
-    unsigned short optimise_counter;
-
     /*! \brief Next Frame
      *
      *  This is a pointer to the next pool frame, or (struct memory_pool *)0 if

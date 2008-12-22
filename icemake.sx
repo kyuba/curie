@@ -12,11 +12,11 @@
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
         "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
-        "exec-system" "multiplex-system" "signal-system" "bootstrap")
+        "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
-        "int" "io" "immutable" "constants" "graph" "filesystem")
+        "int" "io" "immutable" "constants" "graph" "filesystem" "regex")
 
   (test-cases
         "bad-allocation" "bad-resize" "curie-main" "environment" "execute-fork"
@@ -25,7 +25,7 @@
         "multiplex-all-processes" "multiplex-io" "multiplex-network"
         "multiplex-process" "multiplex-sexpr" "multiplex-signal" "network-loop"
         "read-write" "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
-        "tree-random" "tree-random-node-removal" "tree-value")
+        "tree-random" "tree-random-node-removal" "tree-value" "regex")
 
   (test-case-reference
         ("temporary-curie-test-data" . "tests/reference/curie-test-data")

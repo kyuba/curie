@@ -36,33 +36,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
- 
+
 /*! \file
  *  \brief Regular expressions
  *
  */
- 
- 
+
 #ifndef LIBCURIE_REGEX_H
 #define LIBCURIE_REGEX_H
 
-
 #include <curie/graph.h>
- 
- #ifdef __cplusplus
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 //! compiles a given regex into a finite-state machine
-struct graph * rx_compile(sexpr );
+struct graph *rx_compile (sexpr);
 
 //! matching is done here
-int rx_exec(struct graph *, sexpr );
+sexpr rx_match (struct graph *, sexpr);
 
 //! frees the memory allocated to the finite_state machine
-void rx_free(struct graph *);
+void rx_free (struct graph *);
 
- #ifdef __cplusplus
+#ifdef __cplusplus
 }
+#endif
+
 #endif

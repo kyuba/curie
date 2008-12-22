@@ -99,7 +99,8 @@ struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_nod
     if(node->edge_count > 0) {
          node->edges = (struct graph_edge **) arealloc(sizeof(struct graph_edge *) * node->edge_count, node->edges, sizeof(struct graph_edge *) * (node->edge_count + 1));
     }
-    else {
+    else
+    {
         node->edges = (struct graph_edge **)aalloc(sizeof(struct graph_edge *));
     }
 

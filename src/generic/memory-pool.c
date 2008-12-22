@@ -43,7 +43,10 @@
 
 #define AUTOOPT_N 300
 
-static struct memory_pool *static_pools[LIBCURIE_PAGE_SIZE / ENTITY_ALIGNMENT];
+#define POOLCOUNT (LIBCURIE_PAGE_SIZE / ENTITY_ALIGNMENT)
+
+static unsigned int optimise_counter = AUTOOPT_N;
+static struct memory_pool *static_pools[POOLCOUNT];
 
 #define bitmap_getslot(b) ((unsigned int)((b) / BITSPERBITMAPENTITY))
 
@@ -80,8 +83,6 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize)
     /*@=mustfree@*/
 
     pool->type = mpft_frame;
-
-    pool->optimise_counter = AUTOOPT_N;
 
     return (struct memory_pool *)pool;
 }
@@ -174,12 +175,6 @@ void *get_pool_mem(struct memory_pool *pool)
         {
             struct memory_pool_frame_header *h
                 = (struct memory_pool_frame_header *)pool;
-
-            h->optimise_counter--;
-            if (h->optimise_counter == 0) {
-                h->optimise_counter = AUTOOPT_N;
-                optimise_memory_pool (pool);
-            }
         }
         return get_pool_mem_inner((struct memory_pool_frame_header *)pool,
                                   (struct memory_pool_frame_header *)pool);
@@ -214,6 +209,19 @@ void free_pool_mem(void *mem)
     unsigned int index = (unsigned int)(((char*)mem - pool_mem_start) / pool->entitysize);
 
     bitmap_clear (pool->map, index);
+
+    optimise_counter--;
+    if (optimise_counter == 0)
+    {
+        optimise_counter = AUTOOPT_N;
+        for (unsigned int i = 0; i < POOLCOUNT; i++)
+        {
+            if (static_pools[i] != (struct memory_pool *)0)
+            {
+                optimise_memory_pool (static_pools[i]);
+            }
+        }
+    }
 }
 /*@=mustfree@*/
 
