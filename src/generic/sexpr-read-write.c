@@ -498,7 +498,7 @@ static void sx_write_integer (struct io *io, int_pointer_s i) {
     } while ((i != 0) && (j < (SX_MAX_NUMBER_LENGTH-2)));
 
     if(neg == 1) {
-        num[31-j] = '-';
+        num[SX_MAX_NUMBER_LENGTH-2-j] = '-';
         j++;
     }
     num[(SX_MAX_NUMBER_LENGTH-1)] = (char)0;

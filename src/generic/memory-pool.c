@@ -110,48 +110,42 @@ void free_memory_pool (struct memory_pool *pool)
         unsigned int index = 0, cell = 0;
 
         do {
-            if (frame->map[cell] == ((BITMAPENTITYTYPE)(~0)))
+            if (frame->map[cell] != ((BITMAPENTITYTYPE)(~0)))
             {
-                index += BITSPERBITMAPENTITY;
-            }
-            else
-            {
-                unsigned int high = index + BITSPERBITMAPENTITY;
-                if (high > frame->maxentities) high = frame->maxentities;
+                index = cell * BITSPERBITMAPENTITY;
 
-                do {
-                    if (bitmap_isset(frame->map, index, cell)
-                        == (unsigned char)0)
+                for (BITMAPENTITYTYPE x = frame->map[cell];
+                     x & 1; /* see if x is congruent (mod 2) to 0 */
+                     x >>= 1) index++;
+
+                if (index >= frame->maxentities) break;
+
+                char *frame_mem_start = (char *)frame + sizeof(struct memory_pool_frame_header);
+
+                bitmap_set(frame->map, index, cell);
+
+                if ((pool != frame) &&
+                     (pool->next != (struct memory_pool_frame_header *)0)
+                     && (pool->next != frame))
+                {
+                    struct memory_pool_frame_header *cursor = pool->next;
+
+                    while (cursor->next != frame)
                     {
-                        char *frame_mem_start = (char *)frame + sizeof(struct memory_pool_frame_header);
-
-                        bitmap_set(frame->map, index, cell);
-
-                        if ((pool != frame) &&
-                            (pool->next != (struct memory_pool_frame_header *)0)
-                            && (pool->next != frame))
-                        {
-                            struct memory_pool_frame_header *cursor = pool->next;
-
-                            while (cursor->next != frame)
-                            {
-                                cursor = cursor->next;
-                            }
-
-                            /*@-mustfree@*/
-                            cursor->next = frame->next;
-                            frame->next = pool->next;
-                            pool->next = frame;
-                            /*@=mustfree@*/
-                        }
-
-                        /*@-usedef@*/
-                        return (void *)(frame_mem_start
-                                + (index * (frame->entitysize)));
-                        /*@=usedef@*/
+                        cursor = cursor->next;
                     }
-                    index++;
-                } while (index < high);
+
+                    /*@-mustfree@*/
+                    cursor->next = frame->next;
+                    frame->next = pool->next;
+                    pool->next = frame;
+                    /*@=mustfree@*/
+                }
+
+                /*@-usedef@*/
+                return (void *)(frame_mem_start
+                        + (index * (frame->entitysize)));
+                /*@=usedef@*/
             }
 
             cell++;
@@ -172,12 +166,8 @@ void *get_pool_mem(struct memory_pool *pool)
     switch (pool->type)
     {
         case mpft_frame:
-        {
-            struct memory_pool_frame_header *h
-                = (struct memory_pool_frame_header *)pool;
-        }
-        return get_pool_mem_inner((struct memory_pool_frame_header *)pool,
-                                  (struct memory_pool_frame_header *)pool);
+            return get_pool_mem_inner((struct memory_pool_frame_header *)pool,
+                                      (struct memory_pool_frame_header *)pool);
 
         case mpft_static_header:
         {
@@ -188,7 +178,9 @@ void *get_pool_mem(struct memory_pool *pool)
                 static_pools[r] = create_memory_pool(pool->entitysize);
             }
 
-            return get_pool_mem (static_pools[r]);
+            return get_pool_mem_inner
+                    ((struct memory_pool_frame_header *)static_pools[r],
+                     (struct memory_pool_frame_header *)static_pools[r]);
         }
     }
 
