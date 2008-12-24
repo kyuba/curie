@@ -38,7 +38,7 @@
 
 #include "curie/tree.h"
 
-#define MAXKEYNUM 2048
+#define MAXKEYNUM 512
 
 static unsigned int test_tree(unsigned int keys) {
     struct tree *t = tree_create ();

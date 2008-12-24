@@ -38,7 +38,7 @@
 
 #include "curie/tree.h"
 
-#define MAXKEYNUM 2048
+#define MAXKEYNUM 512
 
 char *sentinelbase = (char*)0x8916316;
 #define sentinelvalue(i) (void *)(sentinelbase + i)

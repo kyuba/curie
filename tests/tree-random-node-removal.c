@@ -39,7 +39,7 @@
 #include "curie/tree.h"
 #include "curie/io.h"
 
-#define MAXKEYNUM 4096
+#define MAXKEYNUM 512
 
 unsigned int random_numbers[MAXKEYNUM];
 
