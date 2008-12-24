@@ -50,6 +50,7 @@ define_string(str_testregex8,  "ab*");
 define_string(str_testregex9,  "a+");
 define_string(str_testregex10, "a?a?aa");
 define_string(str_testregex11, "a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?aaaaaaaaaaaaaaaaaaa");
+define_string(str_testregex12, "a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?aaaaaaaaaavaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
 define_string(str_test1,      "whatever");
 define_string(str_test2,      "aa");
@@ -59,6 +60,7 @@ define_string(str_test5,      "aaaa");
 define_string(str_test6,      "");
 define_string(str_test7,      "aa");
 define_string(str_test8,      "aaaaaaaaaaaaaaaaaaa");
+define_string(str_test9,      "aaaaaaaaaavaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
 int cmain()
 {
@@ -72,7 +74,8 @@ int cmain()
                  *rx8  = rx_compile (str_testregex8),
                  *rx9  = rx_compile (str_testregex9),
                  *rx10 = rx_compile (str_testregex10),
-                 *rx11 = rx_compile (str_testregex11);
+                 *rx11 = rx_compile (str_testregex11),
+                 *rx12 = rx_compile (str_testregex12);
 
     if (falsep (rx_match (rx1, str_test1))) return 1;
 
@@ -133,8 +136,10 @@ int cmain()
     if (truep  (rx_match (rx9, str_test6))) return 49;
 
     if (falsep (rx_match (rx10, str_test7))) return 50;
-    /* very evil expression... i think */
+    /* sorta evilish expression */
     if (falsep (rx_match (rx11, str_test8))) return 51;
+    /* very evil expression... i think */
+    if (falsep (rx_match (rx12, str_test9))) return 52;
 
     rx_free (rx1);
     rx_free (rx2);
