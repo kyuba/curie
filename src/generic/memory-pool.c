@@ -37,6 +37,7 @@
  */
 
 #include <curie/internal-constants.h>
+#include <curie/magic-constants.h>
 #include <curie/memory.h>
 #include <curie/memory-internal.h>
 #include <curie/int.h>
@@ -48,16 +49,11 @@
 static unsigned int optimise_counter = AUTOOPT_N;
 static struct memory_pool *static_pools[POOLCOUNT];
 
-#define bitmap_getslot(b) ((unsigned int)((b) / BITSPERBITMAPENTITY))
-
 #define bitmap_set(m,b,c)\
-    m[c] |= 1 << (b%BITSPERBITMAPENTITY)
+    m[c] &= ~(1 << (b%BITSPERBITMAPENTITY))
 
-#define bitmap_isset(m,b,c)\
-    ((unsigned char)((m[c] & (1 << (b%BITSPERBITMAPENTITY))) != 0))
-
-#define bitmap_clear(m,b)\
-    m[bitmap_getslot(b)] &= ~(1 << (b%BITSPERBITMAPENTITY))
+#define bitmap_clear(m,b,c)\
+    m[c] |= (1 << (b%BITSPERBITMAPENTITY))
 
 struct memory_pool *create_memory_pool (unsigned long int entitysize)
 {
@@ -72,8 +68,8 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize)
 
     pool->maxentities = (unsigned short)((LIBCURIE_PAGE_SIZE - sizeof(struct memory_pool_frame_header)) / pool->entitysize);
 
-    for (i = 0; i < BITMAPMAPSIZE; i++) {
-        pool->map[i] = 0;
+    for (i = 0; i <= BITMAPMAPSIZE; i++) {
+        pool->map[i] = (BITMAPENTITYTYPE)~0;
     }
 
     if (pool->maxentities > BITMAPMAXBLOCKENTRIES) pool->maxentities = BITMAPMAXBLOCKENTRIES;
@@ -107,22 +103,25 @@ void free_memory_pool (struct memory_pool *pool)
      struct memory_pool_frame_header *frame)
 {
     do {
-        unsigned int cell = 0;
+        BITMAPENTITYTYPE x = (((1 << BITMAPMAPSIZE)-1) & (frame->map[BITMAPMAPSIZE]));
+        if (x)
+        {
+            BITMAPENTITYTYPE cell = (HASH_MAGIC_TABLE [(((x & -x) * HASH_MAGIC_MULTIPLIER) >> HASH_MAGIC_SHIFT) & HASH_MAGIC_TABLE_MASK]);
 
-        do {
-            if (frame->map[cell] != ((BITMAPENTITYTYPE)(~0)))
-            {
-                unsigned int index = cell * BITSPERBITMAPENTITY;
+            x = frame->map[cell];
 
-                for (BITMAPENTITYTYPE x = frame->map[cell];
-                     x & 1; /* see if x is congruent (mod 2) to 0 */
-                     x >>= 1) index++;
+            BITMAPENTITYTYPE index = cell * BITSPERBITMAPENTITY +
+                    (HASH_MAGIC_TABLE [(((x & -x) * HASH_MAGIC_MULTIPLIER) >> HASH_MAGIC_SHIFT) & HASH_MAGIC_TABLE_MASK]);
 
-                if (index >= frame->maxentities) break;
-
+            if (index < frame->maxentities) {
                 char *frame_mem_start = (char *)frame + sizeof(struct memory_pool_frame_header);
 
                 bitmap_set(frame->map, index, cell);
+
+                if (frame->map[cell] == ((BITMAPENTITYTYPE)0))
+                {
+                    frame->map[BITMAPMAPSIZE] &= ~((BITMAPENTITYTYPE)(1 << cell));
+                }
 
                 if ((pool != frame) &&
                      (pool->next != (struct memory_pool_frame_header *)0)
@@ -147,9 +146,7 @@ void free_memory_pool (struct memory_pool *pool)
                         + (index * (frame->entitysize)));
                 /*@=usedef@*/
             }
-
-            cell++;
-        } while (cell < BITMAPMAPSIZE);
+        }
 
         if (frame->next == (struct memory_pool_frame_header *)0) {
             frame->next = (struct memory_pool_frame_header *)
@@ -199,8 +196,10 @@ void free_pool_mem(void *mem)
     char *pool_mem_start = (char *)pool + sizeof(struct memory_pool_frame_header);
 
     unsigned int index = (unsigned int)(((char*)mem - pool_mem_start) / pool->entitysize);
+    unsigned int cell = ((unsigned int)((index) / BITSPERBITMAPENTITY));
 
-    bitmap_clear (pool->map, index);
+    bitmap_clear (pool->map, index, cell);
+    pool->map[BITMAPMAPSIZE] &= ~((BITMAPENTITYTYPE)(1 << cell));
 
     optimise_counter--;
     if (optimise_counter == 0)
@@ -235,7 +234,7 @@ void optimise_memory_pool(struct memory_pool *pool)
 
         for (i = 0; i < BITMAPMAPSIZE; i++)
         {
-            if (cursor->map[i] != 0) break;
+            if (cursor->map[i] != ((BITMAPENTITYTYPE)~0)) break;
         }
 
         if (i == BITMAPMAPSIZE)

@@ -46,6 +46,8 @@
 #ifndef LIBCURIE_CONSTANTS_H
 #define LIBCURIE_CONSTANTS_H
 
+#include <curie/int.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -77,13 +79,13 @@ extern "C" {
  *
  *  This is the type used for the pool_bitmap array.
  */
-#define BITMAPENTITYTYPE unsigned int
+#define BITMAPENTITYTYPE int_32
 
 /*! \brief pool_bitmap: Bits per Entity
  *
  *  This is the number of bits in BITMAPENTITYTYPE.
  */
-#define BITSPERBITMAPENTITY (unsigned short)(sizeof(BITMAPENTITYTYPE)*8)
+#define BITSPERBITMAPENTITY (unsigned short)(32)
 
 /*! \brief pool_bitmap: Number of Elements
  *

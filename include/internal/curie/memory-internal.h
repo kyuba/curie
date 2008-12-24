@@ -57,7 +57,7 @@ extern "C" {
  *
  *  This type is used to keep track of which entities in a memory pool are used.
  */
-typedef BITMAPENTITYTYPE pool_bitmap[BITMAPMAPSIZE];
+typedef BITMAPENTITYTYPE pool_bitmap[(BITMAPMAPSIZE+1)];
 
 /*! \brief Memory Pool Frame Header
  *  \internal
