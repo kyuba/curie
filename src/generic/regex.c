@@ -215,16 +215,25 @@ static struct graph_node *rx_compile_recurse
 
 struct graph *rx_compile (sexpr sx)
 {
-    struct graph *g = graph_create();
+    struct graph *g;
 
-    if (stringp(sx)) {
-        const char *s = sx_string(sx);
-        unsigned int p = 0;
-        struct graph_node *n = graph_add_node (g, sx_nil);
-        struct graph_node *e = graph_add_node (g, sx_true);
+    if (consp(sx))
+    {
+        g = sexpr_to_graph(sx);
+    }
+    else
+    {
+        g = graph_create();
 
-        rx_compile_add_nodes(g, s);
-        (void)rx_compile_recurse(g, n, e, s, &p);
+        if (stringp(sx)) {
+            const char *s = sx_string(sx);
+            unsigned int p = 0;
+            struct graph_node *n = graph_add_node (g, sx_nil);
+            struct graph_node *e = graph_add_node (g, sx_true);
+
+            rx_compile_add_nodes(g, s);
+            (void)rx_compile_recurse(g, n, e, s, &p);
+        }
     }
 
     return g;
