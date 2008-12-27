@@ -52,13 +52,15 @@ extern "C" {
 #endif
 
 //! compiles a given regex into a finite-state machine
-struct graph *rx_compile (sexpr);
+struct graph *rx_compile_sx (sexpr);
+struct graph *rx_compile    (const char *);
 
 //! matching is done here
-sexpr rx_match (struct graph *, sexpr);
+sexpr rx_match_sx           (struct graph *, sexpr);
+sexpr rx_match              (struct graph *, const char *);
 
 //! frees the memory allocated to the finite_state machine
-void rx_free (struct graph *);
+void rx_free                (struct graph *);
 
 #ifdef __cplusplus
 }

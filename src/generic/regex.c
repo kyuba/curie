@@ -255,28 +255,30 @@ static struct graph_node *rx_compile_recurse
     return c;
 }
 
-struct graph *rx_compile (sexpr sx)
+struct graph *rx_compile_sx (sexpr sx)
 {
-    struct graph *g;
-
     if (consp(sx))
     {
-        g = sexpr_to_graph(sx);
+        return sexpr_to_graph(sx);
     }
-    else
+    else if (stringp(sx))
     {
-        g = graph_create();
-
-        if (stringp(sx)) {
-            const char *s = sx_string(sx);
-            unsigned int p = 0;
-            struct graph_node *n = graph_add_node (g, sx_nil);
-            struct graph_node *e = graph_add_node (g, sx_true);
-
-            rx_compile_add_nodes(g, s);
-            (void)rx_compile_recurse(g, n, e, s, &p);
-        }
+        return rx_compile (sx_string (sx));
     }
+
+    return graph_create();
+}
+
+struct graph *rx_compile (const char *s)
+{
+    struct graph *g = graph_create();
+
+    unsigned int p = 0;
+    struct graph_node *n = graph_add_node (g, sx_nil);
+    struct graph_node *e = graph_add_node (g, sx_true);
+
+    rx_compile_add_nodes(g, s);
+    (void)rx_compile_recurse(g, n, e, s, &p);
 
     return g;
 }
@@ -413,33 +415,39 @@ static sexpr rx_match_recurse
     return sx_false;
 }
 
-sexpr rx_match (struct graph *g, sexpr sx)
+sexpr rx_match_sx (struct graph *g, sexpr sx)
+{
+    if (stringp(sx))
+    {
+        return rx_match (g, sx_string(sx));
+    }
+
+    return sx_false;
+}
+
+sexpr rx_match (struct graph *g, const char *s)
 {
     sexpr rv = sx_false;
 
-    if ((g != (struct graph *)0) && stringp(sx))
+    struct graph_node *n = graph_search_node (g, sx_nil);
+    struct nfa_state *ns = get_pool_mem (&nfa_pool);
+
+    if (n == (struct graph_node *)0) return sx_false;
+
+    if (truep(n->label)) return sx_true;
+
+    ns->next = (struct nfa_state *)0;
+    ns->n = n;
+    ns->p = 0;
+
+    rv = rx_match_recurse (&ns, s);
+
+    while (ns != (struct nfa_state *)0)
     {
-        const char *s = sx_string(sx);
-        struct graph_node *n = graph_search_node (g, sx_nil);
-        struct nfa_state *ns = get_pool_mem (&nfa_pool);
+        struct nfa_state *f = ns;
+        ns = ns->next;
 
-        if (n == (struct graph_node *)0) return sx_false;
-
-        if (truep(n->label)) return sx_true;
-
-        ns->next = (struct nfa_state *)0;
-        ns->n = n;
-        ns->p = 0;
-
-        rv = rx_match_recurse (&ns, s);
-
-        while (ns != (struct nfa_state *)0)
-        {
-            struct nfa_state *f = ns;
-            ns = ns->next;
-
-            free_pool_mem (f);
-        }
+        free_pool_mem (f);
     }
 
     return rv;

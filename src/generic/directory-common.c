@@ -46,10 +46,47 @@ sexpr read_directory_sx (sexpr rx)
     if (consp (rx)) {
         struct graph *g = sexpr_to_graph (rx);
         r = read_directory_rx (sx_false, g);
-        graph_detroy (g);
+        graph_destroy (g);
     } else if (stringp (rx)) {
         r = read_directory (sx_string (rx));
+    } else if (symbolp (rx)) {
+        r = read_directory (sx_symbol (rx));
     }
+
+    return r;
+}
+
+sexpr read_directory    (const char *p)
+{
+    sexpr r = sx_end_of_list;
+    unsigned int l = 0, s = 0;
+
+    while (p[l]) {
+        if (p[l] == '/') s++;
+
+        l++;
+    }
+
+    l++;
+
+    char *map [s];
+    char mapd [l];
+
+    map[0] = mapd;
+
+    for (l = s = 0; p[l]; l++)
+    {
+        if (p[l] == '/') {
+            mapd[l] = 0;
+            s++;
+        } else {
+            mapd[l] = p[l];
+        }
+
+        l++;
+    }
+
+    mapd[l] = 0;
 
     return r;
 }

@@ -51,7 +51,7 @@ extern "C" {
 
 #include <curie/regex.h>
 
-sexpr read_directory_rx (sexpr base, struct graph *rx);
+sexpr read_directory_rx (const char *base, struct graph *rx);
 sexpr read_directory_sx (sexpr rx);
 sexpr read_directory    (const char *p);
 

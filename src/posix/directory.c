@@ -39,6 +39,4 @@
 
 #include <curie/directory.h>
 
-sexpr read_directory_rx (sexpr base, struct graph *rx);
-
-sexpr read_directory    (const char *p);
+sexpr read_directory_rx (const char *base, struct graph *rx);
