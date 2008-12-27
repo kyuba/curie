@@ -59,6 +59,8 @@ extern "C" {
                /*@notnull@*/ const void *buf,
                unsigned int count);
 
+  int a_open_directory (/*@notnull@*/ const char *path);
+
   int a_open_read (/*@notnull@*/ const char *path);
   int a_open_write (/*@notnull@*/ const char *path);
   int a_create (/*@notnull@*/ const char *path, int mode);

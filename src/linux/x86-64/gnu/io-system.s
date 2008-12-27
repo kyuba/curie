@@ -49,6 +49,7 @@ last_error_recoverable_p:
 
 .globl  a_read
 .globl  a_write
+.globl  a_open_directory
 .globl  a_open_read
 .globl  a_open_write
 .globl  a_create
@@ -62,6 +63,7 @@ last_error_recoverable_p:
 
 .type a_read,                    @function
 .type a_write,                   @function
+.type a_open_directory,          @function
 .type a_open_read,               @function
 .type a_open_write,              @function
 .type a_create,                  @function
@@ -84,6 +86,12 @@ a_read:
 
 a_write:
     movq $1, %rax /* sys_write */
+    jmp syscall_with_cleanup
+
+a_open_directory:
+    /* %rdi is inherited from the callee */
+    movq $2, %rax /* sys_open */
+    movq $0x10800, %rsi /* O_RDONLY | O_NONBLOCK | O_DIRECTORY */
     jmp syscall_with_cleanup
 
 a_open_read:

@@ -38,6 +38,7 @@
 
 #define _POSIX_SOURCE
 #define _BSD_SOURCE
+#define _GNU_SOURCE /* may be needed for O_DIRECTORY */
 
 #include <curie/io-system.h>
 
@@ -86,6 +87,19 @@ int    a_write (int fd, const void *buf, unsigned int count)
 {
     /*@-checkstrictglobs@*/
     int rv = (int)write(fd, buf, (size_t)count);
+    /*@=checkstrictglobs@*/
+    if (rv < 0) examine_error();
+    return rv;
+}
+
+int    a_open_directory (const char *path)
+{
+    /*@-checkstrictglobs@*/
+#ifdef O_DIRECTORY
+    int rv = open(path, O_RDONLY | O_NONBLOCK | O_DIRECTORY);
+#else
+    int rv = open(path, O_RDONLY | O_NONBLOCK);
+#endif
     /*@=checkstrictglobs@*/
     if (rv < 0) examine_error();
     return rv;
