@@ -51,6 +51,9 @@ define_string(str_testregex9,  "a+");
 define_string(str_testregex10, "a?a?aa");
 define_string(str_testregex11, "a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?aaaaaaaaaaaaaaaaaaa");
 define_string(str_testregex12, "a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?aaaaaaaaaavaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+define_string(str_testregex13,  ".+");
+define_string(str_testregex14,  "[a]+");
+define_string(str_testregex15,  "[ab-z][a-xyz][a-z][a-z][a-z][a-z][a-z][a-z]");
 
 define_string(str_test1,      "whatever");
 define_string(str_test2,      "aa");
@@ -75,7 +78,10 @@ int cmain()
                  *rx9  = rx_compile (str_testregex9),
                  *rx10 = rx_compile (str_testregex10),
                  *rx11 = rx_compile (str_testregex11),
-                 *rx12 = rx_compile (str_testregex12);
+                 *rx12 = rx_compile (str_testregex12),
+                 *rx13 = rx_compile (str_testregex13),
+                 *rx14 = rx_compile (str_testregex14),
+                 *rx15 = rx_compile (str_testregex15);
 
     if (falsep (rx_match (rx1, str_test1))) return 1;
 
@@ -141,6 +147,30 @@ int cmain()
     /* very evil expression... i think */
     if (falsep (rx_match (rx12, str_test9))) return 52;
 
+    if (falsep (rx_match (rx13, str_test1))) return 53;
+    if (falsep (rx_match (rx13, str_test2))) return 54;
+    if (falsep (rx_match (rx13, str_test3))) return 55;
+    if (falsep (rx_match (rx13, str_test4))) return 56;
+    if (falsep (rx_match (rx13, str_test5))) return 57;
+    if (truep  (rx_match (rx13, str_test6))) return 58;
+    if (falsep (rx_match (rx13, str_test7))) return 59;
+    if (falsep (rx_match (rx13, str_test8))) return 60;
+    if (falsep (rx_match (rx13, str_test9))) return 61;
+
+    if (truep  (rx_match (rx14, str_test1))) return 62;
+    if (falsep (rx_match (rx14, str_test2))) return 63;
+    if (truep  (rx_match (rx14, str_test3))) return 64;
+    if (falsep (rx_match (rx14, str_test4))) return 65;
+    if (falsep (rx_match (rx14, str_test5))) return 66;
+    if (truep  (rx_match (rx14, str_test6))) return 67;
+
+    if (falsep (rx_match (rx15, str_test1))) return 68;
+    if (truep  (rx_match (rx15, str_test2))) return 69;
+    if (truep  (rx_match (rx15, str_test3))) return 70;
+    if (truep  (rx_match (rx15, str_test4))) return 71;
+    if (truep  (rx_match (rx15, str_test5))) return 72;
+    if (truep  (rx_match (rx15, str_test6))) return 73;
+
     rx_free (rx1);
     rx_free (rx2);
     rx_free (rx3);
@@ -152,6 +182,10 @@ int cmain()
     rx_free (rx9);
     rx_free (rx10);
     rx_free (rx11);
+    rx_free (rx12);
+    rx_free (rx13);
+    rx_free (rx14);
+    rx_free (rx15);
 
     return 0;
 }

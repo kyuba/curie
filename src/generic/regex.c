@@ -67,9 +67,6 @@ static void rx_compile_add_nodes (struct graph *g, const char *s)
             case '\\':
                 quote = 1;
                 break;
-            case '[':
-                cclass = 1;
-                break;
             case '?':
             case '*':
             case '+':
@@ -77,6 +74,8 @@ static void rx_compile_add_nodes (struct graph *g, const char *s)
             case ')':
             case '|':
                 break;
+            case '[':
+                cclass = 1;
             default:
                 add:
                 graph_add_node (g, make_integer(p));
@@ -92,7 +91,7 @@ static struct graph_node *rx_compile_recurse
      unsigned int *pp)
 {
     unsigned int p = *pp;
-    char quote = 0, cclass = 0;
+    char quote = 0;
     struct graph_node *c = n, *last = (struct graph_node *)0;
     sexpr el = truep(e->label) ? make_integer(0) : sx_false;
 
@@ -104,23 +103,55 @@ static struct graph_node *rx_compile_recurse
             goto add;
         }
 
-        if (cclass)
-        {
-            if (s[p] == ']')
-            {
-                cclass = 0;
-            }
-            p++;
-            continue;
-        }
-
         switch (s[p])
         {
             case '\\':
                 quote = 1;
                 break;
             case '[':
-                cclass = 1;
+                {
+                    struct graph_node *t =
+                            graph_search_node (g, make_integer(p));
+                    char lastchar = 0, range = 0;
+
+                    last = c;
+                    c = t;
+
+                    while (s[p] != 0)
+                    {
+                        char cc = s[p];
+
+                        if (cc == ']') break;
+
+                        if (range == 1)
+                        {
+                            for (char n = lastchar; n < cc; n++)
+                            {
+                                graph_node_add_edge (last, t, make_integer(n));
+                            }
+
+                            lastchar = cc;
+                            range = 0;
+                            p++;
+                            continue;
+                        } else if (cc == '-') {
+                            lastchar++;
+                            range = 1;
+                            p++;
+                            continue;
+                        }
+
+                        graph_node_add_edge (last, t, make_integer(cc));
+
+                        lastchar = cc;
+                        p++;
+                    }
+
+                    if (s[p] == 0)
+                    {
+                        goto quit;
+                    }
+                }
                 break;
             case '?':
                 if (last != (struct graph_node *)0);
@@ -186,6 +217,17 @@ static struct graph_node *rx_compile_recurse
 
                     rx_compile_recurse (g, n, ne, s, &p);
                     goto quit;
+                }
+                break;
+            case '.':
+                {
+                    struct graph_node *t =
+                            graph_search_node (g, make_integer(p));
+
+                    graph_node_add_edge (c, t, sx_true);
+
+                    last = c;
+                    c = t;
                 }
                 break;
             default:
@@ -289,7 +331,7 @@ static sexpr rx_match_nfa_state_progress
             {
                 rx_match_add_nfa_state (r, e->target, p);
             }
-            else if (truep(equalp(l, sx)))
+            else if (((s[p] != 0) && truep(l)) || truep(equalp(l, sx)))
             {
                 struct graph_node *nt = e->target;
 
@@ -304,7 +346,7 @@ static sexpr rx_match_nfa_state_progress
 
                 haveedge = 1;
             }
-            else if (truep(equalp(l, sx)))
+            else if (((s[p] != 0) && truep(l)) || truep(equalp(l, sx)))
             {
                 ns->n = e->target;
 
