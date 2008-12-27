@@ -12,7 +12,8 @@
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
         "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
-        "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex")
+        "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
+        "directory" "directory-common")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"

@@ -1,5 +1,5 @@
 /*
- *  directory.h
+ *  posix/directory.c
  *  libcurie
  *
  *  Created by Magnus Deininger on 27/12/2008.
@@ -36,27 +36,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*! \file
- *  \brief Directory Listing/Filtering
- *
- *  Functions to retrieve the contents of directories.
- */
 
-#ifndef LIBCURIE_DIRECTORY_H
-#define LIBCURIE_DIRECTORY_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <curie/regex.h>
+#include <curie/directory.h>
 
 sexpr read_directory_rx (sexpr base, struct graph *rx);
-sexpr read_directory_sx (sexpr rx);
+
 sexpr read_directory    (const char *p);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
