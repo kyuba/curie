@@ -16,7 +16,8 @@
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
-        "int" "io" "immutable" "constants" "graph" "filesystem" "regex")
+        "int" "io" "immutable" "constants" "graph" "filesystem" "regex"
+        "directory")
 
   (test-cases
         "bad-allocation" "bad-resize" "curie-main" "environment" "execute-fork"
