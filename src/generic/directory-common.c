@@ -37,7 +37,12 @@
  */
 
 
+#include <curie/filesystem.h>
 #include <curie/directory.h>
+
+define_string (str_slash,    "/");
+define_string (str_slashdot, "/.");
+define_string (str_dot,      ".");
 
 sexpr read_directory_sx (sexpr rx)
 {
@@ -45,7 +50,7 @@ sexpr read_directory_sx (sexpr rx)
 
     if (consp (rx)) {
         struct graph *g = sexpr_to_graph (rx);
-        r = read_directory_rx (sx_false, g);
+        r = read_directory_rx (".", g);
         graph_destroy (g);
     } else if (stringp (rx)) {
         r = read_directory (sx_string (rx));
@@ -59,7 +64,7 @@ sexpr read_directory_sx (sexpr rx)
 sexpr read_directory    (const char *p)
 {
     sexpr r = sx_end_of_list;
-    unsigned int l = 0, s = 0;
+    unsigned int l = 0, s = 0, c = 0;
 
     while (p[l]) {
         if (p[l] == '/') s++;
@@ -67,6 +72,7 @@ sexpr read_directory    (const char *p)
         l++;
     }
 
+    s++;
     l++;
 
     char *map [s];
@@ -78,15 +84,100 @@ sexpr read_directory    (const char *p)
     {
         if (p[l] == '/') {
             mapd[l] = 0;
+            map[s] = (mapd + c);
             s++;
+            c = l+1;
         } else {
             mapd[l] = p[l];
         }
-
-        l++;
     }
 
     mapd[l] = 0;
+    map[s] = (mapd + c);
+    s++;
+
+    if (map[0][0] == 0)
+    {
+        r = cons (str_slashdot, r);
+    }
+    else
+    {
+        r = cons (str_dot, r);
+    }
+
+    for (c = 0; c < s; c++)
+    {
+        if (map[c][0] == 0) continue;
+
+        char regex = 0;
+        char *t = map[c];
+        sexpr nr = sx_end_of_list;
+
+        if (!((t[0] == '.') &&
+               ((t[1] == 0) || ((t[1] == '.') && (t[2] == 0)))))
+        {
+            for (unsigned int cx = 0; (regex == 0) && t[cx]; cx++)
+            {
+                switch (t[cx])
+                {
+                    case '\\':
+                    case '?':
+                    case '*':
+                    case '+':
+                    case '(':
+                    case ')':
+                    case '|':
+                    case '[':
+                    case '.':
+                        regex = 1;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        if (regex)
+        {
+            struct graph *g = rx_compile (map[c]);
+
+            for (sexpr c = r; consp(c); c = cdr(c))
+            {
+                sexpr ca = car (c);
+                sexpr n = read_directory_rx (sx_string (ca), g);
+
+                for (sexpr e = n; consp (e); e = cdr (e))
+                {
+                    sexpr b = car (e);
+
+                    nr = cons (sx_join (ca, str_slash, b), nr);
+                }
+
+                sx_destroy (n);
+            }
+
+            sx_destroy (r);
+        }
+        else
+        {
+            sexpr b = make_string (t);
+
+            for (sexpr c = r; consp(c); c = cdr(c))
+            {
+                sexpr ca = car (c);
+                sexpr nf = sx_join (ca, str_slash, b);
+
+                if (truep(filep (nf)))
+                {
+                    nr = cons (nf, nr);
+                }
+            }
+
+            sx_destroy (r);
+        }
+
+        r = nr;
+    }
 
     return r;
 }

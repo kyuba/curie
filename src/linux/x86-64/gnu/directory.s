@@ -1,8 +1,8 @@
 /*
- *  posix/directory.c
+ *  linux-x86-64-gnu/io-system.S
  *  libcurie
  *
- *  Created by Magnus Deininger on 27/12/2008.
+ *  Created by Magnus Deininger on 27/05/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,32 +36,51 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+.text
+        .align 8
 
-#include <curie/directory.h>
-#include <sys/types.h>
-#include <dirent.h>
+.globl  a_open_directory
+.globl  a_getdents64
 
-sexpr read_directory_rx (const char *base, struct graph *rx)
-{
-    DIR *d = opendir (base);
-    sexpr r = sx_end_of_list;
+.type a_open_directory,          @function
+.type a_getdents64,              @function
 
-    if (d != (DIR *)0)
-    {
-        struct dirent *e;
+/* C-functions: */
+/* rdi rsi rdx rcx r8 r9 */
+/* kernel: */
+/* rdi rsi rdx r10 r8 r9 */
 
-        while ((e = readdir (d)))
-        {
-            char *s = e->d_name;
+a_open_directory:
+    /* %rdi is inherited from the callee */
+    movq $2, %rax /* sys_open */
+    movq $0x10800, %rsi /* O_RDONLY | O_NONBLOCK | O_DIRECTORY */
+    jmp syscall_with_cleanup
 
-            if (truep (rx_match (rx, s)))
-            {
-                r = cons (make_string (s), r);
-            }
-        }
+a_getdents64:
+    movq $217, %rax /* sys_getdents64 */
 
-        closedir (d);
-    }
+syscall_with_cleanup:
+    pushq   %rbp
+    movq    %rsp, %rbp
 
-    return r;
-}
+    syscall
+    cmp $0, %rax
+    js negative_result
+    leave
+    ret
+negative_result:
+    cmp $-11, %rax /* EAGAIN, as well as EWOULDBLOCK*/
+    jz recoverable
+    cmp $-4, %rax /* EINTR */
+    jz recoverable
+    movb $0, last_error_recoverable_p(%rip)
+    movq $-1, %rax
+    leave
+    ret
+recoverable:
+    movb $1, last_error_recoverable_p(%rip)
+    movq $-1, %rax
+    leave
+    ret
+
+.section .note.GNU-stack,"",%progbits

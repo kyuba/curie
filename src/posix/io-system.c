@@ -92,19 +92,6 @@ int    a_write (int fd, const void *buf, unsigned int count)
     return rv;
 }
 
-int    a_open_directory (const char *path)
-{
-    /*@-checkstrictglobs@*/
-#ifdef O_DIRECTORY
-    int rv = open(path, O_RDONLY | O_NONBLOCK | O_DIRECTORY);
-#else
-    int rv = open(path, O_RDONLY | O_NONBLOCK);
-#endif
-    /*@=checkstrictglobs@*/
-    if (rv < 0) examine_error();
-    return rv;
-}
-
 int    a_open_read (const char *path)
 {
     /*@-checkstrictglobs@*/

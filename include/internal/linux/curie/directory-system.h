@@ -1,8 +1,8 @@
 /*
- *  posix/directory.c
+ *  internal/linux/curie/directory-system.h
  *  libcurie
  *
- *  Created by Magnus Deininger on 27/12/2008.
+ *  Created by Magnus Deininger on 28/12/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,32 +36,28 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*! \internal
+ *
+ * @{
+ */
 
-#include <curie/directory.h>
-#include <sys/types.h>
-#include <dirent.h>
+/*! \file
+ *  \brief Glue Code Header for directory.h
+ *
+ */
 
-sexpr read_directory_rx (const char *base, struct graph *rx)
-{
-    DIR *d = opendir (base);
-    sexpr r = sx_end_of_list;
+#ifndef LIBCURIE_DIRECTORY_SYSTEM_H
+#define LIBCURIE_DIRECTORY_SYSTEM_H
 
-    if (d != (DIR *)0)
-    {
-        struct dirent *e;
-
-        while ((e = readdir (d)))
-        {
-            char *s = e->d_name;
-
-            if (truep (rx_match (rx, s)))
-            {
-                r = cons (make_string (s), r);
-            }
-        }
-
-        closedir (d);
-    }
-
-    return r;
+#ifdef __cplusplus
+extern "C" {
+#endif
+    int a_open_directory (/*@notnull@*/ const char *path);
+    int a_getdents64 (unsigned int, void *, unsigned int);
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* LIBCURIE_DIRECTORY_SYSTEM_H */
+
+/*! @} */

@@ -673,6 +673,23 @@ sexpr sx_list_fold
          /*@notnull@*/ sexpr (*f)(sexpr, sexpr),
          sexpr seed);
 
+/*! \brief Join Strings/Symbols
+ *  \param[in] a The first string or symbol.
+ *  \param[in] b The second string or symbol.
+ *  \param[in] c The third string or symbol.
+ *  \return Concatenation of the arguments, or sx_nil for errors.
+ *
+ *  This function joins the three arguments into a single string or symbol. The
+ *  type of the return value is the same as the type of the first argument. All
+ *  arguments except for the first one may be something other than a string or
+ *  a symbol, which omits them in the generated string. sx_nil is recommended
+ *  for those arguments.
+ */
+sexpr sx_join
+        (sexpr a,
+         sexpr b,
+         sexpr c);
+
 #ifdef __cplusplus
 }
 #endif

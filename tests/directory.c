@@ -1,8 +1,8 @@
 /*
- *  posix/directory.c
+ *  tests/directory.c
  *  libcurie
  *
- *  Created by Magnus Deininger on 27/12/2008.
+ *  Created by Magnus Deininger on 28/12/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,32 +36,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
+#include <curie/main.h>
 #include <curie/directory.h>
-#include <sys/types.h>
-#include <dirent.h>
 
-sexpr read_directory_rx (const char *base, struct graph *rx)
+define_string (str_memory_pool,       "./tests/memory-pool.c");
+define_string (str_memory_primitives, "./tests/memory-primitives.c");
+define_string (str_memory_allocator,  "./tests/memory-allocator.c");
+
+sexpr rd_fold (sexpr e, sexpr s)
 {
-    DIR *d = opendir (base);
-    sexpr r = sx_end_of_list;
+    int i = sx_integer (s);
 
-    if (d != (DIR *)0)
-    {
-        struct dirent *e;
+    if (truep(equalp(e, str_memory_pool))) i++;
+    else if (truep(equalp(e, str_memory_primitives))) i++;
+    else if (truep(equalp(e, str_memory_allocator))) i++;
 
-        while ((e = readdir (d)))
-        {
-            char *s = e->d_name;
+    return make_integer (i);
+}
 
-            if (truep (rx_match (rx, s)))
-            {
-                r = cons (make_string (s), r);
-            }
-        }
+sexpr sx_list_fold
+        (sexpr list,
+         /*@notnull@*/ sexpr (*f)(sexpr, sexpr),
+                               sexpr seed);
 
-        closedir (d);
-    }
 
-    return r;
+int cmain()
+{
+    return truep(equalp(sx_list_fold(read_directory ("tests/memory-.*\\.c"),
+                                     rd_fold, make_integer(0)),
+                        make_integer (3)))
+           ? 0 : 1;
 }

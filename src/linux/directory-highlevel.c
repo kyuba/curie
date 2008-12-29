@@ -1,8 +1,8 @@
 /*
- *  posix/directory.c
+ *  linux/directory-highlevel.c
  *  libcurie
  *
- *  Created by Magnus Deininger on 27/12/2008.
+ *  Created by Magnus Deininger on 28/12/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -38,29 +38,37 @@
 
 
 #include <curie/directory.h>
-#include <sys/types.h>
-#include <dirent.h>
+#include <curie/directory-system.h>
+#include <curie/io-system.h>
+#include <linux/dirent.h>
 
 sexpr read_directory_rx (const char *base, struct graph *rx)
 {
-    DIR *d = opendir (base);
+    int fd = a_open_directory (base);
     sexpr r = sx_end_of_list;
 
-    if (d != (DIR *)0)
+    if (fd >= 0)
     {
-        struct dirent *e;
+        char buffer[0x1000];
+        int rc;
 
-        while ((e = readdir (d)))
+        while ((rc = a_getdents64 (fd, &buffer, sizeof(buffer))) > 0)
         {
-            char *s = e->d_name;
+            unsigned int p = 0;
 
-            if (truep (rx_match (rx, s)))
+            for (struct dirent64 *e = (struct dirent64 *)buffer; p < rc;
+                 e = (struct dirent64 *)(buffer + (p = p + e->d_reclen)))
             {
-                r = cons (make_string (s), r);
+                const char *s = e->d_name;
+
+                if (truep (rx_match (rx, s)))
+                {
+                    r = cons (make_string (s), r);
+                }
             }
         }
 
-        closedir (d);
+        a_close (fd);
     }
 
     return r;

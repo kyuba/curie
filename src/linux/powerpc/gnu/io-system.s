@@ -47,7 +47,6 @@ last_error_recoverable_p:
 
 .globl  a_read
 .globl  a_write
-.globl  a_open_directory
 .globl  a_open_read
 .globl  a_open_write
 .globl  a_create
@@ -61,7 +60,6 @@ last_error_recoverable_p:
 
 .type a_read,                    @function
 .type a_write,                   @function
-.type a_open_directory,          @function
 .type a_open_read,               @function
 .type a_open_write,              @function
 .type a_create,                  @function
@@ -84,11 +82,6 @@ a_read:
 
 a_write:
     li      0, 4 /* sys_write */
-    b       syscall_with_cleanup
-
-a_open_directory:
-    li      0, 5 /* sys_open */
-    li      4, 0x4800 /* O_RDONLY | O_NONBLOCK | O_DIRECTORY */
     b       syscall_with_cleanup
 
 a_open_read:

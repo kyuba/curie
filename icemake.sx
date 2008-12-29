@@ -6,7 +6,7 @@
 
   (freestanding-if-assembly
         "io-system" "memory" "bootstrap" "network-system" "exec-system"
-        "multiplex-system" "signal-system")
+        "multiplex-system" "signal-system" "directory")
 
   (code "sexpr" "io" "memory-pool" "tree" "exec" "multiplex" "string"
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
@@ -27,7 +27,8 @@
         "multiplex-all-processes" "multiplex-io" "multiplex-network"
         "multiplex-process" "multiplex-sexpr" "multiplex-signal" "network-loop"
         "read-write" "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
-        "tree-random" "tree-random-node-removal" "tree-value" "regex")
+        "tree-random" "tree-random-node-removal" "tree-value" "regex"
+        "directory")
 
   (test-case-reference
         ("temporary-curie-test-data" . "tests/reference/curie-test-data")
