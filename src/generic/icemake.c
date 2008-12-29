@@ -131,6 +131,7 @@ static sexpr workstack                 = sx_end_of_list;
 static enum fs_layout i_fsl            = fs_proper;
 static enum operating_system i_os      = os_unknown;
 static sexpr i_destdir                 = sx_false;
+static sexpr i_pname                   = sx_false;
 static sexpr do_tests                  = sx_false;
 static sexpr do_install                = sx_false;
 
@@ -1492,6 +1493,7 @@ static sexpr get_library_install_path (sexpr name)
     switch (i_fsl)
     {
         case fs_fhs:
+        case fs_fhs_binlib:
             snprintf (buffer, BUFFERSIZE, "%s/lib/lib%s.a", sx_string(i_destdir), sx_string(name));
             return make_string (buffer);
             break;
@@ -1516,6 +1518,10 @@ static sexpr get_programme_install_path (sexpr name)
             snprintf (buffer, BUFFERSIZE, "%s/bin/%s", sx_string(i_destdir), sx_string(name));
             return make_string (buffer);
             break;
+        case fs_fhs_binlib:
+            snprintf (buffer, BUFFERSIZE, "%s/lib/%s/bin/%s", sx_string(i_destdir), sx_string(i_pname), sx_string(name));
+            return make_string (buffer);
+            break;
         case fs_proper:
             snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s",
                       sx_string(i_destdir), uname_os, uname_arch,
@@ -1534,6 +1540,7 @@ static sexpr get_header_install_path (sexpr name, sexpr file)
     switch (i_fsl)
     {
         case fs_fhs:
+        case fs_fhs_binlib:
             snprintf (buffer, BUFFERSIZE, "%s/include/%s/%s.h", sx_string(i_destdir), sx_string(name), sx_string (file));
             return make_string (buffer);
             break;
@@ -1556,6 +1563,10 @@ static sexpr get_data_install_path (sexpr name, sexpr file)
     {
         case fs_fhs:
             snprintf (buffer, BUFFERSIZE, "%s/etc/%s/%s", sx_string(i_destdir), sx_string(name), sx_string (file));
+            return make_string (buffer);
+            break;
+        case fs_fhs_binlib:
+            snprintf (buffer, BUFFERSIZE, "%s/etc/%s/%s", sx_string(i_destdir), sx_string(i_pname), sx_string(file));
             return make_string (buffer);
             break;
         case fs_proper:
@@ -1623,6 +1634,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
         switch (i_fsl)
         {
             case fs_fhs:
+            case fs_fhs_binlib:
                 snprintf (buffer, BUFFERSIZE, "%s/lib/libcurie.sx", sx_string(i_destdir));
                 target = make_string (buffer);
                 break;
@@ -1647,6 +1659,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
         switch (i_fsl)
         {
             case fs_fhs:
+            case fs_fhs_binlib:
                 snprintf (buffer, BUFFERSIZE, "%s/lib/pkgconfig/lib%s.pc", sx_string(i_destdir), sx_string(t->name));
                 target = make_string (buffer);
                 break;
@@ -1665,6 +1678,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
         switch (i_fsl)
         {
             case fs_fhs:
+            case fs_fhs_binlib:
                 snprintf (buffer, BUFFERSIZE, "%s/lib/pkgconfig/lib%s-hosted.pc", sx_string(i_destdir), sx_string(t->name));
                 target = make_string (buffer);
                 break;
@@ -1973,6 +1987,7 @@ static void print_help(char *binaryname)
         " -i           Install resulting binaries\n"
         " -r           Execute runtime tests\n"
         " -f           Use the FHS layout for installation\n"
+        " -b <pname>   Use a modified FHS layout (lib/<pname>/bin/ vs. bin/)\n"
         " -s           Use the default FS layout for installation\n"
         " -L           Optimise linking.\n"
         " -c           Use gcc's -combine option for C source files.\n"
@@ -2559,6 +2574,7 @@ static void initialise_libcurie()
         switch (i_fsl)
         {
             case fs_fhs:
+            case fs_fhs_binlib:
                 if (snprintf (buffer, BUFFERSIZE, "%s/usr/lib/libcurie.sx", sx_string(i_destdir)),
                     truep(initialise_libcurie_filename(buffer))) return;
                 break;
@@ -2574,6 +2590,7 @@ static void initialise_libcurie()
     switch (i_fsl)
     {
         case fs_fhs:
+        case fs_fhs_binlib:
             if (truep(initialise_libcurie_filename("/usr/lib/libcurie.sx"))) return;
             if (snprintf (buffer, BUFFERSIZE, "/%s/%s/lib/libcurie.sx", uname_os, uname_arch), truep(initialise_libcurie_filename(buffer))) return;
             break;
@@ -2654,6 +2671,14 @@ int main (int argc, char **argv, char **environ)
                         break;
                     case 's':
                         i_fsl = fs_proper;
+                        break;
+                    case 'b':
+                        i_fsl = fs_fhs_binlib;
+                        if (xn < argc)
+                        {
+                            i_pname = make_string(argv[xn]);
+                            xn++;
+                        }
                         break;
                     case 'r':
                         do_tests = sx_true;

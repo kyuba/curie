@@ -87,7 +87,8 @@ struct target {
 enum fs_layout
 {
     fs_fhs,
-    fs_proper
+    fs_proper,
+    fs_fhs_binlib
 };
 
 
