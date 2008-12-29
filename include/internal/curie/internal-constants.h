@@ -51,6 +51,7 @@ extern "C" {
 #endif
 
 #define LIBCURIE_STAT_BUFFER_SIZE 256
+#define LIBCURIE_DIRENT_BUFFER_SIZE 0x1000
 
 #ifdef __cplusplus
 }

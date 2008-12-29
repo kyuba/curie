@@ -39,6 +39,7 @@
 
 #include <curie/directory.h>
 #include <curie/directory-system.h>
+#include <curie/internal-constants.h>
 #include <curie/io-system.h>
 #include <linux/dirent.h>
 
@@ -49,7 +50,7 @@ sexpr read_directory_rx (const char *base, struct graph *rx)
 
     if (fd >= 0)
     {
-        char buffer[0x1000];
+        char buffer[LIBCURIE_DIRENT_BUFFER_SIZE];
         int rc;
 
         while ((rc = a_getdents64 (fd, &buffer, sizeof(buffer))) > 0)
