@@ -112,6 +112,7 @@ define_string (str_data,                "data");
 define_string (str_stdc99,              "--std=c99");
 define_string (str_wall,                "-Wall");
 define_string (str_pedantic,            "-pedantic");
+define_string (str_dcombine,            "-combine");
 
 static int alive_processes             = 0;
 static int files_open                  = 0;
@@ -120,6 +121,7 @@ static int max_processes               = 1;
 static sexpr co_freestanding           = sx_false;
 
 static sexpr i_optimise_linking        = sx_false;
+static sexpr i_combine                 = sx_false;
 static sexpr i_debug                   = sx_false;
 
 static struct sexpr_io *stdio;
@@ -721,6 +723,50 @@ static void process_definition (struct target *context, sexpr definition)
     {
         context->libraries = cons (str_lc, context->libraries);
     }
+
+    if (truep(i_combine) &&
+        (uname_toolchain == tc_gcc) &&
+        consp(context->code))
+    {
+        sexpr ccur = sx_end_of_list;
+        sexpr cur = context->code;
+
+        sexpr clist = sx_end_of_list;
+
+        do {
+            sexpr sxcar = car (cur);
+            sexpr sxcaar = car (sxcar);
+            sexpr sxcadar = car (cdr (sxcar));
+
+            if (truep(equalp(sxcaar, sym_c)))
+            {
+                clist = cons (sxcadar, clist);
+            }
+            else
+            {
+                ccur = cons (sxcar, ccur);
+            }
+
+            cur = cdr (cur);
+        } while (consp(cur));
+
+        if (consp (clist))
+        {
+            char oname[BUFFERSIZE];
+            sexpr sx_o;
+
+            snprintf (oname, BUFFERSIZE, "%s-combined-c-source",
+                      sx_string(context->name));
+
+            sx_o = make_string (oname);
+
+            ccur = cons (cons (sym_c, cons (clist, cons (generate_object_file_name (context->name, sx_o), sx_end_of_list))), ccur);
+
+            sx_destroy (sx_o);
+        }
+
+        context->code = ccur;
+    }
 }
 
 static struct target *create_library (sexpr definition)
@@ -980,6 +1026,28 @@ static void build_object_gcc_c (const char *source, const char *target)
                 , workstack);
 }
 
+static void build_object_gcc_c_combine (sexpr sources, const char *target)
+{
+    sexpr item = cons (str_dposix,
+                   cons (str_dgcc,
+                   cons (str_stdc99,
+                     cons (str_wall,
+                       cons (str_pedantic,
+                         prepend_cflags_gcc (
+                         prepend_includes_gcc (
+                           cons (str_do,
+                             cons (make_string (target), sx_end_of_list)))))))));
+
+    for (sexpr cur = sources; consp (cur); cur = cdr (cur))
+    {
+        item = cons (car (cur), item);
+    }
+
+    item = cons (p_c_compiler, cons (str_dcombine, cons (str_dc, item)));
+
+    workstack = cons (item, workstack);
+}
+
 static void build_object_gcc_cpp (const char *source, const char *target)
 {
     workstack
@@ -1010,7 +1078,14 @@ static void build_object_gcc (sexpr type, sexpr source, sexpr target)
     }
     else if (truep(equalp(type, sym_c)))
     {
-        build_object_gcc_c (sx_string(source), sx_string(target));
+        if (consp (source))
+        {
+            build_object_gcc_c_combine (source, sx_string(target));
+        }
+        else
+        {
+            build_object_gcc_c (sx_string(source), sx_string(target));
+        }
     }
     else if (truep(equalp(type, sym_cpp)))
     {
@@ -1900,6 +1975,7 @@ static void print_help(char *binaryname)
         " -f           Use the FHS layout for installation\n"
         " -s           Use the default FS layout for installation\n"
         " -L           Optimise linking.\n"
+        " -c           Use gcc's -combine option for C source files.\n"
         " -D           Use debug code, if available.\n\n"
         "The [targets] specify a list of things to build, according to the\n"
         "icemake.sx file located in the current working directory.\n\n",
@@ -2566,6 +2642,9 @@ int main (int argc, char **argv, char **environ)
                         break;
                     case 'L':
                         i_optimise_linking = sx_true;
+                        break;
+                    case 'c':
+                        i_combine = sx_true;
                         break;
                     case 'D':
                         i_debug = sx_true;
