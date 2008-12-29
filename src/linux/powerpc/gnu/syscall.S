@@ -1,8 +1,8 @@
 /*
- *  linux-x86-64/syscall.S
+ *  linux-powerpc/syscall.S
  *  libsyscall
  *
- *  Created by Magnus Deininger on 11/12/2008.
+ *  Created by Magnus Deininger on 29/12/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
@@ -45,24 +45,15 @@
 .globl c;\
 .type c, @function;\
 c:\
-        movq $a, %rdi;\
-        syscall;\
-        ret;
-
-#define define_syscall4(a,b,c,r,p1,p2,p3,p4)\
-.globl c;\
-.type c, @function;\
-c:\
-        movq %rcx, %r10
-        movq $a, %rdi;\
-        syscall;\
+        li 0, a;\
+        sc;\
         ret;
 
 #define define_syscall1(a,b,c,r,p1) define_syscall0(a,b,c,r)
 #define define_syscall2(a,b,c,r,p1,p2) define_syscall0(a,b,c,r)
 #define define_syscall3(a,b,c,r,p1,p2,p3) define_syscall0(a,b,c,r)
-#define define_syscall5(a,b,c,r,p1,p2,p3,p4,p5) define_syscall4(a,b,c,r,p1,p2,p3,p4)
-#define define_syscall6(a,b,c,r,p1,p2,p3,p4,p5,p6) define_syscall4(a,b,c,r,p1,p2,p3,p4)
+#define define_syscall5(a,b,c,r,p1,p2,p3,p4,p5) define_syscall0(a,b,c,r)
+#define define_syscall6(a,b,c,r,p1,p2,p3,p4,p5,p6) define_syscall0(a,b,c,r)
 
 #include <syscall/syscall.h>
 
