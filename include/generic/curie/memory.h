@@ -211,9 +211,13 @@ void mark_mem_rx (unsigned long int size, /*@notnull@*/ void *block);
  *  @{
  */
 
+/*! \brief Pool Frame Type
+ *
+ *  Description tag to specify the type of pool frame.
+ */
 enum memory_pool_frame_type {
-    mpft_static_header = 0x0,
-    mpft_frame         = 0x1
+    mpft_static_header = 0x0, /*!< Static, info-only frame */
+    mpft_frame         = 0x1  /*!< "Real" frame that contains memory to serve */
 };
 
 /*! \brief Memory Pool Header
@@ -224,6 +228,11 @@ enum memory_pool_frame_type {
  *  entities in the pool are, etc.
  */
 struct memory_pool {
+    /*! \brief Pool Frame Type
+     *  \internal
+     *
+     *  This is used to figure out just what the header is describing.
+     */
     enum memory_pool_frame_type type;
 
     /*! \brief Entity Size

@@ -37,8 +37,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*! \file
- *  \brief Regular expressions
+/*! \defgroup regex Regular Expressions
+ *  \brief Curie's regular expressions under the hood
  *
  *  Curie's regular expression syntax is a bit different from the POSIX or Perl
  *  syntaxes. The supported operators are mostly the same, that is . | ( ) [ ] ?
@@ -124,6 +124,17 @@
  *  Example: the shell pattern "*.c" would instead be written ".*\.c" as a
  *  regular expression, and the pattern "file??.c" would be written as
  *  "file..\.c".
+ *
+ *  @{
+ */
+
+/*! \file
+ *  \brief Regular Expression Library
+ *
+ *  This header file describes the functions that implement curie's regular
+ *  expressions.
+ *
+ *  \see regex
  */
 
 #ifndef LIBCURIE_REGEX_H
@@ -183,3 +194,5 @@ sexpr rx_match              (struct graph *rx, const char *s);
 #endif
 
 #endif
+
+/*! @} */
