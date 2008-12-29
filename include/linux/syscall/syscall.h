@@ -755,14 +755,16 @@ define_syscall0 (__NR_acct, acct, sys_acct, int)
 #define have_sys_settimeofday
 define_syscall0 (__NR_settimeofday, settimeofday, sys_settimeofday, int)
 #endif
+#endif
 #ifdef __NR_mount
 #define have_sys_mount
-define_syscall0 (__NR_mount, mount, sys_mount, int)
+define_syscall5 (__NR_mount, mount, sys_mount, long, char *, char *, char *, unsigned long, void *)
 #endif
 #ifdef __NR_umount
 #define have_sys_umount
-define_syscall0 (__NR_umount, umount, sys_umount, int)
+define_syscall2 (__NR_umount, umount, sys_umount, long, char *, int)
 #endif
+#if 0
 #ifdef __NR_swapon
 #define have_sys_swapon
 define_syscall0 (__NR_swapon, swapon, sys_swapon, int)
