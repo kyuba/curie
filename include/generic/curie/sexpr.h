@@ -91,17 +91,6 @@ enum sx_type {
     sxt_string                  = 4,  /*!< String, i.e. "string" */
     sxt_symbol                  = 5,  /*!< Symbol, i.e. symbol */
     sxt_cons                    = 6,  /*!< Cons, i.e. (x . y) */
-    sxt_vector                  = 20,
-    sxt_graph_root              = 21,
-    sxt_digraph_root            = 22,
-    sxt_graph_edge              = 23,
-    sxt_graph_labeled_edge      = 24,
-    sxt_graph_hyperedge         = 25,
-    sxt_graph_labeled_hyperedge = 26,
-    sxt_graph_node              = 27,
-    sxt_graph_labeled_node      = 28,
-    sxt_tree_root               = 29,
-    sxt_tree_leaf               = 30
 };
 
 /*! \brief S-Expression Header

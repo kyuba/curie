@@ -452,8 +452,3 @@ sexpr rx_match (struct graph *g, const char *s)
 
     return rv;
 }
-
-void rx_free (struct graph *g)
-{
-    graph_destroy (g);
-}

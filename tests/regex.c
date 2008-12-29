@@ -160,21 +160,21 @@ int cmain()
     if (truep  (rx_match_sx (rx15, str_test5))) return 72;
     if (truep  (rx_match_sx (rx15, str_test6))) return 73;
 
-    rx_free (rx1);
-    rx_free (rx2);
-    rx_free (rx3);
-    rx_free (rx4);
-    rx_free (rx5);
-    rx_free (rx6);
-    rx_free (rx7);
-    rx_free (rx8);
-    rx_free (rx9);
-    rx_free (rx10);
-    rx_free (rx11);
-    rx_free (rx12);
-    rx_free (rx13);
-    rx_free (rx14);
-    rx_free (rx15);
+    graph_destroy (rx1);
+    graph_destroy (rx2);
+    graph_destroy (rx3);
+    graph_destroy (rx4);
+    graph_destroy (rx5);
+    graph_destroy (rx6);
+    graph_destroy (rx7);
+    graph_destroy (rx8);
+    graph_destroy (rx9);
+    graph_destroy (rx10);
+    graph_destroy (rx11);
+    graph_destroy (rx12);
+    graph_destroy (rx13);
+    graph_destroy (rx14);
+    graph_destroy (rx15);
 
     return 0;
 }

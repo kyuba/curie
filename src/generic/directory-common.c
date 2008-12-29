@@ -157,6 +157,7 @@ sexpr read_directory    (const char *p)
             }
 
             sx_destroy (r);
+            graph_destroy (g);
         }
         else
         {
