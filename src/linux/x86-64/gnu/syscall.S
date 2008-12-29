@@ -44,16 +44,14 @@
 #define define_syscall0(a,b,c,r)\
 .globl c;\
 .type c, @function;\
-c:\
-        movq $a, %rdi;\
+c:      movq $a, %rdi;\
         syscall;\
         ret;
 
 #define define_syscall4(a,b,c,r,p1,p2,p3,p4)\
 .globl c;\
 .type c, @function;\
-c:\
-        movq %rcx, %r10
+c:      movq %rcx, %r10;\
         movq $a, %rdi;\
         syscall;\
         ret;
