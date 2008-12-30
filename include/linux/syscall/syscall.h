@@ -312,7 +312,7 @@ define_syscall4 (__NR_socketpair, socketpair, sys_socketpair, long, int, int, in
 #endif
 #ifdef __NR_setsockopt
 #define have_sys_setsockopt
-define_syscall5 (__NR_setsockopt, setsockopt, sys_setsockopt, long, int, int, int, char *, int *)
+define_syscall5 (__NR_setsockopt, setsockopt, sys_setsockopt, long, int, int, int, char *, int)
 #endif
 #ifdef __NR_getsockopt
 #define have_sys_getsockopt
