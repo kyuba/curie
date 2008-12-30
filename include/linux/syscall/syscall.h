@@ -383,10 +383,12 @@ define_syscall0 (__NR_msgrcv, msgrcv, sys_msgrcv, int)
 #define have_sys_msgctl
 define_syscall0 (__NR_msgctl, msgctl, sys_msgctl, int)
 #endif
+#endif
 #ifdef __NR_fcntl
 #define have_sys_fcntl
-define_syscall0 (__NR_fcntl, fcntl, sys_fcntl, int)
+define_syscall3 (__NR_fcntl, fcntl, sys_fcntl, long, unsigned int, unsigned int, unsigned long)
 #endif
+#if 0
 #ifdef __NR_flock
 #define have_sys_flock
 define_syscall0 (__NR_flock, flock, sys_flock, int)
