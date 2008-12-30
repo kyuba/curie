@@ -248,7 +248,7 @@ define_syscall3 (__NR_setitimer, setitimer, sys_setitimer, long, int, void *, vo
 #endif
 #ifdef __NR_getpid
 #define have_sys_getpid
-define_syscall0 (__NR_getpid, getpid, sys_getpid, long)
+define_syscall0 (__NR_getpid, getpid, sys_getpid, int)
 #endif
 #ifdef __NR_sendfile
 #define have_sys_sendfile
