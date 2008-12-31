@@ -41,6 +41,16 @@
 #include <curie/directory-system.h>
 #include <curie/internal-constants.h>
 #include <curie/io-system.h>
+
+/* linux is really a bitch at times... */
+
+#include <curie/int.h>
+typedef int_64   u64;
+typedef int_64_s s64;
+typedef int_64   __u64;
+typedef int_64_s __s64;
+#define linux_dirent64 dirent64
+
 #include <linux/dirent.h>
 
 sexpr read_directory_rx (const char *base, struct graph *rx)
