@@ -42,16 +42,16 @@
 #include <curie/internal-constants.h>
 #include <curie/io-system.h>
 
-/* linux is really a bitch at times... */
+/* okay, i give up, kernel header hell wins. i suppose this can't really change
+   too often anyway, since it'd break binary compatibility. */
 
-#include <curie/int.h>
-typedef int_64   u64;
-typedef int_64_s s64;
-typedef int_64   __u64;
-typedef int_64_s __s64;
-#define linux_dirent64 dirent64
-
-#include <linux/dirent.h>
+struct dirent64 {
+    int_64          d_ino;
+    int_64_s        d_off;
+    unsigned short  d_reclen;
+    unsigned char   d_type;
+    char            d_name[];
+};
 
 sexpr read_directory_rx (const char *base, struct graph *rx)
 {
