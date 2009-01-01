@@ -4,7 +4,7 @@
  * 
  *  Created by Nadja Klein on 29/09/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
-  *  Copyright 2008 Nadja Klein. All rights reserved.
+ *  Copyright 2008 Nadja Klein. All rights reserved.
  *
  */
 

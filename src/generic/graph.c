@@ -1,8 +1,8 @@
 /*
- *  tree.c
+ *  graph.c
  *  libcurie
  *
- *  Created by Magnus Deininger on 01/06/2008.
+ *  Created by Magnus Deininger on 29/09/2008.
  *  Copyright 2008 Magnus Deininger. All rights reserved.
  *
  */
