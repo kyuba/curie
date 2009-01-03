@@ -3,12 +3,12 @@
  *  libcurie
  *
  *  Created by Magnus Deininger on 23/10/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,30 +39,51 @@
 #include "curie/multiplex.h"
 #include "curie/exec.h"
 #include "curie/main.h"
+#include "curie/int.h"
+
+#define NUM_SUBPROCESSES 20
+
+static int n_sp = 0;
+static int rtab[NUM_SUBPROCESSES];
 
 static void mx_on_death(struct exec_context *cx, void *d) {
-    if (cx->exitstatus == 4)
-        cexit (0);
+    int *i = (int *)d;
 
-    cexit (2);
+    if (cx->exitstatus == *i)
+    {
+        *i = -1;
+        n_sp++;
+    }
+    else
+    {
+        cexit (2);
+    }
 }
 
 int cmain(void) {
-    struct exec_context *context;
-
     multiplex_all_processes();
 
-    context = execute(EXEC_CALL_NO_IO, (char **)0, (char **)0);
+    for (int i = 0; i < NUM_SUBPROCESSES; i++)
+    {
+        struct exec_context *context
+                = execute(EXEC_CALL_NO_IO, (char **)0, (char **)0);
 
-    if (context->pid < 0) {
-        return 3;
-    } else if (context->pid == 0) {
-        return 4;
+        if (context->pid < 0) {
+            return 3;
+        } else if (context->pid == 0) {
+            return i + 4;
+        }
+
+        rtab[i] = i + 4;
+
+        multiplex_add_process(context, mx_on_death, (void *)(rtab + i));
     }
 
-    multiplex_add_process(context, mx_on_death, (void *)0);
-
-    while (multiplex() == mx_ok);
+    while (multiplex() == mx_ok)
+    {
+        if (n_sp == NUM_SUBPROCESSES)
+            cexit (0);
+    }
 
     return 1;
 }
