@@ -37,6 +37,7 @@
  */
 
 #include <curie/main.h>
+#include <curie/memory.h>
 #include <curie/directory.h>
 
 define_string (str_memory_pool,       "./tests/memory-pool.c");
