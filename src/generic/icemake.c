@@ -2823,8 +2823,7 @@ int main (int argc, char **argv, char **environ)
     stdio                   = sx_open_stdio();
 
     multiplex_io();
-/*    multiplex_all_processes();*/
-    multiplex_process();
+    multiplex_all_processes();
     multiplex_sexpr();
     multiplex_signal();
 
