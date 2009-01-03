@@ -3,12 +3,12 @@
  *  libsyscall
  *
  *  Created by Magnus Deininger on 11/12/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -1243,6 +1243,123 @@ define_syscall0 (__NR_eventfd, eventfd, sys_eventfd, int)
 #define have_sys_fallocate
 define_syscall0 (__NR_fallocate, fallocate, sys_fallocate, int)
 #endif
+#endif
+
+#ifdef __NR_socketcall
+#define have_sys_socketcall
+define_syscall2 (__NR_socketcall, socketcall, sys_socketcall, long, unsigned long, unsigned long *)
+
+#ifndef define_socketcall0
+#define define_socketcall0(a,b,c,r)\
+static inline r c ()\
+{ unsigned long sc_tmp[6]= { (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+#endif
+
+#ifndef define_socketcall1
+#define define_socketcall1(a,b,c,r,a1)\
+static inline r c (a1 p1)\
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+#endif
+
+#ifndef define_socketcall2
+#define define_socketcall2(a,b,c,r,a1,a2)\
+static inline r c (a1 p1, a2 p2)\
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+#endif
+
+#ifndef define_socketcall3
+#define define_socketcall3(a,b,c,r,a1,a2,a3)\
+static inline r c (a1 p1, a2 p2, a3 p3)\
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+#endif
+
+#ifndef define_socketcall4
+#define define_socketcall4(a,b,c,r,a1,a2,a3,a4)\
+static inline r c (a1 p1, a2 p2, a3 p3, a4 p4)\
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)p4, (unsigned long)0, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+#endif
+
+#ifndef define_socketcall5
+#define define_socketcall5(a,b,c,r,a1,a2,a3,a4,a5)\
+static inline r c (a1 p1, a2 p2, a3 p3, a4 p4, a5 p5)\
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)p4, (unsigned long)p5, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+#endif
+
+#ifndef define_socketcall6
+#define define_socketcall6(a,b,c,r,a1,a2,a3,a4,a5,a6)\
+static inline r c (a1 p1, a2 p2, a3 p3, a4 p4, a5 p5, a6 p6)\
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)p4, (unsigned long)p5, (unsigned long)p6 }; sys_socketcall((unsigned long)a, sc_tmp); }
+#endif
+
+#ifndef have_sys_socket
+#define have_sys_socket
+define_socketcall3 (1, socket, sys_socket, long, int, int, int)
+#endif
+#ifndef have_sys_bind
+#define have_sys_bind
+define_socketcall3 (2, bind, sys_bind, long, int, void *, int)
+#endif
+#ifndef have_sys_connect
+#define have_sys_connect
+define_socketcall3 (3, connect, sys_connect, long, int, void *, int)
+#endif
+#ifndef have_sys_listen
+#define have_sys_listen
+define_socketcall2 (4, listen, sys_listen, long, int, int)
+#endif
+#ifndef have_sys_accept
+#define have_sys_accept
+define_socketcall3 (5, accept, sys_accept, long, int, void *, int *)
+#endif
+#ifndef have_sys_getsockname
+#define have_sys_getsockname
+define_socketcall3 (6, getsockname, sys_getsockname, long, int, void *, int *)
+#endif
+#ifndef have_sys_getpeername
+#define have_sys_getpeername
+define_socketcall3 (7, getpeername, sys_getpeername, long, int, void *, int *)
+#endif
+#ifndef have_sys_socketpair
+#define have_sys_socketpair
+define_socketcall4 (8, socketpair, sys_socketpair, long, int, int, int, int *)
+#endif
+#ifndef have_sys_send
+#define have_sys_send
+define_socketcall4 (9, send, sys_send, long, int, void *, long, int)
+#endif
+#ifndef have_sys_recv
+#define have_sys_recv
+define_socketcall4 (10, recv, sys_recv, long, int, void *, long, int)
+#endif
+#ifndef have_sys_sendto
+#define have_sys_sendto
+define_socketcall6 (11, sendto, sys_sendto, long, int, void *, int, unsigned int, void *, int)
+#endif
+#ifndef have_sys_recvfrom
+#define have_sys_recvfrom
+define_socketcall6 (12, recvfrom, sys_recvfrom, long, int, void *, int, unsigned int, void *, int *)
+#endif
+#ifndef have_sys_shutdown
+#define have_sys_shutdown
+define_socketcall2 (13, shutdown, sys_shutdown, long, int, int)
+#endif
+#ifndef have_sys_setsockopt
+#define have_sys_setsockopt
+define_socketcall5 (14, setsockopt, sys_setsockopt, long, int, int, int, char *, int)
+#endif
+#ifndef have_sys_getsockopt
+#define have_sys_getsockopt
+define_socketcall5 (15, getsockopt, sys_getsockopt, long, int, int, int, char *, int *)
+#endif
+#ifndef have_sys_sendmsg
+#define have_sys_sendmsg
+define_socketcall3 (16, sendmsg, sys_sendmsg, long, int, void *, unsigned int)
+#endif
+#ifndef have_sys_recvmsg
+#define have_sys_recvmsg
+define_socketcall3 (17, recvmsg, sys_recvmsg, long, int, void *, unsigned int)
+#endif
+
 #endif
 
 #endif

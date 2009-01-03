@@ -51,6 +51,14 @@ c:\
 #define define_syscall5(a,b,c,r,p1,p2,p3,p4,p5) define_syscall0(a,b,c,r)
 #define define_syscall6(a,b,c,r,p1,p2,p3,p4,p5,p6) define_syscall0(a,b,c,r)
 
+#define define_socketcall0(a,b,c,r)
+#define define_socketcall1(a,b,c,r,a1)
+#define define_socketcall2(a,b,c,r,a1,a2)
+#define define_socketcall3(a,b,c,r,a1,a2,a3)
+#define define_socketcall4(a,b,c,r,a1,a2,a3,a4)
+#define define_socketcall5(a,b,c,r,a1,a2,a3,a4,a5)
+#define define_socketcall6(a,b,c,r,a1,a2,a3,a4,a5,a6)
+
 #include <syscall/syscall.h>
 
 .section .note.GNU-stack,"",%progbits
