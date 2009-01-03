@@ -1562,11 +1562,8 @@ static sexpr get_data_install_path (sexpr name, sexpr file)
     switch (i_fsl)
     {
         case fs_fhs:
-            snprintf (buffer, BUFFERSIZE, "%s/etc/%s/%s", sx_string(i_destdir), sx_string(name), sx_string (file));
-            return make_string (buffer);
-            break;
         case fs_fhs_binlib:
-            snprintf (buffer, BUFFERSIZE, "%s/etc/%s/%s", sx_string(i_destdir), sx_string(i_pname), sx_string(file));
+            snprintf (buffer, BUFFERSIZE, "%s/etc/%s/%s", sx_string(i_destdir), sx_string(name), sx_string (file));
             return make_string (buffer);
             break;
         case fs_proper:
