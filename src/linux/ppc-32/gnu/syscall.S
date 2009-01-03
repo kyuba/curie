@@ -47,7 +47,7 @@
 c:\
         li 0, a;\
         sc;\
-        ret;
+        blr;
 
 #define define_syscall1(a,b,c,r,p1) define_syscall0(a,b,c,r)
 #define define_syscall2(a,b,c,r,p1,p2) define_syscall0(a,b,c,r)
