@@ -107,6 +107,9 @@ a_wait_all:
 
         sc
 
+        cmpwi   3, 10 /* check for ECHILD */
+        beq     a_wait_all_end
+
         lwz     4, 0(16)
 
         rotrwi  4, 4, 8 /* use the high-order bits of the lower 16 bits only */
@@ -114,6 +117,7 @@ a_wait_all:
 
         stw     4, 0(16)
 
+a_wait_all_end:
         blr
 
 a_set_sid:
