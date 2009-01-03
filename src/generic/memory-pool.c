@@ -200,14 +200,7 @@ void free_pool_mem(void *mem)
     optimise_counter--;
     if (optimise_counter == 0)
     {
-        optimise_counter = AUTOOPT_N;
-        for (unsigned int i = 0; i < POOLCOUNT; i++)
-        {
-            if (static_pools[i] != (struct memory_pool *)0)
-            {
-                optimise_memory_pool (static_pools[i]);
-            }
-        }
+        optimise_static_memory_pools();
     }
 }
 /*@=mustfree@*/
@@ -244,3 +237,40 @@ void optimise_memory_pool(struct memory_pool *pool)
     }
 }
 /*@=branchstate =memtrans@*/
+
+void optimise_static_memory_pools()
+{
+    optimise_counter = AUTOOPT_N;
+
+    for (unsigned int i = 0; i < POOLCOUNT; i++)
+    {
+        if (static_pools[i] != (struct memory_pool *)0)
+        {
+            optimise_memory_pool (static_pools[i]);
+
+            for (struct memory_pool_frame_header *h =
+                         (struct memory_pool_frame_header *)(static_pools[i]);
+                 h != (struct memory_pool_frame_header *)0;)
+            {
+                unsigned int j;
+
+                for (j = 0; j < BITMAPMAPSIZE; j++)
+                {
+                    if (h->map[j] != ((BITMAPENTITYTYPE)~0)) break;
+                }
+
+                if (j == BITMAPMAPSIZE)
+                {
+                    static_pools[i] = (struct memory_pool *)h->next;
+                    free_mem_chunk((void *)h);
+
+                    h = (struct memory_pool_frame_header *)(static_pools[i]);
+                }
+                else
+                {
+                    h = (struct memory_pool_frame_header *)0;
+                }
+            }
+        }
+    }
+}
