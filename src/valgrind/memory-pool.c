@@ -1,8 +1,10 @@
 /*
- *  memory-pool.c
+ *  srv/valgrind/memory-pool.c
  *  libcurie
  *
- *  Created by Magnus Deininger on 08/06/2008.
+ *  this is a valgrind/memcheck-aware version of the generic memory-pool.c file.
+ *
+ *  Created by Magnus Deininger on 03/01/2009.
  *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
@@ -41,6 +43,8 @@
 #include <curie/memory.h>
 #include <curie/memory-internal.h>
 #include <curie/int.h>
+
+#include <valgrind/memcheck.h>
 
 static unsigned int optimise_counter = AUTOOPT_N;
 static struct memory_pool *static_pools[POOLCOUNT];
@@ -156,11 +160,13 @@ void free_memory_pool (struct memory_pool *pool)
 
 void *get_pool_mem(struct memory_pool *pool)
 {
+    void *rv;
+
     switch (pool->type)
     {
         case mpft_frame:
-            return get_pool_mem_inner((struct memory_pool_frame_header *)pool,
-                                      (struct memory_pool_frame_header *)pool);
+            rv = get_pool_mem_inner((struct memory_pool_frame_header *)pool,
+                                    (struct memory_pool_frame_header *)pool);
 
         case mpft_static_header:
         {
@@ -171,13 +177,15 @@ void *get_pool_mem(struct memory_pool *pool)
                 static_pools[r] = create_memory_pool(pool->entitysize);
             }
 
-            return get_pool_mem_inner
-                    ((struct memory_pool_frame_header *)static_pools[r],
-                     (struct memory_pool_frame_header *)static_pools[r]);
+            rv = get_pool_mem_inner
+                  ((struct memory_pool_frame_header *)static_pools[r],
+                   (struct memory_pool_frame_header *)static_pools[r]);
         }
     }
 
-    return (void *)0;
+    VALGRIND_MALLOCLIKE_BLOCK(rv, pool->entitysize, 0, 0);
+
+    return rv;
 }
 
 /*@-mustfree@*/
@@ -209,6 +217,8 @@ void free_pool_mem(void *mem)
             }
         }
     }
+
+    VALGRIND_FREELIKE_BLOCK(mem, 0);
 }
 /*@=mustfree@*/
 

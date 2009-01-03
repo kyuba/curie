@@ -3,9 +3,9 @@
    well as certain pieces of code and help with algorithmical issues.
 
 == VALGRIND ==
- * file "src/valgrind/memory.c" ONLY:
-   - this file has special extra code to instruct the excellent memory debug
+ * file "src/valgrind/*.c" ONLY:
+   - this file have special extra code to instruct the excellent memory debug
      suite 'valgrind' on how to detect bad pointer access, since we're not using
      the standard malloc/free allocation scheme.
-     this code is /only/ used if the library was compiled in debugMemory=True
-     mode
+     this code is /only/ used if the library was compiled for valgrind in some
+     way.
