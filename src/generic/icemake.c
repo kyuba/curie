@@ -116,7 +116,7 @@ define_string (str_dcombine,            "-combine");
 
 static int alive_processes             = 0;
 static int files_open                  = 0;
-static int max_processes               = 1;
+static unsigned int max_processes      = 1;
 
 static sexpr co_freestanding           = sx_false;
 
@@ -1988,6 +1988,7 @@ static void print_help(char *binaryname)
         " -s           Use the default FS layout for installation\n"
         " -L           Optimise linking.\n"
         " -c           Use gcc's -combine option for C source files.\n"
+        " -j <num>     Spawn <num> processes simultaneously.\n"
         " -D           Use debug code, if available.\n\n"
         "The [targets] specify a list of things to build, according to the\n"
         "icemake.sx file located in the current working directory.\n\n",
@@ -2677,6 +2678,27 @@ int main (int argc, char **argv, char **environ)
                             xn++;
                         }
                         break;
+                    case 'j':
+                        if (xn < argc)
+                        {
+                            char *s = argv[xn];
+
+                            max_processes = 0;
+
+                            for (unsigned int j = 0; s[j]; j++)
+                            {
+                                max_processes = 10 * max_processes +
+                                                (s[j] - '0');
+                            }
+
+                            xn++;
+                        }
+
+                        if (max_processes == 0)
+                        {
+                            max_processes = 1;
+                        }
+                        break;
                     case 'r':
                         do_tests = sx_true;
                         break;
@@ -2801,7 +2823,7 @@ int main (int argc, char **argv, char **environ)
     stdio                   = sx_open_stdio();
 
     multiplex_io();
-    multiplex_process();
+    multiplex_all_processes();
     multiplex_sexpr();
     multiplex_signal();
 
