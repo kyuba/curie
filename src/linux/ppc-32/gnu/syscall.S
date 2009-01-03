@@ -36,11 +36,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* C-functions: */
-/* rdi rsi rdx rcx r8 r9 */
-/* kernel: */
-/* rdi rsi rdx r10 r8 r9 */
-
 #define define_syscall0(a,b,c,r)\
 .globl c;\
 .type c, @function;\
