@@ -3,12 +3,12 @@
  *  libcurie++
  *
  *  Created by Magnus Deininger on 01/01/2009.
- *  Copyright 2009 Magnus Deininger. All rights reserved.
+ *  Copyright 2008/2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008/2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -51,7 +51,10 @@
  #define removeNode(t, k) t.removeNodeSpecific (k, ((TreeNode *) 0))
  #define removeNodeString(t, k) t.removeNodeStringSpecific (k, ((TreeNode *) 0))
  #define getValue (n) ((TreeNode *) n)->value
- 
+  private:
+    Tree();
+  
+  public:
     TreeNode *root;
  
     Tree* create();
@@ -73,6 +76,8 @@
   };
   
    class TreeNode {
+   public:
+    TreeNode(int_pointer key, void *value, TreeNode *right, TreeNode *left);
    
     int_pointer key;
     void* value;
