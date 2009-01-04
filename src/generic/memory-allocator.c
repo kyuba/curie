@@ -67,13 +67,12 @@ void *arealloc (unsigned long size, void *p, unsigned long new_size) {
             else
             {
                 unsigned int *old_location = (unsigned int *)p;
-                int i = 0,
-                copysize = (int)((msize < mnew_size) ? msize : mnew_size);
+                int copysize = (int)((msize < mnew_size) ? msize : mnew_size);
 
                 copysize = (int)((copysize / sizeof(int))
                         + (((copysize % sizeof(int)) == 0) ? 0 : 1));
 
-                for(; i < copysize; i++) {
+                for(int i = 0; i < copysize; i++) {
                     /* copy in chunks of ints */
                     new_location[i] = old_location[i];
                 }

@@ -1,14 +1,14 @@
 /*
- *  constants.h
+ *  internal-constants.h
  *  libcurie
  *
  *  Created by Magnus Deininger on 20/09/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -46,12 +46,16 @@
 #ifndef LIBCURIE_INTERNAL_CONSTANTS_H
 #define LIBCURIE_INTERNAL_CONSTANTS_H
 
+#include <curie/constants.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define LIBCURIE_STAT_BUFFER_SIZE 256
 #define LIBCURIE_DIRENT_BUFFER_SIZE 0x1000
+#define AUTOOPT_N 300
+#define POOLCOUNT (LIBCURIE_PAGE_SIZE / ENTITY_ALIGNMENT)
 
 #ifdef __cplusplus
 }

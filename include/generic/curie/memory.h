@@ -3,12 +3,12 @@
  *  libcurie
  *
  *  Created by Magnus Deininger on 01/06/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -312,6 +312,13 @@ void free_pool_mem(/*@notnull@*/ /*@only@*/void *entity);
  *  returned to the operating system.
  */
 void optimise_memory_pool (/*@notnull@*/ struct memory_pool *pool);
+
+/*! \brief Optimise Static Memory Pools
+ *
+ *  This function calls optimise_memory_pool() on all the memory pools created
+ *  using the MEMORY_POOL_INITIALISER() macro.
+ */
+void optimise_static_memory_pools();
 
 /*! @} */
 

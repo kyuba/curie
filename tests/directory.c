@@ -3,12 +3,12 @@
  *  libcurie
  *
  *  Created by Magnus Deininger on 28/12/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -54,16 +54,16 @@ sexpr rd_fold (sexpr e, sexpr s)
     return make_integer (i);
 }
 
-sexpr sx_list_fold
-        (sexpr list,
-         /*@notnull@*/ sexpr (*f)(sexpr, sexpr),
-                               sexpr seed);
-
-
 int cmain()
 {
-    return truep(equalp(sx_list_fold(read_directory ("tests/memory-.*\\.c"),
-                                     rd_fold, make_integer(0)),
-                        make_integer (3)))
-           ? 0 : 1;
+    sexpr l = read_directory ("tests/memory-.*\\.c");
+
+    int rv = truep(equalp(sx_list_fold(l, rd_fold, make_integer(0)),
+                   make_integer (3))) ? 0 : 1;
+
+    sx_destroy (l);
+
+    optimise_static_memory_pools();
+
+    return rv;
 }

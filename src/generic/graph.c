@@ -3,12 +3,12 @@
  *  libcurie
  *
  *  Created by Magnus Deininger on 29/09/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,7 +40,7 @@
 #include <curie/memory.h>
 #include <curie/immutable.h>
 
-struct graph * graph_create()
+struct graph *graph_create()
 {
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph));
 
@@ -50,18 +50,15 @@ struct graph * graph_create()
     return gr;
 }
 
-struct graph_node * graph_add_node(struct graph * gr, sexpr label)
+struct graph_node *graph_add_node(struct graph *gr, sexpr label)
 {
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_node));
     struct graph_node *node = (struct graph_node *) get_pool_mem(&pool);
 
-    if (gr->node_count > 0)
-    {
-      gr->nodes = (struct graph_node **) arealloc(sizeof(struct graph_node *) * gr->node_count, gr->nodes, sizeof(struct graph_node *) * (gr->node_count + 1));
-    }
-    else
-    {
-      gr->nodes = (struct graph_node **) aalloc(sizeof(struct graph_node *));
+    if (gr->node_count == 0) {
+        gr->nodes = (struct graph_node **)aalloc(sizeof(struct graph_node *));
+    } else {
+        gr->nodes = (struct graph_node **)arealloc(sizeof(struct graph_node *) * gr->node_count, gr->nodes, sizeof(struct graph_node *) * (gr->node_count + 1));
     }
 
     node->edge_count = 0;
@@ -73,15 +70,36 @@ struct graph_node * graph_add_node(struct graph * gr, sexpr label)
     return node;
 }
 
-
-void graph_destroy (struct graph * gr)
+void graph_destroy (struct graph *gr)
 {
-    afree(sizeof(struct graph_node *) * gr->node_count, gr->nodes);
+    if (gr->node_count != 0)
+    {
+        for (unsigned int i = 0; i < gr->node_count; i++)
+        {
+            struct graph_node *n = gr->nodes[i];
+
+            if (n->edge_count != 0)
+            {
+                for (unsigned int j = 0; j < n->edge_count; j++)
+                {
+                    struct graph_edge *e = n->edges[j];
+
+                    free_pool_mem ((void *)e);
+                }
+
+                afree (sizeof(struct graph_node *) * n->edge_count, n->edges);
+            }
+
+            free_pool_mem ((void *)n);
+        }
+
+        afree (sizeof(struct graph_node *) * gr->node_count, gr->nodes);
+    }
+
     free_pool_mem ((void *)gr);
 }
 
-
-struct graph_node * graph_search_node(struct graph *gr, sexpr label)
+struct graph_node *graph_search_node(struct graph *gr, sexpr label)
 {
     for(int i = 0; i < gr->node_count; i++) {
         if(truep(equalp(gr->nodes[i]->label, label)))
@@ -96,12 +114,10 @@ struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_nod
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_edge));
     struct graph_edge *edge = (struct graph_edge *) get_pool_mem(&pool);
 
-    if(node->edge_count > 0) {
-         node->edges = (struct graph_edge **) arealloc(sizeof(struct graph_edge *) * node->edge_count, node->edges, sizeof(struct graph_edge *) * (node->edge_count + 1));
-    }
-    else
-    {
+    if (node->edge_count == 0) {
         node->edges = (struct graph_edge **)aalloc(sizeof(struct graph_edge *));
+    } else {
+        node->edges = (struct graph_edge **)arealloc(sizeof(struct graph_edge *) * node->edge_count, node->edges, sizeof(struct graph_edge *) * (node->edge_count + 1));
     }
 
     edge->target = target;
@@ -112,7 +128,7 @@ struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_nod
     return edge;
 }
 
-struct graph_edge * graph_node_search_edge(struct graph_node *node, sexpr label)
+struct graph_edge *graph_node_search_edge(struct graph_node *node, sexpr label)
 {
     for(int i = 0; i < node->edge_count; i++) {
         if(truep(equalp(node->edges[i]->label, label)))

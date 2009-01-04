@@ -4,12 +4,12 @@
  *
  *  Created by Magnus Deininger on 01/11/2008.
  *  Renamed from build.c by Magnus Deininger on 17/11/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -116,7 +116,7 @@ define_string (str_dcombine,            "-combine");
 
 static int alive_processes             = 0;
 static int files_open                  = 0;
-static int max_processes               = 1;
+static unsigned int max_processes      = 1;
 
 static sexpr co_freestanding           = sx_false;
 
@@ -1562,11 +1562,8 @@ static sexpr get_data_install_path (sexpr name, sexpr file)
     switch (i_fsl)
     {
         case fs_fhs:
-            snprintf (buffer, BUFFERSIZE, "%s/etc/%s/%s", sx_string(i_destdir), sx_string(name), sx_string (file));
-            return make_string (buffer);
-            break;
         case fs_fhs_binlib:
-            snprintf (buffer, BUFFERSIZE, "%s/etc/%s/%s", sx_string(i_destdir), sx_string(i_pname), sx_string(file));
+            snprintf (buffer, BUFFERSIZE, "%s/etc/%s/%s", sx_string(i_destdir), sx_string(name), sx_string (file));
             return make_string (buffer);
             break;
         case fs_proper:
@@ -1991,6 +1988,7 @@ static void print_help(char *binaryname)
         " -s           Use the default FS layout for installation\n"
         " -L           Optimise linking.\n"
         " -c           Use gcc's -combine option for C source files.\n"
+        " -j <num>     Spawn <num> processes simultaneously.\n"
         " -D           Use debug code, if available.\n\n"
         "The [targets] specify a list of things to build, according to the\n"
         "icemake.sx file located in the current working directory.\n\n",
@@ -2680,6 +2678,27 @@ int main (int argc, char **argv, char **environ)
                             xn++;
                         }
                         break;
+                    case 'j':
+                        if (xn < argc)
+                        {
+                            char *s = argv[xn];
+
+                            max_processes = 0;
+
+                            for (unsigned int j = 0; s[j]; j++)
+                            {
+                                max_processes = 10 * max_processes +
+                                                (s[j] - '0');
+                            }
+
+                            xn++;
+                        }
+
+                        if (max_processes == 0)
+                        {
+                            max_processes = 1;
+                        }
+                        break;
                     case 'r':
                         do_tests = sx_true;
                         break;
@@ -2804,6 +2823,7 @@ int main (int argc, char **argv, char **environ)
     stdio                   = sx_open_stdio();
 
     multiplex_io();
+/*    multiplex_all_processes();*/
     multiplex_process();
     multiplex_sexpr();
     multiplex_signal();
