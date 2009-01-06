@@ -1022,7 +1022,7 @@ define_syscall4 (__NR_timer_settime, timer_settime, sys_timer_settime, long, uns
 #endif
 #ifdef __NR_timer_gettime
 #define have_sys_timer_gettime
-define_syscall2 (__NR_timer_gettime, timer_gettime, sys_timer_gettime, long, usnigned int, void *)
+define_syscall2 (__NR_timer_gettime, timer_gettime, sys_timer_gettime, long, unsigned int, void *)
 #endif
 #ifdef __NR_timer_getoverrun
 #define have_sys_timer_getoverrun
@@ -1092,7 +1092,7 @@ define_syscall5 (__NR_mq_timedsend, mq_timedsend, sys_mq_timedsend, long, int, c
 #endif
 #ifdef __NR_mq_timedreceive
 #define have_sys_mq_timedreceive
-define_syscall5 (__NR_mq_timedreceive, mq_timedreceive, sys_mq_timedreceive, long, int, char *, int, unsigned int *, const void *s)
+define_syscall5 (__NR_mq_timedreceive, mq_timedreceive, sys_mq_timedreceive, long, int, char *, int, unsigned int *, const void *)
 #endif
 #ifdef __NR_mq_notify
 #define have_sys_mq_notify
