@@ -1208,7 +1208,7 @@ define_syscall3 (__NR_faccessat, faccessat, sys_faccessat, long, int, const char
 #endif
 #ifdef __NR_pselect6
 #define have_sys_pselect6
-define_syscall6 (__NR_pselect, pselect, sys_pselect, long, int, void *, void *, void *, void *, void *)
+define_syscall6 (__NR_pselect6, pselect6, sys_pselect6, long, int, void *, void *, void *, void *, void *)
 #endif
 #ifdef __NR_ppoll
 #define have_sys_ppoll
