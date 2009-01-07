@@ -57,7 +57,7 @@
 (programme "icemake" hosted libcurie
   (name "ICE make")
   (description "simple build tool for curie, based on curie")
-  (version "2")
+  (version "3")
 
   (code "icemake"))
 
@@ -70,4 +70,3 @@
 
   (headers
         "syscall"))
-
