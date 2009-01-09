@@ -3,12 +3,12 @@
  *  libcurie
  *
  *  Created by Magnus Deininger on 15/06/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -190,6 +190,7 @@ void sx_close_io (struct sexpr_io *io) {
             case ';': /* beginning a comment will also end the symbol */
             case 0:
             case ')': /* this is also a terminating character for a symbol */
+            case '(': /* starting a new cons is also end a symbol */
                 /* end of symbol */
 
                 *i = j;
