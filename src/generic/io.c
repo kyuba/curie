@@ -259,6 +259,12 @@ enum io_result io_read(struct io *io)
         io->status = io_unrecoverable_error;
     }
 
+    if (io->type == iot_special_read)
+    {
+        relocate_buffer(io);
+        return io_no_change;
+    }
+
     if (io->type == iot_read) {
         relocate_buffer(io);
     } else {
