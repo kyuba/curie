@@ -330,9 +330,6 @@ static sexpr sx_read_dispatch
         (unsigned int *i, char *buf, unsigned int length)
 {
     switch (buf[(*i)]) {
-        case ')': /* stray closing parentheses are ignored, yarr */
-            break;
-
         case '"':
             /* string */
             (*i)++; /* string will start one byte after this character */
@@ -398,6 +395,7 @@ sexpr sx_read(struct sexpr_io *io) {
             case ' ':
             case 0:
                 /* whitespace characters */
+            case ')': /* stray closing parentheses are also ignored, yarr */
                 break;
             case ';':
                 comment = (char)1;
