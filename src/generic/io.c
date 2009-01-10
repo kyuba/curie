@@ -226,6 +226,45 @@ enum io_result io_write(struct io *io, const char *data, unsigned int length)
     else return r;
 }
 
+void io_flush (struct io *io)
+{
+    if (io->buffer == (char *)0)
+    {
+        io->buffersize = 0;
+        io->length = 0;
+        io->status = io_unrecoverable_error;
+        return;
+    }
+
+    if ((io->status == io_finalising) ||
+        (io->status == io_end_of_file) ||
+        (io->status == io_unrecoverable_error))
+        return;
+
+    relocate_buffer(io);
+
+    unsigned int newsize = (io->length + IO_CHUNKSIZE);
+    if ((newsize % IO_CHUNKSIZE) != 0) {
+        newsize = ((newsize / IO_CHUNKSIZE) + 1) * IO_CHUNKSIZE;
+    }
+
+    if (newsize != io->buffersize) {
+        io->buffer = resize_mem (io->buffersize, io->buffer, newsize);
+
+        if (io->buffer == (char *)0)
+        {
+            io->buffersize = 0;
+            io->length = 0;
+            io->status = io_unrecoverable_error;
+            return;
+        }
+
+        io->buffersize = newsize;
+    }
+
+    return;
+}
+
 enum io_result io_read(struct io *io)
 {
     int readrv;

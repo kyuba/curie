@@ -3,12 +3,12 @@
  *  libcurie
  *
  *  Created by Magnus Deininger on 01/06/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -338,6 +338,15 @@ enum io_result io_collect
  *  data to the buffer.
  */
 enum io_result io_read
+        (/*@notnull@*/ struct io * io);
+
+/*! \brief Reclaim I/O Memory
+ *  \param[in] io The I/O structure to flush.
+ *
+ *  Use this function if you have a buffer that will usually grow quite big
+ *  while reading, and you'd like to get the buffer smaller.
+ */
+void io_flush
         (/*@notnull@*/ struct io * io);
 
 /*! \brief Commit pending Oprations
