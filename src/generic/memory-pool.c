@@ -195,7 +195,7 @@ void free_pool_mem(void *mem)
     unsigned int cell = ((unsigned int)((index) / BITSPERBITMAPENTITY));
 
     bitmap_clear (pool->map, index, cell);
-    pool->map[BITMAPMAPSIZE] &= ~((BITMAPENTITYTYPE)(1 << cell));
+    pool->map[BITMAPMAPSIZE] |= ((BITMAPENTITYTYPE)(1 << cell));
 
     optimise_counter--;
     if (optimise_counter == 0)
