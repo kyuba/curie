@@ -288,7 +288,7 @@ void sx_close_io (struct sexpr_io *io) {
                 break;
             }
         }
-		
+
         switch (buf[j]) {
             case '\n':
             case '\t':
@@ -330,6 +330,9 @@ static sexpr sx_read_dispatch
         (unsigned int *i, char *buf, unsigned int length)
 {
     switch (buf[(*i)]) {
+        case ')': /* stray closing parentheses are ignored, yarr */
+            break;
+
         case '"':
             /* string */
             (*i)++; /* string will start one byte after this character */
