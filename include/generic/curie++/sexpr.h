@@ -52,8 +52,24 @@
       
       public:
       SExprHeader *header;
-      //! is the sexpr equal to another sexpr a?
-      bool equalp (SExpr *a);
+
+      /*! \brief Check if the two S-Expressions are equal
+      *  \param[in] a S-expression to compare with b.
+      *  \param[in] b S-expression to compare with a.
+      *  \return sx_true if the two sexprs are equal or sx_false otherwise.
+      *
+      *  This function is used to determine whether the two s-expressions are the
+      *  same, like the C '==' operator. However, the C type operator would only
+      *  check if the two s-expressions were the exact same object; this function
+      *  will try this test first, and if it fails it will examine the s-expressions
+      *  themselves to find out if they're equivalent. If they are, sx_true is
+      *  returned.
+      *
+      *  \note Unlike the type predicates, this function returns an s-expression, so
+      *        if(equalp()) will not work in C code. Instead, use if(truep(equalp()))
+      *        to test things.
+      */
+      SExpr* equalp (SExpr *a);
       
       void xref();
       virtual void destroy();
@@ -78,9 +94,9 @@
         ((SExpr*)((((int_pointer)(code)) << 3) | 0x5))
 
 #define define_sosi(t,n,s) \
-    static const struct sexpr_string_or_symbol sexpr_payload_ ## n =\
+    static const SExprStringOrSymbol* sexpr_payload_ ## n =\
         { { t, (unsigned short int)(~0) }, s };\
-    static const sexpr n = ((const sexpr)&(sexpr_payload_ ## n))
+    static const SExpr* n = ((const SExpr*)&(sexpr_payload_ ## n))
 
 #define define_string(name,value) define_sosi(sxt_string,name,value)
 
@@ -156,6 +172,15 @@
  */
 #define sx_mask_no_pointer 0x1
 
+/*! \brief Access the Pointer Value of an S-Expression
+ *  \param[in] sx The s-expression.
+ *  \return The pointer.
+ *
+ *  For s-expressions that are used to encode a pointer, this macro retrieves
+ *  that particular pointer.
+ */
+#define sx_pointer(sx) ((void *)sx)
+
 /*! @} */
 
 /*! \defgroup sexprPredicates Predicates
@@ -172,25 +197,7 @@
  *  @{
  */
 
-/*! \brief Check if the two S-Expressions are equal
- *  \param[in] a S-expression to compare with b.
- *  \param[in] b S-expression to compare with a.
- *  \return sx_true if the two sexprs are equal or sx_false otherwise.
- *
- *  This function is used to determine whether the two s-expressions are the
- *  same, like the C '==' operator. However, the C type operator would only
- *  check if the two s-expressions were the exact same object; this function
- *  will try this test first, and if it fails it will examine the s-expressions
- *  themselves to find out if they're equivalent. If they are, sx_true is
- *  returned.
- *
- *  \note Unlike the type predicates, this function returns an s-expression, so
- *        if(equalp()) will not work in C code. Instead, use if(truep(equalp()))
- *        to test things.
- */
-/*@notnull@*/ /*@shared@*/ sexpr equalp
-        (/*@notnull@*/ sexpr a,
-         /*@notnull@*/ sexpr b);
+
 
 /*! \brief Check if the S-Expression is a Special Expression
  *  \param[in] sx The s-expression to check.
@@ -217,7 +224,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define nilp(sx)   ((sexpr)(sx) == sx_nil)
+#define nilp(sx)   ((SExpr *)(sx) == sx_nil)
 
 /*! \brief Check if the S-Expression is the Boolean True Expression
  *  \param[in] sx The s-expression to check.
@@ -226,7 +233,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define truep(sx)  ((sexpr)(sx) == sx_true)
+#define truep(sx)  ((SExpr *)(sx) == sx_true)
 
 /*! \brief Check if the S-Expression is is the Boolean False Expression
  *  \param[in] sx The s-expression to check.
@@ -235,7 +242,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define falsep(sx) ((sexpr)(sx) == sx_false)
+#define falsep(sx) ((SExpr *)(sx) == sx_false)
 
 /*! \brief Check if the S-Expression is the empty List Expression
  *  \param[in] sx The s-expression to check.
@@ -244,7 +251,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define emptyp(sx) ((sexpr)(sx) == sx_empty_list)
+#define emptyp(sx) ((SExpr *)(sx) == sx_empty_list)
 
 /*! \brief Check if the S-Expression is the End-of-List Expression
  *  \param[in] sx The s-expression to check.
@@ -253,7 +260,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define eolp(sx)   ((sexpr)(sx) == sx_end_of_list)
+#define eolp(sx)   ((SExpr *)(sx) == sx_end_of_list)
 
 /*! \brief Check if the S-Expression is the End-of-File Expression
  *  \param[in] sx The s-expression to check.
@@ -262,7 +269,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define eofp(sx)   ((sexpr)(sx) == sx_end_of_file)
+#define eofp(sx)   ((SExpr *)(sx) == sx_end_of_file)
 
 /*! \brief Check if the S-Expression is the Not-a-Number Expression
  *  \param[in] sx The s-expression to check.
@@ -271,7 +278,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define nanp(sx)   ((sexpr)(sx) == sx_not_a_number)
+#define nanp(sx)   ((SExpr *)(sx) == sx_not_a_number)
 
 /*! \brief Check if the S-Expression is the nonexistent Expression
  *  \param[in] sx The s-expression to check.
@@ -280,7 +287,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define nexp(sx)   ((sexpr)(sx) == sx_nonexistent)
+#define nexp(sx)   ((SExpr *)(sx) == sx_nonexistent)
 
 /*! \brief Check if the S-Expression is the Dot Operator
  *  \param[in] sx The s-expression to check.
@@ -289,7 +296,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define dotp(sx)   ((sexpr)(sx) == sx_dot)
+#define dotp(sx)   ((SExpr *)(sx) == sx_dot)
 
 /*! \brief Check if the S-Expression is a Cons
  *  \param[in] sx The s-expression to check.
@@ -298,7 +305,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define consp(sx)    (pointerp(sx) && (((struct sexpr_cons *)sx_pointer(sx))->header.type == sxt_cons))
+#define consp(sx)    (pointerp(sx) && (((SExprCons *)sx_pointer(sx))->header.type == sxt_cons))
 
 /*! \brief Check if the S-Expression is a String
  *  \param[in] sx The s-expression to check.
@@ -307,7 +314,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define stringp(sx)  (pointerp(sx) && (((struct sexpr_string_or_symbol *)sx_pointer(sx))->header.type == sxt_string))
+#define stringp(sx)  (pointerp(sx) && (((SExprStringOrSymbol *)sx_pointer(sx))->header.type == sxt_string))
 
 /*! \brief Check if the S-Expression is a Symbol
  *  \param[in] sx The s-expression to check.
@@ -316,7 +323,7 @@
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define symbolp(sx)  (pointerp(sx) && (((struct sexpr_string_or_symbol *)sx_pointer(sx))->header.type == sxt_symbol))
+#define symbolp(sx)  (pointerp(sx) && (((SExprStringOrSymbol *)sx_pointer(sx))->header.type == sxt_symbol))
 
 /*! \brief Check if the S-Expression is an Integer
  *  \param[in] sx The s-expression to check.
@@ -335,36 +342,18 @@
       unsigned char type;
       unsigned short int references;
     };
-    
-    class SExprString : SExpr
+
+    class SExprStringOrSymbol : SExpr
     {
       private:
-        SExprString(const char *string);
-      public:
-      
-      SExprHeader *header;
-      char characterData[];
-            
-      SExprString* makeString(const char *str);
-      
-      void destroy();
-      SExprString *join(SExprString *sx);
-      SExprString *join(SExprSymbol *sx);
-    };
-    
-    class SExprSymbol : SExpr
-    {
-      private:
-        SExprSymbol(const char *symbol);
+        SExprStringOrSymbol(const char *symbol);
       
       public:
-        SExprHeader *header;
         char characterData[];
             
-        SExprSymbol *makeSymbol(const char *symbol);
+        SExprStringOrSymbol *makeSymbol(const char *symbol);
         void destroy();
-        SExprSymbol *join(SExprString *sx);
-        SExprSymbol *join(SExprSymbol *sx);
+        SExprStringOrSymbol *join(SExprStringOrSymbol *sx);
     };
     
     class SExprCons : SExpr
@@ -373,7 +362,6 @@
         SExprCons(SExpr *car, SExprCons *cdr);
       
       public:
-        SExprHeader *header;
         SExpr *car;
         SExprCons *cdr;
       
