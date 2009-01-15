@@ -43,6 +43,9 @@
 /* markos' string hash function requires these. i'm totally not gonna muck
    around with that :D */
 
+/* this hash function is based on this one:
+ * http://www.azillionmonkeys.com/qed/hash.html */
+
 /**** begin ***** markos' hashing function ************************************/
 
 #undef get16bits
@@ -88,13 +91,13 @@ int_32 str_hash(const char *data, unsigned long *len)
 
     // Now we've got out of the loop, because we hit a zero byte,
     // find out which exactly
-    if (p[0] == '\0')
+    if (p[0] == 0)
         rem = 0;
-    if (p[1] == '\0')
+    else if (p[1] == 0)
         rem = 1;
-    if (p[2] == '\0')
+    else if (p[2] == 0)
         rem = 2;
-    if (p[3] == '\0')
+    else if (p[3] == 0)
         rem = 3;
 
     /*
@@ -135,41 +138,3 @@ int_32 str_hash(const char *data, unsigned long *len)
 }
 
 /**** end ******* markos' hashing function ************************************/
-
-int_32 str_hash_unaligned(const char *string, unsigned long *len)
-{
-    unsigned int length;
-
-    for (length = 0; string[length] != (char)0; length++);
-    length++;
-
-    if (((length % 8) == 0) && ((((int_pointer)string) % 8) == 0)) {
-        /* must be suitably aligned */
-
-        return str_hash (string, len);
-    } else {
-        char *r;
-        unsigned int i;
-        int_32 rv = 0;
-
-        if ((r = get_mem (length)) == (char *)0)
-        {
-            *len = 0;
-            return 0;
-        }
-        /* the return value of this is always suitable for our purposes. */
-
-        for (i = 0; string[i] != (char)0; i++) r[i] = string[i];
-
-        do {
-            r[i] = 0;
-            i++;
-        } while (i < (length + (8-(length % 8))));
-
-        rv = str_hash (r, len);
-
-        free_mem (length, r);
-
-        return rv;
-    }
-}

@@ -37,6 +37,7 @@
  */
 
 #include <curie/sexpr.h>
+#include <curie/string.h>
 
 sexpr equalp (sexpr a, sexpr b)
 {
@@ -49,13 +50,10 @@ sexpr equalp (sexpr a, sexpr b)
         struct sexpr_string_or_symbol
                 *sa = (struct sexpr_string_or_symbol *)sx_pointer(a),
                 *sb = (struct sexpr_string_or_symbol *)sx_pointer(b);
-        int i;
+        unsigned long i;
 
-        for (i = 0; (sa->character_data[i] == sb->character_data[i]) &&
-                    (sa->character_data[i] != (char)0); i++);
-
-        return ((sa->character_data[i] == (char)0) &&
-                (sb->character_data[i] == (char)0)) ? sx_true : sx_false;
+        return (str_hash(sa->character_data, &i) ==
+                str_hash(sb->character_data, &i)) ? sx_true : sx_false;
     }
     else if (consp(a) && consp(b))
     {

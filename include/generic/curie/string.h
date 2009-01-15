@@ -36,11 +36,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*! \internal
- *
- *  @{
- */
-
 /*! \file
  *  \brief String Handling
  *
@@ -54,11 +49,8 @@
 
 /* kudos to markos for this one */
 
-/* input MUST be 32-bit aligned. */
 int_32 str_hash(/*@notnull@*/ const char *data,
                 /*@notnull@*/ /*@out@*/ unsigned long *len);
-int_32 str_hash_unaligned(/*@notnull@*/ const char *data,
-                          /*@notnull@*/ /*@out@*/ unsigned long *len);
 
 #endif
 

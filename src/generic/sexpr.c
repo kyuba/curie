@@ -72,7 +72,7 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr) {
     struct sexpr_string_or_symbol *s;
     unsigned long len;
     unsigned int i;
-    int_32 hash = str_hash_unaligned (string, &len);
+    int_32 hash = str_hash (string, &len);
     struct tree_node *n;
 
     if ((n = tree_get_node ((symbol == (char)1) ? &sx_symbol_tree : &sx_string_tree, (int_pointer)hash))) {
@@ -132,7 +132,7 @@ void sx_destroy(sexpr sxx) {
             unsigned long length = 0;
             int_32 hash;
 
-            hash = str_hash_unaligned (((struct sexpr_string_or_symbol *)sx)->character_data, &length);
+            hash = str_hash (((struct sexpr_string_or_symbol *)sx)->character_data, &length);
 
             if (sx->header.type == sxt_string) {
                 tree_remove_node(&sx_string_tree, (int_pointer)hash);
