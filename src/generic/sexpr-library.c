@@ -50,11 +50,10 @@ sexpr equalp (sexpr a, sexpr b)
         struct sexpr_string_or_symbol
                 *sa = (struct sexpr_string_or_symbol *)sx_pointer(a),
                 *sb = (struct sexpr_string_or_symbol *)sx_pointer(b);
-        unsigned long i, j;
+        unsigned long i;
 
-        return ((str_hash(sa->character_data, &i) ==
-                 str_hash(sb->character_data, &j)) &&
-                 (i == j))
+        return (str_hash(sa->character_data, &i) ==
+                str_hash(sb->character_data, &i))
                 ? sx_true : sx_false;
     }
     else if (consp(a) && consp(b))

@@ -66,38 +66,34 @@
 // data is guarranteed to be 32-bit aligned)
 int_32 str_hash(const char *data, unsigned long *len)
 {
-    int_32 hash = 0, tmp, lw, mask, *p32;
+    int_32 hash = 0, tmp, mask;
     int rem = 0;
-    char *p = (char *) data;
-    *len = 0;
+    unsigned long lent = 0;
 
     // this unrolls to better optimized code on most compilers
     do {
-        p32 = (int_32 *) (p);
-        lw = *p32;
-        mask = (int_32)HAS_ZERO_BYTE(lw);
-        // if mask == 0 p32 has no zero in it
+        mask = HAS_ZERO_BYTE(*((int_32 *)(data)));
         if (mask == 0) {
             // Do the hash calculation
-            hash += get16bits(p);
-            tmp = (get16bits(p + 2) << 11) ^ hash;
-            hash = (hash << 16) ^ tmp;
+            hash += get16bits(data);
+            tmp   = (get16bits(data + 2) << 11) ^ hash;
+            hash  = (hash << 16) ^ tmp;
             hash += hash >> 11;
-            p += sizeof(int_32);
+            data += 4;
             // Increase len as well
-            (*len)++;
+            (lent)++;
         }
     } while (mask == 0);
 
     // Now we've got out of the loop, because we hit a zero byte,
     // find out which exactly
-    if (p[0] == 0)
+    if (data[0] == 0)
         rem = 0;
-    else if (p[1] == 0)
+    else if (data[1] == 0)
         rem = 1;
-    else if (p[2] == 0)
+    else if (data[2] == 0)
         rem = 2;
-    else if (p[3] == 0)
+    else if (data[3] == 0)
         rem = 3;
 
     /*
@@ -105,13 +101,13 @@ int_32 str_hash(const char *data, unsigned long *len)
      */
     switch (rem) {
     case 3:
-        hash += get16bits(p);
+        hash += get16bits(data);
         hash ^= hash << 16;
-        hash ^= p[2] << 18;
+        hash ^= data[2] << 18;
         hash += hash >> 11;
         break;
     case 2:
-        hash += get16bits(p);
+        hash += get16bits(data);
         hash ^= hash << 11;
         hash += hash >> 17;
         break;
@@ -122,7 +118,7 @@ int_32 str_hash(const char *data, unsigned long *len)
     }
     // len was calculated in 4-byte tuples,
     // multiply it by 4 to get the number in bytes
-    *len = (*len << 2) + rem;
+    *len = (lent << 2) + rem;
 
     /*
      * Force "avalanching" of final 127 bits 
