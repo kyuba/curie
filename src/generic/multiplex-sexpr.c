@@ -3,12 +3,12 @@
  *  libcurie
  *
  *  Created by Magnus Deininger on 07/08/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -49,7 +49,8 @@ struct io_element {
 
 static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct io_element));
 
-void multiplex_sexpr () {
+void multiplex_sexpr ()
+{
     static char installed = (char)0;
 
     if (installed == (char)0) {
@@ -58,7 +59,8 @@ void multiplex_sexpr () {
     }
 }
 
-static void mx_on_read (/*@unused@*/ struct io *r, void *d) {
+static void mx_on_read (/*@unused@*/ struct io *r, void *d)
+{
     struct io_element *element = (struct io_element *)d;
     sexpr sx = sx_read (element->io);
 
@@ -68,16 +70,22 @@ static void mx_on_read (/*@unused@*/ struct io *r, void *d) {
     }
 }
 
-static void mx_on_close (/*@unused@*/ struct io *r, /*@only@*/ void *d) {
+static void mx_on_close (/*@unused@*/ struct io *r, /*@only@*/ void *d)
+{
     struct io_element *element = (struct io_element *)d;
+    struct sexpr_io *io = element->io;
 
-    multiplex_del_io (element->io->out);
-    free_pool_mem (element->io);
+    if (io->in != io->out)
+    {
+        multiplex_del_io (io->out);
+    }
+    free_pool_mem (io);
     free_pool_mem (element);
 }
 
 /*@-mustfree@*/
-void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(sexpr, struct sexpr_io *, void *), void *data) {
+void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(sexpr, struct sexpr_io *, void *), void *data)
+{
     struct io_element *element = get_pool_mem (&list_pool);
 
     if (element == (struct io_element *)0) return;
@@ -87,6 +95,9 @@ void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(sexpr, struct sex
     element->data = data;
 
     multiplex_add_io (io->in, mx_on_read, mx_on_close, (void *)element);
-    multiplex_add_io_no_callback(io->out);
+    if (io->in != io->out)
+    {
+        multiplex_add_io_no_callback(io->out);
+    }
 }
 /*@=mustfree@*/
