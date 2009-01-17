@@ -3,12 +3,12 @@
  *  libcurie
  *
  *  Created by Magnus Deininger on 07/08/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,7 +39,6 @@
 #include <curie/multiplex.h>
 #include <curie/signal.h>
 #include <curie/signal-system.h>
-#include <curie/network.h>
 #include <curie/tree.h>
 #include <curie/memory.h>
 
@@ -96,17 +95,18 @@ static void queue_on_read (struct io *qin, /*@unused@*/ void *u) {
     qin->position = (unsigned int)(position * sizeof(enum signal));
 }
 
-/*@null@*/ /*@only@*/ static struct io *signal_queue_out = (struct io *)0;
+/*@null@*/ /*@only@*/ static struct io *signal_queue = (struct io *)0;
 
 static void queue_on_close (/*@unused@*/ struct io *qin, /*@unused@*/ void *u) {
-    if (signal_queue_out == (struct io *)0) return;
-    multiplex_del_io (signal_queue_out);
-    signal_queue_out = (struct io *)0;
+    signal_queue = io_open_special();
+    if (signal_queue != (struct io *)0) {
+        multiplex_add_io (signal_queue, queue_on_read, queue_on_close, (void *)0);
+    }
 }
 
 static void generic_signal_handler (enum signal signal) {
-    if (signal_queue_out == (struct io *)0) return;
-    (void)io_write (signal_queue_out,
+    if (signal_queue == (struct io *)0) return;
+    (void)io_write (signal_queue,
                     (char *)&signal,
                     (unsigned int)sizeof(enum signal));
 }
@@ -116,7 +116,6 @@ void multiplex_signal () {
     static char installed = (char)0;
 
     if (installed == (char)0) {
-        static struct io *signal_queue_in, *out;
         int i;
 
         multiplex_io();
@@ -125,22 +124,12 @@ void multiplex_signal () {
             a_set_signal_handler ((enum signal)i, generic_signal_handler);
         }
 
-        net_open_loop (&signal_queue_in, &out);
-
-        if ((signal_queue_in == (struct io *)0) ||
-            (out == (struct io *)0))
+        if ((signal_queue = io_open_special()) == (struct io *)0)
         {
-            if (signal_queue_in != (struct io *)0) io_close (signal_queue_in);
-            if (out != (struct io *)0) io_close (out);
             return;
         }
 
-        /*@-mustfree@*/
-        signal_queue_out = out;
-        /*@=mustfree@*/
-
-        multiplex_add_io (signal_queue_in, queue_on_read, queue_on_close, (void *)0);
-        multiplex_add_io_no_callback (signal_queue_out);
+        multiplex_add_io (signal_queue, queue_on_read, queue_on_close, (void *)0);
 
         installed = (char)1;
     }
