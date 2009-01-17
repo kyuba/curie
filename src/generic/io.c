@@ -73,6 +73,9 @@ struct io *io_open_special ()
     if (io == (struct io *)0) return (struct io *)0;
 
     io->fd = -1;
+    io->status = io_undefined;
+    io->length = 0;
+    io->position = 0;
     io->type = iot_special_write;
 
     return io;

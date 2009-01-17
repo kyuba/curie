@@ -3,12 +3,12 @@
  *  libcurie
  *
  *  Created by Magnus Deininger on 06/08/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -62,7 +62,7 @@ static struct memory_pool list_pool
 static struct memory_pool mx_sx_payload_pool
         = MEMORY_POOL_INITIALISER(sizeof (struct mx_sx_payload));
 
-static void mx_f_count(int *r, int *w);
+static enum multiplex_result mx_f_count(int *r, int *w);
 static void mx_f_augment(int *rs, int *r, int *ws, int *w);
 static void mx_f_callback(int *rs, int r, int *ws, int w);
 
@@ -73,7 +73,7 @@ static struct multiplex_functions mx_functions = {
     .next = (struct multiplex_functions *)0
 };
 
-static void mx_f_count(int *r, /*@unused@*/ int *w) {
+static enum multiplex_result mx_f_count(int *r, /*@unused@*/ int *w) {
     struct net_socket_listener *l = list;
 
     while (l != (struct net_socket_listener *)0) {
@@ -83,6 +83,8 @@ static void mx_f_count(int *r, /*@unused@*/ int *w) {
 
         l = l->next;
     }
+
+    return mx_ok;
 }
 
 static void mx_f_augment(int *rs, int *r,

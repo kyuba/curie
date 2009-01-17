@@ -28,7 +28,7 @@
         "multiplex-process" "multiplex-sexpr" "multiplex-signal" "network-loop"
         "read-write" "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
         "tree-random" "tree-random-node-removal" "tree-value" "regex"
-        "directory")
+        "directory" "io-special")
 
   (test-case-reference
         ("temporary-curie-test-data" . "tests/reference/curie-test-data")

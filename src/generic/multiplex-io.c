@@ -39,7 +39,7 @@
 #include <curie/multiplex.h>
 #include <curie/memory.h>
 
-static void mx_f_count(int *r, int *w);
+static enum multiplex_result mx_f_count(int *r, int *w);
 static void mx_f_augment(int *rs, int *r, int *ws, int *w);
 static void mx_f_callback(int *rs, int r, int *ws, int w);
 
@@ -63,15 +63,27 @@ static struct memory_pool list_pool
 /*@only@*/ /*@null@*/ static struct io_list *list = (struct io_list *)0;
 
 /*@-branchstate@*/
-static void mx_f_count(int *r, int *w) {
+static enum multiplex_result mx_f_count(int *r, int *w) {
     struct io_list *l = list;
 
     while (l != (struct io_list *)0) {
         struct io *io = l->io;
 
-        if ((io->fd != -1) &&
-            (io->status != io_end_of_file) &&
-            (io->status != io_unrecoverable_error))
+        if ((io->fd == -1))
+        {
+            switch (io->type) {
+                case iot_special_read:
+                case iot_special_write:
+                    if (io->status == io_changes)
+                    {
+                        return mx_immediate_action;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        } else if ((io->status != io_end_of_file) &&
+                   (io->status != io_unrecoverable_error))
         {
             switch (io->type) {
                 case iot_read:
@@ -90,6 +102,8 @@ static void mx_f_count(int *r, int *w) {
         next:
         l = l->next;
     }
+
+    return mx_ok;
 }
 
 static void mx_f_augment(int *rs, int *r, int *ws, int *w) {

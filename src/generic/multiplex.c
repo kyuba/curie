@@ -3,12 +3,12 @@
  *  libcurie
  *
  *  Created by Magnus Deininger on 03/06/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -49,8 +49,19 @@ enum multiplex_result multiplex () {
 
     for (cur = mx_func_list;
          cur != (struct multiplex_functions *)0;
-         cur = cur->next) {
-        cur->count (&rnum, &wnum);
+         cur = cur->next)
+    {
+        if (cur->count (&rnum, &wnum) == mx_immediate_action)
+        {
+            for (cur = mx_func_list;
+                 cur != (struct multiplex_functions *)0;
+                 cur = cur->next)
+            {
+                cur->callback ((int *)0, 0, (int *)0, 0);
+            }
+
+            return mx_ok;
+        }
     }
 
     if ((rnum == 0) && (wnum == 0)) {

@@ -1,14 +1,14 @@
 /*
- *  io.c
+ *  io-special.c
  *  libcurie
  *
- *  Created by Magnus Deininger on 08/06/2008.
- *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
+ *  Created by Magnus Deininger on 17/01/2009.
+ *  Copyright 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, 2009, Magnus Deininger All rights reserved.
+ * Copyright (c) 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,61 +36,53 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "curie/io.h"
+#include <curie/main.h>
+#include <curie/sexpr.h>
+#include <curie/memory.h>
+#include <curie/multiplex.h>
 
-#define TESTDATA "THIS IS SOME TEST DATA"
-#define TESTDATA_LENGTH (unsigned int)(sizeof(TESTDATA) -1)
+static struct sexpr_io *queue;
+static struct io *queue_io;
 
-int cmain(void) {
-    struct io *out = io_open_write ("temporary-io-test-file"), *in;
-    char cont = (char)1;
-    unsigned int i;
-    int rv = 0;
+sexpr sxm1337 = make_integer (-1337);
 
-    if (io_write (out, TESTDATA, TESTDATA_LENGTH) != io_complete) {
-        io_close (out);
-        return 11;
-    }
+static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
+{
+    cexit(22);
+    return (void *)0;
+}
 
-    io_close (out);
+static void *gm_recover(unsigned long int s)
+{
+    cexit(23);
+    return (void *)0;
+}
 
-    in = io_open_read ("temporary-io-test-file");
+static void mx_sx_queue_read (sexpr sx, struct sexpr_io *io, void *aux)
+{
+    if (truep (equalp (sx, sxm1337))) cexit (0);
+    sx_destroy (sx);
+}
 
-    do {
-        enum io_result res = io_read (in);
+int cmain()
+{
+    set_resize_mem_recovery_function(rm_recover);
+    set_get_mem_recovery_function(gm_recover);
 
-        switch (res) {
-            case io_changes:
-            case io_no_change:
-                cont = (char)1;
-                break;
-            case io_end_of_file:
-                cont = (char)0;
-                break;
-            case io_unrecoverable_error:
-                rv = 12;
-                goto end;
-            default:
-                rv = res;
-                goto end;
-        }
-    } while (cont == (char)1);
+    queue_io = io_open_special();
 
-    if (in->length != TESTDATA_LENGTH) {
-        rv = 13;
-        goto end;
-    }
+    queue    = sx_open_io    (queue_io, queue_io);
 
-    for (i = 0; i < in->length; i++) {
-        if ((in->buffer)[i] != TESTDATA[i]) {
-            rv = 14;
-            goto end;
-        }
-    }
+    sx_write (queue, sxm1337);
+    if (falsep(equalp(sx_read(queue), sxm1337))) return 1;
 
-    end:
+    multiplex_sexpr();
 
-    io_close (in);
+    multiplex_add_sexpr (queue, mx_sx_queue_read, (void *)0);
 
-    return 0;
+    sx_write (queue, sxm1337);
+
+    while (multiplex() == mx_ok);
+
+    return 2;
 }

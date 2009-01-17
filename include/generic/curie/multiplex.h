@@ -53,6 +53,35 @@
 extern "C" {
 #endif
 
+/*! \brief multiplex() Call Result
+ *
+ *  Result code of a call to the multiplex() function. This is only used by that
+ *  one function.
+ */
+enum multiplex_result {
+    /*! \brief Call OK
+     *
+     *  This is returned when the mutliplex() call returned normally, regardless
+     *  of whether any changes have been observed or not.
+     */
+    mx_ok = 0,
+
+    /*! \brief Nothing to do
+     *
+     *  Whenever this is returned, it means that either no multiplexers are in
+     *  use, or that none of them have anything to watch.
+     */
+    mx_nothing_to_do = 1,
+
+    /*! \brief Immediate action possible
+     *
+     *  Used by the ->count() functions to indicate that not only may something
+     *  change but in fact things already have changed, so the select() call can
+     *  be omitted and the callbacks can be run directly.
+     */
+    mx_immediate_action = 2
+};
+
 /*! \brief Multiplexer Functions
  *
  *  A set of functions that implement a multiplexer. The whole multiplexer code
@@ -61,6 +90,8 @@ extern "C" {
  */
 struct multiplex_functions {
     /*! \brief Count Function
+     *  \return mx_ok or mx_immediate_action if the callbacks can be run
+     *          directly without waiting for anything.
      *
      *  This function is used to count the file descriptors that will be needed
      *  for the select() call. Basically any multiplexer will just count its own
@@ -68,7 +99,7 @@ struct multiplex_functions {
      *  events to the first integer, and the number of fds to check for write
      *  events to the second integer.
      */
-    /*@notnull@*/ void (*count)(int *, int *);
+    /*@notnull@*/ enum multiplex_result (*count)(int *, int *);
 
     /*! \brief Augmenter
      *
@@ -96,27 +127,6 @@ struct multiplex_functions {
      *  uses this to implement a list of multiplexers.
      */
     /*@null@*/ struct multiplex_functions *next;
-};
-
-/*! \brief multiplex() Call Result
- *
- *  Result code of a call to the multiplex() function. This is only used by that
- *  one function.
- */
-enum multiplex_result {
-    /*! \brief Call OK
-     *
-     *  This is returned when the mutliplex() call returned normally, regardless
-     *  of whether any changes have been observed or not.
-     */
-    mx_ok = 0,
-
-    /*! \brief Nothing to do
-     *
-     *  Whenever this is returned, it means that either no multiplexers are in
-     *  use, or that none of them have anything to watch.
-     */
-    mx_nothing_to_do = 1
 };
 
 /*! \brief Multiplex
