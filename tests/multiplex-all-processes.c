@@ -85,5 +85,5 @@ int cmain(void) {
             cexit (0);
     }
 
-    return 1;
+    return (n_sp == NUM_SUBPROCESSES) ? 0 : 1;
 }
