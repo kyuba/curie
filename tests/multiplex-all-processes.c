@@ -79,8 +79,10 @@ int cmain(void) {
         multiplex_add_process(context, mx_on_death, (void *)(rtab + i));
     }
 
-    while (multiplex() == mx_ok)
+    while (1)
     {
+        multiplex();
+
         if (n_sp == NUM_SUBPROCESSES)
             cexit (0);
     }
