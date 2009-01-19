@@ -113,6 +113,7 @@ define_string (str_stdc99,              "--std=c99");
 define_string (str_wall,                "-Wall");
 define_string (str_pedantic,            "-pedantic");
 define_string (str_dcombine,            "-combine");
+define_string (str_lib,                 "lib");
 
 static int alive_processes             = 0;
 static int files_open                  = 0;
@@ -134,6 +135,7 @@ static sexpr i_destdir                 = sx_false;
 static sexpr i_pname                   = sx_false;
 static sexpr do_tests                  = sx_false;
 static sexpr do_install                = sx_false;
+static sexpr i_destlibdir              = sx_false;
 
 struct tree targets                    = TREE_INITIALISER;
 
@@ -1494,7 +1496,7 @@ static sexpr get_library_install_path (sexpr name)
     {
         case fs_fhs:
         case fs_fhs_binlib:
-            snprintf (buffer, BUFFERSIZE, "%s/lib/lib%s.a", sx_string(i_destdir), sx_string(name));
+            snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.a", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
             return make_string (buffer);
             break;
         case fs_proper:
@@ -1519,7 +1521,7 @@ static sexpr get_programme_install_path (sexpr name)
             return make_string (buffer);
             break;
         case fs_fhs_binlib:
-            snprintf (buffer, BUFFERSIZE, "%s/lib/%s/bin/%s", sx_string(i_destdir), sx_string(i_pname), sx_string(name));
+            snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(i_pname), sx_string(name));
             return make_string (buffer);
             break;
         case fs_proper:
@@ -1632,7 +1634,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
         {
             case fs_fhs:
             case fs_fhs_binlib:
-                snprintf (buffer, BUFFERSIZE, "%s/lib/libcurie.sx", sx_string(i_destdir));
+                snprintf (buffer, BUFFERSIZE, "%s/%s/libcurie.sx", sx_string(i_destdir), sx_string (i_destlibdir));
                 target = make_string (buffer);
                 break;
             case fs_proper:
@@ -1657,7 +1659,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
         {
             case fs_fhs:
             case fs_fhs_binlib:
-                snprintf (buffer, BUFFERSIZE, "%s/lib/pkgconfig/lib%s.pc", sx_string(i_destdir), sx_string(t->name));
+                snprintf (buffer, BUFFERSIZE, "%s/%s/pkgconfig/lib%s.pc", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(t->name));
                 target = make_string (buffer);
                 break;
             case fs_proper:
@@ -1676,7 +1678,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
         {
             case fs_fhs:
             case fs_fhs_binlib:
-                snprintf (buffer, BUFFERSIZE, "%s/lib/pkgconfig/lib%s-hosted.pc", sx_string(i_destdir), sx_string(t->name));
+                snprintf (buffer, BUFFERSIZE, "%s/%s/pkgconfig/lib%s-hosted.pc", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(t->name));
                 target = make_string (buffer);
                 break;
             case fs_proper:
@@ -1985,6 +1987,7 @@ static void print_help(char *binaryname)
         " -r           Execute runtime tests\n"
         " -f           Use the FHS layout for installation\n"
         " -b <pname>   Use a modified FHS layout (lib/<pname>/bin/ vs. bin/)\n"
+        " -l <libdir>  Use <libdir> instead of 'lib' when installing\n"
         " -s           Use the default FS layout for installation\n"
         " -L           Optimise linking.\n"
         " -c           Use gcc's -combine option for C source files.\n"
@@ -2566,14 +2569,16 @@ static void initialise_libcurie()
 
     if (!falsep(i_destdir))
     {
-        if (snprintf (buffer, BUFFERSIZE, "%s/lib/libcurie.sx", sx_string(i_destdir)),
+        if (snprintf (buffer, BUFFERSIZE, "%s/%s/libcurie.sx", sx_string(i_destdir), sx_string (i_destlibdir)),
             truep(initialise_libcurie_filename(buffer))) return;
 
         switch (i_fsl)
         {
             case fs_fhs:
             case fs_fhs_binlib:
-                if (snprintf (buffer, BUFFERSIZE, "%s/usr/lib/libcurie.sx", sx_string(i_destdir)),
+                if (snprintf (buffer, BUFFERSIZE, "%s/usr/%s/libcurie.sx", sx_string(i_destdir), sx_string (i_destlibdir)),
+                    truep(initialise_libcurie_filename(buffer))) return;
+                if (snprintf (buffer, BUFFERSIZE, "%s/%s/libcurie.sx", sx_string(i_destdir), sx_string (i_destlibdir)),
                     truep(initialise_libcurie_filename(buffer))) return;
                 break;
             case fs_proper:
@@ -2583,18 +2588,21 @@ static void initialise_libcurie()
         }
     }
 
-    if (truep(initialise_libcurie_filename("/lib/libcurie.sx"))) return;
+    if (snprintf (buffer, BUFFERSIZE, "/%s/libcurie.sx", sx_string (i_destlibdir)),
+        truep(initialise_libcurie_filename(buffer))) return;
 
     switch (i_fsl)
     {
         case fs_fhs:
         case fs_fhs_binlib:
-            if (truep(initialise_libcurie_filename("/usr/lib/libcurie.sx"))) return;
-            if (snprintf (buffer, BUFFERSIZE, "/%s/%s/lib/libcurie.sx", uname_os, uname_arch), truep(initialise_libcurie_filename(buffer))) return;
-            break;
+            if (snprintf (buffer, BUFFERSIZE, "/usr/%s/libcurie.sx", sx_string (i_destlibdir)),
+                truep(initialise_libcurie_filename(buffer))) return;
+            if (snprintf (buffer, BUFFERSIZE, "/%s/libcurie.sx", sx_string (i_destlibdir)),
+                truep(initialise_libcurie_filename(buffer))) return;
         case fs_proper:
             if (snprintf (buffer, BUFFERSIZE, "/%s/%s/lib/libcurie.sx", uname_os, uname_arch), truep(initialise_libcurie_filename(buffer))) return;
             if (truep(initialise_libcurie_filename("/usr/lib/libcurie.sx"))) return;
+            if (truep(initialise_libcurie_filename("/lib/libcurie.sx"))) return;
             break;
     }
 }
@@ -2620,6 +2628,8 @@ int main (int argc, char **argv, char **environ)
     }
 
     mkdir ("build", 0755);
+
+    i_destlibdir = str_lib;
 
     while (i < argc)
     {
@@ -2675,6 +2685,12 @@ int main (int argc, char **argv, char **environ)
                         if (xn < argc)
                         {
                             i_pname = make_string(argv[xn]);
+                            xn++;
+                        }
+                    case 'l':
+                        if (xn < argc)
+                        {
+                            i_destlibdir = make_string(argv[xn]);
                             xn++;
                         }
                         break;
