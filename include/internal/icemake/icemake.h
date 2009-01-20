@@ -106,6 +106,10 @@ extern char  archbuffer [BUFFERSIZE];
 extern char *archprefix;
 extern char *tcversion;
 
+extern sexpr i_optimise_linking;
+extern sexpr i_combine;
+extern sexpr i_debug;
+
 extern sexpr co_freestanding;
 extern sexpr workstack;
 
@@ -187,6 +191,8 @@ sexpr sx_string_dir_prefix_c (char *, sexpr);
 
 void build (sexpr);
 void install (sexpr);
+void run_tests (sexpr);
+void ice_link (sexpr);
 void loop_processes ();
 
 #endif
