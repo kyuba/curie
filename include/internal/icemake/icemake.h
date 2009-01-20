@@ -92,20 +92,21 @@ enum fs_layout
     fs_fhs_binlib
 };
 
-void build (sexpr);
-void loop_processes ();
-
 sexpr sx_string_dir_prefix_c (char *, sexpr);
 
-char uname_os     [BUFFERSIZE];
-char uname_arch   [BUFFERSIZE];
-char uname_vendor [BUFFERSIZE];
+char uname_os     [UNAMELENGTH];
+char uname_arch   [UNAMELENGTH];
+char uname_vendor [UNAMELENGTH];
 
 enum toolchain uname_toolchain;
 enum fs_layout i_fsl;
 enum operating_system i_os;
 
 struct tree targets;
+
+char  archbuffer [BUFFERSIZE];
+char *archprefix;
+char *tcversion;
 
 sexpr co_freestanding;
 sexpr workstack;
@@ -183,6 +184,10 @@ define_string (str_pedantic,            "-pedantic");
 define_string (str_dcombine,            "-combine");
 define_string (str_lib,                 "lib");
 define_string (str_documentation,       "documentation");
+
+void build (sexpr);
+void install (sexpr);
+void loop_processes ();
 
 #endif
 

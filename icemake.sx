@@ -62,7 +62,7 @@
   (description "simple build tool for curie, based on curie")
   (version "3")
 
-  (code "icemake" "icemake-build"))
+  (code "icemake" "icemake-build" "icemake-install"))
 
 (library "syscall" libcurie
   (name "libsyscall")
