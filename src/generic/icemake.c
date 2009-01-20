@@ -801,26 +801,6 @@ static struct target *create_programme (sexpr definition)
     return context;
 }
 
-static void build_documentation_library (sexpr name, struct target *t)
-{
-}
-
-static void build_documentation_programme (sexpr name, struct target *t)
-{
-}
-
-static void do_build_documentation_target(struct target *t)
-{
-    if (truep(t->library))
-    {
-        build_documentation_library (t->name, t);
-    }
-    else
-    {
-        build_documentation_programme (t->name, t);
-    }
-}
-
 static void print_help(char *binaryname)
 {
     fprintf (stdout,
@@ -844,11 +824,6 @@ static void print_help(char *binaryname)
         "The [targets] specify a list of things to build, according to the\n"
         "icemake.sx file located in the current working directory.\n\n",
         binaryname);
-}
-
-static void target_map_build_documentation (struct tree_node *node, void *u)
-{
-    do_build_documentation_target(node_get_value(node));
 }
 
 static void write_uname_element (char *source, char *target, int tlen)
@@ -1128,33 +1103,6 @@ void loop_processes()
         multiplex();
         spawn_stack_items ();
     }
-}
-
-static void build_documentation_target (const char *target)
-{
-    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
-
-    if (node != (struct tree_node *)0)
-    {
-        do_build_documentation_target (node_get_value(node));
-    }
-}
-
-static void build_documentation (sexpr buildtargets)
-{
-    sexpr cursor = buildtargets;
-    if (eolp(cursor))
-    {
-        tree_map (&targets, target_map_build_documentation, (void *)0);
-    }
-    else while (consp(cursor))
-    {
-        sexpr sxcar = car(cursor);
-        build_documentation_target (sx_string(sxcar));
-        cursor = cdr(cursor);
-    }
-
-    loop_processes();
 }
 
 static sexpr initialise_libcurie_filename (char *filename)
