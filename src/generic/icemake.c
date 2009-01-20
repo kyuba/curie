@@ -37,7 +37,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <curie/sexpr.h>
 #include <curie/memory.h>
 #include <curie/tree.h>
 #include <curie/multiplex.h>
@@ -802,70 +801,12 @@ static struct target *create_programme (sexpr definition)
     return context;
 }
 
-static void post_process_library_gcc (sexpr name, struct target *t)
-{
-    char buffer[BUFFERSIZE];
-
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(t->name), archprefix, sx_string(name));
-
-    workstack
-        = cons (cons (p_archive_indexer,
-                  cons (make_string (buffer),
-                        sx_end_of_list))
-                , workstack);
-}
-
 static void build_documentation_library (sexpr name, struct target *t)
 {
 }
 
 static void build_documentation_programme (sexpr name, struct target *t)
 {
-}
-
-static void post_process_library (sexpr name, struct target *t)
-{
-    switch (uname_toolchain)
-    {
-        case tc_gcc:
-            post_process_library_gcc (name, t); break;
-    }
-}
-
-static void post_process_programme (sexpr name, struct target *t)
-{
-/*    switch (uname_toolchain)
-    {
-        case tc_gcc:
-            post_process_programme_gcc (name, t); break;
-    }*/
-}
-
-static void do_cross_link (struct target *target, struct target *source)
-{
-    sexpr cur = source->code;
-
-    while (consp (cur))
-    {
-         sexpr ccar = car (cur);
-         sexpr cccdr = cdr (ccar);
-
-         target->code = cons (cons (sym_link, cccdr), target->code);
-
-         cur = cdr (cur);
-    }
-}
-
-static void do_post_process_target(struct target *t)
-{
-    if (truep(t->library))
-    {
-        post_process_library (t->name, t);
-    }
-    else
-    {
-        post_process_programme (t->name, t);
-    }
 }
 
 static void do_build_documentation_target(struct target *t)
@@ -877,16 +818,6 @@ static void do_build_documentation_target(struct target *t)
     else
     {
         build_documentation_programme (t->name, t);
-    }
-}
-
-static void post_process_target (const char *target)
-{
-    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
-
-    if (node != (struct tree_node *)0)
-    {
-        do_post_process_target (node_get_value(node));
     }
 }
 
@@ -915,43 +846,9 @@ static void print_help(char *binaryname)
         binaryname);
 }
 
-static void target_map_post_process (struct tree_node *node, void *u)
-{
-    do_post_process_target(node_get_value(node));
-}
-
 static void target_map_build_documentation (struct tree_node *node, void *u)
 {
     do_build_documentation_target(node_get_value(node));
-}
-
-static void target_map_cross_link (struct tree_node *node, void *u)
-{
-    struct target *target = (struct target *) node_get_value (node);
-
-    if (!eolp (target->use_objects))
-    {
-        sexpr cur = target->use_objects;
-
-        while (consp (cur))
-        {
-            sexpr o = car (cur);
-            struct tree_node *n1
-                = tree_get_node_string (&targets, (char *)sx_string (o));
-            struct target *s;
-
-            if (n1 == (struct tree_node *)0)
-            {
-                exit (68);
-            }
-
-            s = (struct target *) node_get_value (n1);
-
-            do_cross_link (target, s);
-
-            cur = cdr(cur);
-        }
-    }
 }
 
 static void write_uname_element (char *source, char *target, int tlen)
@@ -1231,28 +1128,6 @@ void loop_processes()
         multiplex();
         spawn_stack_items ();
     }
-}
-
-static void crosslink_objects ()
-{
-    tree_map (&targets, target_map_cross_link, (void *)0);
-}
-
-static void post_process (sexpr buildtargets)
-{
-    sexpr cursor = buildtargets;
-    if (eolp(cursor))
-    {
-        tree_map (&targets, target_map_post_process, (void *)0);
-    }
-    else while (consp(cursor))
-    {
-        sexpr sxcar = car(cursor);
-        post_process_target (sx_string(sxcar));
-        cursor = cdr(cursor);
-    }
-
-    loop_processes();
 }
 
 static void build_documentation_target (const char *target)

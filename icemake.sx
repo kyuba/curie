@@ -63,7 +63,7 @@
   (version "3")
 
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
-        "icemake-link"))
+        "icemake-link" "icemake-crosslink" "icemake-post-process"))
 
 (library "syscall" libcurie
   (name "libsyscall")

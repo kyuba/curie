@@ -193,6 +193,9 @@ void build (sexpr);
 void install (sexpr);
 void run_tests (sexpr);
 void ice_link (sexpr);
+void post_process (sexpr);
+void crosslink_objects ();
+
 void loop_processes ();
 
 #endif

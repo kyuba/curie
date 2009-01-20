@@ -36,14 +36,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <curie/sexpr.h>
 #include <curie/tree.h>
 #include <curie/multiplex.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

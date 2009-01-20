@@ -1,5 +1,5 @@
 /*
- *  icemake-run-tests.c
+ *  icemake-post-process.c
  *  libcurie/icemake
  *
  *  Split from icemake.c by Magnus Deininger on 20/01/2009.
@@ -36,111 +36,82 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <curie/sexpr.h>
 #include <curie/tree.h>
-#include <curie/multiplex.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#include <unistd.h>
-#include <stdlib.h>
 #include <stdio.h>
 
 #include <icemake/icemake.h>
 
-static void run_tests_library_gcc (sexpr name, struct target *t)
+static void post_process_library_gcc (sexpr name, struct target *t)
 {
-    sexpr s = t->test_cases;
+    char buffer[BUFFERSIZE];
 
-    while (consp (s))
-    {
-        sexpr r = cdr(cdr(cdr(car(s))));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(t->name), archprefix, sx_string(name));
 
-        workstack = cons (r, workstack);
-
-        s = cdr (s);
-    }
+    workstack
+        = cons (cons (p_archive_indexer,
+                  cons (make_string (buffer),
+                        sx_end_of_list))
+                , workstack);
 }
 
-static void run_tests_library (sexpr name, struct target *t)
-{
-    sexpr cur = t->test_reference;
-
-    while (consp (cur))
-    {
-        sexpr r = car (car (cur));
-
-        unlink (sx_string (r));
-
-        cur = cdr (cur);
-    }
-
-    switch (uname_toolchain)
-    {
-        case tc_gcc:
-            run_tests_library_gcc (name, t); break;
-    }
-}
-
-static void diff_test_reference_library_gcc (sexpr name, struct target *t)
-{
-    sexpr cur = t->test_reference;
-
-    while (consp (cur))
-    {
-        sexpr r = car (cur);
-        sexpr o = car (r), g = cdr (r);
-
-        workstack = cons (cons (p_diff, cons (o, cons (g, sx_end_of_list))), workstack);
-
-        cur = cdr (cur);
-    }
-}
-
-static void diff_test_reference_library (sexpr name, struct target *t)
+static void post_process_library (sexpr name, struct target *t)
 {
     switch (uname_toolchain)
     {
         case tc_gcc:
-            diff_test_reference_library_gcc (name, t); break;
+            post_process_library_gcc (name, t); break;
     }
 }
 
-static void do_run_tests_target(struct target *t)
+static void post_process_programme (sexpr name, struct target *t)
+{
+/*    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            post_process_programme_gcc (name, t); break;
+    }*/
+}
+
+static void do_post_process_target(struct target *t)
 {
     if (truep(t->library))
     {
-        diff_test_reference_library (t->name, t);
-        run_tests_library (t->name, t);
+        post_process_library (t->name, t);
+    }
+    else
+    {
+        post_process_programme (t->name, t);
     }
 }
 
-static void target_map_run_tests (struct tree_node *node, void *u)
-{
-    do_run_tests_target(node_get_value(node));
-}
-
-static void run_tests_target (const char *target)
+static void post_process_target (const char *target)
 {
     struct tree_node *node = tree_get_node_string(&targets, (char *)target);
 
     if (node != (struct tree_node *)0)
     {
-        do_run_tests_target (node_get_value(node));
+        do_post_process_target (node_get_value(node));
     }
 }
 
-void run_tests (sexpr buildtargets)
+static void target_map_post_process (struct tree_node *node, void *u)
+{
+    do_post_process_target(node_get_value(node));
+}
+
+void post_process (sexpr buildtargets)
 {
     sexpr cursor = buildtargets;
     if (eolp(cursor))
     {
-        tree_map (&targets, target_map_run_tests, (void *)0);
+        tree_map (&targets, target_map_post_process, (void *)0);
     }
     else while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
-        run_tests_target (sx_string(sxcar));
+        post_process_target (sx_string(sxcar));
         cursor = cdr(cursor);
     }
 
