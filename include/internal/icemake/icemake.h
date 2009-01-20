@@ -92,44 +92,42 @@ enum fs_layout
     fs_fhs_binlib
 };
 
-sexpr sx_string_dir_prefix_c (char *, sexpr);
+extern char uname_os     [UNAMELENGTH];
+extern char uname_arch   [UNAMELENGTH];
+extern char uname_vendor [UNAMELENGTH];
 
-char uname_os     [UNAMELENGTH];
-char uname_arch   [UNAMELENGTH];
-char uname_vendor [UNAMELENGTH];
+extern enum toolchain uname_toolchain;
+extern enum fs_layout i_fsl;
+extern enum operating_system i_os;
 
-enum toolchain uname_toolchain;
-enum fs_layout i_fsl;
-enum operating_system i_os;
+extern struct tree targets;
 
-struct tree targets;
+extern char  archbuffer [BUFFERSIZE];
+extern char *archprefix;
+extern char *tcversion;
 
-char  archbuffer [BUFFERSIZE];
-char *archprefix;
-char *tcversion;
+extern sexpr co_freestanding;
+extern sexpr workstack;
 
-sexpr co_freestanding;
-sexpr workstack;
+extern sexpr i_destdir;
+extern sexpr i_pname;
+extern sexpr do_tests;
+extern sexpr do_install;
+extern sexpr do_build_documentation;
+extern sexpr i_destlibdir;
 
-sexpr i_destdir;
-sexpr i_pname;
-sexpr do_tests;
-sexpr do_install;
-sexpr do_build_documentation;
-sexpr i_destlibdir;
+extern sexpr p_c_compiler;
+extern sexpr p_cpp_compiler;
+extern sexpr p_assembler;
+extern sexpr p_linker;
+extern sexpr p_archiver;
+extern sexpr p_archive_indexer;
+extern sexpr p_diff;
 
-sexpr p_c_compiler;
-sexpr p_cpp_compiler;
-sexpr p_assembler;
-sexpr p_linker;
-sexpr p_archiver;
-sexpr p_archive_indexer;
-sexpr p_diff;
-
-sexpr p_latex;
-sexpr p_pdflatex;
-sexpr p_latex2html;
-sexpr p_doxygen;
+extern sexpr p_latex;
+extern sexpr p_pdflatex;
+extern sexpr p_latex2html;
+extern sexpr p_doxygen;
 
 define_symbol (sym_library,             "library");
 define_symbol (sym_libraries,           "libraries");
@@ -184,6 +182,8 @@ define_string (str_pedantic,            "-pedantic");
 define_string (str_dcombine,            "-combine");
 define_string (str_lib,                 "lib");
 define_string (str_documentation,       "documentation");
+
+sexpr sx_string_dir_prefix_c (char *, sexpr);
 
 void build (sexpr);
 void install (sexpr);
