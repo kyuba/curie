@@ -46,6 +46,8 @@
  *
  */
 
+#include <curie/sexpr.h>
+
 #ifndef ICEMAKE_ICEMAKE_H
 #define ICEMAKE_ICEMAKE_H
 

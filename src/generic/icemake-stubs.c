@@ -1,8 +1,8 @@
 /*
- *  icemake-crosslink.c
+ *  icemake-stubs.c
  *  libcurie/icemake
  *
- *  Split from icemake.c by Magnus Deininger on 20/01/2009.
+ *  Created by Magnus Deininger on 20/01/2009.
  *  Copyright 2008, 2009 Magnus Deininger. All rights reserved.
  *
  */
@@ -36,57 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <curie/tree.h>
-
-#include <stdlib.h>
-
 #include <icemake/icemake.h>
 
-static void do_cross_link (struct target *target, struct target *source)
-{
-    sexpr cur = source->code;
-
-    while (consp (cur))
-    {
-        sexpr ccar = car (cur);
-        sexpr cccdr = cdr (ccar);
-
-        target->code = cons (cons (sym_link, cccdr), target->code);
-
-        cur = cdr (cur);
-    }
-}
-
-static void target_map_cross_link (struct tree_node *node, void *u)
-{
-    struct target *target = (struct target *) node_get_value (node);
-
-    if (!eolp (target->use_objects))
-    {
-        sexpr cur = target->use_objects;
-
-        while (consp (cur))
-        {
-            sexpr o = car (cur);
-            struct tree_node *n1
-                    = tree_get_node_string (&targets, (char *)sx_string (o));
-            struct target *s;
-
-            if (n1 == (struct tree_node *)0)
-            {
-                exit (68);
-            }
-
-            s = (struct target *) node_get_value (n1);
-
-            do_cross_link (target, s);
-
-            cur = cdr(cur);
-        }
-    }
-}
-
-void crosslink_objects ()
-{
-    tree_map (&targets, target_map_cross_link, (void *)0);
-}
+void build_documentation (sexpr a) {}
+void post_process (sexpr a) {}
+void run_tests (sexpr a) {}
