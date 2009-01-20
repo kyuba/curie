@@ -38,7 +38,10 @@
         ("temporary-multiplexer-test-data" .
          "tests/reference/multiplexer-test-data")
         ("temporary-sexpr-read" . "tests/reference/sexpr-read")
-        ("temporary-sexpr-write" . "tests/reference/sexpr-write")))
+        ("temporary-sexpr-write" . "tests/reference/sexpr-write"))
+
+  (documentation
+        "description"))
 
 (library "curie++" libcurie
   (name "Curie++")
@@ -59,7 +62,7 @@
   (description "simple build tool for curie, based on curie")
   (version "3")
 
-  (code "icemake"))
+  (code "icemake" "icemake-build"))
 
 (library "syscall" libcurie
   (name "libsyscall")

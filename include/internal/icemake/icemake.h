@@ -82,6 +82,7 @@ struct target {
     sexpr description;
     sexpr dversion;
     sexpr durl;
+    sexpr documentation;
 };
 
 enum fs_layout
@@ -91,6 +92,97 @@ enum fs_layout
     fs_fhs_binlib
 };
 
+void build (sexpr);
+void loop_processes ();
+
+sexpr sx_string_dir_prefix_c (char *, sexpr);
+
+char uname_os     [BUFFERSIZE];
+char uname_arch   [BUFFERSIZE];
+char uname_vendor [BUFFERSIZE];
+
+enum toolchain uname_toolchain;
+enum fs_layout i_fsl;
+enum operating_system i_os;
+
+struct tree targets;
+
+sexpr co_freestanding;
+sexpr workstack;
+
+sexpr i_destdir;
+sexpr i_pname;
+sexpr do_tests;
+sexpr do_install;
+sexpr do_build_documentation;
+sexpr i_destlibdir;
+
+sexpr p_c_compiler;
+sexpr p_cpp_compiler;
+sexpr p_assembler;
+sexpr p_linker;
+sexpr p_archiver;
+sexpr p_archive_indexer;
+sexpr p_diff;
+
+sexpr p_latex;
+sexpr p_pdflatex;
+sexpr p_latex2html;
+sexpr p_doxygen;
+
+define_symbol (sym_library,             "library");
+define_symbol (sym_libraries,           "libraries");
+define_symbol (sym_test_cases,          "test-cases");
+define_symbol (sym_test_case_reference, "test-case-reference");
+define_symbol (sym_programme,           "programme");
+define_symbol (sym_hosted,              "hosted");
+define_symbol (sym_code,                "code");
+define_symbol (sym_headers,             "headers");
+define_symbol (sym_link,                "link");
+define_symbol (sym_use_objects,         "use-objects");
+define_symbol (sym_assembly,            "assembly");
+define_symbol (sym_preproc_assembly,    "preprocessed-assembly");
+define_symbol (sym_cpp,                 "C++");
+define_symbol (sym_c,                   "C");
+define_symbol (sym_tex,                 "TeX");
+define_symbol (sym_libc,                "libc");
+define_symbol (sym_libcurie,            "libcurie");
+define_symbol (sym_freestanding,        "freestanding");
+define_symbol (sym_freestanding_if_asm, "freestanding-if-assembly");
+define_symbol (sym_data,                "data");
+define_symbol (sym_description,         "description");
+define_symbol (sym_version,             "version");
+define_symbol (sym_name,                "name");
+define_symbol (sym_url,                 "url");
+define_symbol (sym_failed,              "failed");
+define_symbol (sym_documentation,       "documentation");
+define_symbol (sym_missing_programme,   "missing-programme");
+define_symbol (sym_latex,               "latex");
+define_symbol (sym_pdflatex,            "pdflatex");
+define_symbol (sym_latex2html,          "latex2html");
+define_symbol (sym_doxygen,             "doxygen");
+
+define_string (str_bootstrap,           "bootstrap");
+define_string (str_curie,               "curie");
+define_string (str_curie_bootstrap,     "curie-bootstrap");
+define_string (str_static,              "-static");
+define_string (str_lc,                  "c");
+define_string (str_do,                  "-o");
+define_string (str_dc,                  "-c");
+define_string (str_dr,                  "-r");
+define_string (str_dposix,              "-DPOSIX");
+define_string (str_dgcc,                "-DGCC");
+define_string (str_fnoexceptions,       "-fno-exceptions");
+define_string (str_src,                 "src");
+define_string (str_tests,               "tests");
+define_string (str_include,             "include");
+define_string (str_data,                "data");
+define_string (str_stdc99,              "--std=c99");
+define_string (str_wall,                "-Wall");
+define_string (str_pedantic,            "-pedantic");
+define_string (str_dcombine,            "-combine");
+define_string (str_lib,                 "lib");
+define_string (str_documentation,       "documentation");
 
 #endif
 
