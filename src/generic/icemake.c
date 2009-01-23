@@ -103,7 +103,6 @@ sexpr p_diff                           = sx_false;
 
 sexpr p_latex                          = sx_false;
 sexpr p_pdflatex                       = sx_false;
-sexpr p_latex2html                     = sx_false;
 sexpr p_doxygen                        = sx_false;
 
 struct sexpr_io *stdio;
@@ -985,15 +984,6 @@ static void initialise_toolchain_tex()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_pdflatex, sx_end_of_list))));
-        sx_destroy (out);
-    }
-
-    p_latex2html = xwhich ("latex2html");
-    if (falsep(p_latex2html))
-    {
-        sx_write (stdio,
-                  (out = cons (sym_missing_programme,
-                               cons (sym_latex2html, sx_end_of_list))));
         sx_destroy (out);
     }
 }

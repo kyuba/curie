@@ -132,7 +132,6 @@ extern sexpr p_diff;
 
 extern sexpr p_latex;
 extern sexpr p_pdflatex;
-extern sexpr p_latex2html;
 extern sexpr p_doxygen;
 
 extern struct sexpr_io *stdio;
@@ -166,7 +165,6 @@ define_symbol (sym_documentation,       "documentation");
 define_symbol (sym_missing_programme,   "missing-programme");
 define_symbol (sym_latex,               "latex");
 define_symbol (sym_pdflatex,            "pdflatex");
-define_symbol (sym_latex2html,          "latex2html");
 define_symbol (sym_doxygen,             "doxygen");
 define_symbol (sym_chdir,               "chdir");
 
