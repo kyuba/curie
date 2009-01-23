@@ -1470,6 +1470,8 @@ int main (int argc, char **argv, char **environ)
 
     sx_close_io (io);
 
+    sx_write (stdio, buildtargets);
+
     crosslink_objects ();
 
     build (buildtargets);
