@@ -106,7 +106,7 @@ sexpr p_pdflatex                       = sx_false;
 sexpr p_latex2html                     = sx_false;
 sexpr p_doxygen                        = sx_false;
 
-static struct sexpr_io *stdio;
+struct sexpr_io *stdio;
 
 static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
 {
@@ -490,7 +490,7 @@ static void find_documentation (struct target *context, sexpr file)
 
     if ((r = find_documentation_tex (file)), stringp(r))
     {
-        context->documentation = cons(cons(sym_tex, r), context->documentation);
+        context->documentation = cons(cons(sym_tex, cons (file, r)), context->documentation);
     }
     else
     {
@@ -804,7 +804,8 @@ static struct target *create_programme (sexpr definition)
 static void print_help(char *binaryname)
 {
     fprintf (stdout,
-        "Usage: %s [options] [targets]\n\n"
+        "Usage: %s [options] [targets]\n"
+        "\n"
         "Options:\n"
         " -h           Print help and exit\n"
         " -t <chost>   Specify target CHOST\n"
@@ -820,9 +821,11 @@ static void print_help(char *binaryname)
         " -c           Use gcc's -combine option for C source files.\n"
         " -j <num>     Spawn <num> processes simultaneously.\n"
         " -D           Use debug code, if available.\n"
-        " -x           Build documentation (if possible).\n\n"
+        " -x           Build documentation (if possible).\n"
+        "\n"
         "The [targets] specify a list of things to build, according to the\n"
-        "icemake.sx file located in the current working directory.\n\n",
+        "icemake.sx file located in the current working directory.\n"
+        "\n",
         binaryname);
 }
 
@@ -1034,11 +1037,27 @@ static void process_on_death(struct exec_context *context, void *p)
 
 static void spawn_item (sexpr sx)
 {
-    sexpr cur = sx;
+    sexpr cur = sx, cf = car (sx);
     struct exec_context *context;
+    const char *wdir = (const char *)0;
+    char odir[BUFFERSIZE];
     int c = 0;
 
     sx_write (stdio, sx);
+
+    if (truep(equalp(cf, sym_chdir)))
+    {
+        sexpr cfcdr = cdr (cur);
+        sexpr cfcdar = car (cfcdr);
+
+        wdir = sx_string (cfcdar);
+        if (getcwd (odir, BUFFERSIZE) == (char *)0)
+        {
+            return;
+        }
+
+        sx = cdr (cfcdr);
+    }
 
     while (consp (cur))
     {
@@ -1060,7 +1079,9 @@ static void spawn_item (sexpr sx)
     }
     ex[c] = (char *)0;
 
+    if (wdir != (const char *)0) { chdir (wdir); }
     context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex, xenviron);
+    if (wdir != (const char *)0) { chdir (odir); }
 
     switch (context->pid)
     {
@@ -1092,17 +1113,6 @@ enum signal_callback_result cb_on_bad_signal(enum signal s, void *p)
     exit (s);
 
     return scr_keep;
-}
-
-void loop_processes()
-{
-    spawn_stack_items ();
-
-    while (alive_processes > 0)
-    {
-        multiplex();
-        spawn_stack_items ();
-    }
 }
 
 static sexpr initialise_libcurie_filename (char *filename)
@@ -1176,6 +1186,17 @@ static void initialise_libcurie()
             if (truep(initialise_libcurie_filename("/usr/lib/libcurie.sx"))) return;
             if (truep(initialise_libcurie_filename("/lib/libcurie.sx"))) return;
             break;
+    }
+}
+
+void loop_processes()
+{
+    spawn_stack_items ();
+
+    while (alive_processes > 0)
+    {
+        multiplex();
+        spawn_stack_items ();
     }
 }
 

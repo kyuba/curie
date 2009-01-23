@@ -38,6 +38,7 @@
 
 #include <curie/tree.h>
 #include <curie/multiplex.h>
+#include <curie/filesystem.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -180,6 +181,30 @@ static sexpr get_programme_install_path (sexpr name)
             snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s",
                       sx_string(i_destdir), uname_os, uname_arch,
                                 sx_string(name));
+            return make_string (buffer);
+            break;
+    }
+
+    return sx_false;
+}
+
+static sexpr get_documentation_install_path (sexpr name, sexpr file, sexpr version, const char *suffix)
+{
+    char buffer[BUFFERSIZE];
+
+    switch (i_fsl)
+    {
+        case fs_fhs:
+        case fs_fhs_binlib:
+            snprintf (buffer, BUFFERSIZE, "%s/share/doc/%s-%s/%s.%s",
+                      sx_string(i_destdir), sx_string(name), sx_string(version),
+                      sx_string (file), suffix);
+            return make_string (buffer);
+            break;
+        case fs_proper:
+            snprintf (buffer, BUFFERSIZE, "%s/generic/doc/%s-%s/%s.%s",
+                      sx_string(i_destdir), sx_string(name),
+                      sx_string (version), sx_string (file), suffix);
             return make_string (buffer);
             break;
     }
@@ -381,6 +406,45 @@ static void install_headers (sexpr name, struct target *t)
     }
 }
 
+static void install_documentation_with_suffix (sexpr name, struct target *t, sexpr c4, const char *suffix)
+{
+    sexpr fn;
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.%s", sx_string(t->name), archprefix, sx_string(c4), suffix);
+
+    fn = make_string (buffer);
+
+    if (truep(filep(fn)))
+    {
+        workstack
+                = cons (cons (fn,
+                              get_documentation_install_path
+                                      (name, c4, t->dversion, suffix)),
+                        workstack);
+    }
+}
+
+static void install_documentation (sexpr name, struct target *t)
+{
+    sexpr c = t->documentation;
+
+    while (consp (c))
+    {
+        sexpr c2 = car(c);
+        sexpr c3 = cdr(c2);
+        sexpr c4 = car(c3);
+
+        install_documentation_with_suffix (name, t, c4, "pdf");
+        install_documentation_with_suffix (name, t, c4, "dvi");
+        install_documentation_with_suffix (name, t, c4, "ps");
+        install_documentation_with_suffix (name, t, c4, "eps");
+        install_documentation_with_suffix (name, t, c4, "html");
+
+        c = cdr (c);
+    }
+}
+
 static void install_support_files (sexpr name, struct target *t)
 {
     switch (uname_toolchain)
@@ -420,6 +484,11 @@ static void do_install_target(struct target *t)
 
     install_headers (t->name, t);
     install_support_files (t->name, t);
+
+    if (do_build_documentation)
+    {
+        install_documentation (t->name, t);
+    }
 }
 
 static void install_target (const char *target)

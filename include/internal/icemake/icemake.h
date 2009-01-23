@@ -135,6 +135,8 @@ extern sexpr p_pdflatex;
 extern sexpr p_latex2html;
 extern sexpr p_doxygen;
 
+extern struct sexpr_io *stdio;
+
 define_symbol (sym_library,             "library");
 define_symbol (sym_libraries,           "libraries");
 define_symbol (sym_test_cases,          "test-cases");
@@ -166,6 +168,7 @@ define_symbol (sym_latex,               "latex");
 define_symbol (sym_pdflatex,            "pdflatex");
 define_symbol (sym_latex2html,          "latex2html");
 define_symbol (sym_doxygen,             "doxygen");
+define_symbol (sym_chdir,               "chdir");
 
 define_string (str_bootstrap,           "bootstrap");
 define_string (str_curie,               "curie");

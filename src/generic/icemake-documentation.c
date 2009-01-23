@@ -39,26 +39,63 @@
 #include <curie/tree.h>
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <icemake/icemake.h>
 
-static void build_documentation_library (sexpr name, struct target *t)
+static void build_documentation_tex (sexpr file, struct target *t)
 {
-}
+    char dirbuffer[BUFFERSIZE];
+    char buffer[BUFFERSIZE];
 
-static void build_documentation_programme (sexpr name, struct target *t)
-{
+    snprintf (dirbuffer, BUFFERSIZE, "build/%s/%s", sx_string(t->name), archprefix);
+    snprintf (buffer,    BUFFERSIZE, "../../../%s", sx_string(file));
+
+    if (stringp (p_pdflatex))
+    {
+        workstack
+                = cons (cons (sym_chdir,
+                              cons (make_string (dirbuffer),
+                                    cons (p_pdflatex,
+                                          cons (make_string(buffer),
+                                                sx_end_of_list)))),
+                        cons (cons (sym_chdir,
+                                    cons (make_string (dirbuffer),
+                                          cons (p_pdflatex,
+                                                cons (make_string(buffer),
+                                                      sx_end_of_list)))),
+                              workstack));
+    }
+    else if (stringp (p_latex))
+    {
+        workstack
+                = cons (cons (sym_chdir,
+                              cons (make_string (dirbuffer),
+                                    cons (p_latex,
+                                          cons (make_string(buffer),
+                                                sx_end_of_list)))),
+                        cons (cons (sym_chdir,
+                                    cons (make_string (dirbuffer),
+                                          cons (p_latex,
+                                                cons (make_string(buffer),
+                                                      sx_end_of_list)))),
+                              workstack));
+    }
 }
 
 static void do_build_documentation_target(struct target *t)
 {
-    if (truep(t->library))
+    for (sexpr c = t->documentation; consp(c); c = cdr (c))
     {
-        build_documentation_library (t->name, t);
-    }
-    else
-    {
-        build_documentation_programme (t->name, t);
+        sexpr ccar  = car (c);
+        sexpr ccaar = car (ccar);
+        sexpr ccdr  = cdr (ccar);
+        sexpr ccddr = cdr (ccdr);
+
+        if (truep(equalp(ccaar, sym_tex)))
+        {
+            build_documentation_tex (ccddr, t);
+        }
     }
 }
 
