@@ -81,7 +81,7 @@ int_32 str_hash(const char *data, unsigned long *len)
             hash += hash >> 11;
             data += 4;
             // Increase len as well
-            (lent)++;
+            lent += 4;
         }
     } while (mask == 0);
 
@@ -118,7 +118,7 @@ int_32 str_hash(const char *data, unsigned long *len)
     }
     // len was calculated in 4-byte tuples,
     // multiply it by 4 to get the number in bytes
-    *len = (lent << 2) + rem;
+    *len = lent + rem;
 
     /*
      * Force "avalanching" of final 127 bits 
