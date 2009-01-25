@@ -55,7 +55,8 @@ extern "C" int fputs(const char *s, void *stream)
     return 0;
 }
 
-extern "C" void *stderr = (void *)0;
+extern "C" void *stderr;
+void *stderr = (void *)0;
 
 extern "C" int dl_iterate_phdr (void)
 {
