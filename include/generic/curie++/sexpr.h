@@ -37,357 +37,100 @@
  */
  #ifndef LIBCURIEPP_SEXPR_H
  #define LIBCURIEPP_SEXPR_H
- 
+
  #include <curie++/int.h>
  #include <curie++/io.h>
- 
- namespace curiepp 
+ #include <curie/sexpr.h>
+
+ namespace curiepp
  {
- 
 
- 
- 
-    class SExpr 
+    class SExpr
     {
-      
+
       public:
-      SExprHeader *header;
 
-      /*! \brief Check if the two S-Expressions are equal
-      *  \param[in] a S-expression to compare with b.
-      *  \param[in] b S-expression to compare with a.
-      *  \return sx_true if the two sexprs are equal or sx_false otherwise.
-      *
-      *  This function is used to determine whether the two s-expressions are the
-      *  same, like the C '==' operator. However, the C type operator would only
-      *  check if the two s-expressions were the exact same object; this function
-      *  will try this test first, and if it fails it will examine the s-expressions
-      *  themselves to find out if they're equivalent. If they are, sx_true is
-      *  returned.
-      *
-      *  \note Unlike the type predicates, this function returns an s-expression, so
-      *        if(equalp()) will not work in C code. Instead, use if(truep(equalp()))
-      *        to test things.
-      */
-      SExpr* equalp (SExpr *a);
-      
-      void xref();
-      virtual void destroy();
-      
- /*! \brief Encode an Integer
- *  \param[in] integer The value of the new s-expression.
- *  \return The s-expression.
- *
- *  This macro takes a C integer and returns a new s-expression with the
- *  integer as its value.
- */
-#define make_integer(integer)\
-        ((SExpr*)((((int_pointer_s)(integer)) << 3) | 0x3))
-        
- /*! \brief Encode a Special S-Expression
- *  \param[in] code The value of the new s-expression.
- *  \return The s-expression.
- *
- *  These s-expressions may be used as sentinel values and the like.
- */
-#define make_special(code)\
-        ((SExpr*)((((int_pointer)(code)) << 3) | 0x5))
+        unsigned int references;
 
-#define define_sosi(t,n,s) \
-    static const SExprStringOrSymbol* sexpr_payload_ ## n =\
-        { { t, (unsigned short int)(~0) }, s };\
-    static const SExpr* n = ((const SExpr*)&(sexpr_payload_ ## n))
+        virtual SExpr* equalp (SExpr *a);
 
-#define define_string(name,value) define_sosi(sxt_string,name,value)
+        virtual void xref();
+        virtual void destroy();
 
-#define define_symbol(name,value) define_sosi(sxt_symbol,name,value)
-
-/*! \brief NIL (S-Expression)
- *
- *  There is always only one instance of this s-expression in a running Curie 
- *  programme, so it is kept as a constant.
- */
-#define sx_nil make_special(1)
-
-/*! \brief Boolean False (S-Expression)
- *
- *  There is always only one instance of this s-expression in a running Curie 
- *  programme, so it is kept as a constant.
- */
-#define sx_false make_special(2)
-
-/*! \brief Boolean True (S-Expression)
- *
- *  There is always only one instance of this s-expression in a running Curie 
- *  programme, so it is kept as a constant.
- */
-#define sx_true make_special(3)
-
-/*! \brief Empty List (S-Expression)
- *
- *  There is always only one instance of this s-expression in a running Curie 
- *  programme, so it is kept as a constant.
- */
-#define sx_empty_list make_special(4)
-
-/*! \brief End of List (S-Expression)
- *
- *  There is always only one instance of this s-expression in a running Curie 
- *  programme, so it is kept as a constant.
- */
-#define sx_end_of_list make_special(5)
-
-/*! \brief End of File (S-Expression)
- *
- *  There is always only one instance of this s-expression in a running Curie 
- *  programme, so it is kept as a constant.
- */
-#define sx_end_of_file make_special(6)
-
-/*! \brief Not-a-Number (S-Expression)
- *
- *  There is always only one instance of this s-expression in a running Curie 
- *  programme, so it is kept as a constant.
- */
-#define sx_not_a_number make_special(7)
-
-/*! \brief Nonexistent (S-Expression)
- *
- *  There is always only one instance of this s-expression in a running Curie 
- *  programme, so it is kept as a constant.
- */
-#define sx_nonexistent make_special(8)
-
-/*! \brief Dot Operator (S-Expression)
- *
- *  There is always only one instance of this s-expression in a running Curie 
- *  programme, so it is kept as a constant.
- */
-#define sx_dot make_special(9)
-
-/*! \brief S-Expression Pointer Flag
- *
- *  This flag is not set in the memory encoding of an s-expression if it's a
- *  pointer instead of the literal value.
- */
-#define sx_mask_no_pointer 0x1
-
-/*! \brief Access the Pointer Value of an S-Expression
- *  \param[in] sx The s-expression.
- *  \return The pointer.
- *
- *  For s-expressions that are used to encode a pointer, this macro retrieves
- *  that particular pointer.
- */
-#define sx_pointer(sx) ((void *)sx)
-
-/*! @} */
-
-/*! \defgroup sexprPredicates Predicates
- *  \ingroup sexpr
- *  \brief S-Expression Predicates
- *
- *  Predicates are functions (or function-like macros) that return a boolean
- *  value for the given arguments. For example consp() checks if a given
- *  s-expression is a cons, and equalp() checks if two s-expressions match up.
- *
- *  In Curie we're using the CL naming convention for predicates, in that all
- *  predicates end in 'p'.
- *
- *  @{
- */
-
-
-
-/*! \brief Check if the S-Expression is a Special Expression
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is a special expression, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define specialp(sx) ((((int_pointer)(sx)) & 0x7) == 0x5)
-
-/*! \brief Check if the S-Expression is a Pointer
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is a pointer, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define pointerp(sx) ((((int_pointer)(sx)) & sx_mask_no_pointer) == 0x0)
-
-/*! \brief Check if the S-Expression is the NIL Expression
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is nil, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define nilp(sx)   ((SExpr *)(sx) == sx_nil)
-
-/*! \brief Check if the S-Expression is the Boolean True Expression
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is true, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define truep(sx)  ((SExpr *)(sx) == sx_true)
-
-/*! \brief Check if the S-Expression is is the Boolean False Expression
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is false, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define falsep(sx) ((SExpr *)(sx) == sx_false)
-
-/*! \brief Check if the S-Expression is the empty List Expression
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is an empty list, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define emptyp(sx) ((SExpr *)(sx) == sx_empty_list)
-
-/*! \brief Check if the S-Expression is the End-of-List Expression
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is the end-of-list expression, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define eolp(sx)   ((SExpr *)(sx) == sx_end_of_list)
-
-/*! \brief Check if the S-Expression is the End-of-File Expression
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is the end-of-file expression, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define eofp(sx)   ((SExpr *)(sx) == sx_end_of_file)
-
-/*! \brief Check if the S-Expression is the Not-a-Number Expression
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is the not-a-number expression, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define nanp(sx)   ((SExpr *)(sx) == sx_not_a_number)
-
-/*! \brief Check if the S-Expression is the nonexistent Expression
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is the nonexistent expression, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define nexp(sx)   ((SExpr *)(sx) == sx_nonexistent)
-
-/*! \brief Check if the S-Expression is the Dot Operator
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is the dot operator, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define dotp(sx)   ((SExpr *)(sx) == sx_dot)
-
-/*! \brief Check if the S-Expression is a Cons
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is a cons, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define consp(sx)    (pointerp(sx) && (((SExprCons *)sx_pointer(sx))->header.type == sxt_cons))
-
-/*! \brief Check if the S-Expression is a String
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is a string, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define stringp(sx)  (pointerp(sx) && (((SExprStringOrSymbol *)sx_pointer(sx))->header.type == sxt_string))
-
-/*! \brief Check if the S-Expression is a Symbol
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is a symbol, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define symbolp(sx)  (pointerp(sx) && (((SExprStringOrSymbol *)sx_pointer(sx))->header.type == sxt_symbol))
-
-/*! \brief Check if the S-Expression is an Integer
- *  \param[in] sx The s-expression to check.
- *  \return 1 if it is an integer, 0 otherwise.
- *
- *  This macro determines the type of the given s-expression, and the result is
- *  usable as a C boolean.
- */
-#define integerp(sx) ((((int_pointer)(sx)) & 0x7) == 0x3)
-      
-    };
-    
-    class SExprHeader : SExpr
-    {
-      public:
-      unsigned char type;
-      unsigned short int references;
     };
 
+    // virtual base class for strings and symbols
     class SExprStringOrSymbol : SExpr
     {
       private:
-        SExprStringOrSymbol(const char *symbol);
-      
+
+
       public:
-        char characterData[];
-            
-        SExprStringOrSymbol *makeSymbol(const char *symbol);
-        void destroy();
-        SExprStringOrSymbol *join(SExprStringOrSymbol *sx);
+        virtual char characterData[];
+
+        virtual SExprStringOrSymbol *join(SExprStringOrSymbol *sx);
     };
-    
+
+    class SExprString : SExprStringOrSymbol
+    {
+      private:
+        SExprString(const char *data);
+
+      public:
+        SExprString *makeString(const char *data);
+    };
+
+    class SExprSymbol : SExprStringOrSymbol
+    {
+      private:
+        SExprSymbol (const char *data);
+      public:
+        SExprSymbol *makeSymbol(const char *data);
+
+    }
+
     class SExprCons : SExpr
     {
       private:
-        SExprCons(SExpr *car, SExprCons *cdr);
-      
+        SExprCons (SExpr *car, SExpr *cdr);
+
       public:
         SExpr *car;
         SExprCons *cdr;
-      
-       
-        SExpr *cons (SExpr *car, SExprCons *cdr);
-    
-        void destroy();
+
+        SExpr *cons (SExpr *car, SExpr *cdr);
+
         void map(void (*f) (sexpr))
-        SExpr fold(sexpr(*f)(sexpr, sexpr), sexpr seed);
+        SExpr *fold(sexpr(*f)(sexpr, sexpr), sexpr seed);
     };
-    
-    class SExprIO 
+
+    class SExprIO
     {
       private:
         SExprIO();
         SExprIO(IO *in, IO *out);
-      
+
+        SExprString *readString(unsigned int *i, char *buf, unsigned int length);
+        SExprSymbol *readSymbol(unsigned int *i, char *buf, unsigned int length);
+        SExpr *readNumber(unsigned int *i, char *buf, unsigned int length);
+        SExprCons *readCons(unsigned int *i, char *buf, unsigned int length);
+        SExprCons *readConsFinalise(unsigned int *i, char *buf, unsigned int length);
+        void readDispatch(unsigned int *i, char *buf, unsigned int length);
+
+        void writeStringOrSymbol(SExprStringOrSymbol *s);
+        void writeCons(SExprCons *c);
+        void writeInteger(SExpr *i);
+        void writeDispatch (SExpr *sexp);
+
+
       public:
         SExprIO* openIO(IO *in, IO *out);
         SExprIO* openStdIO();
         void close();
-      
+
         SExpr* read();
         void write(SExpr* sx);
     };
  }
- 
- 
+
  #endif

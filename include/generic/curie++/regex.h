@@ -1,9 +1,10 @@
 /*
- *  tree.h
+ *  regex.h
  *  libcurie++
  *
- *  Created by Magnus Deininger on 01/01/2009.
+ *  Created by Nadja Klein on 11/01/2009.
  *  Copyright 2008/2009 Magnus Deininger. All rights reserved.
+ *  Copyright 2008/2009 Nadja Klein. All rights reserved.
  *
  */
 
@@ -35,58 +36,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef LIBCURIEPP_REGEX_H
+#define LIBCURIEPP_REGEX_H
 
- #ifndef LIBCURIEPP_TREE_H
- #define LIBCURIEPP_TREE_H
+namespace curiepp {
 
- #include <curie++/int.h>
- #include <curie/int.h>
 
- namespace curiepp
- {
-   class Tree {
-  // use the "named constructor" idiom here?
 
- #define TREE_INITIALIZER ((TreeNode*) 0)
- #define removeNode(t, k) t.removeNodeSpecific (k, ((TreeNode *) 0))
- #define removeNodeString(t, k) t.removeNodeStringSpecific (k, ((TreeNode *) 0))
- #define getValue (n) ((TreeNode *) n)->value
-  private:
-    Tree();
+}
 
-    void addNodeToTree(TreeNode * node, int_pointer key);
-  public:
-    TreeNode *root;
-
-    Tree* create();
-
-    void destroy();
-
-    void addNode(TreeNode *);
-    void addNodeValue(int_pointer key, void *aux);
-    TreeNode* getNode(int_pointer key);
-    void removeNodeSpecific(int_pointer key, TreeNode *node);
-
-    void addNodeString(char* key);
-    void addNodeStringValue(char* key, void* aux);
-    void getNodeString(char* key);
-    void removeNodeStringSpecific(char* key, TreeNode *node);
-
-    void map(void(*f)(TreeNode *, void *), void *aux);
-
-  };
-
-   class TreeNode {
-   public:
-    TreeNode(int_pointer key, void *value, TreeNode *right, TreeNode *left);
-    ~TreeNode();
-
-    int_pointer key;
-    void* value;
-    TreeNode *right;
-    TreeNode *left;
-  };
-
- }
-
- #endif
+#endif
