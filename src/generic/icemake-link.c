@@ -207,7 +207,9 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
     char buffer[BUFFERSIZE];
     struct stat res, st;
     char havebin;
-    sexpr sx = cons (str_dstop_group, sx_end_of_list), cur;
+    sexpr cur;
+/*    sexpr sx = cons (str_dstop_group, sx_end_of_list);*/
+    sexpr sx = sx_end_of_list;
 
     havebin = (stat (sx_string (ofile), &res) == 0);
 
@@ -224,7 +226,7 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
         cur = cdr (cur);
     }
 
-    sx = cons (str_dstart_group, sx);
+//    sx = cons (str_dstart_group, sx);
 
     while (consp (code))
     {
