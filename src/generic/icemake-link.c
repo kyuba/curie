@@ -296,7 +296,7 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 
     io_collect (pcfile_hosted, buffer, strlen(buffer));
 
-    snprintf (buffer, BUFFERSIZE, " -l%s\nCflags: -fno-exceptions -ffreestanding\n", sx_string(t->name));
+    snprintf (buffer, BUFFERSIZE, " -l%s\nCflags: -ffreestanding\n", sx_string(t->name));
 
     io_collect (pcfile, buffer, strlen(buffer));
     io_collect (pcfile_hosted, buffer, strlen(buffer));

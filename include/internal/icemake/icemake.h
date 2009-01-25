@@ -85,6 +85,7 @@ struct target {
     sexpr dversion;
     sexpr durl;
     sexpr documentation;
+    sexpr have_cpp;
 };
 
 enum fs_layout
@@ -178,7 +179,6 @@ define_string (str_dc,                  "-c");
 define_string (str_dr,                  "-r");
 define_string (str_dposix,              "-DPOSIX");
 define_string (str_dgcc,                "-DGCC");
-define_string (str_fnoexceptions,       "-fno-exceptions");
 define_string (str_src,                 "src");
 define_string (str_tests,               "tests");
 define_string (str_include,             "include");
@@ -188,6 +188,9 @@ define_string (str_wall,                "-Wall");
 define_string (str_pedantic,            "-pedantic");
 define_string (str_dcombine,            "-combine");
 define_string (str_lib,                 "lib");
+define_string (str_gcc,                 "gcc");
+define_string (str_gcc_eh,              "gcc_eh");
+define_string (str_supcpp,              "supc++");
 define_string (str_documentation,       "documentation");
 
 sexpr sx_string_dir_prefix_c (char *, sexpr);
