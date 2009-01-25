@@ -63,12 +63,81 @@
 // http://graphics.stanford.edu/~seander/bithacks.html#ZeroInWord
 #define HAS_ZERO_BYTE(v) (~((((v & 0x7F7F7F7FUL) + 0x7F7F7F7FUL) | v) | 0x7F7F7F7FUL))
 
+static int_32 str_hash_realigned (const char *data, unsigned long len)
+{
+    int_32 hash = 0, tmp;
+    int rem;
+
+    rem = len & 3;
+    len >>= 2;
+
+    /* Main loop */
+    for (;len > 0; len--) {
+        hash  += get16bits (data);
+        tmp    = (get16bits (data+2) << 11) ^ hash;
+        hash   = (hash << 16) ^ tmp;
+        data  += 4;
+        hash  += hash >> 11;
+    }
+
+    /* Handle end cases */
+    switch (rem) {
+        case 3: hash += get16bits (data);
+        hash ^= hash << 16;
+        hash ^= data[sizeof (int_16)] << 18;
+        hash += hash >> 11;
+        break;
+        case 2: hash += get16bits (data);
+        hash ^= hash << 11;
+        hash += hash >> 17;
+        break;
+        case 1: hash += *data;
+        hash ^= hash << 10;
+        hash += hash >> 1;
+    }
+
+    /* Force "avalanching" of final 127 bits */
+    hash ^= hash << 3;
+    hash += hash >> 5;
+    hash ^= hash << 4;
+    hash += hash >> 17;
+    hash ^= hash << 25;
+    hash += hash >> 6;
+
+    return hash;
+}
+
 // data is guarranteed to be 32-bit aligned)
 int_32 str_hash(const char *data, unsigned long *len)
 {
     int_32 hash = 0, tmp, mask;
     int rem = 0;
     unsigned long lent = 0;
+
+    if (((int_pointer)data % 4) != (int_pointer)0)
+    {
+        unsigned long clen = 0;
+        while (data[clen] != (const char)0) clen++;
+
+        if (clen == 0)
+        {
+            *len = 0;
+            return 0;
+        }
+
+        char buffer[clen];
+
+        clen = 0;
+        while (data[clen] != (const char)0)
+        {
+            buffer[clen] = data[clen];
+            clen++;
+        }
+
+        *len = clen;
+
+        return str_hash_realigned (buffer, clen);
+    }
 
     // this unrolls to better optimized code on most compilers
     do {
