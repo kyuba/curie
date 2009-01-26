@@ -38,7 +38,7 @@
 
 #include <curie/main.h>
 
-void emit_exception () throw()
+void emit_exception ()
 {
     int e = 42;
 
