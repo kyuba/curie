@@ -65,25 +65,22 @@ extern "C" int dl_iterate_phdr (void)
     return 0;
 }
 
-/*extern "C" void (*start_ctors)(void);
+extern "C" void (*start_ctors)(void);
 extern "C" void (*end_ctors)(void);
 extern "C" void (*start_dtors)(void);
-extern "C" void (*end_dtors)(void);*/
-
-/*extern "C" void __do_global_dtors (void);
-extern "C" void __do_global_ctors (void);*/
+extern "C" void (*end_dtors)(void);
 
 extern "C" int cmain ()
 {
-/*    for(void (**call)(void) = &start_ctors; call < &end_ctors; call++) {
+    for(void (**call)(void) = &start_ctors; call < &end_ctors; call++) {
         (*call)();
-    }*/
+    }
 
     int rv = cxxmain ();
 
-/*    for(void (**call)(void) = &start_dtors; call < &end_dtors; call++) {
+    for(void (**call)(void) = &start_dtors; call < &end_dtors; call++) {
         (*call)();
-    }*/
+    }
 
     return rv;
 }

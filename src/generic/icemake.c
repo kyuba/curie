@@ -42,6 +42,7 @@
 #include <curie/multiplex.h>
 #include <curie/exec.h>
 #include <curie/signal.h>
+#include <curie/filesystem.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -1424,18 +1425,18 @@ int main (int argc, char **argv, char **environ)
     switch (uname_toolchain)
     {
         case tc_gcc:
+            if (falsep(filep(str_buildicemakeld)))
             {
                 FILE *f = fopen ("build/icemake.ld", "w");
 
                 fputs ("SECTIONS{\n"
-                       "    .data ALIGN (0x1000) : {\n"
+                       "    .data.xtor ALIGN (0x1000) : {\n"
                        "       start_ctors = .;\n"
                        "       *(.ctor*)\n"
                        "       end_ctors = .;\n"
                        "       start_dtors = .;\n"
                        "       *(.dtor*)\n"
                        "       end_dtors = .;\n"
-                       "       *(.data)\n"
                        "    }\n"
                        "}\n", f);
             }

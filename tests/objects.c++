@@ -58,9 +58,11 @@ class X {
     char *text;
 };
 
+X z = X("success");
+
 int cxxmain() {
   X *y = new X("meow");
-  X z = X("success");
+/*  X z = X("success");*/
   X u;
 
   u.foo();
