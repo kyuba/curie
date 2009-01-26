@@ -98,7 +98,6 @@ sexpr p_cpp_compiler                   = sx_false;
 sexpr p_assembler                      = sx_false;
 sexpr p_linker                         = sx_false;
 sexpr p_archiver                       = sx_false;
-sexpr p_archive_indexer                = sx_false;
 sexpr p_diff                           = sx_false;
 
 sexpr p_latex                          = sx_false;
@@ -970,13 +969,6 @@ static void initialise_toolchain_gcc()
     {
         fprintf (stderr, "cannot find archiver.\n");
         exit (25);
-    }
-
-    p_archive_indexer = xwhich ("ranlib");
-    if (falsep(p_archive_indexer))
-    {
-        fprintf (stderr, "cannot find archive indexer.\n");
-        exit (26);
     }
 
     p_diff = xwhich ("diff");

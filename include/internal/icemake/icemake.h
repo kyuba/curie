@@ -128,7 +128,6 @@ extern sexpr p_cpp_compiler;
 extern sexpr p_assembler;
 extern sexpr p_linker;
 extern sexpr p_archiver;
-extern sexpr p_archive_indexer;
 extern sexpr p_diff;
 
 extern sexpr p_latex;
@@ -177,6 +176,7 @@ define_string (str_lc,                  "c");
 define_string (str_do,                  "-o");
 define_string (str_dc,                  "-c");
 define_string (str_dr,                  "-r");
+define_string (str_ds,                  "-s");
 define_string (str_dposix,              "-DPOSIX");
 define_string (str_dgcc,                "-DGCC");
 define_string (str_src,                 "src");

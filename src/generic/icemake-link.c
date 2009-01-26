@@ -348,9 +348,11 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
         workstack
                 = cons (cons (p_archiver,
                         cons (str_dr,
-                              cons (make_string (buffer),
-                                    sx)))
-                , workstack);
+                              cons (str_ds,
+                                    cons (str_dc,
+                                          cons (make_string (buffer),
+                                                sx))))),
+                workstack);
     }
 
     if (truep(do_tests))
