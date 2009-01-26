@@ -42,7 +42,7 @@
 
 #include <icemake/icemake.h>
 
-static void post_process_library_gcc (sexpr name, struct target *t)
+/*static void post_process_library_gcc (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
 
@@ -53,15 +53,15 @@ static void post_process_library_gcc (sexpr name, struct target *t)
                   cons (make_string (buffer),
                         sx_end_of_list))
                 , workstack);
-}
+}*/
 
 static void post_process_library (sexpr name, struct target *t)
 {
-    switch (uname_toolchain)
+/*    switch (uname_toolchain)
     {
         case tc_gcc:
             post_process_library_gcc (name, t); break;
-    }
+    }*/
 }
 
 static void post_process_programme (sexpr name, struct target *t)

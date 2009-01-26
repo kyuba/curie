@@ -98,7 +98,6 @@ sexpr p_cpp_compiler                   = sx_false;
 sexpr p_assembler                      = sx_false;
 sexpr p_linker                         = sx_false;
 sexpr p_archiver                       = sx_false;
-sexpr p_archive_indexer                = sx_false;
 sexpr p_diff                           = sx_false;
 
 sexpr p_latex                          = sx_false;
@@ -362,6 +361,8 @@ static sexpr find_code_highlevel (struct target *context, sexpr file)
 
     if (((r = find_code_cpp (subfile)), stringp(r)))
     {
+        context->have_cpp = sx_true;
+
         return cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list)));
     }
     else if (((r = find_code_c (subfile)), stringp(r)))
@@ -398,6 +399,8 @@ static void find_code (struct target *context, sexpr file)
     {
         if (((r = find_code_cpp (file)), stringp(r)))
         {
+            context->have_cpp = sx_true;
+
             primus = cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
         }
         else if (((r = find_code_c (file)), stringp(r)))
@@ -533,6 +536,7 @@ static struct target *get_context()
     context->dversion       = sx_false;
     context->durl           = sx_false;
     context->documentation  = sx_end_of_list;
+    context->have_cpp       = sx_false;
 
     return context;
 }
@@ -569,18 +573,6 @@ static void process_definition (struct target *context, sexpr definition)
         else if (truep(equalp(sxcar, sym_libcurie)))
         {
             context->use_curie = sx_true;
-
-            if (falsep (context->hosted))
-            {
-                context->libraries = cons (str_curie_bootstrap, context->libraries);
-            }
-
-            context->libraries = cons (str_curie, context->libraries);
-
-            if (falsep(equalp(str_curie, context->name)))
-            {
-                context->olibraries = cons (str_curie, context->olibraries);
-            }
         }
         else if (truep(equalp(sxcaar, sym_code)))
         {
@@ -722,53 +714,82 @@ static void process_definition (struct target *context, sexpr definition)
 
     mkdir (buffer, 0755);
 
+    if (uname_toolchain == tc_gcc)
+    {
+        if (truep(i_combine) && consp(context->code))
+        {
+            sexpr ccur = sx_end_of_list;
+            sexpr cur = context->code;
+
+            sexpr clist = sx_end_of_list;
+
+            do {
+                sexpr sxcar = car (cur);
+                sexpr sxcaar = car (sxcar);
+                sexpr sxcadar = car (cdr (sxcar));
+
+                if (truep(equalp(sxcaar, sym_c)))
+                {
+                    clist = cons (sxcadar, clist);
+                }
+                else
+                {
+                    ccur = cons (sxcar, ccur);
+                }
+
+                cur = cdr (cur);
+            } while (consp(cur));
+
+            if (consp (clist))
+            {
+                char oname[BUFFERSIZE];
+                sexpr sx_o;
+
+                snprintf (oname, BUFFERSIZE, "%s-combined-c-source",
+                          sx_string(context->name));
+
+                sx_o = make_string (oname);
+
+                ccur = cons (cons (sym_c, cons (clist, cons (generate_object_file_name (context->name, sx_o), sx_end_of_list))), ccur);
+
+                sx_destroy (sx_o);
+            }
+
+            context->code = ccur;
+        }
+
+        if (truep (context->have_cpp))
+        {
+            context->libraries = cons (str_supcpp, context->libraries);
+            context->libraries = cons (str_gcc_eh, context->libraries);
+        }
+
+        context->libraries = cons (str_gcc, context->libraries);
+    }
+
     if (truep(context->hosted))
     {
         context->libraries = cons (str_lc, context->libraries);
     }
 
-    if (truep(i_combine) &&
-        (uname_toolchain == tc_gcc) &&
-        consp(context->code))
+    if (truep(context->use_curie))
     {
-        sexpr ccur = sx_end_of_list;
-        sexpr cur = context->code;
-
-        sexpr clist = sx_end_of_list;
-
-        do {
-            sexpr sxcar = car (cur);
-            sexpr sxcaar = car (sxcar);
-            sexpr sxcadar = car (cdr (sxcar));
-
-            if (truep(equalp(sxcaar, sym_c)))
-            {
-                clist = cons (sxcadar, clist);
-            }
-            else
-            {
-                ccur = cons (sxcar, ccur);
-            }
-
-            cur = cdr (cur);
-        } while (consp(cur));
-
-        if (consp (clist))
+        if (falsep (context->hosted))
         {
-            char oname[BUFFERSIZE];
-            sexpr sx_o;
-
-            snprintf (oname, BUFFERSIZE, "%s-combined-c-source",
-                      sx_string(context->name));
-
-            sx_o = make_string (oname);
-
-            ccur = cons (cons (sym_c, cons (clist, cons (generate_object_file_name (context->name, sx_o), sx_end_of_list))), ccur);
-
-            sx_destroy (sx_o);
+            context->libraries = cons (str_curie_bootstrap, context->libraries);
         }
 
-        context->code = ccur;
+        context->libraries = cons (str_curie, context->libraries);
+
+        if (falsep(equalp(str_curie, context->name)))
+        {
+            context->olibraries = cons (str_curie, context->olibraries);
+        }
+    }
+
+    if (uname_toolchain == tc_gcc)
+    {
+        context->libraries = cons (str_gcc, context->libraries);
     }
 }
 
@@ -948,13 +969,6 @@ static void initialise_toolchain_gcc()
     {
         fprintf (stderr, "cannot find archiver.\n");
         exit (25);
-    }
-
-    p_archive_indexer = xwhich ("ranlib");
-    if (falsep(p_archive_indexer))
-    {
-        fprintf (stderr, "cannot find archive indexer.\n");
-        exit (26);
     }
 
     p_diff = xwhich ("diff");

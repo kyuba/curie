@@ -83,17 +83,17 @@ static int_32 str_hash_realigned (const char *data, unsigned long len)
     /* Handle end cases */
     switch (rem) {
         case 3: hash += get16bits (data);
-        hash ^= hash << 16;
-        hash ^= data[sizeof (int_16)] << 18;
-        hash += hash >> 11;
-        break;
+                hash ^= hash << 16;
+                hash ^= data[2] << 18;
+                hash += hash >> 11;
+                break;
         case 2: hash += get16bits (data);
-        hash ^= hash << 11;
-        hash += hash >> 17;
-        break;
+                hash ^= hash << 11;
+                hash += hash >> 17;
+                break;
         case 1: hash += *data;
-        hash ^= hash << 10;
-        hash += hash >> 1;
+                hash ^= hash << 10;
+                hash += hash >> 1;
     }
 
     /* Force "avalanching" of final 127 bits */

@@ -303,14 +303,13 @@ static void build_object_gcc_cpp (const char *source, const char *target)
         = cons (cons (p_cpp_compiler,
                   cons (str_dposix,
                   cons (str_dgcc,
-                  cons (str_fnoexceptions,
                     prepend_cxxflags_gcc (
                     prepend_includes_gcc (
                       cons (str_dc,
                         cons (make_string (source),
                           cons (str_do,
-                            cons (make_string(target), sx_end_of_list))))))))))
-                , workstack);
+                            cons (make_string(target), sx_end_of_list))))))))),
+                workstack);
 }
 
 static void build_object_gcc (sexpr type, sexpr source, sexpr target)

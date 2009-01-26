@@ -13,7 +13,7 @@
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
         "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
-        "directory" "directory-common")
+        "directory" "directory-common" "libc-compat")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
@@ -49,7 +49,7 @@
   (version "7")
   (url "http://kyuba.org/")
 
-  (code "memory++" "io++")
+  (code "memory++" "io++" "libc++-compat")
 
   (headers
         "int" "io" "multiplex")

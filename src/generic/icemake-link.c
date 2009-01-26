@@ -207,7 +207,9 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
     char buffer[BUFFERSIZE];
     struct stat res, st;
     char havebin;
-    sexpr sx = sx_end_of_list, cur;
+    sexpr cur;
+/*    sexpr sx = cons (str_dstop_group, sx_end_of_list);*/
+    sexpr sx = sx_end_of_list;
 
     havebin = (stat (sx_string (ofile), &res) == 0);
 
@@ -223,6 +225,8 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
 
         cur = cdr (cur);
     }
+
+//    sx = cons (str_dstart_group, sx);
 
     while (consp (code))
     {
@@ -246,8 +250,8 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
                                 get_special_linker_options_gcc (
                                         cons (str_do,
                                               cons (ofile,
-                                                      sx)))))
-                , workstack);
+                                                      sx))))),
+                workstack);
     }
 }
 
@@ -296,7 +300,7 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 
     io_collect (pcfile_hosted, buffer, strlen(buffer));
 
-    snprintf (buffer, BUFFERSIZE, " -l%s\nCflags: -fno-exceptions -ffreestanding\n", sx_string(t->name));
+    snprintf (buffer, BUFFERSIZE, " -l%s\nCflags: -ffreestanding\n", sx_string(t->name));
 
     io_collect (pcfile, buffer, strlen(buffer));
     io_collect (pcfile_hosted, buffer, strlen(buffer));
@@ -344,9 +348,11 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
         workstack
                 = cons (cons (p_archiver,
                         cons (str_dr,
-                              cons (make_string (buffer),
-                                    sx)))
-                , workstack);
+                              cons (str_ds,
+                                    cons (str_dc,
+                                          cons (make_string (buffer),
+                                                sx))))),
+                workstack);
     }
 
     if (truep(do_tests))
