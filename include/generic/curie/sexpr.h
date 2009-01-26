@@ -255,7 +255,8 @@ void sx_write
          /*@notnull@*/ /*@shared@*/ sexpr cdr);
 
 /*! \brief Encode an Integer
- *  \param[in] integer The value of the new s-expression.
+ *  \param[in]
+  The value of the new s-expression.
  *  \return The s-expression.
  *
  *  This macro takes a C integer and returns a new s-expression with the
@@ -327,63 +328,63 @@ void sx_xref
 
 /*! \brief NIL (S-Expression)
  *
- *  There is always only one instance of this s-expression in a running Curie 
+ *  There is always only one instance of this s-expression in a running Curie
  *  programme, so it is kept as a constant.
  */
 #define sx_nil make_special(1)
 
 /*! \brief Boolean False (S-Expression)
  *
- *  There is always only one instance of this s-expression in a running Curie 
+ *  There is always only one instance of this s-expression in a running Curie
  *  programme, so it is kept as a constant.
  */
 #define sx_false make_special(2)
 
 /*! \brief Boolean True (S-Expression)
  *
- *  There is always only one instance of this s-expression in a running Curie 
+ *  There is always only one instance of this s-expression in a running Curie
  *  programme, so it is kept as a constant.
  */
 #define sx_true make_special(3)
 
 /*! \brief Empty List (S-Expression)
  *
- *  There is always only one instance of this s-expression in a running Curie 
+ *  There is always only one instance of this s-expression in a running Curie
  *  programme, so it is kept as a constant.
  */
 #define sx_empty_list make_special(4)
 
 /*! \brief End of List (S-Expression)
  *
- *  There is always only one instance of this s-expression in a running Curie 
+ *  There is always only one instance of this s-expression in a running Curie
  *  programme, so it is kept as a constant.
  */
 #define sx_end_of_list make_special(5)
 
 /*! \brief End of File (S-Expression)
  *
- *  There is always only one instance of this s-expression in a running Curie 
+ *  There is always only one instance of this s-expression in a running Curie
  *  programme, so it is kept as a constant.
  */
 #define sx_end_of_file make_special(6)
 
 /*! \brief Not-a-Number (S-Expression)
  *
- *  There is always only one instance of this s-expression in a running Curie 
+ *  There is always only one instance of this s-expression in a running Curie
  *  programme, so it is kept as a constant.
  */
 #define sx_not_a_number make_special(7)
 
 /*! \brief Nonexistent (S-Expression)
  *
- *  There is always only one instance of this s-expression in a running Curie 
+ *  There is always only one instance of this s-expression in a running Curie
  *  programme, so it is kept as a constant.
  */
 #define sx_nonexistent make_special(8)
 
 /*! \brief Dot Operator (S-Expression)
  *
- *  There is always only one instance of this s-expression in a running Curie 
+ *  There is always only one instance of this s-expression in a running Curie
  *  programme, so it is kept as a constant.
  */
 #define sx_dot make_special(9)
