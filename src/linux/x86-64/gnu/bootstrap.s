@@ -68,8 +68,13 @@ curie_environment:
 /* kernel: */
 /* rdi rsi rdx r10 r8 r9 */
 
+.set STACKSIZE, 0x4000
+.comm stack, STACKSIZE, 32
+
 _start:
 /* parse argv */
+        mov     $(stack + STACKSIZE), %esp
+
         popq    %rbx
         inc     %rbx
         movq    $8, %rax
