@@ -1421,6 +1421,27 @@ int main (int argc, char **argv, char **environ)
         archprefix = archbuffer;
     }
 
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            {
+                FILE *f = fopen ("build/icemake.ld", "w");
+
+                fputs ("SECTIONS{\n"
+                       "    .data ALIGN (0x1000) : {\n"
+                       "       start_ctors = .;\n"
+                       "       *(.ctor*)\n"
+                       "       end_ctors = .;\n"
+                       "       start_dtors = .;\n"
+                       "       *(.dtor*)\n"
+                       "       end_dtors = .;\n"
+                       "       *(.data)\n"
+                       "    }\n"
+                       "}\n", f);
+            }
+            break;
+    }
+
     stdio                   = sx_open_stdio();
 
     switch (uname_toolchain)

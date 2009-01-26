@@ -247,11 +247,12 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
     if (!havebin) {
         workstack
                 = cons (cons (p_linker,
-                        get_libc_linker_options_gcc (t,
-                                get_special_linker_options_gcc (
-                                        cons (str_do,
-                                              cons (ofile,
-                                                      sx))))),
+                              cons (str_buildicemakeld,
+                                    get_libc_linker_options_gcc (t,
+                                        get_special_linker_options_gcc (
+                                            cons (str_do,
+                                                  cons (ofile,
+                                                        sx)))))),
                 workstack);
     }
 }
