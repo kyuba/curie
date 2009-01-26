@@ -193,7 +193,7 @@ define_string (str_gcc_eh,              "gcc_eh");
 define_string (str_supcpp,              "supc++");
 define_string (str_documentation,       "documentation");
 define_string (str_dstart_group,        "--start-group");
-define_string (str_dstop_group,         "--stop-group");
+define_string (str_dend_group,          "--end-group");
 
 sexpr sx_string_dir_prefix_c (char *, sexpr);
 

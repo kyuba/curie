@@ -786,11 +786,6 @@ static void process_definition (struct target *context, sexpr definition)
             context->olibraries = cons (str_curie, context->olibraries);
         }
     }
-
-    if (uname_toolchain == tc_gcc)
-    {
-        context->libraries = cons (str_gcc, context->libraries);
-    }
 }
 
 static struct target *create_library (sexpr definition)

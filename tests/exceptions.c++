@@ -1,14 +1,14 @@
 /*
- *  objects.c++
+ *  exceptions.c++
  *  libcurie
  *
- *  Created by Magnus Deininger on 08/06/2008.
- *  Copyright 2008 Magnus Deininger. All rights reserved.
+ *  Created by Magnus Deininger on 26/01/2009.
+ *  Copyright 2009 Magnus Deininger. All rights reserved.
  *
  */
 
 /*
- * Copyright (c) 2008, Magnus Deininger All rights reserved.
+ * Copyright (c) 2009, Magnus Deininger All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,36 +37,20 @@
  */
 
 #include <curie/main.h>
-#include <curie/sexpr.h>
 
-class X {
-  public:
-    void foo () {
-        struct sexpr_io *io = sx_open_stdio();
-        sx_write (io, make_string(text));
-    }
+void emit_exception () throw()
+{
+    int e = 42;
 
-    X(char *btext) {
-        this->text = btext;
-    }
-
-    X() {
-        this->text = "foo";
-    }
-
-  private:
-    char *text;
-};
+    throw e;
+}
 
 int cxxmain() {
-  X *y = new X("meow");
-  X z = X("success");
-  X u;
+    try {
+        emit_exception ();
+    } catch (int e) {
+        if (e == 42) return 0;
+    }
 
-  u.foo();
-  y->foo();
-  z.foo();
-
-  delete y;
-  return 0;
+    return 1;
 }
