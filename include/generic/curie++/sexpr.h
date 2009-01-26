@@ -50,6 +50,8 @@
 
       public:
 
+        SExpr();
+        ~SExpr();
         unsigned int references;
 
         virtual SExpr* equalp (SExpr *a);
@@ -74,27 +76,29 @@
     class SExprString : SExprStringOrSymbol
     {
       private:
-        SExprString(const char *data);
 
       public:
-        SExprString *makeString(const char *data);
+        SExprString(const char *data);
+        ~SExprString();
     };
 
     class SExprSymbol : SExprStringOrSymbol
     {
       private:
-        SExprSymbol (const char *data);
       public:
-        SExprSymbol *makeSymbol(const char *data);
+        SExprSymbol(const char *data);
+        ~SExprSmbol();
 
-    }
+    };
 
     class SExprCons : SExpr
     {
       private:
-        SExprCons (SExpr *car, SExpr *cdr);
+
 
       public:
+        SExprCons (SExpr *car, SExpr *cdr);
+        ~SExprCons();
         SExpr *car;
         SExprCons *cdr;
 
@@ -126,6 +130,7 @@
       public:
         SExprIO* openIO(IO *in, IO *out);
         SExprIO* openStdIO();
+        ~SExprIO();
         void close();
 
         SExpr* read();
