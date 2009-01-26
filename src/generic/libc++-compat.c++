@@ -65,6 +65,8 @@ extern "C" int dl_iterate_phdr (void)
     return 0;
 }
 
+#if 0
+
 extern "C" void (*start_ctors)(void);
 extern "C" void (*end_ctors)(void);
 extern "C" void (*start_dtors)(void);
@@ -84,3 +86,12 @@ extern "C" int cmain ()
 
     return rv;
 }
+
+#else
+
+extern "C" int cmain ()
+{
+    return cxxmain ();
+}
+
+#endif
