@@ -38,6 +38,11 @@
 
 .data
 
+.set STACKSIZE, 0x4000
+
+.globl __libc_stack_end
+.comm __libc_stack_end, STACKSIZE, 32
+
 .globl curie_argv
 .globl curie_environment
 
@@ -93,7 +98,10 @@ _3:
         stw     5, curie_environment@l(16)
 
 _4:
-        addi    1, 1, -16
+        lis     1, __libc_stack_end@ha
+        addi    1, 1, __libc_stack_end@l
+        addi    1, 1, STACKSIZE
+
         bl      cmain
 
 cexit:
