@@ -1,5 +1,5 @@
 /*
- *  generic/libc++-compat.c++
+ *  linux/powerpc/libc++-compat.c++
  *  libcurie
  *
  *  Created by Magnus Deininger on 25/01/2009.
@@ -37,9 +37,69 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+#include <curie/io-system.h>
+
 int cxxmain();
+
+extern "C" unsigned long fwrite
+    (const void *ptr,
+     unsigned long size,
+     unsigned long nitems,
+     void *stream)
+{
+    return 0;
+}
+
+extern "C" int fputc(int c, void *stream)
+{
+    return 0;
+}
+
+extern "C" int fputs(const char *s, void *stream)
+{
+    return 0;
+}
+
+extern "C" void *stderr;
+void *stderr = (void *)0;
+
+extern "C" int dl_iterate_phdr (void)
+{
+    return 0;
+}
+
+#if 0
+
+extern "C" void (*start_ctors)(void);
+extern "C" void (*end_ctors)(void);
+extern "C" void (*start_dtors)(void);
+extern "C" void (*end_dtors)(void);
+
+extern "C" int cmain ()
+{
+    for(void (**call)(void) = &start_ctors; call < &end_ctors; call++) {
+        (*call)();
+    }
+
+    int rv = cxxmain ();
+
+    for(void (**call)(void) = &start_dtors; call < &end_dtors; call++) {
+        (*call)();
+    }
+
+    return rv;
+}
+
+#else
 
 extern "C" int cmain ()
 {
     return cxxmain ();
+}
+
+#endif
+
+extern "C" signed long write (int fd, const void *buf, long count)
+{
+    return a_write (fd, buf, count);
 }

@@ -140,3 +140,26 @@ char *strcat(char *restrict s1, const char *restrict s2)
 
     return s1;
 }
+
+int memcmp(const unsigned char *s1, const unsigned char *s2, long count)
+{
+    for (long i = 0; i < count; i++)
+    {
+        if (s1[i] == s2[i]) continue;
+        return (s2[i] - s1[i]);
+    }
+
+    return 0;
+}
+
+int strncmp(const unsigned char *s1, const unsigned char *s2, long count)
+{
+    for (long i = 0; (i < count) && (s1[i] != 0) && (s2[i] != 0); i++)
+    {
+        if (s1[i] == s2[i]) continue;
+
+        return (s2[i] - s1[i]);
+    }
+
+    return 0;
+}
