@@ -196,7 +196,11 @@ static sexpr prepend_cflags_gcc (sexpr x)
 
 static sexpr prepend_cxxflags_gcc (sexpr x)
 {
+    define_string (str_fno_exceptions, "-fno-exceptions");
+
     char *f = getenv ("CXXFLAGS");
+
+    x = cons (str_fno_exceptions, x);
 
     if (f != (char *)0)
     {
