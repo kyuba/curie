@@ -189,8 +189,6 @@ define_string (str_pedantic,            "-pedantic");
 define_string (str_dcombine,            "-combine");
 define_string (str_lib,                 "lib");
 define_string (str_gcc,                 "gcc");
-define_string (str_gcc_eh,              "gcc_eh");
-define_string (str_supcpp,              "supc++");
 define_string (str_documentation,       "documentation");
 define_string (str_dstart_group,        "-Wl,--start-group");
 define_string (str_dend_group,          "-Wl,--end-group");
