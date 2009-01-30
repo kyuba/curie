@@ -36,6 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#define _BSD_SOURCE
+
 #include <curie/tree.h>
 #include <curie/multiplex.h>
 #include <curie/filesystem.h>
@@ -45,6 +47,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <icemake/icemake.h>
 
@@ -119,7 +122,14 @@ static void loop_install()
         sexpr target = cdr (spec);
         struct io *in, *out;
 
-        if (stat (sx_string (source), &st) == 0)
+        if (truep(equalp(source, sym_symlink)))
+        {
+            source = car (target);
+            target = cdr (target);
+
+            symlink (sx_string(source), sx_string(target));
+        }
+        else if (stat (sx_string (source), &st) == 0)
         {
             mkdir_p (target);
 
@@ -178,6 +188,28 @@ static sexpr get_so_library_install_path (sexpr name, sexpr version)
             snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.so.%s",
                       sx_string(i_destdir), uname_os, uname_arch,
                                 sx_string(name), sx_string(version));
+            return make_string (buffer);
+            break;
+    }
+
+    return sx_false;
+}
+
+static sexpr get_so_library_symlink_path (sexpr name)
+{
+    char buffer[BUFFERSIZE];
+
+    switch (i_fsl)
+    {
+        case fs_fhs:
+        case fs_fhs_binlib:
+            snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.so", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
+            return make_string (buffer);
+            break;
+        case fs_proper:
+            snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.so",
+                      sx_string(i_destdir), uname_os, uname_arch,
+                                sx_string(name));
             return make_string (buffer);
             break;
     }
@@ -290,13 +322,26 @@ static void install_library_gcc (sexpr name, struct target *t)
     if (truep (i_dynamic_libraries))
     {
         char buffer[BUFFERSIZE];
+        sexpr fname;
 
         snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", sx_string(t->name), archprefix, sx_string(name), sx_string(t->dversion));
 
-        workstack
-                = cons (cons (make_string (buffer),
-                              get_so_library_install_path(name, t->dversion)),
-                        workstack);
+        fname = make_string(buffer);
+
+        if (truep(filep(fname)))
+        {
+            workstack
+                    = cons (cons (make_string (buffer),
+                            get_so_library_install_path(name, t->dversion)),
+                    workstack);
+
+            snprintf (buffer, BUFFERSIZE, "lib%s.so.%s", sx_string(name), sx_string(t->dversion));
+
+            workstack
+                    = cons (cons (sym_symlink, cons (make_string (buffer),
+                            get_so_library_symlink_path(name))),
+                    workstack);
+        }
     }
 }
 

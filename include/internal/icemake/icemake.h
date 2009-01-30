@@ -173,6 +173,7 @@ define_symbol (sym_latex,               "latex");
 define_symbol (sym_pdflatex,            "pdflatex");
 define_symbol (sym_doxygen,             "doxygen");
 define_symbol (sym_chdir,               "chdir");
+define_symbol (sym_symlink,             "symlink");
 
 define_string (str_bootstrap,           "bootstrap");
 define_string (str_curie,               "curie");
