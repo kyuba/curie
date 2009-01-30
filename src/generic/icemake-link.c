@@ -45,6 +45,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <icemake/icemake.h>
 
@@ -231,14 +232,23 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
 
     while (consp (code))
     {
-        sexpr objectfile = car (cdr (cdr (car (code))));
-        sx = cons (objectfile, sx);
+        sexpr txn = car (code);
+        sexpr ttype = car (txn);
+        sexpr objectfile = car (cdr (cdr (txn)));
 
-        if (havebin &&
-            (stat (sx_string(objectfile), &st) == 0) &&
-            (st.st_mtime > res.st_mtime))
+        if (truep(equalp(ttype, sym_assembly)) ||
+            truep(equalp(ttype, sym_preproc_assembly)) ||
+            truep(equalp(ttype, sym_c)) ||
+            truep(equalp(ttype, sym_cpp)))
         {
-            havebin = 0;
+            sx = cons (objectfile, sx);
+
+            if (havebin &&
+                (stat (sx_string(objectfile), &st) == 0) &&
+                (st.st_mtime > res.st_mtime))
+            {
+                havebin = 0;
+            }
         }
 
         code = cdr (code);
@@ -333,14 +343,23 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 
     while (consp (code))
     {
-        sexpr objectfile = car (cdr (cdr (car (code))));
-        sx = cons (objectfile, sx);
+        sexpr txn = car (code);
+        sexpr ttype = car (txn);
+        sexpr objectfile = car (cdr (cdr (txn)));
 
-        if (havelib &&
-            (stat (sx_string(objectfile), &st) == 0) &&
-            (st.st_mtime > res.st_mtime))
+        if (truep(equalp(ttype, sym_assembly)) ||
+            truep(equalp(ttype, sym_preproc_assembly)) ||
+            truep(equalp(ttype, sym_c)) ||
+            truep(equalp(ttype, sym_cpp)))
         {
-            havelib = 0;
+            sx = cons (objectfile, sx);
+
+            if (havelib &&
+                (stat (sx_string(objectfile), &st) == 0) &&
+                (st.st_mtime > res.st_mtime))
+            {
+                havelib = 0;
+            }
         }
 
         code = cdr (code);
@@ -375,6 +394,119 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
     }
 }
 
+static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
+{
+    char buffer[BUFFERSIZE], lbuffer[BUFFERSIZE];
+    struct stat res, st;
+    char havelib;
+    sexpr sx = sx_end_of_list, cur;
+    struct io *pcfile, *pcfile_hosted;
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.pc", sx_string(t->name), archprefix, sx_string(name));
+
+    multiplex_add_io_no_callback (pcfile = io_open_create (buffer, 0644));
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s-hosted.pc", sx_string(t->name), archprefix, sx_string(name));
+
+    multiplex_add_io_no_callback (pcfile_hosted = io_open_create (buffer, 0644));
+
+    snprintf (buffer, BUFFERSIZE, "Name: %s\nDescription: %s\nVersion: %s\nURL: %s\nRequires:", sx_string (t->dname), sx_string (t->description), sx_string (t->dversion), sx_string (t->durl));
+
+    io_collect (pcfile, buffer, strlen(buffer));
+    io_collect (pcfile_hosted, buffer, strlen(buffer));
+
+    cur = t->olibraries;
+    while (consp (cur))
+    {
+        sexpr ca = car (cur);
+
+        snprintf (buffer, BUFFERSIZE, " lib%s", sx_string (ca));
+        io_collect (pcfile, buffer, strlen(buffer));
+
+        snprintf (buffer, BUFFERSIZE, " lib%s-hosted", sx_string (ca));
+        io_collect (pcfile_hosted, buffer, strlen(buffer));
+
+        cur = cdr (cur);
+    }
+
+    snprintf (buffer, BUFFERSIZE, "\nConflicts:\nLibs:");
+
+    io_collect (pcfile, buffer, strlen(buffer));
+    if (truep(equalp(name, str_curie)))
+    {
+        write_curie_linker_flags_gcc (pcfile, t);
+    }
+
+    io_collect (pcfile_hosted, buffer, strlen(buffer));
+
+    snprintf (buffer, BUFFERSIZE, " -l%s\nCflags: -fno-exceptions -ffreestanding\n", sx_string(t->name));
+
+    io_collect (pcfile, buffer, strlen(buffer));
+    io_collect (pcfile_hosted, buffer, strlen(buffer));
+
+    if (truep(equalp(name, str_curie)))
+    {
+        struct sexpr_io *io;
+
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", sx_string(t->name), archprefix, sx_string(name));
+
+        io = sx_open_io(io_open(-1), io_open_create(buffer, 0644));
+
+        if (truep(co_freestanding))
+        {
+            sx_write (io, sym_freestanding);
+        }
+        else
+        {
+            sx_write (io, sym_hosted);
+        }
+
+        multiplex_add_sexpr (io, (void *)0, (void *)0);
+    }
+
+    snprintf (buffer, BUFFERSIZE, "lib%s.so.%s", sx_string(name), sx_string(t->dversion));
+    snprintf (lbuffer, BUFFERSIZE, "build/%s/%s/lib%s.so", sx_string(t->name), archprefix, sx_string(name));
+
+    symlink (buffer, lbuffer);
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", sx_string(t->name), archprefix, sx_string(name), sx_string(t->dversion));
+
+
+    havelib = (stat (buffer, &res) == 0);
+
+    while (consp (code))
+    {
+        sexpr txn = car (code);
+        sexpr ttype = car (txn);
+        sexpr objectfile = car (cdr (cdr (txn)));
+
+        if (truep(equalp(ttype, sym_assembly_pic)) ||
+            truep(equalp(ttype, sym_preproc_assembly_pic)) ||
+            truep(equalp(ttype, sym_c_pic)) ||
+            truep(equalp(ttype, sym_cpp_pic)))
+        {
+            sx = cons (objectfile, sx);
+
+            if (havelib &&
+                (stat (sx_string(objectfile), &st) == 0) &&
+                (st.st_mtime > res.st_mtime))
+            {
+                havelib = 0;
+            }
+        }
+
+        code = cdr (code);
+    }
+
+    if (!havelib) {
+        workstack
+                = cons (cons (p_linker,
+                              cons (str_dshared, cons (str_dfpic,
+                              cons (str_do, cons (make_string (buffer), sx))))),
+                        workstack);
+    }
+}
+
 static void link_programme_gcc (sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE];
@@ -392,6 +524,15 @@ static void link_library (sexpr name, sexpr code, struct target *t)
     }
 }
 
+static void link_library_dynamic (sexpr name, sexpr code, struct target *t)
+{
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            link_library_gcc_dynamic (name, code, t); break;
+    }
+}
+
 static void link_programme (sexpr name, sexpr code, struct target *t)
 {
     switch (uname_toolchain)
@@ -406,6 +547,7 @@ static void do_link_target(struct target *t)
     if (truep(t->library))
     {
         link_library (t->name, t->code, t);
+        link_library_dynamic (t->name, t->code, t);
 
         if (!eolp(t->bootstrap))
         {

@@ -151,6 +151,10 @@ define_symbol (sym_assembly,            "assembly");
 define_symbol (sym_preproc_assembly,    "preprocessed-assembly");
 define_symbol (sym_cpp,                 "C++");
 define_symbol (sym_c,                   "C");
+define_symbol (sym_assembly_pic,        "assembly-pic");
+define_symbol (sym_preproc_assembly_pic,"preprocessed-assembly-pic");
+define_symbol (sym_c_pic,               "C-PIC");
+define_symbol (sym_cpp_pic,             "C++-PIC");
 define_symbol (sym_tex,                 "TeX");
 define_symbol (sym_libc,                "libc");
 define_symbol (sym_libcurie,            "libcurie");
@@ -173,6 +177,7 @@ define_string (str_bootstrap,           "bootstrap");
 define_string (str_curie,               "curie");
 define_string (str_curie_bootstrap,     "curie-bootstrap");
 define_string (str_static,              "-static");
+define_string (str_dshared,             "-shared");
 define_string (str_lc,                  "c");
 define_string (str_do,                  "-o");
 define_string (str_dc,                  "-c");
@@ -194,6 +199,7 @@ define_string (str_documentation,       "documentation");
 define_string (str_dstart_group,        "-Wl,--start-group");
 define_string (str_dend_group,          "-Wl,--end-group");
 define_string (str_buildicemakeld,      "build/icemake.ld");
+define_string (str_dfpic,               "-fPIC");
 
 sexpr sx_string_dir_prefix_c (char *, sexpr);
 

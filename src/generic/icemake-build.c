@@ -257,8 +257,8 @@ static void build_object_gcc_preproc_assembly (const char *source, const char *t
                     cons (str_dc,
                       cons (make_string (source),
                         cons (str_do,
-                          cons (make_string(target), sx_end_of_list))))))
-                , workstack);
+                          cons (make_string(target), sx_end_of_list)))))),
+                workstack);
 }
 
 static void build_object_gcc_c (const char *source, const char *target)
@@ -275,8 +275,8 @@ static void build_object_gcc_c (const char *source, const char *target)
                           cons (str_dc,
                             cons (make_string (source),
                               cons (str_do,
-                                cons (make_string(target), sx_end_of_list))))))))))))
-                , workstack);
+                                cons (make_string(target), sx_end_of_list)))))))))))),
+                workstack);
 }
 
 static void build_object_gcc_c_combine (sexpr sources, const char *target)
@@ -316,6 +316,90 @@ static void build_object_gcc_cpp (const char *source, const char *target)
                 workstack);
 }
 
+static void build_object_gcc_assembly_pic (const char *source, const char *target)
+{
+    workstack
+        = cons (cons (p_c_compiler,
+                  prepend_includes_gcc (
+                    cons (str_dfpic,
+                    cons (str_dc,
+                      cons (make_string (source),
+                        cons (str_do,
+                          cons (make_string(target), sx_end_of_list))))))),
+                workstack);
+}
+
+static void build_object_gcc_preproc_assembly_pic (const char *source, const char *target)
+{
+    workstack
+        = cons (cons (p_c_compiler,
+                  prepend_includes_gcc (
+                    cons (str_dfpic,
+                    cons (str_dc,
+                      cons (make_string (source),
+                        cons (str_do,
+                          cons (make_string(target), sx_end_of_list))))))),
+                workstack);
+}
+
+static void build_object_gcc_c_pic (const char *source, const char *target)
+{
+    workstack
+        = cons (cons (p_c_compiler,
+                  cons (str_dfpic,
+                  cons (str_dposix,
+                  cons (str_dgcc,
+                  cons (str_stdc99,
+                    cons (str_wall,
+                      cons (str_pedantic,
+                        prepend_cflags_gcc (
+                        prepend_includes_gcc (
+                          cons (str_dc,
+                            cons (make_string (source),
+                              cons (str_do,
+                                cons (make_string(target), sx_end_of_list))))))))))))),
+                workstack);
+}
+
+static void build_object_gcc_c_pic_combine (sexpr sources, const char *target)
+{
+    sexpr item = cons (str_dposix,
+                   cons (str_dgcc,
+                   cons (str_stdc99,
+                     cons (str_wall,
+                       cons (str_pedantic,
+                         prepend_cflags_gcc (
+                         prepend_includes_gcc (
+                           cons (str_do,
+                             cons (make_string (target), sx_end_of_list)))))))));
+
+    for (sexpr cur = sources; consp (cur); cur = cdr (cur))
+    {
+        item = cons (car (cur), item);
+    }
+
+    item = cons (p_c_compiler, cons (str_dfpic,
+                 cons (str_dcombine, cons (str_dc, item))));
+
+    workstack = cons (item, workstack);
+}
+
+static void build_object_gcc_cpp_pic (const char *source, const char *target)
+{
+    workstack
+        = cons (cons (p_cpp_compiler,
+                  cons (str_dfpic,
+                  cons (str_dposix,
+                  cons (str_dgcc,
+                    prepend_cxxflags_gcc (
+                    prepend_includes_gcc (
+                      cons (str_dc,
+                        cons (make_string (source),
+                          cons (str_do,
+                            cons (make_string(target), sx_end_of_list)))))))))),
+                workstack);
+}
+
 static void build_object_gcc (sexpr type, sexpr source, sexpr target)
 {
     if (truep(equalp(type, sym_link))) return;
@@ -342,6 +426,29 @@ static void build_object_gcc (sexpr type, sexpr source, sexpr target)
     else if (truep(equalp(type, sym_cpp)))
     {
         build_object_gcc_cpp (sx_string(source), sx_string(target));
+    }
+    else if (truep(equalp(type, sym_assembly_pic)))
+    {
+        build_object_gcc_assembly_pic (sx_string(source), sx_string(target));
+    }
+    else if (truep(equalp(type, sym_preproc_assembly_pic)))
+    {
+        build_object_gcc_preproc_assembly_pic (sx_string(source), sx_string(target));
+    }
+    else if (truep(equalp(type, sym_c_pic)))
+    {
+        if (consp (source))
+        {
+            build_object_gcc_c_pic_combine (source, sx_string(target));
+        }
+        else
+        {
+            build_object_gcc_c_pic (sx_string(source), sx_string(target));
+        }
+    }
+    else if (truep(equalp(type, sym_cpp_pic)))
+    {
+        build_object_gcc_cpp_pic (sx_string(source), sx_string(target));
     }
     else
     {

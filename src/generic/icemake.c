@@ -293,9 +293,23 @@ static sexpr find_code_s (sexpr file)
     return find_code_with_suffix (file, ".s");
 }
 
+static sexpr find_code_pic_s (sexpr file)
+{
+    sexpr r = find_code_with_suffix (file, ".pic.s");
+
+    return (falsep(r) ? find_code_s (file) : r);
+}
+
 static sexpr find_code_S (sexpr file)
 {
     return find_code_with_suffix (file, ".S");
+}
+
+static sexpr find_code_pic_S (sexpr file)
+{
+    sexpr r = find_code_with_suffix (file, ".pic.S");
+
+    return (falsep(r) ? find_code_S (file) : r);
 }
 
 static sexpr find_test_case_c (sexpr file)
@@ -330,6 +344,15 @@ static sexpr generate_object_file_name (sexpr name, sexpr file)
     char buffer[BUFFERSIZE];
 
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.o", sx_string(name), archprefix, sx_string(file));
+
+    return make_string(buffer);
+}
+
+static sexpr generate_pic_object_file_name (sexpr name, sexpr file)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.pic.o", sx_string(name), archprefix, sx_string(file));
 
     return make_string(buffer);
 }
@@ -375,25 +398,54 @@ static sexpr find_code_highlevel (struct target *context, sexpr file)
     return sx_false;
 }
 
+static sexpr find_code_highlevel_pic (struct target *context, sexpr file)
+{
+    sexpr r;
+    char buffer[BUFFERSIZE];
+    sexpr subfile;
+
+    snprintf (buffer, BUFFERSIZE, "%s-highlevel", sx_string (file));
+    subfile = make_string (buffer);
+
+    if (((r = find_code_cpp (subfile)), stringp(r)))
+    {
+        context->have_cpp = sx_true;
+
+        return cons(sym_cpp_pic, cons (r, cons (generate_pic_object_file_name(context->name, subfile), sx_end_of_list)));
+    }
+    else if (((r = find_code_c (subfile)), stringp(r)))
+    {
+        return cons(sym_c_pic, cons (r, cons (generate_pic_object_file_name(context->name, subfile), sx_end_of_list)));
+    }
+
+    return sx_false;
+}
+
 static void find_code (struct target *context, sexpr file)
 {
     sexpr r;
     sexpr primus   = sx_false;
     sexpr secundus = sx_false;
+    sexpr tertius  = sx_false;
+    sexpr quartus  = sx_false;
 
     if (falsep(equalp(str_bootstrap, file)) || truep (co_freestanding))
     {
         if ((r = find_code_S (file)), stringp(r))
         {
             primus = cons(sym_preproc_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+            secundus = cons(sym_preproc_assembly_pic, cons (find_code_pic_S (file), cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
 
-            secundus = find_code_highlevel(context, file);
+            tertius = find_code_highlevel     (context, file);
+            quartus = find_code_highlevel_pic (context, file);
         }
         else if ((r = find_code_s (file)), stringp(r))
         {
             primus = cons(sym_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+            secundus = cons(sym_assembly_pic, cons (find_code_pic_s (file), cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
 
-            secundus = find_code_highlevel(context, file);
+            tertius = find_code_highlevel     (context, file);
+            quartus = find_code_highlevel_pic (context, file);
         }
     }
 
@@ -404,10 +456,14 @@ static void find_code (struct target *context, sexpr file)
             context->have_cpp = sx_true;
 
             primus = cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+
+            secundus = cons(sym_cpp_pic, cons (r, cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
         }
         else if (((r = find_code_c (file)), stringp(r)))
         {
             primus = cons(sym_c, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+
+            secundus = cons(sym_c_pic, cons (r, cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
         }
         else
         {
@@ -423,6 +479,14 @@ static void find_code (struct target *context, sexpr file)
         {
             context->bootstrap = cons (secundus, context->bootstrap);
         }
+        if (!falsep(tertius))
+        {
+            context->bootstrap = cons (tertius, context->bootstrap);
+        }
+        if (!falsep(quartus))
+        {
+            context->bootstrap = cons (quartus, context->bootstrap);
+        }
     }
     else
     {
@@ -430,6 +494,14 @@ static void find_code (struct target *context, sexpr file)
         if (!falsep(secundus))
         {
             context->code = cons (secundus, context->code);
+        }
+        if (!falsep(tertius))
+        {
+            context->code = cons (tertius, context->code);
+        }
+        if (!falsep(quartus))
+        {
+            context->code = cons (quartus, context->code);
         }
     }
 }
