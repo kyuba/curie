@@ -151,12 +151,14 @@ negative_result:
     jz recoverable
     cmp $-4, %rax /* EINTR */
     jz recoverable
-    movb $0, last_error_recoverable_p@GOTPCREL(%rip)
+    movq last_error_recoverable_p@GOTPCREL(%rip), %rax
+    movb $0, (%rax)
     movq $-1, %rax
     leave
     ret
 recoverable:
-    movb $1, last_error_recoverable_p@GOTPCREL(%rip)
+    movq last_error_recoverable_p@GOTPCREL(%rip), %rax
+    movb $1, (%rax)
     movq $-1, %rax
     leave
     ret
