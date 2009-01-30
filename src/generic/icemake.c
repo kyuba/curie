@@ -84,6 +84,7 @@ sexpr i_debug                          = sx_false;
 sexpr i_destdir                        = sx_false;
 sexpr i_pname                          = sx_false;
 sexpr i_destlibdir                     = sx_false;
+sexpr i_dynamic_libraries              = sx_true;
 
 sexpr workstack                        = sx_end_of_list;
 
@@ -434,18 +435,32 @@ static void find_code (struct target *context, sexpr file)
         if ((r = find_code_S (file)), stringp(r))
         {
             primus = cons(sym_preproc_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
-            secundus = cons(sym_preproc_assembly_pic, cons (find_code_pic_S (file), cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
+
+            if (truep(i_dynamic_libraries))
+            {
+                secundus = cons(sym_preproc_assembly_pic, cons (find_code_pic_S (file), cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
+            }
 
             tertius = find_code_highlevel     (context, file);
-            quartus = find_code_highlevel_pic (context, file);
+            if (truep(i_dynamic_libraries))
+            {
+                quartus = find_code_highlevel_pic (context, file);
+            }
         }
         else if ((r = find_code_s (file)), stringp(r))
         {
             primus = cons(sym_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
-            secundus = cons(sym_assembly_pic, cons (find_code_pic_s (file), cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
+
+            if (truep(i_dynamic_libraries))
+            {
+                secundus = cons(sym_assembly_pic, cons (find_code_pic_s (file), cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
+            }
 
             tertius = find_code_highlevel     (context, file);
-            quartus = find_code_highlevel_pic (context, file);
+            if (truep(i_dynamic_libraries))
+            {
+                quartus = find_code_highlevel_pic (context, file);
+            }
         }
     }
 
@@ -457,13 +472,19 @@ static void find_code (struct target *context, sexpr file)
 
             primus = cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
 
-            secundus = cons(sym_cpp_pic, cons (r, cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
+            if (truep(i_dynamic_libraries))
+            {
+                secundus = cons(sym_cpp_pic, cons (r, cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
+            }
         }
         else if (((r = find_code_c (file)), stringp(r)))
         {
             primus = cons(sym_c, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
 
-            secundus = cons(sym_c_pic, cons (r, cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
+            if (truep(i_dynamic_libraries))
+            {
+                secundus = cons(sym_c_pic, cons (r, cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
+            }
         }
         else
         {
@@ -902,6 +923,7 @@ static void print_help(char *binaryname)
         " -s           Use the default FS layout for installation\n"
         " -L           Optimise linking.\n"
         " -c           Use gcc's -combine option for C source files.\n"
+        " -o           Don't link dynamic libraries.\n"
         " -S           Enforce a static link (default).\n"
         " -R           Enforce a dynamic link.\n"
         " -j <num>     Spawn <num> processes simultaneously.\n"
@@ -1347,6 +1369,9 @@ int main (int argc, char **argv, char **environ)
                         break;
                     case 'f':
                         i_fsl = fs_fhs;
+                        break;
+                    case 'o':
+                        i_dynamic_libraries = sx_false;
                         break;
                     case 's':
                         i_fsl = fs_proper;

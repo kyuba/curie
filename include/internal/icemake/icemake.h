@@ -112,6 +112,7 @@ extern char *tcversion;
 extern sexpr i_optimise_linking;
 extern sexpr i_combine;
 extern sexpr i_debug;
+extern sexpr i_dynamic_libraries;
 
 extern sexpr co_freestanding;
 extern sexpr workstack;

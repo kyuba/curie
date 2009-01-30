@@ -36,6 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#define _BSD_SOURCE
+
 #include <curie/tree.h>
 #include <curie/multiplex.h>
 
@@ -547,7 +549,11 @@ static void do_link_target(struct target *t)
     if (truep(t->library))
     {
         link_library (t->name, t->code, t);
-        link_library_dynamic (t->name, t->code, t);
+
+        if (truep(i_dynamic_libraries))
+        {
+            link_library_dynamic (t->name, t->code, t);
+        }
 
         if (!eolp(t->bootstrap))
         {
