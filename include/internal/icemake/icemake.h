@@ -180,6 +180,7 @@ define_string (str_curie,               "curie");
 define_string (str_curie_bootstrap,     "curie-bootstrap");
 define_string (str_static,              "-static");
 define_string (str_dshared,             "-shared");
+define_string (str_ddynamiclib,         "-dynamiclib");
 define_string (str_lc,                  "c");
 define_string (str_dlc,                 "-lc");
 define_string (str_do,                  "-o");

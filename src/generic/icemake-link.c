@@ -521,7 +521,9 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
     if (!havelib) {
         workstack
                 = cons (cons (p_linker,
-                              cons (str_dshared, cons (str_dfpic,
+                              cons (((i_os == os_darwin) ? str_ddynamiclib :
+                                                           str_dshared),
+                                    cons (str_dfpic,
                               cons (str_do, cons (make_string (buffer), sx))))),
                         workstack);
     }
