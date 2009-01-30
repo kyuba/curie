@@ -467,7 +467,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
     snprintf (buffer, BUFFERSIZE, "lib%s.so.%s", sx_string(name), sx_string(t->dversion));
     snprintf (lbuffer, BUFFERSIZE, "build/%s/%s/lib%s.so", sx_string(t->name), archprefix, sx_string(name));
 
-    symlink (buffer, lbuffer);
+/*    symlink (buffer, lbuffer);*/
 
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", sx_string(t->name), archprefix, sx_string(name), sx_string(t->dversion));
 
