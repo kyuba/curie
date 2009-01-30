@@ -79,16 +79,17 @@ sexpr co_freestanding                  = sx_false;
 
 sexpr i_optimise_linking               = sx_false;
 sexpr i_combine                        = sx_false;
+sexpr i_static                         = sx_true;
 sexpr i_debug                          = sx_false;
+sexpr i_destdir                        = sx_false;
+sexpr i_pname                          = sx_false;
+sexpr i_destlibdir                     = sx_false;
 
 sexpr workstack                        = sx_end_of_list;
 
-sexpr i_destdir                        = sx_false;
-sexpr i_pname                          = sx_false;
 sexpr do_tests                         = sx_false;
 sexpr do_install                       = sx_false;
 sexpr do_build_documentation           = sx_false;
-sexpr i_destlibdir                     = sx_false;
 
 struct tree targets                    = TREE_INITIALISER;
 
@@ -829,6 +830,8 @@ static void print_help(char *binaryname)
         " -s           Use the default FS layout for installation\n"
         " -L           Optimise linking.\n"
         " -c           Use gcc's -combine option for C source files.\n"
+        " -S           Enforce a static link (default).\n"
+        " -R           Enforce a dynamic link.\n"
         " -j <num>     Spawn <num> processes simultaneously.\n"
         " -D           Use debug code, if available.\n"
         " -x           Build documentation (if possible).\n"
@@ -1257,6 +1260,12 @@ int main (int argc, char **argv, char **environ)
                         break;
                     case 'c':
                         i_combine = sx_true;
+                        break;
+                    case 'S':
+                        i_static = sx_true;
+                        break;
+                    case 'R':
+                        i_static = sx_false;
                         break;
                     case 'D':
                         i_debug = sx_true;

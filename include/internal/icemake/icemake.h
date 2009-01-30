@@ -118,10 +118,11 @@ extern sexpr workstack;
 
 extern sexpr i_destdir;
 extern sexpr i_pname;
+extern sexpr i_static;
+extern sexpr i_destlibdir;
 extern sexpr do_tests;
 extern sexpr do_install;
 extern sexpr do_build_documentation;
-extern sexpr i_destlibdir;
 
 extern sexpr p_c_compiler;
 extern sexpr p_cpp_compiler;

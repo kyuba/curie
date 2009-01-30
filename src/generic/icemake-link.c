@@ -67,7 +67,7 @@ static void write_curie_linker_flags_gcc (struct io *o, struct target *t)
         {
             if (truep(co_freestanding))
             {
-                io_collect (o, " -static -nodefaultlibs -nostartfiles -nostdlib", 47);
+                io_collect (o, " -nodefaultlibs -nostartfiles -nostdlib", 47);
 
                 switch (i_os)
                 {
@@ -129,7 +129,7 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
         {
             if (truep(co_freestanding))
             {
-                sx = cons (str_static, sx);
+                if (truep(i_static)) sx = cons (str_static, sx);
 
                 switch (i_os)
                 {
