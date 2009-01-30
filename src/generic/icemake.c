@@ -1564,6 +1564,8 @@ int main (int argc, char **argv, char **environ)
     for (q = 0; uname_os[q] && "linux"[q]; q++);
     if ((q == 5) && (uname_os[q] == 0)) i_os = os_linux;
 
+    if (i_os == os_darwin) i_dynamic_libraries = sx_false;
+
     multiplex_io();
     multiplex_all_processes();
     multiplex_sexpr();
