@@ -91,9 +91,6 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
     define_string (str_u,              "-u");
     define_string (str_e,              "-e");
     define_string (str_start,          "_start");
-    define_string (str_nostdlib,       "-nostdlib");
-    define_string (str_nodefaultlibs,  "-nodefaultlibs");
-    define_string (str_nostartfiles,   "-nostartfiles");
     define_string (str_Wlx,            "-Wl,-x");
     define_string (str_Wls,            "-Wl,-s");
     define_string (str_Wlznoexecstack, "-Wl,-z,noexecstack");
@@ -127,12 +124,20 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
                     sx = cons (str_nodefaultlibs, sx);
                     break;
             }
+
         }
         else
         {
             if (truep(co_freestanding))
             {
-                if (truep(i_static)) sx = cons (str_static, sx);
+                if (falsep (t->have_cpp) && truep(i_static))
+                    sx = cons (str_static, sx);
+
+                if (falsep(t->library) && truep(t->have_cpp) &&
+                    (i_os == os_linux))
+                {
+                    sx = cons (str_dlc, sx);
+                }
 
                 switch (i_os)
                 {
@@ -314,7 +319,7 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 
     io_collect (pcfile_hosted, buffer, strlen(buffer));
 
-    snprintf (buffer, BUFFERSIZE, " -l%s\nCflags: -fno-exceptions -ffreestanding\n", sx_string(t->name));
+    snprintf (buffer, BUFFERSIZE, " -l%s\nCflags: -ffreestanding\n", sx_string(t->name));
 
     io_collect (pcfile, buffer, strlen(buffer));
     io_collect (pcfile_hosted, buffer, strlen(buffer));
@@ -441,7 +446,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
     io_collect (pcfile_hosted, buffer, strlen(buffer));
 
-    snprintf (buffer, BUFFERSIZE, " -l%s\nCflags: -fno-exceptions -ffreestanding\n", sx_string(t->name));
+    snprintf (buffer, BUFFERSIZE, " -l%s\nCflags: -ffreestanding\n", sx_string(t->name));
 
     io_collect (pcfile, buffer, strlen(buffer));
     io_collect (pcfile_hosted, buffer, strlen(buffer));
@@ -480,7 +485,6 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", sx_string(t->name), archprefix, sx_string(name), sx_string(t->dversion));
 
-
     havelib = (stat (buffer, &res) == 0);
 
     while (consp (code))
@@ -506,6 +510,13 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
         code = cdr (code);
     }
+
+    if (truep(t->have_cpp) && (i_os == os_linux))
+    {
+        sx = cons (str_dlc, sx);
+    }
+
+    sx = cons (str_nostdlib, cons (str_nostartfiles, cons (str_nodefaultlibs, sx)));
 
     if (!havelib) {
         workstack

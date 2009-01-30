@@ -853,6 +853,12 @@ static void process_definition (struct target *context, sexpr definition)
             context->code = ccur;
         }
 
+        if (truep (context->have_cpp))
+        {
+            context->libraries = cons (str_supcpp, context->libraries);
+            context->libraries = cons (str_gcc_eh, context->libraries);
+        }
+
         context->libraries = cons (str_gcc, context->libraries);
     }
 

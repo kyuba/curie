@@ -55,7 +55,7 @@
         "int" "io" "multiplex")
 
   (test-cases
-        "objects"))
+        "objects" "exceptions"))
 
 (programme "icemake" hosted libcurie
   (name "ICE make")

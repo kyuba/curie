@@ -181,6 +181,7 @@ define_string (str_curie_bootstrap,     "curie-bootstrap");
 define_string (str_static,              "-static");
 define_string (str_dshared,             "-shared");
 define_string (str_lc,                  "c");
+define_string (str_dlc,                 "-lc");
 define_string (str_do,                  "-o");
 define_string (str_dc,                  "-c");
 define_string (str_dr,                  "-r");
@@ -202,6 +203,11 @@ define_string (str_dstart_group,        "-Wl,--start-group");
 define_string (str_dend_group,          "-Wl,--end-group");
 define_string (str_buildicemakeld,      "build/icemake.ld");
 define_string (str_dfpic,               "-fPIC");
+define_string (str_supcpp,              "supc++");
+define_string (str_gcc_eh,              "gcc_eh");
+define_string (str_nostdlib,            "-nostdlib");
+define_string (str_nodefaultlibs,       "-nodefaultlibs");
+define_string (str_nostartfiles,        "-nostartfiles");
 
 sexpr sx_string_dir_prefix_c (char *, sexpr);
 
