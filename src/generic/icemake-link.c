@@ -471,6 +471,13 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
     symlink (buffer, lbuffer);
 
+    if (i_os == os_linux)
+    {
+        snprintf (buffer, BUFFERSIZE, "-Wl,-soname,lib%s.so.%s", sx_string(name), sx_string(t->dversion));
+
+        sx = cons (make_string (buffer), sx);
+    }
+
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", sx_string(t->name), archprefix, sx_string(name), sx_string(t->dversion));
 
 
