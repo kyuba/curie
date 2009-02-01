@@ -51,6 +51,7 @@
 
 #ifdef POSIX
 #include <sys/utsname.h>
+#include <fcntl.h>
 #endif
 
 #include <sys/types.h>
@@ -1610,6 +1611,13 @@ int main (int argc, char **argv, char **environ)
     {
         install (buildtargets);
     }
+
+#ifdef POSIX
+    /* reset the effects of setting non-blocking mode in curie, this should fix
+       the portage crash on gentoo. */
+
+    for (int fd = 0; fd < 3; fd++) fcntl(fd, F_SETFL, 0);
+#endif
 
     return 0;
 }
