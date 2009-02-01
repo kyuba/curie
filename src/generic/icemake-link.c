@@ -268,8 +268,6 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
                           cons (ofile,
                                 sx)))));
 
-        if (i_os != os_darwin) sx = cons (str_buildicemakeld, sx);
-
         workstack = cons (cons (p_linker, sx), workstack);
     }
 }

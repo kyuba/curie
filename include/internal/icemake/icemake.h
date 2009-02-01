@@ -202,7 +202,6 @@ define_string (str_gcc,                 "gcc");
 define_string (str_documentation,       "documentation");
 define_string (str_dstart_group,        "-Wl,--start-group");
 define_string (str_dend_group,          "-Wl,--end-group");
-define_string (str_buildicemakeld,      "build/icemake.ld");
 define_string (str_dfpic,               "-fPIC");
 define_string (str_supcpp,              "supc++");
 define_string (str_gcc_eh,              "gcc_eh");
