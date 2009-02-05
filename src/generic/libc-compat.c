@@ -45,12 +45,8 @@ static struct tree size_map = TREE_INITIALISER;
 
 /* weak stubs for some of the bootstrap things */
 
-#pragma weak curie_argv
-#pragma weak curie_environment
 #pragma weak cexit
 
-char **curie_argv = (char **)0;
-char **curie_environment = (char **)0;
 void cexit (int status) {}
 
 void *malloc (unsigned long length)
