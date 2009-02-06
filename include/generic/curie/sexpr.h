@@ -389,6 +389,34 @@ void sx_xref
  */
 #define sx_dot make_special(9)
 
+/*! \brief Quote Operator (S-Expression)
+ *
+ *  There is always only one instance of this s-expression in a running Curie
+ *  programme, so it is kept as a constant.
+ */
+#define sx_quote make_special(10)
+
+/*! \brief Quasiquote Operator (S-Expression)
+ *
+ *  There is always only one instance of this s-expression in a running Curie
+ *  programme, so it is kept as a constant.
+ */
+#define sx_quasiquote make_special(11)
+
+/*! \brief Unquote Operator (S-Expression)
+ *
+ *  There is always only one instance of this s-expression in a running Curie
+ *  programme, so it is kept as a constant.
+ */
+#define sx_unquote make_special(12)
+
+/*! \brief Splice Operator (S-Expression)
+ *
+ *  There is always only one instance of this s-expression in a running Curie
+ *  programme, so it is kept as a constant.
+ */
+#define sx_splice make_special(13)
+
 /*! \brief S-Expression Pointer Flag
  *
  *  This flag is not set in the memory encoding of an s-expression if it's a
@@ -530,6 +558,42 @@ void sx_xref
  *  usable as a C boolean.
  */
 #define dotp(sx)   ((sexpr)(sx) == sx_dot)
+
+/*! \brief Check if the S-Expression is the Quote Operator
+ *  \param[in] sx The s-expression to check.
+ *  \return 1 if it is the dot operator, 0 otherwise.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ */
+#define quotep(sx)   ((sexpr)(sx) == sx_quote)
+
+/*! \brief Check if the S-Expression is the Quasiquote Operator
+ *  \param[in] sx The s-expression to check.
+ *  \return 1 if it is the dot operator, 0 otherwise.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ */
+#define qqp(sx)   ((sexpr)(sx) == sx_quasiquote)
+
+/*! \brief Check if the S-Expression is the Unquote Operator
+ *  \param[in] sx The s-expression to check.
+ *  \return 1 if it is the dot operator, 0 otherwise.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ */
+#define unquotep(sx)   ((sexpr)(sx) == sx_unquote)
+
+/*! \brief Check if the S-Expression is the Splice Operator
+ *  \param[in] sx The s-expression to check.
+ *  \return 1 if it is the dot operator, 0 otherwise.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ */
+#define splicep(sx)   ((sexpr)(sx) == sx_splice)
 
 /*! \brief Check if the S-Expression is a Cons
  *  \param[in] sx The s-expression to check.

@@ -230,12 +230,29 @@ void sx_close_io (struct sexpr_io *io) {
                         default:
                             return sx_nil;
                     }
-                } else if ((newsymbol[0] == '.') && (k == 1)) {
-                    return sx_dot;
-                } else {
-                    /* return the newly created string */
-                    return make_symbol (newsymbol);
+                } else if (k == 1) {
+                    switch (newsymbol[0])
+                    {
+                        case '.':
+                            return sx_dot;
+
+                        case '\'':
+                            return sx_quote;
+
+                        case '`':
+                            return sx_quasiquote;
+
+                        case ',':
+                            return sx_unquote;
+                    }
+                } else if ((k == 2) && (newsymbol[0] == ',') &&
+                           (newsymbol[1] == '@'))
+                {
+                    return sx_splice;
                 }
+
+                /* return the newly created string */
+                return make_symbol (newsymbol);
             default:
                 if (k < (SX_MAX_SYMBOL_LENGTH - 2)) {
                     /* make sure we still have enough room, then add the
@@ -564,6 +581,22 @@ static void sx_write_dispatch (struct sexpr_io *io, sexpr sx)
     else if (dotp(sx))
     {
         (void)io_collect (io->out, ".", 1);
+    }
+    else if (quotep(sx))
+    {
+        (void)io_collect (io->out, "'", 1);
+    }
+    else if (qqp(sx))
+    {
+        (void)io_collect (io->out, "`", 1);
+    }
+    else if (unquotep(sx))
+    {
+        (void)io_collect (io->out, ",", 1);
+    }
+    else if (splicep(sx))
+    {
+        (void)io_collect (io->out, ",@", 2);
     }
     else
     {
