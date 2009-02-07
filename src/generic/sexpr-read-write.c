@@ -207,50 +207,6 @@ void sx_close_io (struct sexpr_io *io) {
                 *i = j;
                 newsymbol[k] = (char)0;
 
-                if (newsymbol[0] == '#') {
-                    /* special string sequences; bad sequences result in #nil */
-                    switch (k) {
-                        case 2:
-                            switch (newsymbol[1]) {
-                                case 't': return sx_true;
-                                case 'f': return sx_false;
-                                default: return sx_nil;
-                            }
-                        case 4:
-                            if ((newsymbol[1] == 'n') &&
-                                (newsymbol[2] == 'a') &&
-                                (newsymbol[3] == 'n')) {
-                                return sx_not_a_number;
-                            } else if ((newsymbol[1] == 'e') &&
-                                (newsymbol[2] == 'o') &&
-                                (newsymbol[3] == 'l')) {
-                                return sx_end_of_list;
-                            }
-                            /*@fallthrough@*/
-                        default:
-                            return sx_nil;
-                    }
-                } else if (k == 1) {
-                    switch (newsymbol[0])
-                    {
-                        case '.':
-                            return sx_dot;
-
-                        case '\'':
-                            return sx_quote;
-
-                        case '`':
-                            return sx_quasiquote;
-
-                        case ',':
-                            return sx_unquote;
-                    }
-                } else if ((k == 2) && (newsymbol[0] == ',') &&
-                           (newsymbol[1] == '@'))
-                {
-                    return sx_splice;
-                }
-
                 /* return the newly created string */
                 return make_symbol (newsymbol);
             default:
@@ -380,8 +336,62 @@ static sexpr sx_read_dispatch
             /* cons, or list */
             (*i)++; /* cons will start one byte after this character */
             return sx_read_cons(i, buf, length);
+        case '.':
+            (*i)++;
+            return sx_dot;
+        case '\'':
+            (*i)++;
+            return sx_quote;
+        case '`':
+            (*i)++;
+            return sx_quasiquote;
+        case ',':
+            if ((*i) < (length + 1))
+            {
+                (*i)++;
+                if (buf[(*i)] == '@')
+                {
+                    (*i)++;
+                    return sx_splice;
+                }
+                return sx_unquote;
+            }
+            else
+            {
+                return sx_nonexistent;
+            }
+        case '#':
+            if ((*i) < (length + 1))
+            {
+                int j = (*i)+1;
+                (*i) += 2;
+
+                switch (buf[j]) {
+/* the internal control sequences are merely listed as a reference here, they
+   will not be read in 'properly' */
+/*                    case '.':
+                        return sx_end_of_file;
+                    case 'x':
+                        return sx_nonexistent;
+                    case 'e':
+                        return sx_end_of_list;*/
+
+                    case '-':
+                        return sx_not_a_number;
+
+                    case 't':
+                        return sx_true;
+                    case 'f':
+                        return sx_false;
+
+                    default:
+                        return sx_nil;
+                }
+            }
+
+            return sx_nonexistent;
         default:
-            /* symbol, or special #-symbol */
+            /* symbol */
             return sx_read_symbol(i, buf, length);
     }
 }
@@ -552,7 +562,7 @@ static void sx_write_dispatch (struct sexpr_io *io, sexpr sx)
     }
     else if (nilp(sx))
     {
-        (void)io_collect (io->out, "#nil", 4);
+        (void)io_collect (io->out, "#v", 2);
     }
     else if (falsep(sx))
     {
@@ -568,15 +578,15 @@ static void sx_write_dispatch (struct sexpr_io *io, sexpr sx)
     }
     else if (eofp(sx))
     {
-        (void)io_collect (io->out, "#eof", 4);
+        (void)io_collect (io->out, "#.", 2);
     }
     else if (nanp(sx))
     {
-        (void)io_collect (io->out, "#nan", 4);
+        (void)io_collect (io->out, "#-", 2);
     }
     else if (nexp(sx))
     {
-        (void)io_collect (io->out, "#ne", 3);
+        (void)io_collect (io->out, "#x", 2);
     }
     else if (dotp(sx))
     {
