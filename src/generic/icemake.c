@@ -68,6 +68,7 @@ char uname_vendor [UNAMELENGTH]        = "unknown";
 enum toolchain uname_toolchain;
 enum fs_layout i_fsl                   = fs_proper;
 enum operating_system i_os             = os_unknown;
+enum instruction_set i_is              = is_generic;
 
 char  archbuffer [BUFFERSIZE];
 char *archprefix;
@@ -1305,6 +1306,7 @@ int main (int argc, char **argv, char **environ)
     int i = 1, q;
     char *target_architecture = (char *)getenv("CHOST");
     sexpr buildtargets = sx_end_of_list;
+    sexpr in_dynamic_libraries = sx_nil;
     struct stat st;
 
     xenviron = environ;
@@ -1378,7 +1380,7 @@ int main (int argc, char **argv, char **environ)
                         i_fsl = fs_fhs;
                         break;
                     case 'o':
-                        i_dynamic_libraries = sx_false;
+                        in_dynamic_libraries = sx_false;
                         break;
                     case 's':
                         i_fsl = fs_proper;
@@ -1545,6 +1547,21 @@ int main (int argc, char **argv, char **environ)
     if ((q == 5) && (uname_os[q] == 0)) i_os = os_linux;
 
     if (i_os == os_darwin) i_dynamic_libraries = sx_false;
+
+    for (q = 0; uname_os[q] && "arm"[q]; q++);
+    if (q == 4) i_is = is_arm;
+
+    if (nilp(in_dynamic_libraries))
+    {
+        if (i_is == is_arm)
+        {
+            i_dynamic_libraries = sx_false;
+        }
+    }
+    else
+    {
+        i_dynamic_libraries = in_dynamic_libraries;
+    }
 
     multiplex_io();
     multiplex_all_processes();

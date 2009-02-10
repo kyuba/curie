@@ -46,7 +46,7 @@
 
 static struct memory_pool sx_io_pool = MEMORY_POOL_INITIALISER(sizeof (struct sexpr_io));
 
-static void sx_write_dispatch (struct sexpr_io *io, sexpr sx);
+static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx);
 /*@notnull@*/ /*@shared@*/ static sexpr sx_read_dispatch
         (unsigned int *i, char *buf, unsigned int length);
 
@@ -496,21 +496,26 @@ static void sx_write_string_or_symbol (struct io *io, struct sexpr_string_or_sym
 }
 
 static void sx_write_cons (struct sexpr_io *io, struct sexpr_cons *sx) {
+    unsigned int r;
+
     (void)io_collect (io->out, "(", 1);
 
-  retry:
+    retry:
 
-    sx_write_dispatch (io, sx->car);
+    r = sx_write_dispatch (io, sx->car);
 
     if (consp(sx->cdr)) {
-        (void)io_collect (io->out, " ", 1);
+        if (r == 1)
+        {
+            (void)io_collect (io->out, " ", 1);
+        }
         sx = (struct sexpr_cons *)sx_pointer(sx->cdr);
         goto retry;
     }
 
     if (!eolp(sx->cdr)) {
         (void)io_collect (io->out, " . ", 3);
-        sx_write_dispatch (io, sx->cdr);
+        (void)sx_write_dispatch (io, sx->cdr);
     }
 
     (void)io_collect (io->out, ")", 1);
@@ -546,76 +551,93 @@ static void sx_write_integer (struct io *io, int_pointer_s i) {
     (void)io_collect (io, num+((SX_MAX_NUMBER_LENGTH-1) -j), j);
 }
 
-static void sx_write_dispatch (struct sexpr_io *io, sexpr sx)
+static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx)
 {
     if (symbolp(sx) || stringp(sx))
     {
         sx_write_string_or_symbol (io->out, (struct sexpr_string_or_symbol *)sx_pointer(sx));
+        return 1;
     }
     else if (consp(sx))
     {
         sx_write_cons (io, (struct sexpr_cons *)sx_pointer(sx));
+        return 1;
     }
     else if (integerp(sx))
     {
         sx_write_integer (io->out, sx_integer(sx));
+        return 1;
     }
     else if (nilp(sx))
     {
         (void)io_collect (io->out, "#v", 2);
+        return 1;
     }
     else if (falsep(sx))
     {
         (void)io_collect (io->out, "#f", 2);
+        return 1;
     }
     else if (truep(sx))
     {
         (void)io_collect (io->out, "#t", 2);
+        return 1;
     }
     else if (eolp(sx) || emptyp(sx))
     {
         (void)io_collect (io->out, "()", 2);
+        return 1;
     }
     else if (eofp(sx))
     {
         (void)io_collect (io->out, "#.", 2);
+        return 1;
     }
     else if (nanp(sx))
     {
         (void)io_collect (io->out, "#-", 2);
+        return 1;
     }
     else if (nexp(sx))
     {
         (void)io_collect (io->out, "#x", 2);
+        return 1;
     }
     else if (dotp(sx))
     {
         (void)io_collect (io->out, ".", 1);
+        return 0;
     }
     else if (quotep(sx))
     {
         (void)io_collect (io->out, "'", 1);
+        return 0;
     }
     else if (qqp(sx))
     {
         (void)io_collect (io->out, "`", 1);
+        return 0;
     }
     else if (unquotep(sx))
     {
         (void)io_collect (io->out, ",", 1);
+        return 0;
     }
     else if (splicep(sx))
     {
         (void)io_collect (io->out, ",@", 2);
+        return 0;
     }
     else
     {
         (void)io_collect (io->out, "#?", 2);
+        return 1;
     }
 }
 
 void sx_write(struct sexpr_io *io, sexpr sx) {
-    sx_write_dispatch(io, sx);
-
-    (void)io_write (io->out, "\n", 1);
+    if (sx_write_dispatch(io, sx) == 1)
+    {
+        (void)io_write (io->out, "\n", 1);
+    }
 }

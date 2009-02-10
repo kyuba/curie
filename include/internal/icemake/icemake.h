@@ -66,6 +66,12 @@ enum operating_system
     os_linux
 };
 
+enum instruction_set
+{
+    is_arm,
+    is_generic
+};
+
 struct target {
     sexpr name;
     sexpr library;
@@ -102,6 +108,7 @@ extern char uname_vendor [UNAMELENGTH];
 extern enum toolchain uname_toolchain;
 extern enum fs_layout i_fsl;
 extern enum operating_system i_os;
+extern enum instruction_set i_is;
 
 extern struct tree targets;
 
