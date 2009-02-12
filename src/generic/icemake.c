@@ -780,6 +780,8 @@ static void process_definition (struct target *context, sexpr definition)
                 else
                 {
                     co_freestanding = sx_false;
+                    i_dynamic_libraries = sx_false;
+
                     break;
                 }
             }
@@ -1222,6 +1224,7 @@ static sexpr initialise_libcurie_filename (char *filename)
         else if (truep(equalp(r, sym_hosted)))
         {
             co_freestanding = sx_false;
+            i_dynamic_libraries = sx_false;
         }
     }
 
@@ -1535,21 +1538,12 @@ int main (int argc, char **argv, char **environ)
     for (q = 0; uname_os[q] && (uname_os[q] == "linux"[q]); q++);
     if ((q == 5) && (uname_os[q] == 0)) i_os = os_linux;
 
-    if (i_os == os_darwin) i_dynamic_libraries = sx_false;
-
     for (q = 0; uname_arch[q] && (uname_arch[q] == "arm"[q]); q++);
     if ((q == 3) || ((q == 4) && (uname_arch[q] == 0))) i_is = is_arm;
 
-    if (nilp(in_dynamic_libraries))
+    if (i_os == os_darwin)
     {
-        if (i_is == is_arm)
-        {
-            i_dynamic_libraries = sx_false;
-        }
-    }
-    else
-    {
-        i_dynamic_libraries = in_dynamic_libraries;
+        in_dynamic_libraries = sx_false;
     }
 
     multiplex_io();
@@ -1565,6 +1559,18 @@ int main (int argc, char **argv, char **environ)
     multiplex_add_sexpr (stdio, (void *)0, (void *)0);
 
     initialise_libcurie();
+
+    if (nilp(in_dynamic_libraries))
+    {
+        if (falsep(co_freestanding))
+        {
+            i_dynamic_libraries = sx_false;
+        }
+    }
+    else
+    {
+        i_dynamic_libraries = in_dynamic_libraries;
+    }
 
     io = sx_open_io (io_open_read("icemake.sx"), io_open(-1));
 
