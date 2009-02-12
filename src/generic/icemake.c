@@ -1538,7 +1538,7 @@ int main (int argc, char **argv, char **environ)
     if (i_os == os_darwin) i_dynamic_libraries = sx_false;
 
     for (q = 0; uname_arch[q] && (uname_arch[q] == "arm"[q]); q++);
-    if (q == 3) i_is = is_arm;
+    if ((q == 3) || ((q == 4) && (uname_arch[q] == 0))) i_is = is_arm;
 
     if (nilp(in_dynamic_libraries))
     {
