@@ -81,9 +81,9 @@ static sexpr permutate_paths_os (sexpr p, sexpr lis)
 {
     lis = permutate_paths_arch (sx_string_dir_prefix_c (uname_os, p), lis);
     lis = permutate_paths_arch (p, lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("generic", p), lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
     lis = permutate_paths_arch (sx_string_dir_prefix_c ("posix", p), lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c ("generic", p), lis);
 
     return lis;
 }
