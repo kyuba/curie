@@ -1531,9 +1531,9 @@ int main (int argc, char **argv, char **environ)
     initialise_toolchain_doxygen ();
 
     for (q = 0; uname_os[q] && (uname_os[q] == "darwin"[q]); q++);
-    if ((q == 5) && (uname_os[q] == 0)) i_os = os_darwin;
+    if ((q == 6) && (uname_os[q] == 0)) i_os = os_darwin;
     for (q = 0; uname_os[q] && (uname_os[q] == "linux"[q]); q++);
-    if ((q == 4) && (uname_os[q] == 0)) i_os = os_linux;
+    if ((q == 5) && (uname_os[q] == 0)) i_os = os_linux;
 
     if (i_os == os_darwin) i_dynamic_libraries = sx_false;
 
