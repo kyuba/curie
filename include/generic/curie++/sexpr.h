@@ -42,11 +42,12 @@
       public:
 
         SExpr();
+        //! allows for compatibility with the C types
+        SExpr(sexpr);
         ~SExpr();
         unsigned int references;
 
         virtual SExpr* equalp (SExpr *a);
-
         virtual void xref();
         virtual void destroy();
 

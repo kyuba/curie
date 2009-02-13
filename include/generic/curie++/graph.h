@@ -29,7 +29,8 @@
 #ifndef LIBCURIEPP_GRAPH_H
 #define LIBCURIEPP_GRAPH_H
 
-#include "sexpr.h"
+#include "curie++/sexpr.h"
+#include "curie/graph.h"
 
 namespace curiepp {
 
@@ -41,13 +42,18 @@ namespace curiepp {
     public:
       Graph();
       Graph(SExpr *);
+
+      Graph(struct graph *g);
+
       ~Graph();
       void addNode();
       Node *searchNode(SExpr *s);
 
-      // converts a given graph to a S-expression
+      //! converts a given graph to a S-expression
       SExpr* operator= ();
 
+      //! converts a graph to a regular expression
+      RegEx* operator= ();
   };
 
   class Node {
