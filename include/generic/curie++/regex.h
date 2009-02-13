@@ -31,7 +31,23 @@
 
 namespace curiepp {
 
+  class RegEx {
+    private:
+      Graph *automaton;
 
+    public:
+
+      RegEx(SExpr *sx);
+      RegEx(const char *str);
+      RegEx(Graph *g);
+
+      SExpr *match(SExpr *sx);
+      SExpr *match(const char *str);
+
+      SExpr* operator= ();
+      char* operator= ();
+      Graph* operator= ();
+  };
 
 }
 
