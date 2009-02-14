@@ -28,13 +28,15 @@
 
 #include <curie/regex.h>
 #include <curie/memory.h>
+#include <curie/utf-8.h>
 
-static void rx_compile_add_nodes (struct graph *g, const char *s)
+static void rx_compile_add_nodes (struct graph *g, const unsigned char *s)
 {
-    unsigned int p = 0;
+    unsigned int p = 0, np;
     char quote = 0, cclass = 0;
+    int_32 ra;
 
-    while (s[p] != 0)
+    while ((np = utf8_get_character (s, p, &ra)), (ra != 0))
     {
         if (quote)
         {
@@ -44,15 +46,15 @@ static void rx_compile_add_nodes (struct graph *g, const char *s)
 
         if (cclass)
         {
-            if (s[p] == ']')
+            if (ra == ']')
             {
                 cclass = 0;
             }
-            p++;
+            p = np;
             continue;
         }
 
-        switch (s[p])
+        switch (ra)
         {
             case '\\':
                 quote = 1;
@@ -72,20 +74,21 @@ static void rx_compile_add_nodes (struct graph *g, const char *s)
                 break;
         }
 
-        p++;
+        p = np;
     }
 }
 
 static struct graph_node *rx_compile_recurse
-    (struct graph *g, struct graph_node *n, struct graph_node *e, const char *s,
-     unsigned int *pp)
+    (struct graph *g, struct graph_node *n, struct graph_node *e,
+     const unsigned char *s, unsigned int *pp)
 {
-    unsigned int p = *pp;
+    unsigned int p = *pp, np;
     char quote = 0;
     struct graph_node *c = n, *last = (struct graph_node *)0;
     sexpr el = truep(e->label) ? make_integer(0) : sx_false;
+    int_32 ra;
 
-    while (s[p] != 0)
+    while ((np = utf8_get_character (s, p, &ra)), (ra != 0))
     {
         if (quote)
         {
@@ -93,7 +96,7 @@ static struct graph_node *rx_compile_recurse
             goto add;
         }
 
-        switch (s[p])
+        switch (ra)
         {
             case '\\':
                 quote = 1;
@@ -102,45 +105,44 @@ static struct graph_node *rx_compile_recurse
                 {
                     struct graph_node *t =
                             graph_search_node (g, make_integer(p));
-                    char lastchar = 0, range = 0;
+                    int lastchar = 0, range = 0;
 
                     last = c;
                     c = t;
 
-                    while (s[p] != 0)
-                    {
-                        char cc = s[p];
+                    p = np;
 
-                        if (cc == ']') break;
+                    while (((p = utf8_get_character (s, p, &ra)), (ra != 0)))
+                    {
+                        if (ra == ']') break;
 
                         if (range == 1)
                         {
-                            for (char n = lastchar; n <= cc; n++)
+                            for (int n = lastchar; n <= ra; n++)
                             {
                                 graph_node_add_edge (last, t, make_integer(n));
                             }
 
-                            lastchar = cc;
+                            lastchar = ra;
                             range = 0;
-                            p++;
                             continue;
-                        } else if (cc == '-') {
+                        } else if (ra == '-') {
                             lastchar++;
                             range = 1;
-                            p++;
                             continue;
                         }
 
-                        graph_node_add_edge (last, t, make_integer(cc));
+                        graph_node_add_edge (last, t, make_integer(ra));
 
-                        lastchar = cc;
-                        p++;
+                        lastchar = ra;
                     }
 
-                    if (s[p] == 0)
+                    if (ra == 0)
                     {
                         goto quit;
                     }
+
+                    goto next;
                 }
                 break;
             case '?':
@@ -184,21 +186,21 @@ static struct graph_node *rx_compile_recurse
                 {
                     struct graph_node *ne = graph_add_node (g, sx_false);
 
-                    p++;
+                    p = np;
 
                     last = c;
                     c = rx_compile_recurse (g, c, ne, s, &p);
                 }
                 goto next;
             case ')':
-                p++;
+                p = np;
                 el = sx_false;
                 goto quit;
             case '|':
                 {
                     struct graph_node *ne = graph_add_node (g, sx_false);
 
-                    p++;
+                    p = np;
 
                     graph_node_add_edge (c, ne, sx_false);
 
@@ -226,7 +228,7 @@ static struct graph_node *rx_compile_recurse
                     struct graph_node *t =
                             graph_search_node (g, make_integer(p));
 
-                    graph_node_add_edge (c, t, make_integer(s[p]));
+                    graph_node_add_edge (c, t, make_integer(ra));
 
                     last = c;
                     c = t;
@@ -234,7 +236,7 @@ static struct graph_node *rx_compile_recurse
                 break;
         }
 
-        p++;
+        p = np;
 
         next:;
     }
@@ -267,8 +269,8 @@ struct graph *rx_compile (const char *s)
     struct graph_node *n = graph_add_node (g, sx_nil);
     struct graph_node *e = graph_add_node (g, sx_true);
 
-    rx_compile_add_nodes(g, s);
-    (void)rx_compile_recurse(g, n, e, s, &p);
+    rx_compile_add_nodes(g, (const unsigned char *)s);
+    (void)rx_compile_recurse(g, n, e, (const unsigned char *)s, &p);
 
     return g;
 }
@@ -302,15 +304,18 @@ static void rx_match_add_nfa_state
 }
 
 static sexpr rx_match_nfa_state_progress
-    (struct nfa_state *ns, struct nfa_state **r, const char *s)
+    (struct nfa_state *ns, struct nfa_state **r, const unsigned char *s)
 {
-    unsigned int p = ns->p;
+    unsigned int p = ns->p, np;
     struct graph_node *n = ns->n;
     char haveedge = 0;
 
     if (truep(n->label)) return sx_true;
 
-    sexpr sx = make_integer(s[p]);
+    int_32 ra;
+    np = utf8_get_character (s, p, &ra);
+
+    sexpr sx = make_integer(ra);
 
     for (unsigned int i = 0; i < n->edge_count; i++)
     {
@@ -323,11 +328,11 @@ static sexpr rx_match_nfa_state_progress
             {
                 rx_match_add_nfa_state (r, e->target, p);
             }
-            else if (((s[p] != 0) && truep(l)) || truep(equalp(l, sx)))
+            else if (((ra != 0) && truep(l)) || truep(equalp(l, sx)))
             {
                 struct graph_node *nt = e->target;
 
-                rx_match_add_nfa_state (r, nt, p + ((s[p] == 0) ? 0 : 1));
+                rx_match_add_nfa_state (r, nt, p + ((ra == 0) ? 0 : 1));
             }
         }
         else
@@ -338,11 +343,11 @@ static sexpr rx_match_nfa_state_progress
 
                 haveedge = 1;
             }
-            else if (((s[p] != 0) && truep(l)) || truep(equalp(l, sx)))
+            else if (((ra != 0) && truep(l)) || truep(equalp(l, sx)))
             {
                 ns->n = e->target;
 
-                if (s[p] != 0) ns->p = p + 1;
+                if (ra != 0) ns->p = np;
 
                 haveedge = 1;
             }
@@ -358,7 +363,7 @@ static sexpr rx_match_nfa_state_progress
 }
 
 static sexpr rx_match_recurse
-    (struct nfa_state **ns, const char *s)
+    (struct nfa_state **ns, const unsigned char *s)
 {
     while ((*ns) != (struct nfa_state *)0)
     {
@@ -430,7 +435,7 @@ sexpr rx_match (struct graph *g, const char *s)
     ns->n = n;
     ns->p = 0;
 
-    rv = rx_match_recurse (&ns, s);
+    rv = rx_match_recurse (&ns, (const unsigned char *)s);
 
     while (ns != (struct nfa_state *)0)
     {
