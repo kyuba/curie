@@ -26,8 +26,12 @@
  * THE SOFTWARE.
 */
 
-/*! \file
- *  \brief Basic UTF-8 Support
+/*!\file
+ * \brief Basic UTF-8 Support
+ *
+ * Just a couple macros and functions to aid in writing code that supports UTF-8
+ * encoded strings. For most applications, none of these are needed, they should
+ * only be needed in cases where regular C strings might be truncated.
  */
 
 #ifndef LIBCURIE_UTF_8_H
@@ -39,10 +43,38 @@
 extern "C" {
 #endif
 
+/*!\brief Read a character from a UTF-8 encoded string
+ * \param[in]  b UTF-8 encoded string
+ * \param[in]  p Current position in the string
+ * \param[out] c The character that was read
+ * \return The new position in the string
+ *
+ * It's pretty much undefined what happens on mangled/truncated utf-8 sequences,
+ * but in general the result will be a bogus character or 0. For premature
+ * end-of-string markers, this version of the function sets c to 0 and it will
+ * will return 'p' unmodified.
+ */
 unsigned int utf8_get_character (const int_8 *b, unsigned int p, int_32 *c);
 
+/*!\brief Is the given byte an UTF-8 multibyte sequence start character?
+ * \param[in] c Character to test
+ * \return Something that evaluates to true if the condition holds, and false
+ *         otherwise.
+ */
 #define utf8_mbsp(c) (((unsigned char)c & 0xc0) == 0xc0)
+
+/*!\brief Is the given byte an UTF-8 multibyte sequence tail character?
+ * \param[in] c Character to test
+ * \return Something that evaluates to true if the condition holds, and false
+ *         otherwise.
+ */
 #define utf8_mbmp(c) (((unsigned char)c & 0xc0) == 0x80)
+
+/*!\brief Is the given byte an UTF-8 multibyte sequence character?
+ * \param[in] c Character to test
+ * \return Something that evaluates to true if the condition holds, and false
+ *         otherwise.
+ */
 #define utf8_mbcp(c)  ((unsigned char)c & 0x80)
 
 #ifdef __cplusplus
