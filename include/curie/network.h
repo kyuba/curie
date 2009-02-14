@@ -35,7 +35,6 @@
 #ifndef LIBCURIE_NETWORK_H
 #define LIBCURIE_NETWORK_H
 
-#include <curie/io.h>
 #include <curie/sexpr.h>
 
 #ifdef __cplusplus

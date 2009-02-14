@@ -31,8 +31,7 @@
 
  #include <curie++/int.h>
  #include <curie++/io.h>
- #include <curie/sexpr.h>
-
+ 
  namespace curiepp
  {
 

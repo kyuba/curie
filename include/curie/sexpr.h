@@ -44,7 +44,6 @@
 #ifndef LIBCURIE_SEXPR_H
 #define LIBCURIE_SEXPR_H
 
-#include <curie/int.h>
 #include <curie/io.h>
 
 #ifdef __cplusplus

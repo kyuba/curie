@@ -35,7 +35,6 @@
 #ifndef LIBCURIE_MULTIPLEX_H
 #define LIBCURIE_MULTIPLEX_H
 
-#include <curie/io.h>
 #include <curie/sexpr.h>
 #include <curie/exec.h>
 
