@@ -66,6 +66,8 @@ char *tcversion                        = (char *)0;
 static int alive_processes             = 0;
 static unsigned int max_processes      = 1;
 
+static int failures                    = 0;
+
 sexpr co_freestanding                  = sx_false;
 
 sexpr i_optimise_linking               = sx_false;
@@ -1102,7 +1104,7 @@ static void initialise_toolchain_doxygen()
     }
 }
 
-static void spawn_stack_items();
+static void spawn_stack_items(void (*)(struct exec_context *, void *));
 
 static void process_on_death(struct exec_context *context, void *p)
 {
@@ -1125,7 +1127,28 @@ static void process_on_death(struct exec_context *context, void *p)
     }
 }
 
-static void spawn_item (sexpr sx)
+static void process_on_death_nokill(struct exec_context *context, void *p)
+{
+    if (context->status == ps_terminated)
+    {
+        sexpr sx = (sexpr)p;
+        alive_processes--;
+
+        if (context->exitstatus != 0)
+        {
+            sx_write (stdio, cons (sym_failed,
+                      cons (make_integer (context->exitstatus),
+                            cons (sx,
+                                  sx_end_of_list))));
+
+            failures++;
+        }
+
+        free_exec_context (context);
+    }
+}
+
+static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
 {
     sexpr cur = sx, cf = car (sx);
     struct exec_context *context;
@@ -1180,18 +1203,18 @@ static void spawn_item (sexpr sx)
         case 0:  fprintf (stderr, "failed to execute binary image\n");
                  exit (23);
         default: alive_processes++;
-                 multiplex_add_process (context, process_on_death, (void *)sx);
+                 multiplex_add_process (context, f, (void *)sx);
                  return;
     }
 }
 
-static void spawn_stack_items ()
+static void spawn_stack_items (void (*f)(struct exec_context *, void *))
 {
     while (consp (workstack) && (alive_processes < max_processes))
     {
         sexpr wcdr = cdr (workstack);
 
-        spawn_item (car (workstack));
+        spawn_item (car (workstack), f);
 
         workstack = wcdr;
     }
@@ -1282,12 +1305,23 @@ static void initialise_libcurie()
 
 void loop_processes()
 {
-    spawn_stack_items ();
+    spawn_stack_items (process_on_death);
 
     while (alive_processes > 0)
     {
         multiplex();
-        spawn_stack_items ();
+        spawn_stack_items (process_on_death);
+    }
+}
+
+void loop_processes_nokill()
+{
+    spawn_stack_items (process_on_death_nokill);
+
+    while (alive_processes > 0)
+    {
+        multiplex();
+        spawn_stack_items (process_on_death_nokill);
     }
 }
 
@@ -1631,5 +1665,5 @@ int main (int argc, char **argv, char **environ)
     for (int fd = 0; fd < 3; fd++) fcntl(fd, F_SETFL, 0);
 #endif
 
-    return 0;
+    return failures;
 }

@@ -217,6 +217,7 @@ void build_documentation (sexpr);
 void crosslink_objects ();
 
 void loop_processes ();
+void loop_processes_nokill ();
 
 #endif
 

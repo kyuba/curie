@@ -134,5 +134,5 @@ void run_tests (sexpr buildtargets)
         cursor = cdr(cursor);
     }
 
-    loop_processes();
+    loop_processes_nokill();
 }
