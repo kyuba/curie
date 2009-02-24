@@ -608,6 +608,7 @@ static struct target *get_context()
     struct target *context = get_pool_mem (&pool);
 
     context->library        = sx_false;
+    context->programme      = sx_false;
     context->hosted         = sx_false;
     context->use_curie      = sx_false;
     context->libraries      = sx_end_of_list;
@@ -896,6 +897,18 @@ static struct target *create_library (sexpr definition)
 }
 
 static struct target *create_programme (sexpr definition)
+{
+    struct target *context = get_context();
+
+    context->name = car(definition);
+    context->programme = sx_true;
+
+    process_definition (context, cdr(definition));
+
+    return context;
+}
+
+static struct target *create_documentation (sexpr definition)
 {
     struct target *context = get_context();
 
@@ -1624,7 +1637,10 @@ int main (int argc, char **argv, char **environ)
             {
                 t = create_programme (cdr (r));
             }
-
+            else if (truep(equalp(sxcar, sym_documentation)))
+            {
+                t = create_documentation (cdr (r));
+            }
         }
 
         if (t != (struct target *)0)

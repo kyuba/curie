@@ -123,7 +123,7 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
                 if (falsep (t->have_cpp) && truep(i_static))
                     sx = cons (str_static, sx);
 
-                if (falsep(t->library) && truep(t->have_cpp) &&
+                if (truep(t->programme) && truep(t->have_cpp) &&
                     (i_os == os_linux))
                 {
                     sx = cons (str_dlc, sx);
@@ -571,7 +571,7 @@ static void do_link_target(struct target *t)
             link_library (make_string(buffer), t->bootstrap, t);
         }
     }
-    else
+    else if (truep(t->programme))
     {
         link_programme (t->name, t->code, t);
     }

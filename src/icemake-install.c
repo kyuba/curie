@@ -546,7 +546,7 @@ static void do_install_target(struct target *t)
             install_library (make_string(buffer), t);
         }
     }
-    else
+    else if (truep(t->programme))
     {
         install_programme (t->name, t);
     }

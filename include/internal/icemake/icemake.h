@@ -65,6 +65,7 @@ enum instruction_set
 struct target {
     sexpr name;
     sexpr library;
+    sexpr programme;
     sexpr libraries;
     sexpr olibraries;
     sexpr hosted;

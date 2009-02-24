@@ -69,7 +69,7 @@ static void do_post_process_target(struct target *t)
     {
         post_process_library (t->name, t);
     }
-    else
+    else if (truep(t->programme))
     {
         post_process_programme (t->name, t);
     }
