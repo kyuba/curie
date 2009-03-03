@@ -95,13 +95,13 @@ namespace curiepp
       public:
         IOMultiplexer();
 
-        Add(void (*on_read)(struct io *, void *),
+        void Add(void (*on_read)(struct io *, void *),
                      void (*on_close)(struct io *, void *),
                      void *aux);
 
-        AddNoCallback();
+        void AddNoCallback();
 
-        Delete();
+        void Delete();
     };
 }
 
