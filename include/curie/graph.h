@@ -36,8 +36,6 @@
 #ifndef LIBCURIE_GRAPH_H
 #define LIBCURIE_GRAPH_H
 
-
-#include <curie/int.h>
 #include <curie/sexpr.h>
 
 #ifdef __cplusplus

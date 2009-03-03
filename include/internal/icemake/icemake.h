@@ -65,6 +65,7 @@ enum instruction_set
 struct target {
     sexpr name;
     sexpr library;
+    sexpr programme;
     sexpr libraries;
     sexpr olibraries;
     sexpr hosted;
@@ -217,6 +218,7 @@ void build_documentation (sexpr);
 void crosslink_objects ();
 
 void loop_processes ();
+void loop_processes_nokill ();
 
 #endif
 

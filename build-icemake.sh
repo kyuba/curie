@@ -10,7 +10,7 @@ if [ ! -n "${TOOLCHAINTYPE}" ]; then TOOLCHAINTYPE='gcc'; fi
 if [ ! -d build ]; then mkdir build/; fi
 
 gcc_buildfile() {
-    COMMAND="${CC} -o build/${2}.o -c ${1} -DPOSIX -DGCC -Iinclude/generic/  -Iinclude/internal/ -Wall -pedantic --std=c99"
+    COMMAND="${CC} -o build/${2}.o -c ${1} -DPOSIX -DGCC -Iinclude/ -Iinclude/generic/  -Iinclude/internal/ -Wall -pedantic --std=c99"
 
     echo ${COMMAND}
 
@@ -34,6 +34,8 @@ gcc_buildall() {
             buildfile src/posix/${i}.c ${i};
         elif [ -e src/generic/${i}.c ]; then
             buildfile src/generic/${i}.c ${i};
+        elif [ -e src/${i}.c ]; then
+            buildfile src/${i}.c ${i};
         else
             echo Missing Code File: ${i}.c;
             exit 2;

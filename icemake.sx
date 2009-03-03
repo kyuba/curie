@@ -13,12 +13,12 @@
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
         "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
-        "directory" "directory-common" "libc-compat")
+        "directory" "directory-common" "libc-compat" "utf-8")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
         "int" "io" "immutable" "constants" "graph" "filesystem" "regex"
-        "directory" "string")
+        "directory" "string" "utf-8")
 
   (test-cases
         "bad-allocation" "bad-resize" "curie-main" "environment" "execute-fork"

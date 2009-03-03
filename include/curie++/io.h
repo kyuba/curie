@@ -34,7 +34,6 @@
 #define LIBCURIEPP_IO_H
 
 #include <curie/int.h>
-#include <curie/io.h>
 #include <curie/sexpr.h>
 
 #include <curie++/multiplex.h>

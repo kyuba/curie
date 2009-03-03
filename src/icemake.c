@@ -66,6 +66,8 @@ char *tcversion                        = (char *)0;
 static int alive_processes             = 0;
 static unsigned int max_processes      = 1;
 
+static int failures                    = 0;
+
 sexpr co_freestanding                  = sx_false;
 
 sexpr i_optimise_linking               = sx_false;
@@ -606,6 +608,7 @@ static struct target *get_context()
     struct target *context = get_pool_mem (&pool);
 
     context->library        = sx_false;
+    context->programme      = sx_false;
     context->hosted         = sx_false;
     context->use_curie      = sx_false;
     context->libraries      = sx_end_of_list;
@@ -780,6 +783,8 @@ static void process_definition (struct target *context, sexpr definition)
                 else
                 {
                     co_freestanding = sx_false;
+                    i_dynamic_libraries = sx_false;
+
                     break;
                 }
             }
@@ -892,6 +897,18 @@ static struct target *create_library (sexpr definition)
 }
 
 static struct target *create_programme (sexpr definition)
+{
+    struct target *context = get_context();
+
+    context->name = car(definition);
+    context->programme = sx_true;
+
+    process_definition (context, cdr(definition));
+
+    return context;
+}
+
+static struct target *create_documentation (sexpr definition)
 {
     struct target *context = get_context();
 
@@ -1100,7 +1117,7 @@ static void initialise_toolchain_doxygen()
     }
 }
 
-static void spawn_stack_items();
+static void spawn_stack_items(void (*)(struct exec_context *, void *));
 
 static void process_on_death(struct exec_context *context, void *p)
 {
@@ -1123,7 +1140,28 @@ static void process_on_death(struct exec_context *context, void *p)
     }
 }
 
-static void spawn_item (sexpr sx)
+static void process_on_death_nokill(struct exec_context *context, void *p)
+{
+    if (context->status == ps_terminated)
+    {
+        sexpr sx = (sexpr)p;
+        alive_processes--;
+
+        if (context->exitstatus != 0)
+        {
+            sx_write (stdio, cons (sym_failed,
+                      cons (make_integer (context->exitstatus),
+                            cons (sx,
+                                  sx_end_of_list))));
+
+            failures++;
+        }
+
+        free_exec_context (context);
+    }
+}
+
+static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
 {
     sexpr cur = sx, cf = car (sx);
     struct exec_context *context;
@@ -1178,18 +1216,18 @@ static void spawn_item (sexpr sx)
         case 0:  fprintf (stderr, "failed to execute binary image\n");
                  exit (23);
         default: alive_processes++;
-                 multiplex_add_process (context, process_on_death, (void *)sx);
+                 multiplex_add_process (context, f, (void *)sx);
                  return;
     }
 }
 
-static void spawn_stack_items ()
+static void spawn_stack_items (void (*f)(struct exec_context *, void *))
 {
     while (consp (workstack) && (alive_processes < max_processes))
     {
         sexpr wcdr = cdr (workstack);
 
-        spawn_item (car (workstack));
+        spawn_item (car (workstack), f);
 
         workstack = wcdr;
     }
@@ -1222,6 +1260,7 @@ static sexpr initialise_libcurie_filename (char *filename)
         else if (truep(equalp(r, sym_hosted)))
         {
             co_freestanding = sx_false;
+            i_dynamic_libraries = sx_false;
         }
     }
 
@@ -1279,12 +1318,23 @@ static void initialise_libcurie()
 
 void loop_processes()
 {
-    spawn_stack_items ();
+    spawn_stack_items (process_on_death);
 
     while (alive_processes > 0)
     {
         multiplex();
-        spawn_stack_items ();
+        spawn_stack_items (process_on_death);
+    }
+}
+
+void loop_processes_nokill()
+{
+    spawn_stack_items (process_on_death_nokill);
+
+    while (alive_processes > 0)
+    {
+        multiplex();
+        spawn_stack_items (process_on_death_nokill);
     }
 }
 
@@ -1535,21 +1585,12 @@ int main (int argc, char **argv, char **environ)
     for (q = 0; uname_os[q] && (uname_os[q] == "linux"[q]); q++);
     if ((q == 5) && (uname_os[q] == 0)) i_os = os_linux;
 
-    if (i_os == os_darwin) i_dynamic_libraries = sx_false;
-
     for (q = 0; uname_arch[q] && (uname_arch[q] == "arm"[q]); q++);
     if ((q == 3) || ((q == 4) && (uname_arch[q] == 0))) i_is = is_arm;
 
-    if (nilp(in_dynamic_libraries))
+    if (i_os == os_darwin)
     {
-        if (i_is == is_arm)
-        {
-            i_dynamic_libraries = sx_false;
-        }
-    }
-    else
-    {
-        i_dynamic_libraries = in_dynamic_libraries;
+        in_dynamic_libraries = sx_false;
     }
 
     multiplex_io();
@@ -1565,6 +1606,18 @@ int main (int argc, char **argv, char **environ)
     multiplex_add_sexpr (stdio, (void *)0, (void *)0);
 
     initialise_libcurie();
+
+    if (nilp(in_dynamic_libraries))
+    {
+        if (falsep(co_freestanding))
+        {
+            i_dynamic_libraries = sx_false;
+        }
+    }
+    else
+    {
+        i_dynamic_libraries = in_dynamic_libraries;
+    }
 
     io = sx_open_io (io_open_read("icemake.sx"), io_open(-1));
 
@@ -1584,7 +1637,10 @@ int main (int argc, char **argv, char **environ)
             {
                 t = create_programme (cdr (r));
             }
-
+            else if (truep(equalp(sxcar, sym_documentation)))
+            {
+                t = create_documentation (cdr (r));
+            }
         }
 
         if (t != (struct target *)0)
@@ -1625,5 +1681,5 @@ int main (int argc, char **argv, char **environ)
     for (int fd = 0; fd < 3; fd++) fcntl(fd, F_SETFL, 0);
 #endif
 
-    return 0;
+    return failures;
 }

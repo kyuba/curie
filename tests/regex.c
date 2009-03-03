@@ -45,6 +45,9 @@ define_string(str_test6,      "");
 #define str_test8 "aaaaaaaaaaaaaaaaaaa"
 #define str_test9 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
+define_string(str_test10,     "λ");
+define_string(str_test11,     "λy.x");
+
 int cmain()
 {
     struct graph *rx1  = rx_compile ("whatever"),
@@ -61,7 +64,8 @@ int cmain()
                  *rx12 = rx_compile ("a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                  *rx13 = rx_compile_sx (str_testregex13),
                  *rx14 = rx_compile_sx (str_testregex14),
-                 *rx15 = rx_compile_sx (str_testregex15);
+                 *rx15 = rx_compile_sx (str_testregex15),
+                 *rx16 = rx_compile ("[α-ω]");
 
     if (falsep (rx_match_sx (rx1, str_test1))) return 1;
 
@@ -151,6 +155,10 @@ int cmain()
     if (truep  (rx_match_sx (rx15, str_test5))) return 72;
     if (truep  (rx_match_sx (rx15, str_test6))) return 73;
 
+    if (falsep (rx_match_sx (rx16, str_test10)))return 74;
+    if (truep  (rx_match_sx (rx16, str_test11)))return 75;
+    if (truep  (rx_match_sx (rx16, str_test6))) return 76;
+
     graph_destroy (rx1);
     graph_destroy (rx2);
     graph_destroy (rx3);
@@ -166,6 +174,7 @@ int cmain()
     graph_destroy (rx13);
     graph_destroy (rx14);
     graph_destroy (rx15);
+    graph_destroy (rx16);
 
     optimise_static_memory_pools();
 

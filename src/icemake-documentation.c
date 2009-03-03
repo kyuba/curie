@@ -28,12 +28,15 @@
 
 #include <curie/tree.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 
 #include <icemake/icemake.h>
 
-static void build_documentation_tex (sexpr file, struct target *t)
+static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
 {
     char dirbuffer[BUFFERSIZE];
     char buffer[BUFFERSIZE];
@@ -43,6 +46,14 @@ static void build_documentation_tex (sexpr file, struct target *t)
 
     if (stringp (p_pdflatex))
     {
+        char tarbuffer[BUFFERSIZE];
+        snprintf (tarbuffer, BUFFERSIZE, "%s/%s.pdf", dirbuffer, sx_string(base));
+
+        struct stat sst, tst;
+        if ((stat (sx_string (file), &sst) == 0) &&
+            (stat (tarbuffer, &tst) == 0) &&
+            (tst.st_mtime > sst.st_mtime)) return;
+
         workstack
                 = cons (cons (sym_chdir,
                               cons (make_string (dirbuffer),
@@ -58,6 +69,14 @@ static void build_documentation_tex (sexpr file, struct target *t)
     }
     else if (stringp (p_latex))
     {
+        char tarbuffer[BUFFERSIZE];
+        snprintf (tarbuffer, BUFFERSIZE, "%s/%s.dvi", dirbuffer, sx_string(base));
+
+        struct stat sst, tst;
+        if ((stat (sx_string (file), &sst) == 0) &&
+            (stat (tarbuffer, &tst) == 0) &&
+            (tst.st_mtime > sst.st_mtime)) return;
+
         workstack
                 = cons (cons (sym_chdir,
                               cons (make_string (dirbuffer),
@@ -81,10 +100,11 @@ static void do_build_documentation_target(struct target *t)
         sexpr ccaar = car (ccar);
         sexpr ccdr  = cdr (ccar);
         sexpr ccddr = cdr (ccdr);
+        sexpr ccdar = car (ccdr);
 
         if (truep(equalp(ccaar, sym_tex)))
         {
-            build_documentation_tex (ccddr, t);
+            build_documentation_tex (ccddr, ccdar, t);
         }
     }
 }
