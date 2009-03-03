@@ -69,7 +69,7 @@ extern "C" {
  *  This function is called when get_mem() can't allocate any memory, and its
  *  result is returned instead of the (void *)0 that get_mem() would return.
  */
-void set_get_mem_recovery_function 
+void set_get_mem_recovery_function
         (/*@null@*/ void *(*handler)(unsigned long int));
 
 /*! \brief Define resize_mem() Recovery Function
@@ -162,7 +162,7 @@ void mark_mem_rw (unsigned long int size, /*@notnull@*/ void *block);
 
 /*! \brief Make Block of Memory executable
  *  \param[in] size  The current size of the block.
- *  \param[in] block The block to make writable.
+ *  \param[in] block The block to make executable.
  *
  *  Make the given block readable as well as executable.
  */

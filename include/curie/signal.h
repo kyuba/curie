@@ -132,7 +132,7 @@ void multiplex_signal ();
  *  function is called. This function may be called multiple times even for the
  *  same signal -- it'll just add more callbacks for that signal then.
  */
-void multiplex_add_signal 
+void multiplex_add_signal
         (enum signal signal,
          /*@notnull@*/ enum signal_callback_result (*handler)(enum signal, void *),
          void *aux);
@@ -142,7 +142,7 @@ void multiplex_add_signal
  *  \param[in] pid    The process to send the signal to.
  *
  *  This functions send the given signal to the process specified by pid. If the
- *  pid is in an ususal range, i.e. <=0, weird things may happen, so don't do it
+ *  pid is in an unusual range, i.e. <=0, weird things may happen, so don't do it
  *  unless you know it's safe on the architecture you're on.
  */
 void send_signal (enum signal signal, int pid);

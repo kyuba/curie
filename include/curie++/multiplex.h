@@ -33,6 +33,8 @@
 #ifndef LIBCURIEPP_MULTIPLEX_H
 #define LIBCURIEPP_MULTIPLEX_H
 
+#include <curie/multiplex.h>
+
 namespace curiepp
 {
     /*! \brief Multiplexer

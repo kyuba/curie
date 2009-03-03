@@ -31,7 +31,8 @@
 
  #include <curie++/int.h>
  #include <curie++/io.h>
- 
+ #include <curie++/multiplex.h>
+
  namespace curiepp
  {
 
@@ -87,13 +88,14 @@
       private:
 
 
+
       public:
         SExprCons (SExpr *car, SExpr *cdr);
         ~SExprCons();
         SExpr *car;
-        SExprCons *cdr;
+        SExpr *cdr;
 
-        SExpr *cons (SExpr *car, SExpr *cdr);
+        SExprCons *cons (SExpr *car, SExpr *cdr);
 
         void map(void (*f) (sexpr))
         SExpr *fold(sexpr(*f)(sexpr, sexpr), sexpr seed);
@@ -117,6 +119,8 @@
         void writeInteger(SExpr *i);
         void writeDispatch (SExpr *sexp);
 
+      protected:
+        struct sexpr_io *context;
 
       public:
         SExprIO* openIO(IO *in, IO *out);
@@ -126,6 +130,21 @@
 
         SExpr* read();
         void write(SExpr* sx);
+    };
+
+    class SExprIOMultiplexer : public SExprIO, public Multiplexer
+    {
+      private:
+
+      public:
+        SExprIOMultiplexer();
+
+        Add(void (*on_read)(sexpr,
+            struct sexpr_io *,
+            void *),
+            /*@null@*/ void *aux);
+
+        Delete();
     };
  }
 
