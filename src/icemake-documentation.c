@@ -92,7 +92,17 @@ static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
     }
 }
 
-static void do_build_documentation_target(struct target *t)
+static void build_documentation_doxygen ()
+{
+    if (stringp (p_doxygen))
+    {
+        workstack = cons (cons (p_doxygen,
+                                sx_end_of_list),
+                          workstack);
+    }
+}
+
+static void do_build_documentation_target (struct target *t)
 {
     for (sexpr c = t->documentation; consp(c); c = cdr (c))
     {
@@ -137,6 +147,8 @@ void build_documentation (sexpr buildtargets)
         build_documentation_target (sx_string(sxcar));
         cursor = cdr(cursor);
     }
+
+    build_documentation_doxygen ();
 
     loop_processes();
 }
