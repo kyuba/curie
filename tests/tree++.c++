@@ -25,68 +25,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
 */
+
+#include <curie/main.h>
 #include <curie++/tree.h>
-#include <curie/memory.h>
+
 using namespace curiepp;
 
+int cxxmain() {
 
-TreeNode::TreeNode(int_pointer key_, void *value_, TreeNode *right_, TreeNode *left_) {
-  key = key_;
-  value = value_;
-  right = right_;
-  left = left_;
-}
-
-TreeNode::~TreeNode() {
-  delete left;
-  delete right;
-
-  if(value) free_pool_mem(value);
-}
-
-
-Tree::Tree() {
-  root = (TreeNode *) NULL;
-}
-
-Tree::~Tree() {
-  delete root;
-}
-
-void Tree::addNode(TreeNode *n) {
-  TreeNode *cur = root, *last = (TreeNode *) NULL;
-
-  if(root == NULL) {
-    root = n;
-    return;
-  }
-  for(;cur != NULL;) {
-    last = cur;
-    if(n->key < cur->key) {
-      cur = cur->left;
-    }
-    else {
-      cur = cur->right;
-    }
-
-    if(n->key < last->key) {
-      last->left = n;
-    }
-    else {
-      last->right = n;
-    }
-
-  }
-
-}
-
-TreeNode* Tree::getNode(int_pointer key)
-{
-  if(root == NULL) return (TreeNode*) NULL;
-
-  else if(root->key == key) return root;
-
-  else if(root->key < key) return root->right->getNode(key);
-
-  else if(root->key > key) return root->left->getNode(key);
 }
