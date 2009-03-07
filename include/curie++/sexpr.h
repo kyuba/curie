@@ -60,7 +60,7 @@
 
 
       public:
-        virtual char characterData[];
+        char characterData[];
 
         virtual SExprStringOrSymbol *join(SExprStringOrSymbol *sx);
     };
@@ -79,7 +79,7 @@
       private:
       public:
         SExprSymbol(const char *data);
-        ~SExprSmbol();
+        ~SExprSymbol();
 
     };
 
@@ -97,7 +97,7 @@
 
         SExprCons *cons (SExpr *car, SExpr *cdr);
 
-        void map(void (*f) (sexpr))
+        void map(void (*f) (sexpr));
         SExpr *fold(sexpr(*f)(sexpr, sexpr), sexpr seed);
     };
 
@@ -139,12 +139,12 @@
       public:
         SExprIOMultiplexer();
 
-        Add(void (*on_read)(sexpr,
+        void Add(void (*on_read)(sexpr,
             struct sexpr_io *,
             void *),
             /*@null@*/ void *aux);
 
-        Delete();
+        void Delete();
     };
  }
 

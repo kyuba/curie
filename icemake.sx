@@ -49,13 +49,16 @@
   (version "7")
   (url "http://kyuba.org/")
 
-  (code "memory++" "io++" "libc++-compat" "graph")
+  (code "memory++" "io++" "libc++-compat" "graph++" "tree++")
 
   (headers
         "int" "io" "multiplex" "sexpr" "tree" "graph" "regex")
 
   (test-cases
-        "objects" "exceptions"))
+        "objects" "exceptions" "graph++"))
+
+  (test-case-reference
+    ("temporary-graph" . "tests/reference/graph"))
 
 (programme "icemake" hosted libcurie
   (name "ICE make")

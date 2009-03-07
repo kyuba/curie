@@ -32,28 +32,25 @@
  #include <curie++/int.h>
  #include <curie/int.h>
 
+ #define NULL ((void *) 0)
  namespace curiepp
  {
+  class TreeNode;
+
    class Tree {
-  // use the "named constructor" idiom here?
 
  #define TREE_INITIALIZER ((TreeNode*) 0)
  #define removeNode(t, k) t.removeNodeSpecific (k, ((TreeNode *) 0))
  #define removeNodeString(t, k) t.removeNodeStringSpecific (k, ((TreeNode *) 0))
  #define getValue (n) ((TreeNode *) n)->value
   private:
-    Tree();
 
-    void addNodeToTree(TreeNode * node, int_pointer key);
   public:
+    Tree();
+    ~Tree();
     TreeNode *root;
 
-    Tree* create();
-
-    void destroy();
-
     void addNode(TreeNode *);
-    void addNodeValue(int_pointer key, void *aux);
     TreeNode* getNode(int_pointer key);
     void removeNodeSpecific(int_pointer key, TreeNode *node);
 
@@ -68,7 +65,7 @@
 
    class TreeNode {
    public:
-    TreeNode(int_pointer key, void *value, TreeNode *right, TreeNode *left);
+     TreeNode(int_pointer key, void *value, TreeNode *right, TreeNode *left);
     ~TreeNode();
 
     int_pointer key;

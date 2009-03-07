@@ -26,71 +26,63 @@
  * THE SOFTWARE.
 */
 
-#ifndef LIBCURIEPP_GRAPH_H
-#define LIBCURIEPP_GRAPH_H
+#include <curie++/graph.h>
+#include <curie/main.h>
 
-#include "curie++/sexpr.h"
-#include "curie/graph.h"
-#include "curie++/regex.h"
+using namespace curiepp;
 
-namespace curiepp {
+#define NULL ((void *)0)
 
-  class Node;
+int cxxmain() {
+  Graph *forest = new Graph();
 
-  class Edge {
-    private:
+  sexpr s = make_integer(1);
+  sexpr s2 = make_integer(2);
 
-    public:
-      Edge(sexpr l, Node *t);
-      ~Edge();
-      sexpr label;
-      Node *target;
+  if(forest->getNodeCount() > 0) {
+    return 1;
+  }
 
-  };
+//   forest->addNode(s);
 
+  try {
+    forest->getNode(0);
+  }
+  catch(sexpr e) {
+    struct io *out = io_open_write ("temporary-graph"), *in = io_open (0);
+    struct sexpr_io *io = sx_open_io (in, out);
 
-  class Node {
-    private:
-      int_32 edgeCount;
-      Edge** edges;
-
-    public:
-      Node(sexpr l);
-      ~Node();
-
-      int_32 getEdgeCount();
-      Edge *getEdge(int_32 i);
-      sexpr label;
-      void addEdge(Edge *e);
-      Edge *searchEdge(sexpr s);
-  };
-
-  class Graph {
-    private:
-      int_32 nodeCount;
-      Node** nodes;
-
-    public:
-      Graph();
-      Graph(SExpr *);
-
-      Graph(struct graph *g);
-      ~Graph();
-
-      int_32 getNodeCount();
-      Node* getNode(int_32 i);
-
-      void addNode(sexpr label);
-      Node* searchNode(sexpr s);
+    sx_write(io, e);
+  }
 
 
-      //! converts a given graph to a S-expression
-      SExpr* operator= (Graph *g);
+  if(forest->searchNode(s) == 0) {
+    return 2;
+  }
 
-   //   //! converts a graph to a regular expression
-   //   RegEx* operator= (Graph *g);
-  };
+  forest->addNode(s2);
+
+  if(forest->searchNode(s2) == 0) {
+    return 3;
+  }
+
+
+
+  forest->getNode(0)->addEdge(new Edge(make_integer(3), forest->getNode(1)));
+
+  if(forest->getNode(0)->searchEdge(make_integer(3)) == 0) {
+    return 4;
+  }
+  try {
+    forest->getNode(0)->getEdge(2);
+  }
+  catch(sexpr e) {
+    struct io *out = io_open_write ("temporary-graph"), *in = io_open (0);
+    struct sexpr_io *io = sx_open_io (in, out);
+
+    sx_write(io, e);
+  }
+
+  return 0;
 
 }
-
-#endif

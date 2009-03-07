@@ -25,72 +25,57 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
 */
-
-#ifndef LIBCURIEPP_GRAPH_H
-#define LIBCURIEPP_GRAPH_H
-
-#include "curie++/sexpr.h"
-#include "curie/graph.h"
-#include "curie++/regex.h"
-
-namespace curiepp {
-
-  class Node;
-
-  class Edge {
-    private:
-
-    public:
-      Edge(sexpr l, Node *t);
-      ~Edge();
-      sexpr label;
-      Node *target;
-
-  };
+#include <curie++/tree.h>
+#include <curie/memory.h>
+using namespace curiepp;
 
 
-  class Node {
-    private:
-      int_32 edgeCount;
-      Edge** edges;
-
-    public:
-      Node(sexpr l);
-      ~Node();
-
-      int_32 getEdgeCount();
-      Edge *getEdge(int_32 i);
-      sexpr label;
-      void addEdge(Edge *e);
-      Edge *searchEdge(sexpr s);
-  };
-
-  class Graph {
-    private:
-      int_32 nodeCount;
-      Node** nodes;
-
-    public:
-      Graph();
-      Graph(SExpr *);
-
-      Graph(struct graph *g);
-      ~Graph();
-
-      int_32 getNodeCount();
-      Node* getNode(int_32 i);
-
-      void addNode(sexpr label);
-      Node* searchNode(sexpr s);
-
-
-      //! converts a given graph to a S-expression
-      SExpr* operator= (Graph *g);
-
-   //   //! converts a graph to a regular expression
-   //   RegEx* operator= (Graph *g);
-  };
-
+TreeNode::TreeNode(int_pointer key_, void *value_, TreeNode *right_, TreeNode *left_) {
+  key = key_;
+  value = value_;
+  right = right_;
+  left = left_;
 }
 
-#endif
+TreeNode::~TreeNode() {
+  delete left;
+  delete right;
+
+  if(value) free_pool_mem(value);
+}
+
+
+Tree::Tree() {
+  root = (TreeNode *) NULL;
+}
+
+Tree::~Tree() {
+  delete root;
+}
+
+void Tree::addNode(TreeNode *n) {
+  TreeNode *cur = root, *last = (TreeNode *) NULL;
+
+  if(root == NULL) {
+    root = n;
+    return;
+  }
+  for(;cur != NULL;) {
+    last = cur;
+    if(n->key < cur->key) {
+      cur = cur->left;
+    }
+    else {
+      cur = cur->right;
+    }
+
+    if(n->key < last->key) {
+      last->left = n;
+    }
+    else {
+      last->right = n;
+    }
+
+  }
+
+}

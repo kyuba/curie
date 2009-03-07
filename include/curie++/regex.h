@@ -29,24 +29,29 @@
 #ifndef LIBCURIEPP_REGEX_H
 #define LIBCURIEPP_REGEX_H
 
+#include <curie++/graph.h>
+
 namespace curiepp {
+  class Graph;
 
   class RegEx {
+
     private:
+
       Graph *automaton;
 
     public:
 
       RegEx(SExpr *sx);
-      RegEx(const char *str);
-      RegEx(Graph *g);
+      RegEx(const char* str);
+      RegEx(Graph* g);
 
       SExpr *match(SExpr *sx);
       SExpr *match(const char *str);
 
-      SExpr* operator= ();
-      char* operator= ();
-      Graph* operator= ();
+      SExpr* operator= (RegEx *r);
+//       char* operator= (RegEx *r);
+//       Graph* operator= (RegEx *r);
   };
 
 }
