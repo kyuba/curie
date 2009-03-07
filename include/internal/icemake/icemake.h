@@ -206,6 +206,7 @@ define_string (str_gcc_eh,              "gcc_eh");
 define_string (str_nostdlib,            "-nostdlib");
 define_string (str_nodefaultlibs,       "-nodefaultlibs");
 define_string (str_nostartfiles,        "-nostartfiles");
+define_string (str_doxyfile,            "doxyfile");
 
 sexpr sx_string_dir_prefix_c (char *, sexpr);
 

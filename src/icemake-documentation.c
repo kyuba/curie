@@ -27,6 +27,7 @@
 */
 
 #include <curie/tree.h>
+#include <curie/filesystem.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -94,7 +95,7 @@ static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
 
 static void build_documentation_doxygen ()
 {
-    if (stringp (p_doxygen))
+    if (stringp (p_doxygen) && truep (linkp (str_doxyfile)))
     {
         workstack = cons (cons (p_doxygen,
                                 sx_end_of_list),
