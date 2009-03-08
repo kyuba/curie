@@ -1,7 +1,7 @@
 (library "curie" libcurie
   (name "Curie")
   (description "minimalistic, sexpr-based, non-posix(!), non-ansi(!) libc")
-  (version "7")
+  (version "8")
   (url "http://kyuba.org/")
 
   (freestanding-if-assembly
@@ -46,7 +46,7 @@
 (library "curie++" libcurie
   (name "Curie++")
   (description "C++ bindings for libcurie")
-  (version "7")
+  (version "8")
   (url "http://kyuba.org/")
 
   (code "memory++" "io++" "libc++-compat" "graph++" "tree++")
