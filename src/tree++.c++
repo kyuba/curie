@@ -82,11 +82,19 @@ void Tree::addNode(TreeNode *n) {
 
 TreeNode* Tree::getNode(int_pointer key)
 {
-  if(root == NULL) return (TreeNode*) NULL;
+  Tree *t = this;
+  this->root = t->root;
 
-  else if(root->key == key) return root;
+  for(;;) {
+    if(t->root == NULL) return (TreeNode*) NULL;
 
-  else if(root->key < key) return root->right->getNode(key);
+    else if(t->root->key == key) return root;
 
-  else if(root->key > key) return root->left->getNode(key);
+    if(root->key < key)
+      t->root = this->root->right;
+
+    if(root->key > key)
+      t->root = this->root->left;
+  }
+
 }

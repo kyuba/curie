@@ -55,7 +55,7 @@
         "int" "io" "multiplex" "sexpr" "tree" "graph" "regex")
 
   (test-cases
-        "objects" "exceptions" "graph++"))
+        "objects" "exceptions" "graph++" "tree++"))
 
   (test-case-reference
     ("temporary-graph" . "tests/reference/graph"))

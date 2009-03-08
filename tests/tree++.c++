@@ -32,5 +32,26 @@
 using namespace curiepp;
 
 int cxxmain() {
+  Tree *t = new Tree();
 
+  t->addNode(new TreeNode(10, NULL, (TreeNode *)NULL, (TreeNode *)NULL));
+
+  if(t->getNode(10) == (TreeNode *)NULL) return 1;
+
+  t->addNode(new TreeNode(1, NULL, (TreeNode *)NULL, (TreeNode *)NULL));
+
+  if(t->root->left == (TreeNode *)NULL) return 2;
+  if(t->root->right != NULL) return 3;
+
+  t->addNode(new TreeNode(23, NULL, (TreeNode *)NULL, (TreeNode *)NULL));
+
+  if(t->root->right == (TreeNode *)NULL) return 4;
+  if(t->root->right->key != 23) return 5;
+
+  TreeNode *tn = t->getNode(23);
+
+  if(tn == (TreeNode*) NULL) return 6;
+  if(tn->key != 23) return 7;
+
+  delete t;
 }
