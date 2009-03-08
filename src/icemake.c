@@ -852,7 +852,8 @@ static void process_definition (struct target *context, sexpr definition)
         if (truep (context->have_cpp))
         {
             context->libraries = cons (str_supcpp, context->libraries);
-/*            context->libraries = cons (str_gcc_eh, context->libraries);*/
+            if (i_os == os_darwin)
+              context->libraries = cons (str_gcc_eh, context->libraries);
         }
         else
         {
