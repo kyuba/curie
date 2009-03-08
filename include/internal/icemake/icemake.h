@@ -181,6 +181,7 @@ define_string (str_dshared,             "-shared");
 define_string (str_ddynamiclib,         "-dynamiclib");
 define_string (str_lc,                  "c");
 define_string (str_dlc,                 "-lc");
+define_string (str_dlcurie,             "-lcurie");
 define_string (str_do,                  "-o");
 define_string (str_dc,                  "-c");
 define_string (str_dr,                  "-r");

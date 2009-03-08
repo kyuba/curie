@@ -861,7 +861,7 @@ static void process_definition (struct target *context, sexpr definition)
         }
     }
 
-    if (truep(context->hosted))
+    if (truep(context->hosted) && falsep (context->have_cpp))
     {
         context->libraries = cons (str_lc, context->libraries);
     }

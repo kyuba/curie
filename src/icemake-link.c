@@ -200,6 +200,7 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
     sexpr sx = sx_end_of_list;
 
     if (i_os != os_darwin) sx = cons (str_dend_group, sx);
+    else if (truep (t->use_curie)) sx = cons (str_dlcurie, sx);
 
     havebin = (stat (sx_string (ofile), &res) == 0);
 
