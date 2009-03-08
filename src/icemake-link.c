@@ -58,7 +58,7 @@ static void write_curie_linker_flags_gcc (struct io *o, struct target *t)
         }
         else
         {
-            if (truep(co_freestanding))
+            if (truep(co_freestanding) && falsep(t->have_cpp))
             {
                 io_collect (o, " -nodefaultlibs -nostartfiles -nostdlib", 47);
 
@@ -116,15 +116,10 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
             }
 
         }
-        else if (truep(co_freestanding))
+        else if (truep(co_freestanding) && falsep(t->have_cpp))
         {
-            if (falsep (t->have_cpp) && truep(i_static))
+            if (truep(i_static))
                 sx = cons (str_static, sx);
-
-            if (truep(t->have_cpp) && (i_os == os_linux))
-            {
-                sx = cons (str_dfpic, sx);
-            }
 
             switch (i_os)
             {
@@ -496,11 +491,6 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
         code = cdr (code);
     }
 
-/*    if (truep(t->have_cpp) && (i_os == os_linux))
-    {
-        sx = cons (str_dlc, sx);
-    }*/
-
     sx = cons (str_nostdlib, cons (str_nostartfiles, cons (str_nodefaultlibs, sx)));
 
     if (!havelib) {
@@ -536,7 +526,6 @@ static void link_library_dynamic (sexpr name, sexpr code, struct target *t)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            if (truep (t->have_cpp) && (i_os == os_linux)) break;
             link_library_gcc_dynamic (name, code, t); break;
     }
 }

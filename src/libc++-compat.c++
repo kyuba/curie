@@ -28,7 +28,16 @@
 
 int cxxmain();
 
-extern "C" int cmain ()
+extern "C"
 {
+char **curie_argv = (char **)0;
+char **curie_environment = (char **)0;
+
+int main (int argc, char **argv, char **env)
+{
+    curie_argv = argv;
+    curie_environment = env;
+
     return cxxmain ();
+}
 }

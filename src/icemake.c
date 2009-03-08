@@ -852,20 +852,22 @@ static void process_definition (struct target *context, sexpr definition)
         if (truep (context->have_cpp))
         {
             context->libraries = cons (str_supcpp, context->libraries);
-            context->libraries = cons (str_gcc_eh, context->libraries);
+/*            context->libraries = cons (str_gcc_eh, context->libraries);*/
         }
-
-        context->libraries = cons (str_gcc, context->libraries);
+        else
+        {
+            context->libraries = cons (str_gcc, context->libraries);
+        }
     }
 
-    if (truep(context->hosted) || truep (context->have_cpp))
+    if (truep(context->hosted))
     {
         context->libraries = cons (str_lc, context->libraries);
     }
 
     if (truep(context->use_curie))
     {
-        if (falsep (context->hosted))
+        if (falsep (context->hosted) && falsep (context->have_cpp))
         {
             context->libraries = cons (str_curie_bootstrap, context->libraries);
         }
