@@ -40,9 +40,15 @@
 extern "C" {
 #endif
 
+/*! \brief S-Expression I/O Structure
+ *
+ *  Programmes don't need to know how this one looks on the inside. This is just
+ *  a wrapper for an input and an output I/O structure for use with sx_read(),
+ *  sx_write(), etc.
+ */
 struct sexpr_io {
-    /*@notnull@*/ /*@only@*/ struct io *in;
-    /*@notnull@*/ /*@only@*/ struct io *out;
+    /*@notnull@*/ /*@only@*/ struct io *in;  /*!< \brief Input Structure */
+    /*@notnull@*/ /*@only@*/ struct io *out; /*!< \brief Output Structure */
 };
 
 #ifdef __cplusplus

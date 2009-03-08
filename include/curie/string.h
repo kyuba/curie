@@ -39,6 +39,15 @@
 
 /* kudos to markos for this one */
 
+/*! \brief Hash a String
+ *  \param[in]  data The string.
+ *  \param[out] len  The calculated length of the string.
+ *  \return 32-bit hash of the string.
+ *
+ *  This function calculates a 32-bit hash over any C-style string. Handy for
+ *  some internal things, such as make_string() and make_symbol() to keep track
+ *  of strings that have already been created.
+ */
 int_32 str_hash(/*@notnull@*/ const char *data,
                 /*@notnull@*/ /*@out@*/ unsigned long *len);
 

@@ -29,12 +29,12 @@
 #ifndef LIBCURIEPP_SEXPR_H
 #define LIBCURIEPP_SEXPR_H
 
- #include <curie++/int.h>
- #include <curie++/io.h>
- #include <curie++/multiplex.h>
+#include <curie++/int.h>
+#include <curie++/io.h>
+#include <curie++/multiplex.h>
 
- namespace curiepp
- {
+namespace curiepp
+{
 
     class SExpr
     {
@@ -146,6 +146,6 @@
 
         void Delete();
     };
- }
+}
 
- #endif
+#endif

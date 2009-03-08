@@ -244,8 +244,7 @@ void sx_write
          /*@notnull@*/ /*@shared@*/ sexpr cdr);
 
 /*! \brief Encode an Integer
- *  \param[in]
-  The value of the new s-expression.
+ *  \param[in] integer The value of the new s-expression.
  *  \return The s-expression.
  *
  *  This macro takes a C integer and returns a new s-expression with the
@@ -263,13 +262,45 @@ void sx_write
 #define make_special(code)\
         ((sexpr)((((int_pointer)(code)) << 3) | 0x5))
 
+/*! \brief Define String or Symbol statically
+ *  \internal
+ *  \param[in] t The type of what is to be defined.
+ *  \param[in] n The name to give the new variable.
+ *  \param[in] s The string itself.
+ *
+ *  This defines either a string or a symbol statically in the scope it was
+ *  called in. Most often you would use this in either a header file or in a
+ *  .c file for strings or symbols that you need to use throughout the file.
+ *  You should never call this but instead you should call define_string() or
+ *  define_symbol().
+ */
 #define define_sosi(t,n,s) \
     static const struct sexpr_string_or_symbol sexpr_payload_ ## n =\
         { { t, (unsigned short int)(~0) }, s };\
     static const sexpr n = ((const sexpr)&(sexpr_payload_ ## n))
 
+/*! \brief Define String statically
+ *  \param[in] name  The name to give the new variable.
+ *  \param[in] value The string itself.
+ *
+ *  This defines a string statically in the scope it was called in. Most often
+ *  you would use this in either a header file or in a .c file for strings that
+ *  you need to use throughout the file. You should use this whenever you'd
+ *  want to use make_string() with a constant value, so as to reduce the runtime
+ *  overhead of the programme.
+ */
 #define define_string(name,value) define_sosi(sxt_string,name,value)
 
+/*! \brief Define Symbol statically
+ *  \param[in] name  The name to give the new variable.
+ *  \param[in] value The symbol name.
+ *
+ *  This defines a symbol statically in the scope it was called in. Most often
+ *  you would use this in either a header file or in a .c file for symbols that
+ *  you need to use throughout the file. You should use this whenever you'd
+ *  want to use make_symbol() with a constant value, so as to reduce the runtime
+ *  overhead of the programme.
+ */
 #define define_symbol(name,value) define_sosi(sxt_symbol,name,value)
 
 /*! \brief Create a new String

@@ -26,15 +26,15 @@
  * THE SOFTWARE.
 */
 
- #ifndef LIBCURIEPP_TREE_H
- #define LIBCURIEPP_TREE_H
+#ifndef LIBCURIEPP_TREE_H
+#define LIBCURIEPP_TREE_H
 
- #include <curie++/int.h>
- #include <curie/int.h>
+#include <curie++/int.h>
+#include <curie/int.h>
 
- #define NULL ((void *) 0)
- namespace curiepp
- {
+#define NULL ((void *) 0)
+namespace curiepp
+{
   class TreeNode;
 
    class Tree {
@@ -76,4 +76,4 @@
 
  }
 
- #endif
+#endif
