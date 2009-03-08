@@ -10,7 +10,7 @@
 NOTE:
   Library documentation has gotten somewhat better, but this new build system
   could have made things a tiny bit trickier. This has been tested on
-  linux/x86-64, linux/powerpc and darwin/powerpc though.
+  linux/x86-64, linux/powerpc, linux/arm and darwin/powerpc though.
 
 NOTE.2:
   Please take note of the library licence (the COPYING file), as well as the
