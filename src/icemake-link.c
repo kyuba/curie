@@ -116,31 +116,27 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
             }
 
         }
-        else
+        else if (truep(co_freestanding))
         {
-            if (truep(co_freestanding))
+            if (falsep (t->have_cpp) && truep(i_static))
+                sx = cons (str_static, sx);
+
+            if (truep(t->have_cpp) && (i_os == os_linux))
             {
-                if (falsep (t->have_cpp) && truep(i_static))
-                    sx = cons (str_static, sx);
-
-                if (truep(t->programme) && truep(t->have_cpp) &&
-                    (i_os == os_linux))
-                {
-                    sx = cons (str_dlc, sx);
-                }
-
-                switch (i_os)
-                {
-                    case os_darwin:
-                        sx = cons (str_e, cons (str_start, sx));
-                        break;
-                    default:
-                        sx = cons (str_u, cons (str_start, sx));
-                        break;
-                }
-
-                sx = cons (str_nostdlib, cons (str_nostartfiles, cons (str_nodefaultlibs, sx)));
+                sx = cons (str_dfpic, sx);
             }
+
+            switch (i_os)
+            {
+                case os_darwin:
+                    sx = cons (str_e, cons (str_start, sx));
+                    break;
+                default:
+                    sx = cons (str_u, cons (str_start, sx));
+                    break;
+            }
+
+            sx = cons (str_nostdlib, cons (str_nostartfiles, cons (str_nodefaultlibs, sx)));
         }
     }
 
@@ -236,7 +232,7 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
         if (truep(equalp(ttype, sym_assembly)) ||
             truep(equalp(ttype, sym_preproc_assembly)) ||
             truep(equalp(ttype, sym_c)) ||
-            truep(equalp(ttype, sym_cpp)))
+            (truep(equalp(ttype, sym_cpp))))
         {
             sx = cons (objectfile, sx);
 
@@ -377,10 +373,11 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 
         while (consp (s))
         {
-            sexpr s2 = cdr(cdr(car(s)));
+            sexpr s1 = car(s);
+            sexpr s2 = cdr(cdr(s1));
             sexpr s3 = car(s2);
             sexpr s4 = car(cdr(s2));
-            sexpr s5 = cons(cons (sym_c, cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
+            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
 
             link_programme_gcc_filename (s4, name, s5, t);
 
@@ -499,10 +496,10 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
         code = cdr (code);
     }
 
-    if (truep(t->have_cpp) && (i_os == os_linux))
+/*    if (truep(t->have_cpp) && (i_os == os_linux))
     {
         sx = cons (str_dlc, sx);
-    }
+    }*/
 
     sx = cons (str_nostdlib, cons (str_nostartfiles, cons (str_nodefaultlibs, sx)));
 
@@ -539,6 +536,7 @@ static void link_library_dynamic (sexpr name, sexpr code, struct target *t)
     switch (uname_toolchain)
     {
         case tc_gcc:
+            if (truep (t->have_cpp) && (i_os == os_linux)) break;
             link_library_gcc_dynamic (name, code, t); break;
     }
 }

@@ -55,10 +55,10 @@
         "int" "io" "multiplex" "sexpr" "tree" "graph" "regex")
 
   (test-cases
-        "objects" "exceptions" "graph++" "tree++"))
+        "objects" "exceptions" "graph++" "tree++")
 
   (test-case-reference
-    ("temporary-graph" . "tests/reference/graph"))
+    ("temporary-graph" . "tests/reference/graph")))
 
 (programme "icemake" hosted libcurie
   (name "ICE make")

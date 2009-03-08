@@ -858,7 +858,7 @@ static void process_definition (struct target *context, sexpr definition)
         context->libraries = cons (str_gcc, context->libraries);
     }
 
-    if (truep(context->hosted))
+    if (truep(context->hosted) || truep (context->have_cpp))
     {
         context->libraries = cons (str_lc, context->libraries);
     }
@@ -1594,7 +1594,8 @@ int main (int argc, char **argv, char **environ)
     }
 
     multiplex_io();
-    multiplex_all_processes();
+/*    multiplex_all_processes();*/
+    multiplex_process();
     multiplex_sexpr();
     multiplex_signal();
 

@@ -309,7 +309,8 @@ static void install_library_gcc (sexpr name, struct target *t)
                       get_library_install_path(name)),
                 workstack);
 
-    if (truep (i_dynamic_libraries))
+    if (truep (i_dynamic_libraries) &&
+        (falsep (t->have_cpp) || (i_os == os_linux)))
     {
         char buffer[BUFFERSIZE];
         sexpr fname;
