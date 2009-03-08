@@ -41,7 +41,7 @@ namespace curiepp
      *  size_t, so this type should be used instead.
      */
 
-    typedef unsigned int op_new_size;
+    typedef unsigned long op_new_size;
 }
 
 #endif
