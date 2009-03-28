@@ -980,7 +980,7 @@ static void write_uname_element (char *source, char *target, int tlen)
     target[i] = 0;
 }
 
-static sexpr which (char *programme)
+static sexpr cwhich (char *programme)
 {
     char buffer[BUFFERSIZE];
     char *x = getenv("PATH"), *y = buffer;
@@ -1023,17 +1023,17 @@ static sexpr xwhich (char *programme)
 
     if ((tcversion != (char *)0) &&
          (snprintf (buffer, BUFFERSIZE, "%s-%s-%s", archprefix, programme, tcversion),
-          (w = which (buffer)), stringp(w)))
+          (w = cwhich (buffer)), stringp(w)))
     {
         return w;
     }
     else if (snprintf (buffer, BUFFERSIZE, "%s-%s", archprefix, programme),
-             (w = which (buffer)), stringp(w))
+             (w = cwhich (buffer)), stringp(w))
     {
         return w;
     }
     else if (snprintf (buffer, BUFFERSIZE, "ar"),
-             (w = which (programme)), stringp(w))
+             (w = cwhich (programme)), stringp(w))
     {
         return w;
     }
