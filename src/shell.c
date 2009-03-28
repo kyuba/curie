@@ -58,6 +58,7 @@ sexpr ewhich (char **environment, sexpr programme)
         if (*x == ':')
         {
             *y = 0;
+            y = buffer;
             sexpr b = make_string (buffer);
             sexpr f = sx_join (b, str_slash, programme);
 
