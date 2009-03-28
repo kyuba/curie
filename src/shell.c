@@ -49,7 +49,7 @@ sexpr ewhich (char **environment, sexpr programme)
         }
     }
 
-    if (x == (char *)0) return sx_false;
+    if (x == (char *)0) x = "/bin:/sbin";
 
     y = buffer;
 
