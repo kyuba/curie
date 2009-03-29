@@ -35,7 +35,6 @@
 sexpr ewhich (char **environment, sexpr programme)
 {
     define_string (str_slash, "/");
-    sexpr t;
     char *x = (char *)0, *y, buffer[BUFFERSIZE];
 
     for (int i = 0; environment[i]; i++)
