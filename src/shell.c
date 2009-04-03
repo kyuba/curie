@@ -52,23 +52,31 @@ sexpr ewhich (char **environment, sexpr programme)
 
     y = buffer;
 
-    while ((*x != 0) && (y < (buffer + BUFFERSIZE - 1)))
+    while (y < (buffer + BUFFERSIZE - 1))
     {
-        if (*x == ':')
+        if ((*x == ':') || ((*x) == 0))
         {
-            *y = 0;
-            y = buffer;
-            sexpr b = make_string (buffer);
-            sexpr f = sx_join (b, str_slash, programme);
-
-            sx_destroy (b);
-
-            if (truep (linkp (f)))
+            if (y != buffer) /* have at least one character */
             {
-                return f;
+                *y = 0;
+                y = buffer;
+                sexpr b = make_string (buffer);
+                sexpr f = sx_join (b, str_slash, programme);
+
+                sx_destroy (b);
+
+                if (truep (linkp (f)))
+                {
+                    return f;
+                }
+
+                sx_destroy (f);
             }
 
-            sx_destroy (f);
+            if ((*x) == 0)
+            {
+                return sx_false;
+            }
         }
         else
         {
