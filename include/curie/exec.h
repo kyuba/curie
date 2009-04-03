@@ -104,7 +104,7 @@ struct exec_context {
      */
     enum process_status status;
 
-    /*! \brief An IO Context to write Data to the Process's stdin
+    /*! \brief An IO Context to read Data from the Process's stdout
      *
      *  Usually sockets are used for this IO context, so you shouldn't fear any
      *  SIGPIPEs. Then again, if you use the process multiplexer, you need not
@@ -114,7 +114,7 @@ struct exec_context {
      */
     /*@null@*/ /*@only@*/ struct io *in;
 
-    /*! \brief An IO Context to read Data from the Process's stdout
+    /*! \brief An IO Context to write Data to the Process's stdin
      *
      *  Usually sockets are used for this IO context, so you shouldn't fear any
      *  SIGPIPEs. Then again, if you use the process multiplexer, you need not
