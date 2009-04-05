@@ -41,7 +41,7 @@
         ("temporary-sexpr-write" . "tests/reference/sexpr-write"))
 
   (documentation
-        "description" "icemake"))
+        "description"))
 
 (library "curie++" libcurie
   (name "Curie++")
@@ -67,7 +67,11 @@
 
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
         "icemake-link" "icemake-crosslink" "icemake-post-process"
-        "icemake-documentation"))
+        "icemake-documentation")
+
+  (documentation
+        "description"))
+
 
 (library "syscall" libcurie
   (name "libsyscall")
