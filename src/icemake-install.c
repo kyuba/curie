@@ -104,6 +104,9 @@ static void install_close (struct io *in, void *aux)
 static void loop_install()
 {
     struct stat st;
+    sx_write (stdio, cons (sym_phase, cons (sym_install, sx_end_of_list)));
+    int fo = 0;
+    count_print_items();
 
     while (consp (workstack))
     {
@@ -117,10 +120,16 @@ static void loop_install()
             source = car (target);
             target = cdr (target);
 
+            sx_write (stdio, cons (sym_symlink,
+                      cons (source, cons (target, sx_end_of_list))));
+
             symlink (sx_string(source), sx_string(target));
         }
         else if (stat (sx_string (source), &st) == 0)
         {
+            sx_write (stdio, cons (sym_install,
+                      cons (source, cons (target, sx_end_of_list))));
+
             mkdir_p (target);
 
             files_open++;
@@ -137,8 +146,17 @@ static void loop_install()
 
     while (files_open > 0)
     {
+        if (fo != files_open)
+        {
+            fo = files_open;
+            sx_write (stdio, cons (sym_items_remaining,
+                      cons (make_integer (files_open), sx_end_of_list)));
+        }
+
         multiplex();
     }
+
+    sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
 }
 
 static sexpr get_library_install_path (sexpr name)
@@ -249,6 +267,29 @@ static sexpr get_documentation_install_path (sexpr name, sexpr file, sexpr versi
             snprintf (buffer, BUFFERSIZE, "%s/generic/doc/%s-%s/%s.%s",
                       sx_string(i_destdir), sx_string(name),
                       sx_string (version), sx_string (file), suffix);
+            return make_string (buffer);
+            break;
+    }
+
+    return sx_false;
+}
+
+static sexpr get_documentation_man_install_path (sexpr file, sexpr section)
+{
+    char buffer[BUFFERSIZE];
+    const char *s = sx_symbol (section);
+
+    switch (i_fsl)
+    {
+        case fs_fhs:
+        case fs_fhs_binlib:
+            snprintf (buffer, BUFFERSIZE, "%s/share/man/%s/%s.%c",
+                      sx_string(i_destdir), s, sx_string(file), s[3]);
+            return make_string (buffer);
+            break;
+        case fs_proper:
+            snprintf (buffer, BUFFERSIZE, "%s/generic/man/%s/%s.%c",
+                      sx_string(i_destdir), s, sx_string(file), s[3]);
             return make_string (buffer);
             break;
     }
@@ -495,6 +536,13 @@ static void install_documentation_with_suffix (sexpr name, struct target *t, sex
     }
 }
 
+static void install_documentation_man (sexpr name, struct target *t, sexpr file, sexpr abbr, sexpr section)
+{
+    workstack = cons (cons (file,
+                            get_documentation_man_install_path (abbr, section)),
+                      workstack);
+}
+
 static void install_documentation (sexpr name, struct target *t)
 {
     sexpr c = t->documentation;
@@ -505,12 +553,23 @@ static void install_documentation (sexpr name, struct target *t)
         sexpr c3 = cdr(c2);
         sexpr c4 = car(c3);
 
-        install_documentation_with_suffix (name, t, c4, "pdf");
-        install_documentation_with_suffix (name, t, c4, "dvi");
-        install_documentation_with_suffix (name, t, c4, "ps");
-        install_documentation_with_suffix (name, t, c4, "eps");
-        install_documentation_with_suffix (name, t, c4, "html");
+        if (truep(equalp(car(c2), sym_man)))
+        {
+            sexpr c5 = cdr(c3);
+            sexpr filename = car(c5);
+            sexpr c7 = cdr(c5);
+            sexpr section = car(c7);
 
+            install_documentation_man (name, t, filename, c4, section);
+        }
+        else
+        {
+            install_documentation_with_suffix (name, t, c4, "pdf");
+            install_documentation_with_suffix (name, t, c4, "dvi");
+            install_documentation_with_suffix (name, t, c4, "ps");
+            install_documentation_with_suffix (name, t, c4, "eps");
+            install_documentation_with_suffix (name, t, c4, "html");
+        }
         c = cdr (c);
     }
 }
@@ -554,11 +613,7 @@ static void do_install_target(struct target *t)
 
     install_headers (t->name, t);
     install_support_files (t->name, t);
-
-    if (do_build_documentation)
-    {
-        install_documentation (t->name, t);
-    }
+    install_documentation (t->name, t);
 }
 
 static void install_target (const char *target)

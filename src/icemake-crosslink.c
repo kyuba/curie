@@ -78,5 +78,6 @@ static void target_map_cross_link (struct tree_node *node, void *u)
 
 void crosslink_objects ()
 {
+    sx_write (stdio, cons (sym_cross_link, sx_end_of_list));
     tree_map (&targets, target_map_cross_link, (void *)0);
 }

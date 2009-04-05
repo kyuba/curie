@@ -41,7 +41,7 @@
         ("temporary-sexpr-write" . "tests/reference/sexpr-write"))
 
   (documentation
-        "description"))
+        "description" "icemake"))
 
 (library "curie++" libcurie
   (name "Curie++")

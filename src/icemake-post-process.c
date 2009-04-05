@@ -92,6 +92,8 @@ static void target_map_post_process (struct tree_node *node, void *u)
 
 void post_process (sexpr buildtargets)
 {
+    sx_write (stdio, cons (sym_phase, cons (sym_post_process, sx_end_of_list)));
+
     sexpr cursor = buildtargets;
     if (eolp(cursor))
     {

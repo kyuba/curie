@@ -137,6 +137,8 @@ static void build_documentation_target (const char *target)
 
 void build_documentation (sexpr buildtargets)
 {
+    sx_write (stdio, cons (sym_phase, cons (sym_build_documentation, sx_end_of_list)));
+
     sexpr cursor = buildtargets;
     if (eolp(cursor))
     {

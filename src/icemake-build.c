@@ -511,6 +511,8 @@ static void target_map_build (struct tree_node *node, void *u)
 
 void build (sexpr buildtargets)
 {
+    sx_write (stdio, cons (sym_phase, cons (sym_build, sx_end_of_list)));
+
     sexpr cursor = buildtargets;
     sexpr use_objects = sx_end_of_list;
 

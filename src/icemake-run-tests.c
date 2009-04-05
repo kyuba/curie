@@ -122,6 +122,8 @@ static void run_tests_target (const char *target)
 
 void run_tests (sexpr buildtargets)
 {
+    sx_write (stdio, cons (sym_phase, cons (sym_run_tests, sx_end_of_list)));
+
     sexpr cursor = buildtargets;
     if (eolp(cursor))
     {

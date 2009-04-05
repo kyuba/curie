@@ -576,11 +576,52 @@ static sexpr find_documentation_tex (sexpr file)
 
 static void find_documentation (struct target *context, sexpr file)
 {
+    define_symbol (sym_man1, "man1");
+    define_symbol (sym_man2, "man2");
+    define_symbol (sym_man3, "man3");
+    define_symbol (sym_man4, "man4");
+    define_symbol (sym_man5, "man5");
+    define_symbol (sym_man6, "man6");
+    define_symbol (sym_man7, "man7");
+    define_symbol (sym_man8, "man8");
+
     sexpr r;
 
     if ((r = find_documentation_tex (file)), stringp(r))
     {
         context->documentation = cons(cons(sym_tex, cons (file, r)), context->documentation);
+    }
+    else if ((r = find_documentation_with_suffix (file, ".1")), stringp(r))
+    {
+        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man1, sx_end_of_list)))), context->documentation);
+    }
+    else if ((r = find_documentation_with_suffix (file, ".2")), stringp(r))
+    {
+        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man2, sx_end_of_list)))), context->documentation);
+    }
+    else if ((r = find_documentation_with_suffix (file, ".3")), stringp(r))
+    {
+        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man3, sx_end_of_list)))), context->documentation);
+    }
+    else if ((r = find_documentation_with_suffix (file, ".4")), stringp(r))
+    {
+        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man4, sx_end_of_list)))), context->documentation);
+    }
+    else if ((r = find_documentation_with_suffix (file, ".5")), stringp(r))
+    {
+        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man5, sx_end_of_list)))), context->documentation);
+    }
+    else if ((r = find_documentation_with_suffix (file, ".6")), stringp(r))
+    {
+        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man6, sx_end_of_list)))), context->documentation);
+    }
+    else if ((r = find_documentation_with_suffix (file, ".7")), stringp(r))
+    {
+        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man7, sx_end_of_list)))), context->documentation);
+    }
+    else if ((r = find_documentation_with_suffix (file, ".8")), stringp(r))
+    {
+        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man8, sx_end_of_list)))), context->documentation);
     }
     else
     {
@@ -1138,6 +1179,10 @@ static void process_on_death(struct exec_context *context, void *p)
 
             exit (24);
         }
+        else
+        {
+            sx_write (stdio, cons (sym_completed, cons (sx, sx_end_of_list)));
+        }
 
         free_exec_context (context);
     }
@@ -1159,6 +1204,10 @@ static void process_on_death_nokill(struct exec_context *context, void *p)
 
             failures++;
         }
+        else
+        {
+            sx_write (stdio, cons (sym_completed, cons (sx, sx_end_of_list)));
+        }
 
         free_exec_context (context);
     }
@@ -1172,7 +1221,7 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
     char odir[BUFFERSIZE];
     int c = 0;
 
-    sx_write (stdio, sx);
+    sx_write (stdio, cons (sym_execute, cons (sx, sx_end_of_list)));
 
     if (truep(equalp(cf, sym_chdir)))
     {
@@ -1319,8 +1368,22 @@ static void initialise_libcurie()
     }
 }
 
+void count_print_items()
+{
+    int count = 0;
+    for (sexpr cur = workstack; consp (cur); count++, cur = cdr (cur));
+
+    if (count > 0)
+    {
+        sx_write (stdio, cons (sym_items_total,
+                               cons (make_integer (count), sx_end_of_list)));
+    }
+}
+
 void loop_processes()
 {
+    count_print_items();
+
     spawn_stack_items (process_on_death);
 
     while (alive_processes > 0)
@@ -1328,10 +1391,14 @@ void loop_processes()
         multiplex();
         spawn_stack_items (process_on_death);
     }
+
+    sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
 }
 
 void loop_processes_nokill()
 {
+    count_print_items();
+
     spawn_stack_items (process_on_death_nokill);
 
     while (alive_processes > 0)
@@ -1339,6 +1406,8 @@ void loop_processes_nokill()
         multiplex();
         spawn_stack_items (process_on_death_nokill);
     }
+
+    sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
 }
 
 int main (int argc, char **argv, char **environ)
@@ -1655,10 +1724,12 @@ int main (int argc, char **argv, char **environ)
 
     sx_close_io (io);
 
-    sx_write (stdio, buildtargets);
+    if (!eolp (buildtargets))
+    {
+        sx_write (stdio, cons (sym_targets, buildtargets));
+    }
 
     crosslink_objects ();
-
     build (buildtargets);
     ice_link (buildtargets);
     post_process (buildtargets);

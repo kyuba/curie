@@ -1,0 +1,209 @@
+.TH ICEMAKE 1 "APRIL 2009" Curie "Curie Developers Manual"
+
+.SH NAME
+icemake \- curie build and installation tool
+
+.SH SYNOPSIS
+.B icemake -h|--help
+
+.BI "icemake [-cDfiLorRsSx] [-t " chost "] [-z " version "]"
+.BI "[-d " destdir "] [-b " name "] [-l "
+.IB libdir "] [-j " num "] [" targets "]"
+
+.SH DESCRIPTION
+.B icemake
+is used to build programmes, libraries and documentation for curie and non-curie
+programmes. The configuration file for icemake does not allow for much
+flexibility in the layout of the source directory, which may be seen as a
+disadvantage or an advantage, depending on your point of view. Either way it
+does make sure that all repositories using icemake have a similar structure and
+it should thus make browsing sources easier.
+
+.SH OPTIONS
+Note that the options may be concatenated in a slightly unusual manner:
+parameters that require an argument will always use the "next free" argument,
+quite similar to the
+.BR tar (1)
+utility. This may seem unusual when compared to other programmes. If you find it
+confusing, simply always separate arguments with parameters from arguments
+without.
+
+.IP "-h, --help"
+Print a short summary of the options, then exit.
+
+.IP "-c"
+Use GCCs
+.B --combine
+option for C source file compilation. This may improve certain optimisations.
+
+.IP "-D"
+Use debug code files (which need to be in an appriate debug/ directory) instead
+of the normal code files, when available.
+
+.IP "-f"
+When installing, use the FHS layout, or at least the subtype encountered under
+/usr.
+
+.IP "-i"
+After compilation and testing, install the generated programmes, libraries,
+documentation and auxiliary files, along with appropriate bundled data and
+documentation files.
+
+.IP "-L"
+Pass special optimisation flags to the linker. This is similar to running the
+.BR strip (1)
+utility on generated programmes, however the resulting link may be even smaller
+as the linker may have more data available to it.
+
+.IP "-o"
+Do not link dynamic libraries. This simply disables linking of .so files and
+generation of the .pic.o files. It does not necessarily influence linking
+against shared objects already present on the target system.
+
+.IP "-r"
+Execute library runtime tests. This option will build and execute runtime tests
+for libraries specified in the icemake.sx file.
+
+.IP "-R"
+Enforce a dynamic link, as opposed to the (default) static link.
+
+.IP "-s"
+Use the AFSL-style filesystem layout for installation. This is the default, even
+though you may quite realistically want to instruct icemake to use the FHS
+layout instead.
+
+.IP "-S"
+Enforce a static link; this is the default, as for curie programmes it usually
+results in the smallest possible runtime memory use.
+
+.IP "-x"
+Build documentation, provided that the necessary tools are available.
+
+.IP "-t chost"
+Specify the target for the build. If unspecified, an appropriate target string
+is built from the information obtained by
+.BR uname (2)
+, otherwise this string is used. This influences the search for appropriate
+compiler binaries.
+
+.IP "-z version"
+Similar to the
+.B -t
+option, this specifies the version of the toolchain to use, if more than one is
+installed and the toolchain binaries are suffixed with the version.
+
+.IP "-d destdir"
+Tell icemake where to install the resulting binaries to.
+
+.IP "-b name"
+Use a slightly modified FHS layout for installation: binaries end up in
+.IB destdir / libdir / name /bin/
+instead of the plain old
+.IB destdir /bin/
+which would be the default location.
+
+.IP "-l libdir"
+Specify the library directory to install to. This defaults to
+.B lib
+and it only makes sense to specify this with the FHS layout.
+
+.IP "-j num"
+Specify the number of programmes to run concurrently. This may greatly speed up
+compilation times, but it may also introduce unusual issues, so by default only
+one programme is launched concurrently. Installation is, however, always done
+in parallel, that is, all files are being read from and written to at more or
+less the same time.
+
+.IP "targets"
+This is a list of targets to build. Obviously only targets defined in icemake.sx
+are allowed.
+
+.SH FILES
+.I icemake.sx
+.RS
+Build data file. See
+.BR icemake.sx (5)
+for further details.
+.RE
+
+.SH ENVIRONMENT
+The following environment variables affect the build process:
+
+.IP CFLAGS
+The flags in this variable are added to the command line of C compiler
+invocations.
+
+.IP CXXFLAGS
+The flags in this variable are added to the command line of C++ compiler
+invocations.
+
+.IP LDFLAGS
+The flags in this variable are added to the command line of linker invocations.
+Note that for gcc, ld is not invoked directly but instead gcc is being invoked,
+so that the LDFLAGS maybe need to use the
+.B -Wl,
+switch for exotic linker flags.
+
+.SH DIAGNOSTICS
+The following issues are known:
+
+.IP "EAGAIN, 'Resource not available', in programmes calling icemake"
+This is especially prevalent with programmes like portage. Icemake puts its
+stdout into non-blocking mode, and poorly designed programmes that do not expect
+to receive an EAGAIN message while trying to read from icemake's stdout may
+choke on this.
+
+.SH BUGS
+.I Build Process
+.RS
+icemake may be unable to link libraries and programmes in the right order, and
+instead rely on the order in the icemake.sx file.
+
+icemake will also fail to detect changed header files and will not re-build
+programme and library files using these modified header files automatically. If
+you modify header files, it may be best to completely erase the build/ directory
+and to call icemake again.
+
+icemake is currently limited to the gcc toolchain. Other toolchains require
+additional code to be added to icemake.
+
+Building for non-unixy systems will, at the very least, get filenames wrong and
+will require the build.sh file to be rewritten as, for example, a windows
+command/batch script, or it will require a manually built version of icemake, or
+cross-compilation.
+
+Linking C++ programmes may result in minor havoc, due to the weird linking
+requirements for C++ programmes exposed by g++ and the utter lack of a proper
+way to tell g++ that one wishes to build a freestanding programme. This also
+results in icemake always linking C++ programmes against the host C library,
+even if curie is properly standalone.
+
+Cross-compilation may or may not work, but in general this tool should at least
+be able to find the proper compiler binaries and use them, if the
+.B -t
+option is being used, and each target gets its own directory under build/*/.
+.RE
+
+.I Testing
+.RS
+icemake may try to link tests for libraries before having completely linked the
+library they are supposed to test. This erratic behaviour is usually triggered
+by the
+.B -j
+option.
+.RE
+
+.I Installation
+.RS
+icemake is currently unable to install the documentation generated by the
+doxygen tool automatically, so you need to copy this data manually. This is in
+part due to icemake not being able to parse the doxygen file and thus being
+completely in the dark as to what documentation is being built and where it is
+being put.
+.RE
+
+.SH AUTHOR
+Magnus Deininger <magnus.deininger@student.uni-tuebingen.de>
+
+.SH SEE ALSO
+.BR icemake.sx (5)

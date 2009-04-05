@@ -582,6 +582,8 @@ static void target_map_link (struct tree_node *node, void *u)
 
 void ice_link (sexpr buildtargets)
 {
+    sx_write (stdio, cons (sym_phase, cons (sym_link, sx_end_of_list)));
+
     sexpr cursor = buildtargets;
     if (eolp(cursor))
     {

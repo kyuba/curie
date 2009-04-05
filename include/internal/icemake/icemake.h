@@ -368,6 +368,8 @@ define_symbol (sym_cpp_pic,             "C++-PIC");
 /*! \brief Predefined Symbol */
 define_symbol (sym_tex,                 "TeX");
 /*! \brief Predefined Symbol */
+define_symbol (sym_man,                 "man");
+/*! \brief Predefined Symbol */
 define_symbol (sym_libc,                "libc");
 /*! \brief Predefined Symbol */
 define_symbol (sym_libcurie,            "libcurie");
@@ -401,6 +403,30 @@ define_symbol (sym_doxygen,             "doxygen");
 define_symbol (sym_chdir,               "chdir");
 /*! \brief Predefined Symbol */
 define_symbol (sym_symlink,             "symlink");
+/*! \brief Predefined Symbol */
+define_symbol (sym_install,             "install");
+/*! \brief Predefined Symbol */
+define_symbol (sym_items_remaining,     "items-remaining");
+/*! \brief Predefined Symbol */
+define_symbol (sym_items_total,         "items-total");
+/*! \brief Predefined Symbol */
+define_symbol (sym_completed,           "completed");
+/*! \brief Predefined Symbol */
+define_symbol (sym_phase,               "phase");
+/*! \brief Predefined Symbol */
+define_symbol (sym_build,               "build");
+/*! \brief Predefined Symbol */
+define_symbol (sym_build_documentation, "build-documentation");
+/*! \brief Predefined Symbol */
+define_symbol (sym_run_tests,           "run-tests");
+/*! \brief Predefined Symbol */
+define_symbol (sym_cross_link,          "cross-link");
+/*! \brief Predefined Symbol */
+define_symbol (sym_post_process,        "post-process");
+/*! \brief Predefined Symbol */
+define_symbol (sym_execute,             "execute");
+/*! \brief Predefined Symbol */
+define_symbol (sym_targets,             "targets");
 
 /*! \brief Predefined String */
 define_string (str_bootstrap,           "bootstrap");
@@ -532,6 +558,13 @@ void loop_processes ();
  *  how many have failed and finally return that. This is used for test cases.
  */
 void loop_processes_nokill ();
+
+/*! \brief Count Workstack Items
+ *
+ *  This function will count the number of workstack items and print them to
+ *  stdio as "(items-total X)", if there's more than one item.
+ */
+void count_print_items ();
 
 #endif
 
