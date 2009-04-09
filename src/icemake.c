@@ -1678,6 +1678,13 @@ int main (int argc, char **argv, char **environ)
 
     multiplex_add_sexpr (stdio, (void *)0, (void *)0);
 
+#ifdef POSIX
+    /* reset the effects of setting non-blocking mode in curie, this should fix
+    the portage crash on gentoo. */
+
+    for (int fd = 0; fd < 3; fd++) fcntl(fd, F_SETFL, 0);
+#endif
+
     initialise_libcurie();
 
     if (nilp(in_dynamic_libraries))
@@ -1748,13 +1755,6 @@ int main (int argc, char **argv, char **environ)
     {
         install (buildtargets);
     }
-
-#ifdef POSIX
-    /* reset the effects of setting non-blocking mode in curie, this should fix
-       the portage crash on gentoo. */
-
-    for (int fd = 0; fd < 3; fd++) fcntl(fd, F_SETFL, 0);
-#endif
 
     return failures;
 }
