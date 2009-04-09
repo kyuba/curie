@@ -762,7 +762,11 @@ define_syscall5 (__NR_mount, mount, sys_mount, long, char *, char *, char *, uns
 #endif
 #ifdef __NR_umount
 #define have_sys_umount
-define_syscall2 (__NR_umount, umount, sys_umount, long, char *, int)
+define_syscall1 (__NR_umount, umount, sys_umount, long, char *)
+#endif
+#ifdef __NR_umount2
+#define have_sys_umount2
+define_syscall2 (__NR_umount2, umount2, sys_umount2, long, char *, int)
 #endif
 #ifdef __NR_swapon
 #define have_sys_swapon
