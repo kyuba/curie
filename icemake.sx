@@ -70,8 +70,7 @@
         "icemake-documentation")
 
   (documentation
-        "description"))
-
+        "icemake"))
 
 (library "syscall" libcurie
   (name "libsyscall")
