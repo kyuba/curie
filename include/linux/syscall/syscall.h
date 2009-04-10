@@ -132,6 +132,10 @@ define_syscall4 (__NR_rt_sigaction, rt_sigaction, sys_rt_sigaction, long, int, v
 #define have_sys_rt_sigprocmask
 define_syscall4 (__NR_rt_sigprocmask, rt_sigprocmask, sys_rt_sigprocmask, long, int, void *, void *, int)
 #endif
+#ifdef __NR_sigprocmask
+#define have_sys_sigprocmask
+define_syscall3 (__NR_sigprocmask, sigprocmask, sys_sigprocmask, long, int, void *, void *)
+#endif
 #ifdef __NR_rt_sigreturn
 #define have_sys_rt_sigreturn
 define_syscall0 (__NR_rt_sigreturn, rt_sigreturn, sys_rt_sigreturn, int)
