@@ -285,7 +285,7 @@ static void mx_sx_on_connect
 }
 
 /*@-memtrans -branchstate@*/
-void multiplex_add_socket_listener_sx (const char *path, void (*on_connect)(struct sexpr_io *, void *), void *data) {
+void multiplex_add_socket_sx (const char *path, void (*on_connect)(struct sexpr_io *, void *), void *data) {
     struct mx_sx_payload *d = (struct mx_sx_payload *)get_pool_mem (&mx_sx_payload_pool);
 
     if (d != (struct mx_sx_payload *)0)
@@ -315,7 +315,7 @@ struct sexpr_io *sx_open_socket (const char *path) {
     return sx_open_io (in, out);
 }
 
-void multiplex_add_socket_sx (const char *path, void (*on_read)(sexpr, struct sexpr_io *, void *), void *d) {
+void multiplex_add_socket_client_sx (const char *path, void (*on_read)(sexpr, struct sexpr_io *, void *), void *d) {
     struct sexpr_io *io = sx_open_socket(path);
     if (io != (struct sexpr_io *)0)
         multiplex_add_sexpr (io, on_read, d);

@@ -71,7 +71,7 @@ void net_open_socket (/*@notnull@*/ const char *path,
 /*! \brief Accept Connections on Network Sockets
  *
  *  Call this function before using either multiplex_add_socket() or
- *  multiplex_add_socket_listener_sx().
+ *  multiplex_add_socket_sx().
  */
 void multiplex_network();
 
@@ -104,7 +104,7 @@ void multiplex_add_socket
  *  \note The sexpr_io structure isn't added to the s-expression multiplexer
  *        automatically, you'll have to do that yourself.
  */
-void multiplex_add_socket_listener_sx
+void multiplex_add_socket_sx
         (/*@notnull@*/ const char *path,
          /*@notnull@*/ void (*on_connect)(struct sexpr_io *, void *),
          /*@null@*/ void *aux);
@@ -125,7 +125,7 @@ void multiplex_add_socket_listener_sx
  *
  *  Same as multiplex_add_sexpr, but it opens the given socket and uses that.
  */
-void multiplex_add_socket_sx
+void multiplex_add_socket_client_sx
         (/*@notnull@*/ const char *path,
          /*@null@*/ void (*on_read)(/*@shared@*/ sexpr, struct sexpr_io *, void *),
          /*@null@*/ void *aux);
