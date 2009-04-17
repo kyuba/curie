@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,40 +26,22 @@
  * THE SOFTWARE.
 */
 
-#include <curie/main.h>
-#include <curie/sexpr.h>
 #include <curie/memory.h>
-#include <curie/multiplex.h>
 
-static struct sexpr_io *queue;
-static struct io *queue_io;
-
-sexpr sxm1337 = make_integer (-1337);
-
-static void mx_sx_queue_read (sexpr sx, struct sexpr_io *io, void *aux)
+static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
 {
-    if (truep (equalp (sx, sxm1337))) cexit (0);
-    sx_destroy (sx);
+    cexit(22); /* never reached */
+    return (void *)0;
 }
 
-int cmain()
+static void *gm_recover(unsigned long int s)
 {
-    terminate_on_allocation_errors();
+    cexit(23);
+    return (void *)0; /* never reached */
+}
 
-    queue_io = io_open_special();
-
-    queue    = sx_open_io    (queue_io, queue_io);
-
-    sx_write (queue, sxm1337);
-    if (falsep(equalp(sx_read(queue), sxm1337))) return 1;
-
-    multiplex_sexpr();
-
-    multiplex_add_sexpr (queue, mx_sx_queue_read, (void *)0);
-
-    sx_write (queue, sxm1337);
-
-    while (multiplex() == mx_ok);
-
-    return 2;
+void terminate_on_allocation_errors()
+{
+    set_resize_mem_recovery_function(rm_recover);
+    set_get_mem_recovery_function(gm_recover);
 }

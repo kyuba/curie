@@ -82,6 +82,21 @@ void set_get_mem_recovery_function
 void set_resize_mem_recovery_function
         (/*@null@*/ void *(*handler)(unsigned long int, void *, unsigned long int));
 
+/*! \brief Terminate Programme when Allocation Fails
+ *
+ *  This sets the get_mem() and resize_mem() recovery functions to a default
+ *  function that will simply terminate the programme. Use this in cases where
+ *  it's extremely unlikely that the functions would fail (like... well...
+ *  all the time) but you still want to be certain that a defined state is
+ *  going to be present all the time.
+ *
+ *  \note Remember that if you write a library function, you MUST always check
+ *        whether allocation worked and, if not, deallocate all previously
+ *        allocated resources and return a proper, defined indication of the
+ *        issue.
+ */
+void terminate_on_allocation_errors();
+
 /*! @} */
 
 /*! \defgroup memoryBlocks Block Allocation

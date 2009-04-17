@@ -13,7 +13,8 @@
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
         "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
-        "directory" "directory-common" "libc-compat" "utf-8" "shell")
+        "directory" "directory-common" "libc-compat" "utf-8" "shell"
+        "memory-error-handling")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
