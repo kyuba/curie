@@ -102,6 +102,18 @@ sexpr p_doxygen                        = sx_false;
 
 struct sexpr_io *stdio;
 
+static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
+{
+    exit(22);
+    return (void *)0;
+}
+
+static void *gm_recover(unsigned long int s)
+{
+    exit(23);
+    return (void *)0;
+}
+
 static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
 {
     char buffer[BUFFERSIZE];
@@ -1410,7 +1422,8 @@ int main (int argc, char **argv, char **environ)
 
     xenviron = environ;
 
-    terminate_on_allocation_errors();
+    set_resize_mem_recovery_function(rm_recover);
+    set_get_mem_recovery_function(gm_recover);
 
     if (stat ("icemake.sx", &st) != 0)
     {
