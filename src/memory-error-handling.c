@@ -27,6 +27,7 @@
 */
 
 #include <curie/memory.h>
+#include <curie/main.h>
 
 static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
 {
