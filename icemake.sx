@@ -50,21 +50,18 @@
   (version "8")
   (url "http://kyuba.org/")
 
-  (code "memory++" "io++" "libc++-compat" "graph++" "tree++")
+  (code "memory++" "libc++-compat")
 
   (headers
-        "int" "io" "multiplex" "sexpr" "tree" "graph" "regex")
+        "int")
 
   (test-cases
-        "objects" "exceptions" "graph++" "tree++")
-
-  (test-case-reference
-    ("temporary-graph" . "tests/reference/graph")))
+        "objects" "exceptions"))
 
 (programme "icemake" hosted libcurie
   (name "ICE make")
   (description "simple build tool for curie, based on curie")
-  (version "3")
+  (version "4")
 
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
         "icemake-link" "icemake-crosslink" "icemake-post-process"
