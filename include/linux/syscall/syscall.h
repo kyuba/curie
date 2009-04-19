@@ -1282,43 +1282,43 @@ define_syscall2 (__NR_socketcall, socketcall, sys_socketcall, long, unsigned lon
 #ifndef define_socketcall0
 #define define_socketcall0(a,b,c,r)\
 static inline r c ()\
-{ unsigned long sc_tmp[6]= { (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+{ unsigned long sc_tmp[6]= { (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; return sys_socketcall((unsigned long)a, sc_tmp); }
 #endif
 
 #ifndef define_socketcall1
 #define define_socketcall1(a,b,c,r,a1)\
 static inline r c (a1 p1)\
-{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; return sys_socketcall((unsigned long)a, sc_tmp); }
 #endif
 
 #ifndef define_socketcall2
 #define define_socketcall2(a,b,c,r,a1,a2)\
 static inline r c (a1 p1, a2 p2)\
-{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)0, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; return sys_socketcall((unsigned long)a, sc_tmp); }
 #endif
 
 #ifndef define_socketcall3
 #define define_socketcall3(a,b,c,r,a1,a2,a3)\
 static inline r c (a1 p1, a2 p2, a3 p3)\
-{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)0, (unsigned long)0, (unsigned long)0 }; return sys_socketcall((unsigned long)a, sc_tmp); }
 #endif
 
 #ifndef define_socketcall4
 #define define_socketcall4(a,b,c,r,a1,a2,a3,a4)\
 static inline r c (a1 p1, a2 p2, a3 p3, a4 p4)\
-{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)p4, (unsigned long)0, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)p4, (unsigned long)0, (unsigned long)0 }; return sys_socketcall((unsigned long)a, sc_tmp); }
 #endif
 
 #ifndef define_socketcall5
 #define define_socketcall5(a,b,c,r,a1,a2,a3,a4,a5)\
 static inline r c (a1 p1, a2 p2, a3 p3, a4 p4, a5 p5)\
-{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)p4, (unsigned long)p5, (unsigned long)0 }; sys_socketcall((unsigned long)a, sc_tmp); }
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)p4, (unsigned long)p5, (unsigned long)0 }; return sys_socketcall((unsigned long)a, sc_tmp); }
 #endif
 
 #ifndef define_socketcall6
 #define define_socketcall6(a,b,c,r,a1,a2,a3,a4,a5,a6)\
 static inline r c (a1 p1, a2 p2, a3 p3, a4 p4, a5 p5, a6 p6)\
-{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)p4, (unsigned long)p5, (unsigned long)p6 }; sys_socketcall((unsigned long)a, sc_tmp); }
+{ unsigned long sc_tmp[6]= { (unsigned long)p1, (unsigned long)p2, (unsigned long)p3, (unsigned long)p4, (unsigned long)p5, (unsigned long)p6 }; return sys_socketcall((unsigned long)a, sc_tmp); }
 #endif
 
 #ifndef have_sys_socket
