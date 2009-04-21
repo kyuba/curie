@@ -59,6 +59,10 @@ curie_environment:
 /* rdi rsi rdx r10 r8 r9 */
 
 _start:
+/* play dat funkeh music white boy */
+        xor     %rbp, %rbp;
+        and     $~15, %rsp;
+
 /* parse argv */
         popq    %rbx
         inc     %rbx
