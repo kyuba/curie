@@ -59,10 +59,9 @@ curie_environment:
 
 _start:
 /* play dat funkeh music white boy */
-        xorq    %rbp, %rbp;
-
-        movq    %rsp, %r11;
-        addq    $0x8, %r11;
+        xorq    %rbp, %rbp
+        movq    %rsp, %r11
+        addq    $0x8, %r11
         movq    %r11, curie_argv(%rip)
         movq    (%rsp), %rbx
         incq    %rbx
