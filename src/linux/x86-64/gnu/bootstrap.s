@@ -61,7 +61,6 @@ curie_environment:
 _start:
 /* play dat funkeh music white boy */
         xor     %rbp, %rbp;
-        and     $~15, %rsp;
 
 /* parse argv */
         popq    %rbx
@@ -110,6 +109,9 @@ redo_environment:
 environment_done_prematurely:
         movq    $0, (%rax)
 environment_done:
+
+/* we align here so we don't break argv/envp parsing */
+        and     $~15, %rsp;
 
         call cmain
         movq %rax, %rdi
