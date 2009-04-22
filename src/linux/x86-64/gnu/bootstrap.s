@@ -26,7 +26,7 @@
  * THE SOFTWARE.
 */
 
-.section .data
+.data
 
 .globl curie_argv
     .type curie_argv, @object
@@ -40,7 +40,7 @@ curie_argv:
 curie_environment:
         .quad 0x0
 
-.section    .text
+.text
     .align 8
 
 .globl _start
@@ -68,6 +68,5 @@ _start:
 cexit:
         movq    $0x3c, %rax /* sys_exit */
         syscall
-        hlt
 
 .section .note.GNU-stack,"",%progbits
