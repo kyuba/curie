@@ -26,43 +26,37 @@
  * THE SOFTWARE.
 */
 
-.globl curie_argv
-        .data
-        .type curie_argv, @object
-        .size curie_argv, 8
+.section .data
 
+.globl curie_argv
+    .type curie_argv, @object
+    .size curie_argv, 8
 curie_argv:
         .quad 0x0
 
 .globl curie_environment
-        .data
-        .type curie_environment, @object
-        .size curie_environment, 8
-
+    .type curie_environment, @object
+    .size curie_environment, 8
 curie_environment:
         .quad 0x0
 
-.text
-        .align 8
+.section    .text
+    .align 8
 
 .globl _start
+    .type _start,             @function
 .globl cexit
+    .type cexit,              @function
 
-.type _start,             @function
-.type cexit,              @function
-
-
-/* C-functions: */
-/* rdi rsi rdx rcx r8 r9 */
-/* kernel: */
-/* rdi rsi rdx r10 r8 r9 */
 
 _start:
-/* play dat funkeh music white boy */
+        /* play dat funkeh music white boy */
         xorq    %rbp, %rbp
+
         movq    %rsp, %r11
         addq    $0x8, %r11
         movq    %r11, curie_argv(%rip)
+
         movq    (%rsp), %rbx
         incq    %rbx
         imulq   $0x8, %rbx, %rbx
@@ -72,7 +66,7 @@ _start:
         call    cmain
         movq    %rax, %rdi
 cexit:
-        movq    $60, %rax /* sys_exit */
+        movq    $0x3c, %rax /* sys_exit */
         syscall
 
 .section .note.GNU-stack,"",%progbits
