@@ -45,12 +45,11 @@ curie_environment:
 .text
         .align 8
 
-.globl cmain
-        .type cmain,              @function
 .globl _start
-        .type _start,             @function
 .globl cexit
-        .type cexit,              @function
+
+.type _start,             @function
+.type cexit,              @function
 
 
 /* C-functions: */
@@ -60,63 +59,21 @@ curie_environment:
 
 _start:
 /* play dat funkeh music white boy */
-        xor     %rbp, %rbp;
+        xorq    %rbp, %rbp;
 
-/* parse argv */
-        popq    %rbx
-        inc     %rbx
-        movq    $8, %rax
-        mulq    %rbx
+        movq    %rsp, %r11;
+        addq    $0x8, %r11;
+        movq    %r11, curie_argv(%rip)
+        movq    (%rsp), %rbx
+        incq    %rbx
+        imulq   $0x8, %rbx, %rbx
+        addq    %rbx, %r11
+        movq    %r11, curie_environment(%rip)
 
+        call    cmain
         movq    %rax, %rdi
-
-        call    aalloc
-
-        movq    %rax, curie_argv(%rip)
-
-redo_argv:
-        popq    %rcx
-        movq    %rcx, (%rax)
-        cmpq    $0x0, %rcx
-        jz      argv_done
-        addq    $8, %rax
-
-        jmp     redo_argv
-
-argv_done:
-
-/* parse envp */
-        movq    $0x1000, %rdi
-
-        call    get_mem
-
-        movq    %rax, curie_environment(%rip)
-        movq    $0x1fe, %r11
-
-redo_environment:
-        popq    %rcx
-        movq    %rcx, (%rax)
-        cmpq    $0x0, %rcx
-        jz      environment_done
-
-        addq    $8, %rax
-
-        dec     %r11
-        jz      environment_done_prematurely
-
-        jmp     redo_environment
-
-environment_done_prematurely:
-        movq    $0, (%rax)
-environment_done:
-
-/* we align here so we don't break argv/envp parsing */
-        and     $~15, %rsp;
-
-        call cmain
-        movq %rax, %rdi
 cexit:
-        movq $60, %rax /* sys_exit */
+        movq    $60, %rax /* sys_exit */
         syscall
 
 .section .note.GNU-stack,"",%progbits
