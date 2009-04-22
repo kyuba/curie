@@ -44,33 +44,10 @@ a_open_directory:
     /* %rdi is inherited from the callee */
     movq $2, %rax /* sys_open */
     movq $0x10800, %rsi /* O_RDONLY | O_NONBLOCK | O_DIRECTORY */
-    jmp syscall_with_cleanup
+    jmp __sccl
 
 a_getdents64:
     movq $217, %rax /* sys_getdents64 */
-
-syscall_with_cleanup:
-    pushq   %rbp
-    movq    %rsp, %rbp
-
-    syscall
-    cmp $0, %rax
-    js negative_result
-    leave
-    ret
-negative_result:
-    cmp $-11, %rax /* EAGAIN, as well as EWOULDBLOCK*/
-    jz recoverable
-    cmp $-4, %rax /* EINTR */
-    jz recoverable
-    movb $0, last_error_recoverable_p(%rip)
-    movq $-1, %rax
-    leave
-    ret
-recoverable:
-    movb $1, last_error_recoverable_p(%rip)
-    movq $-1, %rax
-    leave
-    ret
+    jmp __sccl
 
 .section .note.GNU-stack,"",%progbits

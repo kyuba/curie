@@ -49,6 +49,7 @@ last_error_recoverable_p:
 .globl  a_lstat
 .globl  a_make_nonblocking
 .globl  a_unlink
+.globl  __sccl
 
 .type a_read,                    @function
 .type a_write,                   @function
@@ -62,6 +63,7 @@ last_error_recoverable_p:
 .type a_lstat,                   @function
 .type a_make_nonblocking,        @function
 .type a_unlink,                  @function
+.type __sccl,                    @function
 
 /* C-functions: */
 /* rdi rsi rdx rcx r8 r9 */
@@ -70,64 +72,65 @@ last_error_recoverable_p:
 
 a_read:
     movq $0, %rax /* sys_read */
-    jmp syscall_with_cleanup
+    jmp _localsccl
 
 a_write:
     movq $1, %rax /* sys_write */
-    jmp syscall_with_cleanup
+    jmp _localsccl
 
 a_open_read:
     /* %rdi is inherited from the callee */
     movq $2, %rax /* sys_open */
     movq $0x800, %rsi /* O_RDONLY | O_NONBLOCK */
-    jmp syscall_with_cleanup
+    jmp _localsccl
 
 a_open_write:
     /* %rdi is inherited from the callee */
     movq $2, %rax /* sys_open */
     movq $0x841, %rsi /* O_WRONLY | O_NONBLOCK | O_CREAT */
     movq $0x1b6, %rdx
-    jmp syscall_with_cleanup
+    jmp _localsccl
 
 a_close:
     /* %rdi is inherited from the callee */
     movq $3, %rax /* sys_close */
-    jmp syscall_with_cleanup
+    jmp _localsccl
 
 a_create:
     /* %rdi is inherited from the callee */
     movq $2, %rax /* sys_open */
     movq %rsi, %rdx
     movq $0x841, %rsi /* O_WRONLY | O_NONBLOCK | O_CREAT */
-    jmp syscall_with_cleanup
+    jmp _localsccl
 
 a_dup:
     /* %rdi and %si are inherited from the callee */
     movq $33, %rax /* sys_dup2 */
-    jmp syscall_with_cleanup
+    jmp _localsccl
 
 a_dup_n:
     movq $32, %rax /* sys_dup */
-    jmp syscall_with_cleanup
+    jmp _localsccl
 
 a_stat:
     movq $4, %rax /* sys_newstat */
-    jmp syscall_with_cleanup
+    jmp _localsccl
 
 a_lstat:
     movq $6, %rax /* sys_newlstat */
-    jmp syscall_with_cleanup
+    jmp _localsccl
 
 a_make_nonblocking:
     movq $72, %rax /* sys_fcntl */
     movq $4, %rsi /* F_SETFL */
     movq $0x800, %rdx /* O_NONBLOCK */
-    jmp syscall_with_cleanup
+    jmp _localsccl
 
 a_unlink:
     movq $87, %rax /* sys_unlink */
 
-syscall_with_cleanup:
+_localsccl:
+__sccl:
     pushq   %rbp
     movq    %rsp, %rbp
 
