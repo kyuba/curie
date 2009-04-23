@@ -26,49 +26,40 @@
  * THE SOFTWARE.
 */
 
+.data
 .globl curie_argv
-        .data
-        .type curie_argv, @object
-        .size curie_argv, 4
-
+    .type curie_argv, @object
+    .size curie_argv, 4
 curie_argv:
         .long 0x0
 
 .globl curie_environment
-        .data
-        .type curie_environment, @object
-        .size curie_environment, 4
-
+    .type curie_environment, @object
+    .size curie_environment, 4
 curie_environment:
         .long 0x0
 
 .text
-        .align 8
+    .align 8
 
-.globl cmain
-        .type cmain,              @function
 .globl _start
-        .type _start,             @function
+    .type _start,             @function
 .globl cexit
-        .type cexit,              @function
+    .type cexit,              @function
 
 _start:
         /* Fox! Clear the frame pointer! */
         xorl    %ebp, %ebp
 
-        /* The frame pointer is cleared; argc is in %esi and argv is
-         * perched neatly on top of the stack. Don't prod it, for it
-         * is quick to anger and could may maul your face. CRIKEY! */
-        popl    %esi
         movl    %esp, %ecx
+        addl    $0x04, %ecx
+        movl    %ecx, $curie_argv
 
-        /* Remember that the stack can be finicky. Like woman, when one
-           disturbs the specimen unnecessarily, results can be violent 
-           and likely fatal. Push top of stack anyway along with argc 
-           and argv respectively, and hope for the best. */
-        pushl   %esp
-        pushl   %ecx
-        pushl   %esi
+        movl    (%esp), %esi
+        incl    %esi
+        imull   $0x04, %esi, %esi
+        addl    %esi, %ecx
+        movl    %ecx, $curie_environment
 
         call    cmain
 
@@ -77,6 +68,5 @@ _start:
 cexit:
         movl    $1, %eax /* sys_exit */
         int     $0x80
-        ret
 
 .section .note.GNU-stack,"",%progbits
