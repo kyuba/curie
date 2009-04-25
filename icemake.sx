@@ -62,7 +62,7 @@
     ("temporary-graph" . "tests/reference/graph")))
 
 (programme "icemake" hosted libcurie
-  (name "ICE make")
+  (name "icemake")
   (description "simple build tool for curie, based on curie")
   (version "5")
 
@@ -72,6 +72,14 @@
 
   (documentation
         "icemake"))
+
+(programme "ice" libcurie
+  (name "ice")
+  (description "Pretty-printing tool for icemake")
+  (version "1")
+  (libraries "syscall")
+
+  (code "ice"))
 
 (library "syscall" libcurie
   (name "libsyscall")
