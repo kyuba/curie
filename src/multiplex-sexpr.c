@@ -37,8 +37,6 @@ struct io_element {
     /*@temp@*/ void *data;
 };
 
-static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct io_element));
-
 void multiplex_sexpr ()
 {
     static char installed = (char)0;
@@ -76,7 +74,9 @@ static void mx_on_close (/*@unused@*/ struct io *r, /*@only@*/ void *d)
 /*@-mustfree@*/
 void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(sexpr, struct sexpr_io *, void *), void *data)
 {
-    struct io_element *element = get_pool_mem (&list_pool);
+    static struct memory_pool pool
+            = MEMORY_POOL_INITIALISER(sizeof (struct io_element));
+    struct io_element *element = get_pool_mem (&pool);
 
     if (element == (struct io_element *)0) return;
 

@@ -48,8 +48,6 @@ struct io_list {
     /*@only@*/ struct io_list *next;
 };
 
-static struct memory_pool list_pool
-         = MEMORY_POOL_INITIALISER(sizeof (struct io_list));
 /*@only@*/ /*@null@*/ static struct io_list *list = (struct io_list *)0;
 
 /*@-branchstate@*/
@@ -261,7 +259,10 @@ void multiplex_io () {
 
 /*@-nullstate -mustfree@*/
 void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void (*on_close)(struct io *, void *), void *data) {
-    struct io_list *list_element = get_pool_mem (&list_pool);
+    static struct memory_pool pool
+            = MEMORY_POOL_INITIALISER(sizeof (struct io_list));
+
+    struct io_list *list_element = get_pool_mem (&pool);
 
     if (list_element == (struct io_list *)0) return;
 

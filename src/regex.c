@@ -282,19 +282,19 @@ struct nfa_state
     struct nfa_state *next;
 };
 
-static struct memory_pool nfa_pool =
-        MEMORY_POOL_INITIALISER (sizeof(struct nfa_state));
-
 static void rx_match_add_nfa_state
     (struct nfa_state **s, struct graph_node *n, unsigned int p)
 {
+    static struct memory_pool pool =
+            MEMORY_POOL_INITIALISER (sizeof(struct nfa_state));
+
     /* don't add nfa states that are already in the list */
     for (struct nfa_state *c = *s; c != (struct nfa_state *)0; c = c->next)
     {
         if ((c->n == n) && (c->p == p)) return;
     }
 
-    struct nfa_state *ns = get_pool_mem (&nfa_pool);
+    struct nfa_state *ns = get_pool_mem (&pool);
 
     ns->n = n;
     ns->p = p;
@@ -422,10 +422,13 @@ sexpr rx_match_sx (struct graph *g, sexpr sx)
 
 sexpr rx_match (struct graph *g, const char *s)
 {
+    static struct memory_pool pool =
+            MEMORY_POOL_INITIALISER (sizeof(struct nfa_state));
+
     sexpr rv = sx_false;
 
     struct graph_node *n = graph_search_node (g, sx_nil);
-    struct nfa_state *ns = get_pool_mem (&nfa_pool);
+    struct nfa_state *ns = get_pool_mem (&pool);
 
     if (n == (struct graph_node *)0) return sx_false;
 

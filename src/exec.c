@@ -35,16 +35,16 @@
 
 #define MAXFD 1024
 
-static struct memory_pool
-  exec_context_pool = MEMORY_POOL_INITIALISER(sizeof(struct exec_context));
-
 /*@-usedef@*/
 struct exec_context *execute(unsigned int options,
                              char **command,
                              char **environment)
 {
+    static struct memory_pool
+            pool = MEMORY_POOL_INITIALISER(sizeof(struct exec_context));
+
     struct exec_context *context =
-        (struct exec_context *)get_pool_mem(&exec_context_pool);
+            (struct exec_context *)get_pool_mem(&pool);
     int pid, i, retries = 0;
     struct io *proc_stdout_in, *proc_stdout_out,
               *proc_stdin_in,  *proc_stdin_out;

@@ -45,12 +45,8 @@ struct mx_sx_payload {
     /*@shared@*/ void *data;
 };
 
-static struct memory_pool list_pool
-        = MEMORY_POOL_INITIALISER(sizeof (struct net_socket_listener));
 /*@null@*/ static struct net_socket_listener *list
         = (struct net_socket_listener *)0;
-static struct memory_pool mx_sx_payload_pool
-        = MEMORY_POOL_INITIALISER(sizeof (struct mx_sx_payload));
 
 static enum multiplex_result mx_f_count(int *r, int *w);
 static void mx_f_augment(int *rs, int *r, int *ws, int *w);
@@ -251,7 +247,9 @@ void multiplex_add_socket (const char *path, void (*on_connect)(struct io *, str
     int fd;
 
     if (a_open_listen_socket (&fd, path) == io_complete) {
-        struct net_socket_listener *l = get_pool_mem (&list_pool);
+        static struct memory_pool pool
+                = MEMORY_POOL_INITIALISER(sizeof (struct net_socket_listener));
+        struct net_socket_listener *l = get_pool_mem (&pool);
 
         if (l == (struct net_socket_listener *)0) return;
 
@@ -286,7 +284,9 @@ static void mx_sx_on_connect
 
 /*@-memtrans -branchstate@*/
 void multiplex_add_socket_sx (const char *path, void (*on_connect)(struct sexpr_io *, void *), void *data) {
-    struct mx_sx_payload *d = (struct mx_sx_payload *)get_pool_mem (&mx_sx_payload_pool);
+    static struct memory_pool pool
+            = MEMORY_POOL_INITIALISER(sizeof (struct mx_sx_payload));
+    struct mx_sx_payload *d = (struct mx_sx_payload *)get_pool_mem (&pool);
 
     if (d != (struct mx_sx_payload *)0)
     {

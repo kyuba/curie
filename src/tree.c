@@ -30,12 +30,10 @@
 #include <curie/tree.h>
 #include <curie/immutable.h>
 
-static struct memory_pool tree_root_pool = MEMORY_POOL_INITIALISER(sizeof (struct tree));
-static struct memory_pool tree_node_pool = MEMORY_POOL_INITIALISER(sizeof (struct tree_node));
-static struct memory_pool tree_node_pointer_pool = MEMORY_POOL_INITIALISER(sizeof (struct tree_node_pointer));
-
 struct tree * tree_create () {
-    struct tree *tree = (struct tree *)get_pool_mem(&tree_root_pool);
+    static struct memory_pool pool
+            = MEMORY_POOL_INITIALISER(sizeof (struct tree));
+    struct tree *tree = (struct tree *)get_pool_mem(&pool);
 
     if (tree == (struct tree *)0)
     {
@@ -109,7 +107,9 @@ static void tree_add_node_to_tree
 
 void tree_add_node (struct tree *tree, int_pointer key)
 {
-    struct tree_node *node = (struct tree_node *)get_pool_mem(&tree_node_pool);
+    static struct memory_pool pool
+            = MEMORY_POOL_INITIALISER(sizeof (struct tree_node));
+    struct tree_node *node = (struct tree_node *)get_pool_mem(&pool);
 
     if (node == (struct tree_node *)0) return;
 
@@ -118,8 +118,10 @@ void tree_add_node (struct tree *tree, int_pointer key)
 
 void tree_add_node_value (struct tree *tree, int_pointer key, void *value)
 {
+    static struct memory_pool pool
+            = MEMORY_POOL_INITIALISER(sizeof (struct tree_node_pointer));
     struct tree_node_pointer * node
-            = (struct tree_node_pointer *)get_pool_mem(&tree_node_pointer_pool);
+            = (struct tree_node_pointer *)get_pool_mem(&pool);
 
     if (node == (struct tree_node_pointer *)0) return;
 

@@ -34,14 +34,14 @@
 
 #include <curie/sexpr-internal.h>
 
-static struct memory_pool sx_io_pool = MEMORY_POOL_INITIALISER(sizeof (struct sexpr_io));
-
 static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx);
 /*@notnull@*/ /*@shared@*/ static sexpr sx_read_dispatch
         (unsigned int *i, char *buf, unsigned int length);
 
 struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
-    struct sexpr_io *rv = get_pool_mem (&sx_io_pool);
+    static struct memory_pool pool
+            = MEMORY_POOL_INITIALISER(sizeof (struct sexpr_io));
+    struct sexpr_io *rv = get_pool_mem (&pool);
 
     if (rv == (struct sexpr_io *)0)
     {

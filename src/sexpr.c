@@ -31,14 +31,14 @@
 #include <curie/string.h>
 #include <curie/tree.h>
 
-static struct memory_pool sx_cons_pool =
-        MEMORY_POOL_INITIALISER(sizeof (struct sexpr_cons));
-
 static struct tree sx_string_tree = TREE_INITIALISER;
 static struct tree sx_symbol_tree = TREE_INITIALISER;
 
 sexpr cons(sexpr sx_car, sexpr sx_cdr) {
-    struct sexpr_cons *rv = get_pool_mem (&sx_cons_pool);
+    static struct memory_pool pool =
+            MEMORY_POOL_INITIALISER(sizeof (struct sexpr_cons));
+
+    struct sexpr_cons *rv = get_pool_mem (&pool);
 
     if (rv == (struct sexpr_cons *)0)
     {

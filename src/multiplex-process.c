@@ -40,7 +40,6 @@ struct exec_cx {
 };
 
 static struct exec_cx *elements = (struct exec_cx *)0;
-static struct memory_pool list_pool = MEMORY_POOL_INITIALISER(sizeof (struct exec_cx));
 static char multiplexer_installed = (char)0;
 
 /*@-memtrans@*/
@@ -114,7 +113,9 @@ void multiplex_all_processes () {
 
 /*@-mustfree@*/
 void multiplex_add_process (struct exec_context *context, void (*on_death)(struct exec_context *, void *), void *data) {
-    struct exec_cx *element = get_pool_mem (&list_pool);
+    static struct memory_pool pool
+            = MEMORY_POOL_INITIALISER(sizeof (struct exec_cx));
+    struct exec_cx *element = get_pool_mem (&pool);
 
     if (element == (struct exec_cx *)0) return;
 
