@@ -44,7 +44,7 @@
 #define SIGNAL_MAX_NUM sig_winch
 
 void a_set_signal_handler (enum signal signal,
-                           /*@notnull@*/ void (*handler)(enum signal signal));
+                           void (*handler)(enum signal signal));
 void a_kill (enum signal signal, int pid);
 int a_getpid ();
 

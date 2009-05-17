@@ -112,7 +112,7 @@ struct exec_context {
      *
      *  \note This is undefined when using the EXEC_CALL_NO_IO flag.
      */
-    /*@null@*/ /*@only@*/ struct io *in;
+    struct io *in;
 
     /*! \brief An IO Context to write Data to the Process's stdin
      *
@@ -122,7 +122,7 @@ struct exec_context {
      *
      *  \note This is undefined when using the EXEC_CALL_NO_IO flag.
      */
-    /*@null@*/ /*@only@*/ struct io *out;
+    struct io *out;
 };
 
 /*! \brief Execute a new Process
@@ -137,10 +137,8 @@ struct exec_context {
  *  command is (char **)0, the function essentially just forks instead of
  *  running a programme.
  */
-/*@null@*/ /*@only@*/
 struct exec_context *execute
-        (unsigned int options, /*@notnull@*/ char **command,
-         /*@notnull@*/ char **environment);
+        (unsigned int options, char **command, char **environment);
 
 /*! \brief Update an exec_context Structure
  *  \param[in] context The context to update.
@@ -149,7 +147,7 @@ struct exec_context *execute
  *  described with the given context.
  */
 void check_exec_context
-        (/*@notnull@*/ struct exec_context *context);
+        (struct exec_context *context);
 
 /*! \brief Free an exec_context Structure
  *  \param[in] context The context to free.
@@ -159,7 +157,7 @@ void check_exec_context
  *  perform a wait on that child process.
  */
 void free_exec_context
-        (/*@notnull@*/ /*@only@*/ struct exec_context *context);
+        (struct exec_context *context);
 
 #ifdef __cplusplus
 }

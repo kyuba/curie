@@ -51,12 +51,10 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr) {
 
     rv->header.references = 1;
 
-    /*@-memtrans -mustfree@*/
     return (sexpr)rv;
-    /*@=memtrans =mustfree@*/
 }
 
-/*@shared@*/ static sexpr make_string_or_symbol
+static sexpr make_string_or_symbol
         (const char *string, char symbol)
 {
     struct sexpr_string_or_symbol *s;
@@ -90,9 +88,7 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr) {
     s->header.references = 1;
     s->header.type = (symbol == (char)1) ? sxt_symbol : sxt_string;
 
-    /*@-memtrans -mustfree@*/
     return (sexpr)s;
-    /*@=memtrans =mustfree@*/
 }
 
 sexpr make_string(const char *string) {

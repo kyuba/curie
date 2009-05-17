@@ -70,7 +70,7 @@ extern "C" {
  *  result is returned instead of the (void *)0 that get_mem() would return.
  */
 void set_get_mem_recovery_function
-        (/*@null@*/ void *(*handler)(unsigned long int));
+        (void *(*handler)(unsigned long int));
 
 /*! \brief Define resize_mem() Recovery Function
  *  \param[in] handler Pointer to the recovery function.
@@ -80,7 +80,7 @@ void set_get_mem_recovery_function
  *  return.
  */
 void set_resize_mem_recovery_function
-        (/*@null@*/ void *(*handler)(unsigned long int, void *, unsigned long int));
+        (void *(*handler)(unsigned long int, void *, unsigned long int));
 
 /*! \brief Terminate Programme when Allocation Fails
  *
@@ -126,7 +126,7 @@ void terminate_on_allocation_errors();
  *  need small amounts of memory, using this function wastes memory. On the
  *  other hand, this function is usually very fast to allocate the memory.
  */
-/*@null@*/ /*@only@*/ void *get_mem
+void *get_mem
         (unsigned long int size);
 
 /*! \brief Resize Memory Block
@@ -141,10 +141,8 @@ void terminate_on_allocation_errors();
  *  is smaller than the current size, in which case the block's contents will be
  *  truncated.
  */
-/*@null@*/ /*@only@*/ void *resize_mem
-        (unsigned long int size,
-         /*@notnull@*/ /*@only@*/ /*@returned@*/ void * block,
-         unsigned long int newsize);
+void *resize_mem
+        (unsigned long int size, void *block, unsigned long int newsize);
 
 /*! \brief Free Memory Block
  *  \param[in] size  The size of the block.
@@ -154,7 +152,7 @@ void terminate_on_allocation_errors();
  *  further dereferences of the block are likely to trigger a SIGSEGV.
  */
 void free_mem
-        (unsigned long int size, /*@notnull@*/ /*@only@*/ void * block);
+        (unsigned long int size, void * block);
 
 /*! \brief Make Block of Memory read-only
  *  \param[in] size  The current size of the block.
@@ -165,7 +163,7 @@ void free_mem
  *  Probably not all operating systems support this, but it may help in
  *  tightening down memory access for those operating systems that do.
  */
-void mark_mem_ro (unsigned long int size, /*@notnull@*/ void *block);
+void mark_mem_ro (unsigned long int size, void *block);
 
 /*! \brief Make Block of Memory writable
  *  \param[in] size  The current size of the block.
@@ -173,7 +171,7 @@ void mark_mem_ro (unsigned long int size, /*@notnull@*/ void *block);
  *
  *  Make the given block readable as well as writable. This is the default.
  */
-void mark_mem_rw (unsigned long int size, /*@notnull@*/ void *block);
+void mark_mem_rw (unsigned long int size, void *block);
 
 /*! \brief Make Block of Memory executable
  *  \param[in] size  The current size of the block.
@@ -181,7 +179,7 @@ void mark_mem_rw (unsigned long int size, /*@notnull@*/ void *block);
  *
  *  Make the given block readable as well as executable.
  */
-void mark_mem_rx (unsigned long int size, /*@notnull@*/ void *block);
+void mark_mem_rx (unsigned long int size, void *block);
 
 /*! \brief Allocate a Chunk of Memory
  *  \return Pointer to the newly allocated chunk of memory, or (void*)0 if the
@@ -190,7 +188,7 @@ void mark_mem_rx (unsigned long int size, /*@notnull@*/ void *block);
  *  Same as get_mem(), but it always allocates LIBCURIE_PAGE_SIZE bytes of
  *  memory.
  */
-/*@null@*/ /*@only@*/ void *get_mem_chunk();
+void *get_mem_chunk();
 
 /*! \brief Free Memory allocated by get_mem_chunk()
  *
@@ -276,7 +274,7 @@ struct memory_pool {
  *
  *  Initialises a new memory pool that returns elements of the given entitysize.
  */
-/*@null@*/ /*@only@*/ struct memory_pool *create_memory_pool
+struct memory_pool *create_memory_pool
         (unsigned long int entitysize);
 
 /*! \brief Free a Memory Pool
@@ -287,7 +285,7 @@ struct memory_pool {
  *  from it after this function has been called results in a segmentation
  *  violation.
  */
-void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *pool);
+void free_memory_pool (struct memory_pool *pool);
 
 /*! \brief Get Memory from Pool
  *  \param[in] pool The pool to allocate from.
@@ -297,8 +295,8 @@ void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *pool);
  *  This allocates an entity of pool's entitiy size from the given pool. It is
  *  up to the caller to remember how big entities in the pool are.
  */
-/*@null@*/ /*@only@*/ void *get_pool_mem
-        (/*@notnull@*/ struct memory_pool *pool);
+void *get_pool_mem
+        (struct memory_pool *pool);
 
 /*! \brief Free Memory allocated from a Memory Pool
  *  \param[in] entity The entity to deallocate.
@@ -307,7 +305,7 @@ void free_memory_pool (/*@notnull@*/ /*@only@*/ struct memory_pool *pool);
  *  allocations. The memory is not returned to the operating system immediately,
  *  it's only made available for subsequent allocations.
  */
-void free_pool_mem(/*@notnull@*/ /*@only@*/void *entity);
+void free_pool_mem(void *entity);
 
 /*! \brief Optimise Memory Pool
  *  \param[in] pool The pool to clean up.
@@ -316,7 +314,7 @@ void free_pool_mem(/*@notnull@*/ /*@only@*/void *entity);
  *  entities are still available. The memory associated with these frames is
  *  returned to the operating system.
  */
-void optimise_memory_pool (/*@notnull@*/ struct memory_pool *pool);
+void optimise_memory_pool (struct memory_pool *pool);
 
 /*! \brief Optimise Static Memory Pools
  *
@@ -349,7 +347,7 @@ void optimise_static_memory_pools();
  *  or a memory pool, depending on the size to allocate. If you're thinking
  *  malloc(), and you don't know how big your memory is going to be, use this.
  */
-/*@null@*/ /*@only@*/ void *aalloc
+void *aalloc
         (unsigned long size);
 
 /*! \brief Resize Memory
@@ -361,10 +359,8 @@ void optimise_static_memory_pools();
  *  This resizes the given block of memory from size to newsize. Only use this
  *  function for memory you've gotten from aalloc().
  */
-/*@null@*/ /*@only@*/ void *arealloc
-        (unsigned long size,
-         /*@notnull@*/ /*@only@*/ void *block,
-         unsigned long newsize);
+void *arealloc
+        (unsigned long size, void *block, unsigned long newsize);
 
 /*! \brief Free Memory
  *  \param[in] size  The current size of the block.
@@ -374,7 +370,7 @@ void optimise_static_memory_pools();
  *  size of the block, the memory may or may not be available to the operating
  *  system right after this call.
  */
-void afree (unsigned long size, /*@notnull@*/ /*@only@*/ void *block);
+void afree (unsigned long size, void *block);
 
 /*! @} */
 

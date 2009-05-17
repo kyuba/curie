@@ -44,13 +44,12 @@ struct io_list {
     struct io *io;
     void (*on_read)(struct io *, void *);
     void (*on_close)(struct io *, void *);
-    /*@temp@*/ void *data;
-    /*@only@*/ struct io_list *next;
+    void *data;
+    struct io_list *next;
 };
 
-/*@only@*/ /*@null@*/ static struct io_list *list = (struct io_list *)0;
+static struct io_list *list = (struct io_list *)0;
 
-/*@-branchstate@*/
 static enum multiplex_result mx_f_count(int *r, int *w) {
     struct io_list *l = list;
 
@@ -246,7 +245,6 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
         l = l->next;
     }
 }
-/*@=branchstate@*/
 
 void multiplex_io () {
     static char installed = (char)0;
@@ -257,7 +255,6 @@ void multiplex_io () {
     }
 }
 
-/*@-nullstate -mustfree@*/
 void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void (*on_close)(struct io *, void *), void *data) {
     static struct memory_pool pool
             = MEMORY_POOL_INITIALISER(sizeof (struct io_list));
@@ -288,14 +285,12 @@ void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void
         cx->next = list_element;
     }
 }
-/*@=nullstate =mustfree@*/
 
-void multiplex_add_io_no_callback (/*@notnull@*/ /*@only@*/ struct io *io)
+void multiplex_add_io_no_callback (struct io *io)
 {
     multiplex_add_io (io, (void *)0, (void *)0, (void *)0);
 }
 
-/*@-branchstate*/
 void multiplex_del_io (struct io *io) {
     struct io_list *l = list, **p;
 
@@ -333,4 +328,3 @@ void multiplex_del_io (struct io *io) {
 
     io_close (io);
 }
-/*@=branchstate*/

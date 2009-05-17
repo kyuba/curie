@@ -36,18 +36,14 @@
 #include <unistd.h>
 
 int a_fork() {
-    /*@-checkstrictglobs@*/
     return (int)fork();
-    /*@=checkstrictglobs@*/
 }
 
 enum wait_return a_wait(int pid, int *status) {
     int st = 0;
     enum wait_return r;
 
-    /*@-checkstrictglobs@*/
     (void)waitpid((pid_t)pid, &st, WNOHANG);
-    /*@=checkstrictglobs@*/
 
     if (WIFEXITED(st)) {
         r = wr_exited;
@@ -70,9 +66,7 @@ enum wait_return a_wait(int pid, int *status) {
 int a_wait_all(int *status) {
     int st, r;
 
-    /*@-checkstrictglobs@*/
     r = waitpid((pid_t)-1, &st, WNOHANG);
-    /*@=checkstrictglobs@*/
 
     if (WIFEXITED(st) != 0) {
         *status = WEXITSTATUS(st);
@@ -82,9 +76,7 @@ int a_wait_all(int *status) {
 }
 
 void a_exec(const char *image, char **argv, char **env) {
-    /*@-checkstrictglobs@*/
     (void)execve(image, argv, env);
-    /*@=checkstrictglobs@*/
 }
 
 int a_set_sid() {

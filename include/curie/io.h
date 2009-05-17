@@ -180,7 +180,7 @@ struct io {
      *  This is buffer is used to keep the data that was read, or to keep track
      *  of data that still needs to be written.
      */
-    /*@null@*/ /*@only@*/ char *buffer;
+    char *buffer;
 
     /*! \brief I/O Type
      *
@@ -233,7 +233,7 @@ struct io {
  *        parameters will set this automatically, but if it is done manually, it
  *        is important that this be set.
  */
-/*@null@*/ /*@only@*/ struct io *io_open
+struct io *io_open
         (int fd);
 
 
@@ -246,8 +246,8 @@ struct io {
  *  cannot be read from, a struct io is returned anyway, but it will have an
  *  fd of -1, which means it will be useless. The type is set to iot_read.
  */
-/*@null@*/ /*@only@*/ struct io *io_open_read
-        (/*@notnull@*/ const char *filename);
+struct io *io_open_read
+        (const char *filename);
 
 /*! \brief Open File for writing
  *  \param[in] filename The file to open for writing.
@@ -258,8 +258,8 @@ struct io {
  *  cannot be written to, a struct io is returned anyway, but it will have an
  *  fd of -1, which means it will be useless. The type is set to iot_write.
  */
-/*@null@*/ /*@only@*/ struct io *io_open_write
-        (/*@notnull@*/ const char *filename);
+struct io *io_open_write
+        (const char *filename);
 
 /*! \brief Open File for writing
  *  \param[in] filename The file to open for writing.
@@ -271,8 +271,8 @@ struct io {
  *  given mode. As usual, a struct io is always created even if the file could
  *  not be created, but in that case it will have an fd of -1.
  */
-/*@null@*/ /*@only@*/ struct io *io_open_create
-        (/*@notnull@*/ const char *filename, int mode);
+struct io *io_open_create
+        (const char *filename, int mode);
 
 /*! \brief Create Special I/O Structure
  *  \return A new struct io. (struct io *)0 is only returned for memory
@@ -286,7 +286,7 @@ struct io {
  *  Writing to the resulting IO structure will write to a memory-only buffer,
  *  reading from it will report io_changes once after each write operation.
  */
-/*@null@*/ /*@only@*/ struct io *io_open_special ();
+struct io *io_open_special ();
 
 /*! \brief Write Data to I/O Structure
  *  \param[in] io     The I/O structure to write data to.
@@ -298,8 +298,8 @@ struct io {
  *  calling io_commit().
  */
 enum io_result io_write
-        (/*@notnull@*/ struct io * io,
-         /*@notnull@*/ const char *data, unsigned int length);
+        (struct io * io,
+         const char *data, unsigned int length);
 
 /*! \brief Collect Data to write to I/O Structure
  *  \param[in] io     The I/O structure to write data to.
@@ -314,8 +314,8 @@ enum io_result io_write
  *  call, the buffer contents are discarded.
  */
 enum io_result io_collect
-        (/*@notnull@*/ struct io * io,
-         /*@notnull@*/ const char *data, unsigned int length);
+        (struct io * io,
+         const char *data, unsigned int length);
 
 /*! \brief Read Data into I/O structure
  *  \param[in] io The I/O structure to read from.
@@ -328,7 +328,7 @@ enum io_result io_collect
  *  data to the buffer.
  */
 enum io_result io_read
-        (/*@notnull@*/ struct io * io);
+        (struct io * io);
 
 /*! \brief Reclaim I/O Memory
  *  \param[in] io The I/O structure to flush.
@@ -337,7 +337,7 @@ enum io_result io_read
  *  while reading, and you'd like to get the buffer smaller.
  */
 void io_flush
-        (/*@notnull@*/ struct io * io);
+        (struct io * io);
 
 /*! \brief Commit pending Oprations
  *  \param[in] io The I/O structure whose data to commit.
@@ -352,7 +352,7 @@ void io_flush
  *  depending on the type of the io argument.
  */
 enum io_result io_commit
-        (/*@notnull@*/ struct io * io);
+        (struct io * io);
 
 /*! \brief Set state to io_finalising.
  *  \param[in] io The I/O structure to change.
@@ -369,7 +369,7 @@ enum io_result io_commit
  *  they flush out parts of the buffer.
  */
 enum io_result io_finish
-        (/*@notnull@*/ struct io * io);
+        (struct io * io);
 
 /*! \brief Close I/O structure.
  *  \param[in] io The I/O structure to close.
@@ -383,7 +383,7 @@ enum io_result io_finish
  *  this call will loop until there is nothing more to write.
  */
 void io_close
-        (/*@notnull@*/ /*@only@*/ struct io * io);
+        (struct io * io);
 
 #ifdef __cplusplus
 }

@@ -42,7 +42,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    int a_open_directory (/*@notnull@*/ const char *path);
+    int a_open_directory (const char *path);
     int a_getdents64 (unsigned int, void *, unsigned int);
 #ifdef __cplusplus
 }

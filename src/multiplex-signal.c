@@ -35,21 +35,19 @@
 struct handler {
     enum signal signal;
     enum signal_callback_result (*handler)(enum signal, void *);
-    /*@temp@*/ void *data;
-    /*@only@*/ struct handler *next;
+    void *data;
+    struct handler *next;
 };
 
-/*@null@*/ /*@only@*/ static struct handler *signal_handlers
+static struct handler *signal_handlers
         = (struct handler *)0;
 
-/*@-branchstate@*/
 static void invoke (enum signal signal) {
     struct handler *h = signal_handlers, *hp = (struct handler *)0;
 
     while (h != (struct handler *)0) {
         if ((h->signal == signal) &&
             (h->handler (signal, h->data) == scr_ditch)) {
-            /*@-mustfree*/
             if (hp == (struct handler *)0) {
                 signal_handlers = h->next;
                 afree (sizeof(struct handler), (void *)h);
@@ -59,7 +57,6 @@ static void invoke (enum signal signal) {
                 afree (sizeof(struct handler), (void *)h);
                 h = hp->next;
             }
-            /*@=mustfree*/
             continue;
         }
 
@@ -67,9 +64,8 @@ static void invoke (enum signal signal) {
         h = h->next;
     }
 }
-/*@=branchstate@*/
 
-static void queue_on_read (struct io *qin, /*@unused@*/ void *u) {
+static void queue_on_read (struct io *qin, void *u) {
     unsigned int position = (unsigned int)(qin->position / sizeof(enum signal)),
                  length   = (unsigned int)(qin->length / sizeof(enum signal));
 
@@ -85,9 +81,9 @@ static void queue_on_read (struct io *qin, /*@unused@*/ void *u) {
     qin->position = (unsigned int)(position * sizeof(enum signal));
 }
 
-/*@null@*/ /*@only@*/ static struct io *signal_queue = (struct io *)0;
+static struct io *signal_queue = (struct io *)0;
 
-static void queue_on_close (/*@unused@*/ struct io *qin, /*@unused@*/ void *u) {
+static void queue_on_close (struct io *qin, void *u) {
     signal_queue = io_open_special();
     if (signal_queue != (struct io *)0) {
         multiplex_add_io (signal_queue, queue_on_read, queue_on_close, (void *)0);
@@ -101,7 +97,6 @@ static void generic_signal_handler (enum signal signal) {
                     (unsigned int)sizeof(enum signal));
 }
 
-/*@-globstate -memtrans@*/
 void multiplex_signal () {
     static char installed = (char)0;
 
@@ -124,7 +119,6 @@ void multiplex_signal () {
         installed = (char)1;
     }
 }
-/*@=globstate =memtrans@*/
 
 void multiplex_add_signal (enum signal signal, enum signal_callback_result (*handler)(enum signal, void *), void *data) {
     struct handler *element = aalloc (sizeof(struct handler));
@@ -135,9 +129,7 @@ void multiplex_add_signal (enum signal signal, enum signal_callback_result (*han
     element->data = data;
     element->handler = handler;
 
-    /*@-mustfree@*/
     element->next = signal_handlers;
-    /*@=mustfree@*/
     signal_handlers = element;
 }
 

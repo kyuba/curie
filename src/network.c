@@ -35,17 +35,17 @@
 struct net_socket_listener
 {
     int socket;
-    /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *);
-    /*@shared@*/ void *data;
-    /*@null@*/ /*@only@*/ struct net_socket_listener *next;
+    void (*on_connect)(struct io *, struct io *, void *);
+    void *data;
+    struct net_socket_listener *next;
 };
 
 struct mx_sx_payload {
-    /*@notnull@*/ void (*on_connect)(struct sexpr_io *, void *);
-    /*@shared@*/ void *data;
+    void (*on_connect)(struct sexpr_io *, void *);
+    void *data;
 };
 
-/*@null@*/ static struct net_socket_listener *list
+static struct net_socket_listener *list
         = (struct net_socket_listener *)0;
 
 static enum multiplex_result mx_f_count(int *r, int *w);
@@ -59,7 +59,7 @@ static struct multiplex_functions mx_functions = {
     .next = (struct multiplex_functions *)0
 };
 
-static enum multiplex_result mx_f_count(int *r, /*@unused@*/ int *w) {
+static enum multiplex_result mx_f_count(int *r, int *w) {
     struct net_socket_listener *l = list;
 
     while (l != (struct net_socket_listener *)0) {
@@ -73,8 +73,7 @@ static enum multiplex_result mx_f_count(int *r, /*@unused@*/ int *w) {
     return mx_ok;
 }
 
-static void mx_f_augment(int *rs, int *r,
-                         /*@unused@*/ int *ws, /*@unused@*/ int *w)
+static void mx_f_augment(int *rs, int *r, int *ws, int *w)
 {
     struct net_socket_listener *l = list;
 
@@ -94,9 +93,7 @@ static void mx_f_augment(int *rs, int *r,
     }
 }
 
-/*@-branchstate -globstate -memtrans@*/
-static void mx_f_callback(int *rs, int r,
-                          /*@unused@*/ int *ws, /*@unused@*/ int w)
+static void mx_f_callback(int *rs, int r, int *ws, int w)
 {
     struct net_socket_listener *l = list, *p = (struct net_socket_listener *)0;
 
@@ -114,7 +111,6 @@ static void mx_f_callback(int *rs, int r,
                     {
                         fdw = a_dup_n (fdr);
                         if (fdw >= 0) {
-                            /*@-mustfree@*/
                             struct io *in, *out;
 
                             in = io_open (fdr);
@@ -129,27 +125,20 @@ static void mx_f_callback(int *rs, int r,
                             out->type = iot_write;
 
                             l->on_connect(in, out, l->data);
-                            /*@=mustfree@*/
                         } else {
                             (void)a_close (fdr);
                         }
                     } else if (res == io_unrecoverable_error) {
                         (void)a_close (rs[i]);
-                        /*@-nullderef -nullpass@*/
                         if (p == (struct net_socket_listener *)0) {
-                            /*@-mustfree@*/
                             list = l->next;
-                            /*@=mustfree@*/
                             free_pool_mem (l);
                             l = list->next;
                         } else {
-                            /*@-mustfree@*/
                             p->next = l->next;
-                            /*@=mustfree@*/
                             free_pool_mem (l);
                             l = p->next;
                         }
-                        /*@=nullderef =nullpass@*/
 
                         if (l != (struct net_socket_listener *)0)
                             goto next;
@@ -161,12 +150,9 @@ static void mx_f_callback(int *rs, int r,
         }
 
         p = l;
-        /*@-nullderef@*/
         l = l->next;
-        /*@=nullderef@*/
     }
 }
-/*@=branchstate =globstate =memtrans@*/
 
 void net_open_loop (struct io **in, struct io **out) {
     struct io *iin, *iout;
@@ -242,7 +228,6 @@ void multiplex_network() {
     }
 }
 
-/*@-memtrans -branchstate@*/
 void multiplex_add_socket (const char *path, void (*on_connect)(struct io *, struct io *, void *), void *data) {
     int fd;
 
@@ -257,32 +242,24 @@ void multiplex_add_socket (const char *path, void (*on_connect)(struct io *, str
         l->on_connect = on_connect;
         l->data = data;
 
-        /*@-mustfree@*/
         l->next = list;
-        /*@=mustfree@*/
 
         list = l;
     }
 }
-/*@=memtrans =branchstate@*/
 
 static void mx_sx_on_connect
-        (/*@only@*/ struct io *in,
-         /*@only@*/ struct io *out,
-         void *d)
+        (struct io *in, struct io *out, void *d)
 {
     struct mx_sx_payload *p = (struct mx_sx_payload *)d;
     struct sexpr_io *io = sx_open_io (in, out);
 
     if (io != (struct sexpr_io *)0)
     {
-        /*@-mustfree@*/
         p->on_connect(io, p->data);
-        /*@=mustfree@*/
     }
 }
 
-/*@-memtrans -branchstate@*/
 void multiplex_add_socket_sx (const char *path, void (*on_connect)(struct sexpr_io *, void *), void *data) {
     static struct memory_pool pool
             = MEMORY_POOL_INITIALISER(sizeof (struct mx_sx_payload));
@@ -293,12 +270,9 @@ void multiplex_add_socket_sx (const char *path, void (*on_connect)(struct sexpr_
         d->on_connect = on_connect;
         d->data = data;
 
-        /*@-mustfree@*/
         multiplex_add_socket (path, mx_sx_on_connect, (void *)d);
-        /*@=mustfree@*/
     }
 }
-/*@=memtrans =branchstate@*/
 
 struct sexpr_io *sx_open_socket (const char *path) {
     struct io *in, *out;

@@ -29,10 +29,6 @@
 #include <curie/string.h>
 #include <curie/memory.h>
 
-/*@-shiftimplementation +charint@*/
-/* markos' string hash function requires these. i'm totally not gonna muck
-   around with that :D */
-
 /* this hash function is based on this one:
  * http://www.azillionmonkeys.com/qed/hash.html */
 

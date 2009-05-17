@@ -35,16 +35,15 @@
 struct exec_cx {
     struct exec_context *context;
     void (*on_death)(struct exec_context *, void *);
-    /*@temp@*/ void *data;
+    void *data;
     struct exec_cx *next;
 };
 
 static struct exec_cx *elements = (struct exec_cx *)0;
 static char multiplexer_installed = (char)0;
 
-/*@-memtrans@*/
 static enum signal_callback_result sig_chld_signal_handler
-        (/*@unused@*/ enum signal signal, void *e)
+        (enum signal signal, void *e)
 {
     struct exec_cx *cx = (struct exec_cx *)e;
 
@@ -59,12 +58,11 @@ static enum signal_callback_result sig_chld_signal_handler
 
     return scr_keep;
 }
-/*@=memtrans@*/
 
 /* this is a combined handler that should be nicer on the resources, but it has
    the disadvantage of reaping all child processes. */
 static enum signal_callback_result sig_chld_combined_handler
-        (/*@unused@*/ enum signal signal, void *e)
+        (enum signal signal, void *e)
 {
     int pid, q;
 
@@ -111,7 +109,6 @@ void multiplex_all_processes () {
     }
 }
 
-/*@-mustfree@*/
 void multiplex_add_process (struct exec_context *context, void (*on_death)(struct exec_context *, void *), void *data) {
     static struct memory_pool pool
             = MEMORY_POOL_INITIALISER(sizeof (struct exec_cx));
@@ -147,4 +144,3 @@ void multiplex_add_process (struct exec_context *context, void (*on_death)(struc
         }
     }
 }
-/*@=mustfree@*/

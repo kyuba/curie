@@ -52,7 +52,7 @@ struct tree {
      *
      *  Root node for a BST.
      */
-    /*@null@*/ /*@only@*/ struct tree_node * root;
+    struct tree_node * root;
 };
 
 /*! \brief BST Node
@@ -64,13 +64,13 @@ struct tree_node {
      *
      *  This points to the next node to the left of the current node.
      */
-    /*@null@*/ /*@only@*/ struct tree_node * left;
+    struct tree_node * left;
 
     /*! \brief Right Branch
      *
      *  This points to the next node to the right of the current node.
      */
-    /*@null@*/ /*@only@*/ struct tree_node * right;
+    struct tree_node * right;
 
     /*! \brief Node Key
      *
@@ -89,13 +89,13 @@ struct tree_node_pointer {
      *
      *  This points to the next node to the left of the current node.
      */
-    /*@null@*/ /*@only@*/ struct tree_node * left;
+    struct tree_node * left;
 
     /*! \brief Right Branch
      *
      *  This points to the next node to the right of the current node.
      */
-    /*@null@*/ /*@only@*/ struct tree_node * right;
+    struct tree_node * right;
 
     /*! \brief Node Key
      *
@@ -107,7 +107,7 @@ struct tree_node_pointer {
      *
      *  The node's value, or payload.
      */
-    /*@null@*/ /*@dependent@*/ void *value;
+    void *value;
 };
 
 /*! \brief Static Tree Initialiser
@@ -123,7 +123,7 @@ struct tree_node_pointer {
  *
  *  Create and initialise a new tree without any nodes.
  */
-/*@null@*/ /*@only@*/ struct tree * tree_create ();
+struct tree * tree_create ();
 
 /*! \brief Destroy a Tree
  *  \param[in] tree The tree to destroy.
@@ -133,7 +133,7 @@ struct tree_node_pointer {
  *  killed.
  */
 void tree_destroy
-        (/*@notnull@*/ /*@only@*/ struct tree *tree);
+        (struct tree *tree);
 
 /*! \brief Create Tree Node
  *  \param[in] tree The tree to add the node to.
@@ -143,7 +143,7 @@ void tree_destroy
  *  given tree.
  */
 void tree_add_node
-        (/*@notnull@*/ struct tree *tree, int_pointer key);
+        (struct tree *tree, int_pointer key);
 
 /*! \brief Create Tree Node with Value
  *  \param[in] tree The tree to add the node to.
@@ -154,9 +154,9 @@ void tree_add_node
  *  value.
  */
 void tree_add_node_value
-        (/*@notnull@*/ struct tree * tree,
+        (struct tree * tree,
          int_pointer key,
-         /*@null@*/ /*@dependent@*/ void *aux);
+         void *aux);
 
 /*! \brief Search for a Tree Node
  *  \param[in] tree The tree to search in.
@@ -166,8 +166,8 @@ void tree_add_node_value
  *
  *  Searches the given tree for a node with the given key. 
  */
-/*@null@*/ /*@shared@*/ struct tree_node * tree_get_node
-        (/*@notnull@*/ struct tree *tree,
+struct tree_node * tree_get_node
+        (struct tree *tree,
          int_pointer key);
 
 /*! \brief Remove a (specific) Tree Node
@@ -181,9 +181,7 @@ void tree_add_node_value
  *  this would be of significance if a tree had the same key more than once.
  */
 void tree_remove_node_specific
-        (/*@notnull@*/ struct tree *tree,
-         int_pointer key,
-         /*@null@*/ struct tree_node *node);
+        (struct tree *tree, int_pointer key, struct tree_node *node);
 
 /*! \brief Remove a Tree Node
  *  \param[in] t The tree to remove the node from.
@@ -216,9 +214,7 @@ void tree_remove_node_specific
  *  well. The exact order in which the elements are mapped is undefined.
  */
 void tree_map
-        (/*@notnull@*/ struct tree *tree,
-         /*@notnull@*/ void (*f)(struct tree_node *, void *),
-         /*@null@*/ void *aux);
+        (struct tree *tree, void (*f)(struct tree_node *, void *), void *aux);
 
 /*! \brief Create Tree Node with a String Key
  *  \param[in] tree The tree to add the node to.
@@ -229,8 +225,7 @@ void tree_map
  *  in the tree.
  */
 void tree_add_node_string
-        (/*@notnull@*/ struct tree *tree,
-         /*@observer@*/ /*@notnull@*/ char *key);
+        (struct tree *tree, char *key);
 
 /*! \brief Create Tree Node with a String Key and Value
  *  \param[in] tree The tree to add the node to.
@@ -242,9 +237,7 @@ void tree_add_node_string
  *  match up in the tree.
  */
 void tree_add_node_string_value
-        (/*@notnull@*/ struct tree *tree,
-         /*@observer@*/ /*@notnull@*/ char *key,
-         /*@null@*/ /*@dependent@*/ void *aux);
+        (struct tree *tree, char *key, void *aux);
 
 /*! \brief Search for a Tree Node with a String Key
  *  \param[in] tree The tree to search in.
@@ -256,9 +249,8 @@ void tree_add_node_string_value
  *  is hashed, so that two strings with different addresses will still match up
  *  in the tree.
  */
-/*@null@*/ /*@shared@*/ struct tree_node * tree_get_node_string
-        (/*@notnull@*/ struct tree *tree,
-         /*@observer@*/ /*@notnull@*/ char *key);
+struct tree_node * tree_get_node_string
+        (struct tree *tree, char *key);
 
 /*! \brief Remove a (specific) Tree Node with a String Key
  *  \param[in] tree The tree to remove the node from.
@@ -270,9 +262,7 @@ void tree_add_node_string_value
  *  still match up in the tree.
  */
 void tree_remove_node_string_specific
-        (/*@notnull@*/ struct tree *tree,
-         /*@observer@*/ /*@notnull@*/ char *key,
-         /*@null@*/ struct tree_node *node);
+        (struct tree *tree, char *key, struct tree_node *node);
 
 /*! \brief Remove a Tree Node with a String Key
  *  \param[in] t The tree to remove the node from.

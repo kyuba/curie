@@ -35,7 +35,7 @@
 #include <curie/sexpr-internal.h>
 
 static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx);
-/*@notnull@*/ /*@shared@*/ static sexpr sx_read_dispatch
+static sexpr sx_read_dispatch
         (unsigned int *i, char *buf, unsigned int length);
 
 struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
@@ -50,10 +50,8 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
         return (struct sexpr_io *)0;
     }
 
-    /*@-mustfree@*/
     rv->in = in;
     rv->out = out;
-    /*@=mustfree@*/
 
     if ((in->type != iot_read) &&
         (in->type != iot_special_read) &&
@@ -96,7 +94,7 @@ void sx_close_io (struct sexpr_io *io) {
     free_pool_mem (io);
 }
 
-/*@notnull@*/ /*@shared@*/ static sexpr sx_read_string
+static sexpr sx_read_string
         (unsigned int *i, char *buf, unsigned int length)
 {
     unsigned int j = *i, k = 0;
@@ -128,7 +126,7 @@ void sx_close_io (struct sexpr_io *io) {
     return sx_nonexistent;
 }
 
-/*@notnull@*/ /*@shared@*/ static sexpr sx_read_number
+static sexpr sx_read_number
         (unsigned int *i, char *buf, unsigned int length)
 {
     unsigned int j = *i;
@@ -139,7 +137,6 @@ void sx_close_io (struct sexpr_io *io) {
     {
         case '-':
             number_is_negative = (char)1;
-            /*@fallthrough@*/
         case '+':
             j++;
             if (j >= length) return sx_nonexistent;
@@ -176,7 +173,7 @@ void sx_close_io (struct sexpr_io *io) {
     return sx_nonexistent;
 }
 
-/*@notnull@*/ /*@shared@*/ static sexpr sx_read_symbol
+static sexpr sx_read_symbol
         (unsigned int *i, char *buf, int unsigned length)
 {
     unsigned int j = *i, k = 0;
@@ -214,9 +211,8 @@ void sx_close_io (struct sexpr_io *io) {
     return sx_nonexistent;
 }
 
-/*@-branchstate@*/
-/*@notnull@*/ /*@shared@*/ static sexpr sx_read_cons_finalise
-        (/*@shared@*/ sexpr oreverse)
+static sexpr sx_read_cons_finalise
+        (sexpr oreverse)
 {
     sexpr result = sx_end_of_list;
     sexpr reverse = oreverse;
@@ -239,9 +235,8 @@ void sx_close_io (struct sexpr_io *io) {
 
     return result;
 }
-/*@=branchstate@*/
 
-/*@notnull@*/ /*@shared@*/ static sexpr sx_read_cons
+static sexpr sx_read_cons
         (unsigned int *i, char *buf, unsigned int length)
 {
     /* i think the best we can do here, is to construct the list in reverse

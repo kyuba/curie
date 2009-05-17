@@ -47,8 +47,8 @@ extern "C" {
  *  sx_write(), etc.
  */
 struct sexpr_io {
-    /*@notnull@*/ /*@only@*/ struct io *in;  /*!< \brief Input Structure */
-    /*@notnull@*/ /*@only@*/ struct io *out; /*!< \brief Output Structure */
+    struct io *in;  /*!< \brief Input Structure */
+    struct io *out; /*!< \brief Output Structure */
 };
 
 #ifdef __cplusplus

@@ -34,8 +34,8 @@
 
 #define IMMUTABLE_CHUNKSIZE (4096*2)
 
-/*@null@*/ /*@owned@*/ static char *immutable_data = (char *)0;
-/*@null@*/ /*@dependent@*/ static char *immutable_cursor = (char *)0;
+static char *immutable_data = (char *)0;
+static char *immutable_cursor = (char *)0;
 static unsigned long immutable_data_size = 0;
 static unsigned long immutable_data_space_left = 0;
 
@@ -71,18 +71,16 @@ const char *str_immutable_unaligned (const char * string) {
 
         rv = str_immutable (r);
 
-        /*@-usereleased@*/
         free_mem (length, r);
 
         return rv;
-        /*@=usereleased@*/
     }
 }
 
 const char *str_immutable (const char * string) {
     unsigned long stringlength = 0;
     int_pointer hash;
-    /*@observer@*/ const char *rv;
+    const char *rv;
     struct tree_node *n;
 
     /* the compiler should put static strings into read-only storage... */
@@ -133,10 +131,8 @@ const void *immutable ( const void * data, unsigned long length ) {
             lock_immutable_pages();
         }
 
-        /*@-mustfree*/
         if ((immutable_data = get_mem(new_size)) == (void *)0)
         {
-            /*@=mustfree*/
             return (char *)0;
         }
 
@@ -153,9 +149,7 @@ const void *immutable ( const void * data, unsigned long length ) {
          length--,
          immutable_data_space_left--)
     {
-         /*@-nullderef@*/ /* can't be null here */
          *immutable_cursor = *data_char;
-         /*@=nullderef@*/
     }
 
     return rv;
@@ -164,9 +158,7 @@ const void *immutable ( const void * data, unsigned long length ) {
 void lock_immutable_pages ( void ) {
     if (immutable_data_size != 0) {
         /* not null here... */
-        /*@-nullpass@*/
         mark_mem_ro (immutable_data_size, immutable_data);
-        /*@=nullpass@*/
     }
 
     immutable_data_size = 0;

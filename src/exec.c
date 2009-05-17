@@ -35,7 +35,6 @@
 
 #define MAXFD 1024
 
-/*@-usedef@*/
 struct exec_context *execute(unsigned int options,
                              char **command,
                              char **environment)
@@ -54,10 +53,8 @@ struct exec_context *execute(unsigned int options,
         return (struct exec_context *)0;
     }
 
-    /*@-mustfree@*/
     context->in = (struct io *)0;
     context->out = (struct io *)0;
-    /*@=mustfree@*/
 
     if ((options & EXEC_CALL_NO_IO) == 0) {
         net_open_loop(&proc_stdout_in, &proc_stdout_out);
@@ -129,7 +126,6 @@ struct exec_context *execute(unsigned int options,
 
     return context;
 }
-/*@=usedef@*/
 
 void free_exec_context (struct exec_context *context) {
     free_pool_mem ((void *)context);

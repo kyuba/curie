@@ -37,8 +37,8 @@
 typedef void *(*get_mem_recovery_t)(unsigned long int);
 typedef void *(*resize_mem_recovery_t)(unsigned long int, void *, unsigned long int);
 
-/*@null@*/ static get_mem_recovery_t get_mem_recovery = (void *)0;
-/*@null@*/ static resize_mem_recovery_t resize_mem_recovery = (void *)0;
+static get_mem_recovery_t get_mem_recovery = (void *)0;
+static resize_mem_recovery_t resize_mem_recovery = (void *)0;
 
 void set_get_mem_recovery_function (void *(*handler)(unsigned long int))
 {
@@ -62,10 +62,8 @@ void *get_mem(unsigned long int size) {
     void *rv = (void *)-1;
     size_t msize = get_multiple_of_pagesize(size);
 
-    /*@-unrecog@*/
     rv = mmap((void *)0, msize, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE,
               -1, 0);
-    /*@=unrecog@*/
 
     if ((rv == (void *)-1) || (rv == (void *)0)) {
         if (get_mem_recovery != (void *)0)
@@ -99,14 +97,12 @@ void *resize_mem(unsigned long int size, void *location, unsigned long int new_s
 
         if (new_location == (int *)0)
         {
-            /*@-mustfreeonly@*/
             if (resize_mem_recovery != (void *)0)
             {
                 return resize_mem_recovery(size, location, new_size);
             }
 
             return (void *)0;
-            /*@=mustfreeonly@*/
         } else {
             int *old_location = (int *)location;
             int i = 0,
@@ -131,7 +127,6 @@ void *resize_mem(unsigned long int size, void *location, unsigned long int new_s
     return location;
 }
 
-/*@-mustfreeonly@*/
 void free_mem(unsigned long int size, void *location) {
     size_t msize = get_multiple_of_pagesize(size);
 
@@ -139,11 +134,8 @@ void free_mem(unsigned long int size, void *location) {
        bad way is whenever people pass invalid data to this function, which in
        turn would either lead to serious issues with the kernel or other parts
        of the programme. */
-    /*@-unrecog@*/
     (void)munmap (location, msize);
-    /*@=unrecog@*/
 }
-/*@=mustfreeonly@*/
 
 void *get_mem_chunk() {
     return get_mem(LIBCURIE_PAGE_SIZE);
@@ -155,23 +147,17 @@ void mark_mem_ro (unsigned long int size, void *location) {
     /* again we ignore the return value, because failure to mark the memory will
        only result in the memory still being writable, which is not going to be
        a critical issue */
-    /*@-unrecog@*/
     (void)mprotect (location, msize, PROT_READ);
-    /*@=unrecog@*/
 }
 
 void mark_mem_rw (unsigned long int size, void *location) {
     size_t msize = get_multiple_of_pagesize(size);
 
-    /*@-unrecog@*/
     (void)mprotect (location, msize, PROT_READ | PROT_WRITE);
-    /*@=unrecog@*/
 }
 
 void mark_mem_rx (unsigned long int size, void *location) {
     size_t msize = get_multiple_of_pagesize(size);
 
-    /*@-unrecog@*/
     (void)mprotect (location, msize, PROT_READ | PROT_EXEC);
-    /*@=unrecog@*/
 }

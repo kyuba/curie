@@ -156,7 +156,6 @@ static int signal2signum (enum signal signal) {
     }
 }
 
-/*@-compdestroy@*/
 void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signal)) {
     struct sigaction action;
     int signum = signal2signum (signal);
@@ -164,25 +163,18 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
 
     signal_handlers[signal] = handler;
 
-    /*@-checkstrictglobs@*/
     (void)sigemptyset(&(action.sa_mask));
-    /*@=checkstrictglobs@*/
 
     action.sa_handler = invoker;
     action.sa_flags = 0;
 
-    /*@-compdef -checkstrictglobs@*/
     (void)sigaction (signum, &action, (struct sigaction *)0);
-    /*@=compdef =checkstrictglobs@*/
 }
-/*@=compdestroy@*/
 
 void a_kill (enum signal signal, int pid) {
     int signum = signal2signum (signal);
     if (signum == sig_unused) return;
-    /*@-checkstrictglobs@*/
     (void)kill ((pid_t)pid, signum);
-    /*@=checkstrictglobs@*/
 }
 
 int a_getpid () {

@@ -39,8 +39,7 @@
 #ifndef LIBCURIE_MULTIPLEX_SYSTEM_H
 #define LIBCURIE_MULTIPLEX_SYSTEM_H
 
-void a_select_with_fds (/*@notnull@*/ int *rfds, int rnum,
-                        /*@notnull@*/ int *wfds, int wnum);
+void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum);
 
 #endif
 

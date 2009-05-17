@@ -119,13 +119,13 @@ struct sexpr_cons {
      *
      *  The first cell of the cons, or 'car' in lisp.
      */
-    /*@shared@*/ sexpr car;
+    sexpr car;
 
     /*! \brief Second Cell
      *
      *  The second cell of the cons, or 'cdr' in lisp.
      */
-    /*@shared@*/ sexpr cdr;
+    sexpr cdr;
 };
 
 /*! \brief String-/Symbol S-Expression
@@ -175,9 +175,8 @@ struct sexpr_io;
  *
  *  This function creates a new I/O context to use with s-expression functions.
  */
-/*@null@*/ /*@only@*/ struct sexpr_io *sx_open_io
-        (/*@notnull@*/ /*@only@*/ struct io *in,
-         /*@notnull@*/ /*@only@*/ struct io *out);
+struct sexpr_io *sx_open_io
+        (struct io *in, struct io *out);
 
 /*! \brief Create Standard I/O as S-Expression I/O Context
  *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
@@ -186,7 +185,7 @@ struct sexpr_io;
  *  Analoguous to sx_open_io(), but it uses the standard file descriptors '0'
  *  and '1'.
  */
-/*@null@*/ /*@only@*/ struct sexpr_io *sx_open_stdio ();
+struct sexpr_io *sx_open_stdio ();
 
 /*! \brief Close S-Expression I/O Context
  *  \param[in] io The context to close.
@@ -197,7 +196,7 @@ struct sexpr_io;
  *  your programmes or set your cat on fire.
  */
 void sx_close_io
-        (/*@notnull@*/ /*@only@*/ struct sexpr_io *io);
+        (struct sexpr_io *io);
 
 /*! \brief Read S-Expression from I/O Context
  *  \param[in] io The context to read from.
@@ -208,8 +207,8 @@ void sx_close_io
  *  This functions reads from the input of the I/O context and returns the
  *  s-expression that was read.
  */
-/*@notnull@*/ /*@shared@*/ sexpr sx_read
-        (/*@notnull@*/ struct sexpr_io *io);
+sexpr sx_read
+        (struct sexpr_io *io);
 
 /*! \brief Write S-Expression to I/O Context
  *  \param[in] io The context to write to.
@@ -219,8 +218,7 @@ void sx_close_io
  *  context.
  */
 void sx_write
-        (/*@notnull@*/ struct sexpr_io *io,
-         /*@notnull@*/ sexpr sx);
+        (struct sexpr_io *io, sexpr sx);
 
 /*! @} */
 
@@ -239,9 +237,8 @@ void sx_write
  *  This function takes two s-expressions, car and cons, and creates a new cons
  *  s-expression with the two arguments as its contents.
  */
-/*@notnull@*/ /*@shared@*/ sexpr cons
-        (/*@notnull@*/ /*@shared@*/ sexpr car,
-         /*@notnull@*/ /*@shared@*/ sexpr cdr);
+sexpr cons
+        (sexpr car, sexpr cdr);
 
 /*! \brief Encode an Integer
  *  \param[in] integer The value of the new s-expression.
@@ -311,8 +308,8 @@ void sx_write
  *  This function takes a C string and returns a new s-expression with the
  *  string as its value.
  */
-/*@notnull@*/ /*@shared@*/ sexpr make_string
-        (/*@notnull@*/ const char *string);
+sexpr make_string
+        (const char *string);
 
 /*! \brief Create a new Symbol
  *  \param[in] symbol The string to use.
@@ -322,8 +319,8 @@ void sx_write
  *  This function takes a C string and returns a new symbol-type s-expression
  *  with the string as its value.
  */
-/*@notnull@*/ /*@shared@*/ sexpr make_symbol
-        (/*@notnull@*/ const char *symbol);
+sexpr make_symbol
+        (const char *symbol);
 
 /*! \brief Destroy S-Expression
  *  \param[in] sx The s-expression to destroy.
@@ -333,7 +330,7 @@ void sx_write
  *  reference counter.
  */
 void sx_destroy
-        (/*@notnull@*/ /*@shared@*/ sexpr sx);
+        (sexpr sx);
 
 /*! \brief Add Reference
  *  \param[in] sx The s-expression to modify.
@@ -344,7 +341,7 @@ void sx_destroy
  *  want things to stay clean.
  */
 void sx_xref
-        (/*@notnull@*/ /*@shared@*/ sexpr sx);
+        (sexpr sx);
 
 /*! \brief NIL (S-Expression)
  *
@@ -476,9 +473,8 @@ void sx_xref
  *        if(equalp()) will not work in C code. Instead, use if(truep(equalp()))
  *        to test things.
  */
-/*@notnull@*/ /*@shared@*/ sexpr equalp
-        (/*@notnull@*/ sexpr a,
-         /*@notnull@*/ sexpr b);
+sexpr equalp
+        (sexpr a, sexpr b);
 
 /*! \brief Check if the S-Expression is a Special Expression
  *  \param[in] sx The s-expression to check.
@@ -729,8 +725,7 @@ void sx_xref
  *  This function applies the given function to each element of f.
  */
 void sx_list_map
-        (sexpr list,
-         /*@notnull@*/ void (*f)(sexpr));
+        (sexpr list, void (*f)(sexpr));
 
 /*! \brief List Fold
  *  \param[in] list The list to fold.
@@ -743,9 +738,7 @@ void sx_list_map
  *  return value of the last call to f().
  */
 sexpr sx_list_fold
-        (sexpr list,
-         /*@notnull@*/ sexpr (*f)(sexpr, sexpr),
-         sexpr seed);
+        (sexpr list, sexpr (*f)(sexpr, sexpr), sexpr seed);
 
 /*! \brief Join Strings/Symbols
  *  \param[in] a The first string or symbol.

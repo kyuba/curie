@@ -48,8 +48,7 @@
  *  some internal things, such as make_string() and make_symbol() to keep track
  *  of strings that have already been created.
  */
-int_32 str_hash(/*@notnull@*/ const char *data,
-                /*@notnull@*/ /*@out@*/ unsigned long *len);
+int_32 str_hash(const char *data, unsigned long *len);
 
 #endif
 

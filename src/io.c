@@ -39,9 +39,7 @@ static struct io *io_create ()
 
     if (io == (struct io *)0) return (struct io *)0;
 
-    /*@-mustfree@*/
     io->buffer = get_mem (IO_CHUNKSIZE);
-    /*@=mustfree@*/
 
     if (io->buffer == (char *)0) {
         free_pool_mem ((void *)io);
@@ -421,7 +419,6 @@ enum io_result io_finish (struct io *io)
     return io_finalising;
 }
 
-/*@-branchstate@*/
 void io_close (struct io *io)
 {
     if (io->status != io_finalising) (void)io_finish (io);
@@ -439,4 +436,3 @@ void io_close (struct io *io)
 
     free_pool_mem ((void *)io);
 }
-/*@=branchstate@*/

@@ -42,16 +42,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  int a_read  (int fd,
-               /*@notnull@*/ /*@out@*/ void *buf,
-               unsigned int count);
-  int a_write (int fd,
-               /*@notnull@*/ const void *buf,
-               unsigned int count);
+  int a_read  (int fd, void *buf, unsigned int count);
+  int a_write (int fd, const void *buf, unsigned int count);
 
-  int a_open_read (/*@notnull@*/ const char *path);
-  int a_open_write (/*@notnull@*/ const char *path);
-  int a_create (/*@notnull@*/ const char *path, int mode);
+  int a_open_read (const char *path);
+  int a_open_write (const char *path);
+  int a_create (const char *path, int mode);
   int a_close (int fd);
 
   int a_dup (int ofd, int nfd);
@@ -59,10 +55,10 @@ extern "C" {
 
   int a_make_nonblocking (int fd);
 
-  int a_unlink (/*@notnull@*/ const char *path);
+  int a_unlink (const char *path);
 
-  int a_stat(/*@notnull@*/ const char *path, void *buffer);
-  int a_lstat(/*@notnull@*/ const char *path, void *buffer);
+  int a_stat(const char *path, void *buffer);
+  int a_lstat(const char *path, void *buffer);
 
   extern char last_error_recoverable_p;
 #ifdef __cplusplus

@@ -37,14 +37,12 @@ int __a_select (int, void *, void *);
 
 typedef unsigned int fdcell [MAXCELLS];
 
-static void fdzero(/*@out@*/ fdcell *c) {
+static void fdzero(fdcell *c) {
     unsigned int i = 0;
 
     while (i < MAXCELLS)
     {
-        /*@-usedef@*/
         (*c)[i] = 0;
-        /*@=usedef@*/
         i++;
     }
 }

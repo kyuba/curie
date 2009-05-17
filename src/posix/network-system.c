@@ -51,11 +51,8 @@ typedef unsigned int socklen_t;
 #endif
 
 enum io_result a_open_loop(int result[]) {
-    /*@-unrecog@*/
     int r = socketpair(AF_UNIX, SOCK_STREAM, 0, result);
-    /*@=unrecog@*/
 
-    /*@-usedef -mustdefine@*/
     if (r < 0) {
         return io_unrecoverable_error;
     } else {
@@ -64,7 +61,6 @@ enum io_result a_open_loop(int result[]) {
     }
 
     return io_complete;
-    /*@=usedef =mustdefine@*/
 }
 
 enum io_result a_open_socket(int *result, const char *path) {
@@ -72,9 +68,7 @@ enum io_result a_open_socket(int *result, const char *path) {
     struct sockaddr_un addr_un;
     char *tc = (char *)&(addr_un);
 
-    /*@-unrecog@*/
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    /*@=unrecog@*/
     *result = fd;
 
     if (fd == -1) {
@@ -88,9 +82,7 @@ enum io_result a_open_socket(int *result, const char *path) {
         tc[i] = (char)0;
     }
 
-    /*@-unrecog@*/
     addr_un.sun_family = AF_UNIX;
-    /*@=unrecog@*/
     for (i = 0;
          (i < (int)(sizeof(addr_un.sun_path)-1))
          && (path[i] != (char)0);
@@ -99,9 +91,7 @@ enum io_result a_open_socket(int *result, const char *path) {
         addr_un.sun_path[i] = path[i];
     }
 
-    /*@-unrecog@*/
     if (connect(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) == -1) {
-        /*@=unrecog@*/
         (void)a_close (fd);
         return io_unrecoverable_error;
     }
@@ -116,9 +106,7 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
 
     (void)a_unlink(path);
 
-    /*@-unrecog@*/
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    /*@=unrecog@*/
     *result = fd;
 
     if (fd == -1) {
@@ -131,9 +119,7 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
         tc[i] = (char)0;
     }
 
-    /*@-unrecog@*/
     addr_un.sun_family = AF_UNIX;
-    /*@=unrecog@*/
     for (i = 0;
          (i < (int)(sizeof(addr_un.sun_path)-1)) &&
          (path[i] != (char)0);
@@ -142,16 +128,12 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
         addr_un.sun_path[i] = path[i];
     }
 
-    /*@-unrecog@*/
     if (bind(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) == -1) {
-        /*@=unrecog@*/
         (void)a_close (fd);
         return io_unrecoverable_error;
     }
 
-    /*@-unrecog@*/
     if (listen(fd, 32) == -1) {
-        /*@=unrecog@*/
         (void)a_close (fd);
         return io_unrecoverable_error;
     }
@@ -160,15 +142,11 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
 }
 
 enum io_result a_accept_socket(int *result, int fd) {
-    /*@-unrecog@*/
     int rfd = accept (fd, (struct sockaddr *)0, (socklen_t *)0);
-    /*@=unrecog@*/
     *result = rfd;
 
     if (rfd < 0) {
-        /*@-checkstrictglobs@*/
         switch (errno) {
-        /*@=checkstrictglobs@*/
             case EINTR:
             case EAGAIN:
 #if EWOULDBLOCK && (EWOULDBLOCK != EAGAIN)

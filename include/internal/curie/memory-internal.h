@@ -77,7 +77,7 @@ struct memory_pool_frame_header {
      *  This is a pointer to the next pool frame, or (struct memory_pool *)0 if
      *  there is no next frame.
      */
-    /*@null@*/ /*@only@*/ struct memory_pool_frame_header *next;
+    struct memory_pool_frame_header *next;
 
     /*! \brief Allocation Bitmap
      *

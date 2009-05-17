@@ -54,9 +54,8 @@ extern "C" {
  *
  *  \note The input string MUST be aligned and padded to eight-byte boundaries!
  */
-/*@null@*/ /*@shared@*/ /*@observer@*/
 const char *str_immutable
-        (/*@notnull@*/ /*@returned@*/ /*@observer@*/ const char *s);
+        (const char *s);
 
 /*! \brief Create immutable Copy of arbitrary Data
  *  \param[in] data   The data to make an immutable copy of.
@@ -68,9 +67,8 @@ const char *str_immutable
  *
  *  \note Data need not be aligned and padded to eight-byte boundaries.
  */
-/*@null@*/ /*@shared@*/ /*@observer@*/
 const void *immutable
-        (/*@notnull@*/ /*@observer@*/ const void *data, unsigned long length);
+        (const void *data, unsigned long length);
 
 /*! \brief Lock current Memory Pages with immutable Data
  *
@@ -91,9 +89,8 @@ void lock_immutable_pages ( void );
  * these alignment-constraints in case you dont know if your input meets these
  * criteria.
  */
-/*@null@*/ /*@shared@*/ /*@observer@*/
 const char *str_immutable_unaligned
-        (/*@notnull@*/ /*@returned@*/ /*@observer@*/ const char *s);
+        (const char *s);
 
 #endif
 

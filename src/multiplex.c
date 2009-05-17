@@ -29,10 +29,9 @@
 #include <curie/multiplex.h>
 #include <curie/multiplex-system.h>
 
-/*@null@*/ static struct multiplex_functions *mx_func_list =
+static struct multiplex_functions *mx_func_list =
     (struct multiplex_functions *)0;
 
-/*@-compdef@*/
 enum multiplex_result multiplex () {
     struct multiplex_functions *cur = mx_func_list;
     int rnum = 0, wnum = 0;
@@ -83,12 +82,9 @@ enum multiplex_result multiplex () {
         return mx_ok;
     }
 }
-/*@=compdef@*/
 
 void multiplex_add (struct multiplex_functions *mx) {
-    /*@-mustfree -memtrans@*/
     mx->next = mx_func_list;
-    /*@=mustfree =memtrans@*/
 
     mx_func_list = mx;
 }

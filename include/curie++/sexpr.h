@@ -142,7 +142,7 @@ namespace curiepp
         void Add(void (*on_read)(sexpr,
             struct sexpr_io *,
             void *),
-            /*@null@*/ void *aux);
+            void *aux);
 
         void Delete();
     };

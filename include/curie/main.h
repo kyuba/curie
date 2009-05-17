@@ -96,7 +96,7 @@ extern "C" {
  *  After calling this function, the process will terminate and return the given
  *  status code to the calling process.
  */
-/*@noreturn@*/ void cexit (int status);
+void cexit (int status);
 
 
 /*! \brief Main Function
@@ -112,14 +112,14 @@ int cmain();
  *  This array contains the command-line arguments passed to the application, if
  *  applicable.
  */
-/*@null@*/ extern char **curie_argv;
+extern char **curie_argv;
 
 /*! \brief Process Environment
  *
  *  This array contains the process environment that the prgramme was run in, if
  *  applicable.
  */
-/*@null@*/ extern char **curie_environment;
+extern char **curie_environment;
 
 #ifdef __cplusplus
 }

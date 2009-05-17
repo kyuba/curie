@@ -60,9 +60,7 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize)
 
     if (pool->maxentities > BITMAPMAXBLOCKENTRIES) pool->maxentities = BITMAPMAXBLOCKENTRIES;
 
-    /*@-mustfree@*/
     pool->next = (struct memory_pool_frame_header *)0;
-    /*@=mustfree@*/
 
     pool->type = mpft_frame;
 
@@ -83,8 +81,7 @@ void free_memory_pool (struct memory_pool *pool)
     }
 }
 
-/*@-memtrans -branchstate@*/
-/*@null@*/ /*@only@*/ static void *get_pool_mem_inner
+static void *get_pool_mem_inner
     (struct memory_pool_frame_header *pool,
      struct memory_pool_frame_header *frame)
 {
@@ -120,17 +117,13 @@ void free_memory_pool (struct memory_pool *pool)
                         cursor = cursor->next;
                     }
 
-                    /*@-mustfree@*/
                     cursor->next = frame->next;
                     frame->next = pool->next;
                     pool->next = frame;
-                    /*@=mustfree@*/
                 }
 
-                /*@-usedef@*/
                 return (void *)(frame_mem_start
                         + (index * (frame->entitysize)));
-                /*@=usedef@*/
             }
         }
 
@@ -142,7 +135,6 @@ void free_memory_pool (struct memory_pool *pool)
 
     return (void *)0;
 }
-/*@=memtrans =branchstate@*/
 
 void *get_pool_mem(struct memory_pool *pool)
 {
@@ -170,7 +162,6 @@ void *get_pool_mem(struct memory_pool *pool)
     return (void *)0;
 }
 
-/*@-mustfree@*/
 void free_pool_mem(void *mem)
 {
 /* actually we /can/ derive the start address of a pool frame using an
@@ -193,9 +184,7 @@ void free_pool_mem(void *mem)
         optimise_static_memory_pools();
     }
 }
-/*@=mustfree@*/
 
-/*@-branchstate -memtrans@*/
 void optimise_memory_pool(struct memory_pool *pool)
 {
     struct memory_pool_frame_header
@@ -218,15 +207,12 @@ void optimise_memory_pool(struct memory_pool *pool)
 
         if (i == BITMAPMAPSIZE)
         {
-            /*@-mustfree@*/
             last->next = cursor->next;
-            /*@=mustfree@*/
             free_mem_chunk((void *)cursor);
             cursor = last;
         }
     }
 }
-/*@=branchstate =memtrans@*/
 
 void optimise_static_memory_pools()
 {

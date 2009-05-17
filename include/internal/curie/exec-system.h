@@ -58,7 +58,7 @@ int a_fork();
  *  \param[out] status The location of an integer to store the result in.
  *  \return The current status of the process.
  */
-enum wait_return a_wait(int pid, /*@notnull@*/ /*@out@*/ int *status);
+enum wait_return a_wait(int pid, int *status);
 
 int a_wait_all (int *status);
 
@@ -67,9 +67,7 @@ int a_wait_all (int *status);
  *  \param[in] argv  The argument vector for the new process.
  *  \param[in] env   The environment vector for the new process.
  */
-void a_exec(/*@notnull@*/ const char *image,
-            /*@notnull@*/ char **argv,
-            /*@notnull@*/ char **env);
+void a_exec(const char *image, char **argv, char **env);
 
 int a_set_sid ();
 

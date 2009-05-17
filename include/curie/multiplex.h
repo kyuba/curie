@@ -88,7 +88,7 @@ struct multiplex_functions {
      *  events to the first integer, and the number of fds to check for write
      *  events to the second integer.
      */
-    /*@notnull@*/ enum multiplex_result (*count)(int *, int *);
+    enum multiplex_result (*count)(int *, int *);
 
     /*! \brief Augmenter
      *
@@ -98,7 +98,7 @@ struct multiplex_functions {
      *  buffer, which must be updated after adding things. The third and fourth
      *  argument are the same, but for writing.
      */
-    /*@notnull@*/ void (*augment)(int *, int *, int *, int *);
+    void (*augment)(int *, int *, int *, int *);
 
     /*! \brief Select Callback
      *
@@ -107,7 +107,7 @@ struct multiplex_functions {
      *  second is the number of elements in the array. The third and fourth
      *  arguments are the same for writable fds.
      */
-    /*@notnull@*/ void (*callback)(int *, int, int *, int);
+    void (*callback)(int *, int, int *, int);
 
     /*! \brief Next Set of Multiplexer Functions
      *  \internal
@@ -115,7 +115,7 @@ struct multiplex_functions {
      *  Always set this to (struct multiplex_functions *)0; the multiplexer code
      *  uses this to implement a list of multiplexers.
      */
-    /*@null@*/ struct multiplex_functions *next;
+    struct multiplex_functions *next;
 };
 
 /*! \brief Multiplex
@@ -136,7 +136,7 @@ enum multiplex_result multiplex ();
  *  given mx argument will be used by the multiplexer, so make sure not to
  *  deallocate it afterwards or allocate it a volatile function stack.
  */
-void multiplex_add (/*@notnull@*/ struct multiplex_functions *mx);
+void multiplex_add (struct multiplex_functions *mx);
 
 /*! \brief Initialise I/O Multiplexer
  *
@@ -184,10 +184,9 @@ void multiplex_sexpr ();
  *  keeping the io structure around anymore. It will also use io_commit()
  *  whenever needed.
  */
-void multiplex_add_io (/*@notnull@*/ /*@only@*/ struct io *io,
-                       /*@null@*/ void (*on_read)(struct io *, void *),
-                       /*@null@*/ void (*on_close)(struct io *, void *),
-                       /*@null@*/ void *aux);
+void multiplex_add_io
+        (struct io *io, void (*on_read)(struct io *, void *),
+         void (*on_close)(struct io *, void *), void *aux);
 
 /*! \brief Keep track of an I/O Structure
  *  \param[in] io The structure to keep track of.
@@ -195,7 +194,7 @@ void multiplex_add_io (/*@notnull@*/ /*@only@*/ struct io *io,
  *  This is the same as multiplex_add_io(), except that no callbacks are
  *  registered. Handy for iot_write structures.
  */
-void multiplex_add_io_no_callback (/*@notnull@*/ /*@only@*/ struct io *io);
+void multiplex_add_io_no_callback (struct io *io);
 
 /*! \brief Close an I/O Structure
  *  \param[in] io The structure to close.
@@ -203,7 +202,7 @@ void multiplex_add_io_no_callback (/*@notnull@*/ /*@only@*/ struct io *io);
  *  Calls io_close() on the io parameter, and stops tracking it with the I/O
  *  multiplexer code.
  */
-void multiplex_del_io (/*@notnull@*/ /*@only@*/ struct io *io);
+void multiplex_del_io (struct io *io);
 
 /*! \brief Register Callbacks for a Process
  *  \param[in] context  The process context to keep track of.
@@ -214,10 +213,9 @@ void multiplex_del_io (/*@notnull@*/ /*@only@*/ struct io *io);
  *  process is still running when a signal like that comes in and if not it'll
  *  reap the process and call the on_death callback.
  */
-void multiplex_add_process (/*@notnull@*/ /*@only@*/ struct exec_context *context,
-                            /*@notnull@*/ void (*on_death)(struct exec_context*,
-                                                           void *),
-                            /*@null@*/ void *aux);
+void multiplex_add_process
+        (struct exec_context *context,
+         void (*on_death)(struct exec_context*, void *), void *aux);
 
 /*! \brief Register Callbacks for S-Expression I/O
  *  \param[in] io      The structure to keep track of.
@@ -228,11 +226,9 @@ void multiplex_add_process (/*@notnull@*/ /*@only@*/ struct exec_context *contex
  *  functions. It will even close the sexpr_io's input and output structures
  *  when appropriate.
  */
-void multiplex_add_sexpr (/*@notnull@*/ /*@only@*/ struct sexpr_io *io,
-                          /*@null@*/ void (*on_read)(sexpr,
-                                                     struct sexpr_io *,
-                                                     void *),
-                          /*@null@*/ void *aux);
+void multiplex_add_sexpr
+        (struct sexpr_io *io, void (*on_read)(sexpr, struct sexpr_io *, void *),
+         void *aux);
 
 #ifdef __cplusplus
 }

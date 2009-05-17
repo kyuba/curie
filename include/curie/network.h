@@ -52,8 +52,7 @@ extern "C" {
  *
  *  Both in and out may be (struct io *)0 if the loop couldn't be opened.
  */
-void net_open_loop (/*@out@*/ /*@notnull@*/ struct io **in,
-                    /*@out@*/ /*@notnull@*/ struct io **out);
+void net_open_loop (struct io **in, struct io **out);
 
 /*! \brief Connect to Socket
  *  \param[in]  path The socket to connect to.
@@ -64,9 +63,7 @@ void net_open_loop (/*@out@*/ /*@notnull@*/ struct io **in,
  *
  *  Both in and out may be (struct io *)0 if the loop couldn't be opened.
  */
-void net_open_socket (/*@notnull@*/ const char *path,
-                      /*@out@*/ /*@notnull@*/ struct io **in,
-                      /*@out@*/ /*@notnull@*/ struct io **out);
+void net_open_socket (const char *path, struct io **in, struct io **out);
 
 /*! \brief Accept Connections on Network Sockets
  *
@@ -89,9 +86,8 @@ void multiplex_network();
  *        automatically, you'll have to do that yourself.
  */
 void multiplex_add_socket
-        (/*@notnull@*/ const char *path,
-         /*@notnull@*/ void (*on_connect)(struct io *, struct io *, void *),
-         /*@null@*/ void *aux);
+        (const char *path, void (*on_connect)(struct io *, struct io *, void *),
+         void *aux);
 
 /*! \brief Listen on a Unix Socket with S-Expression I/O
  *  \param[in] path       The socket to connect to.
@@ -105,9 +101,8 @@ void multiplex_add_socket
  *        automatically, you'll have to do that yourself.
  */
 void multiplex_add_socket_sx
-        (/*@notnull@*/ const char *path,
-         /*@notnull@*/ void (*on_connect)(struct sexpr_io *, void *),
-         /*@null@*/ void *aux);
+        (const char *path, void (*on_connect)(struct sexpr_io *, void *),
+         void *aux);
 
 /*! \brief Connect to Socket with S-Expression I/O
  *  \param[in] path The socket to connect to.
@@ -115,8 +110,8 @@ void multiplex_add_socket_sx
  *
  *  Analoguous to net_open_socket(), just for S-Expression I/O.
  */
-/*@null@*/ /*@only@*/ struct sexpr_io *sx_open_socket
-        (/*@notnull@*/ const char *path);
+struct sexpr_io *sx_open_socket
+        (const char *path);
 
 /*! \brief Open Socket and register Callback for S-Expression I/O
  *  \param[in] path    The socket to connect to.
@@ -126,9 +121,8 @@ void multiplex_add_socket_sx
  *  Same as multiplex_add_sexpr, but it opens the given socket and uses that.
  */
 void multiplex_add_socket_client_sx
-        (/*@notnull@*/ const char *path,
-         /*@null@*/ void (*on_read)(/*@shared@*/ sexpr, struct sexpr_io *, void *),
-         /*@null@*/ void *aux);
+        (const char *path, void (*on_read)(sexpr, struct sexpr_io *, void *),
+         void *aux);
 
 #ifdef __cplusplus
 }

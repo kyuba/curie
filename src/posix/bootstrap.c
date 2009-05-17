@@ -40,8 +40,7 @@ void cexit (int status)
     exit (status);
 }
 
-/*@-maintype@*/
-int main (/*@unused@*/ int argc, char **argv, char **env)
+int main (int argc, char **argv, char **env)
 {
     int rv;
 
