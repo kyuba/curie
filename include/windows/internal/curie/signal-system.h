@@ -39,8 +39,8 @@
 #ifndef LIBCURIE_MULTIPLEX_SYSTEM_H
 #define LIBCURIE_MULTIPLEX_SYSTEM_H
 
-#define HAVE_SIGACTION 1
-#define HAVE_KILL 1
+#undef HAVE_SIGACTION
+#undef HAVE_KILL
 
 #include <curie/signal.h>
 

@@ -38,18 +38,6 @@
 #include <sys/un.h>
 #include <errno.h>
 
-#ifdef S_SPLINT_S
-/* fixes for splint... */
-
-struct sockaddr;
-struct sockaddr_un
-{
-    int sun_family;
-    char sun_path[128];
-};
-typedef unsigned int socklen_t;
-#endif
-
 enum io_result a_open_loop(int result[]) {
     int r = socketpair(AF_UNIX, SOCK_STREAM, 0, result);
 

@@ -26,31 +26,28 @@
  * THE SOFTWARE.
 */
 
-/*! \internal
- *
- * @{
- */
+#include <curie/network-system.h>
+#include <curie/io-system.h>
+#include <sys/types.h>
 
-/*! \file
- *  \brief Glue Code Header for signal.h
- *
- */
+#include <winsock.h>
 
-#ifndef LIBCURIE_MULTIPLEX_SYSTEM_H
-#define LIBCURIE_MULTIPLEX_SYSTEM_H
+#include <unistd.h>
 
-#define HAVE_SIGACTION 1
-#define HAVE_KILL 1
+#include <errno.h>
 
-#include <curie/signal.h>
+enum io_result a_open_loop(int result[]) {
+    return io_unrecoverable_error;
+}
 
-#define SIGNAL_MAX_NUM sig_winch
+enum io_result a_open_socket(int *result, const char *path) {
+    return io_unrecoverable_error;
+}
 
-void a_set_signal_handler (enum signal signal,
-                           void (*handler)(enum signal signal));
-void a_kill (enum signal signal, int pid);
-int a_getpid ();
+enum io_result a_open_listen_socket(int *result, const char *path) {
+    return io_unrecoverable_error;
+}
 
-#endif
-
-/*! @} */
+enum io_result a_accept_socket(int *result, int fd) {
+    return io_unrecoverable_error;
+}

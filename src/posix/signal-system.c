@@ -42,15 +42,19 @@ static void invoker (int signum) {
     signal_handler sighandler;
 
     switch (signum) {
+#if defined(SIGHUP)
         case SIGHUP:
             signal = sig_hup;
             break;
+#endif
         case SIGINT:
             signal = sig_int;
             break;
+#if defined(SIGQUIT)
         case SIGQUIT:
             signal = sig_quit;
             break;
+#endif
         case SIGILL:
             signal = sig_ill;
             break;
@@ -60,45 +64,67 @@ static void invoker (int signum) {
         case SIGFPE:
             signal = sig_fpe;
             break;
+#if defined(SIGKILL)
         case SIGKILL:
             signal = sig_kill;
             break;
+#endif
         case SIGSEGV:
             signal = sig_segv;
             break;
+#if defined(SIGPIPE)
         case SIGPIPE:
             signal = sig_pipe;
             break;
+#endif
+#if defined(SIGALRM)
         case SIGALRM:
             signal = sig_alrm;
             break;
+#endif
         case SIGTERM:
             signal = sig_term;
             break;
+#if defined(SIGCHLD)
         case SIGCHLD:
             signal = sig_chld;
             break;
+#endif
+#if defined(SIGCONT)
         case SIGCONT:
             signal = sig_cont;
             break;
+#endif
+#if defined(SIGSTOP)
         case SIGSTOP:
             signal = sig_stop;
             break;
+#endif
+#if defined(SIGTSTP)
         case SIGTSTP:
             signal = sig_tstp;
             break;
+#endif
+#if defined(SIGTTIN)
         case SIGTTIN:
             signal = sig_ttin;
             break;
+#endif
+#if defined(SIGTTOU)
         case SIGTTOU:
             signal = sig_ttou;
             break;
+#endif
+#if defined(SIGUSR1)
         case SIGUSR1:
             signal = sig_usr1;
             break;
+#endif
+#if defined(SIGUSR2)
         case SIGUSR2:
             signal = sig_usr2;
             break;
+#endif
         default:
             /* since this is the posix variant, not all signals are supported;
                requests to handle these signals will be ignored. */
@@ -111,44 +137,70 @@ static void invoker (int signum) {
 
 static int signal2signum (enum signal signal) {
     switch (signal) {
+#if defined(SIGHUP)
         case sig_hup:
             return SIGHUP;
+#endif
         case sig_int:
             return SIGINT;
+#if defined(SIGQUIT)
         case sig_quit:
             return SIGQUIT;
+#endif
         case sig_ill:
             return SIGILL;
         case sig_abrt:
             return SIGABRT;
         case sig_fpe:
             return SIGFPE;
+#if defined(SIGKILL)
         case sig_kill:
             return SIGKILL;
+#endif
         case sig_segv:
             return SIGSEGV;
+#if defined(SIGPIPE)
         case sig_pipe:
             return SIGPIPE;
+#endif
+#if defined(SIGALRM)
         case sig_alrm:
             return SIGALRM;
+#endif
         case sig_term:
             return SIGTERM;
+#if defined(SIGCHLD)
         case sig_chld:
             return SIGCHLD;
+#endif
+#if defined(SIGCONT)
         case sig_cont:
             return SIGCONT;
+#endif
+#if defined(SIGSTOP)
         case sig_stop:
             return SIGSTOP;
+#endif
+#if defined(SIGTSTP)
         case sig_tstp:
             return SIGTSTP;
+#endif
+#if defined(SIGTTIN)
         case sig_ttin:
             return SIGTTIN;
+#endif
+#if defined(SIGTTOU)
         case sig_ttou:
             return SIGTTOU;
+#endif
+#if defined(SIGUSR1)
         case sig_usr1:
             return SIGUSR1;
+#endif
+#if defined(SIGUSR2)
         case sig_usr2:
             return SIGUSR2;
+#endif
         default:
             /* since this is the posix variant, not all signals are supported;
                requests to handle these signals will be ignored. */
@@ -156,12 +208,13 @@ static int signal2signum (enum signal signal) {
     }
 }
 
-void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signal)) {
+void a_set_signal_handler (enum signal sig, void (*handler)(enum signal)) {
+#ifdef HAVE_SIGACTION
     struct sigaction action;
-    int signum = signal2signum (signal);
+    int signum = signal2signum (sig);
     if (signum == sig_unused) return;
 
-    signal_handlers[signal] = handler;
+    signal_handlers[sig] = handler;
 
     (void)sigemptyset(&(action.sa_mask));
 
@@ -169,12 +222,20 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
     action.sa_flags = 0;
 
     (void)sigaction (signum, &action, (struct sigaction *)0);
+#else
+    int signum = signal2signum (sig);
+    if (signum == sig_unused) return;
+
+    (void)signal (signum, invoker);
+#endif
 }
 
 void a_kill (enum signal signal, int pid) {
+#ifdef HAVE_KILL
     int signum = signal2signum (signal);
     if (signum == sig_unused) return;
     (void)kill ((pid_t)pid, signum);
+#endif
 }
 
 int a_getpid () {

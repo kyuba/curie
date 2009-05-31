@@ -31,12 +31,6 @@
 #include <curie/multiplex-system.h>
 #include <sys/select.h>
 
-#ifdef S_SPLINT_S
-/* seems to be needed on my box... */
-
-typedef unsigned int fd_set[16];
-#endif
-
 void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum) {
     fd_set rset, wset;
     int highest = 0, r, i;

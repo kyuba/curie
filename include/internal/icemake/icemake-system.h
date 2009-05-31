@@ -26,30 +26,19 @@
  * THE SOFTWARE.
 */
 
-/*! \internal
+/*! \addgroup icemake
+ *  \internal
  *
  * @{
  */
 
 /*! \file
- *  \brief Glue Code Header for signal.h
+ *  \brief System Specific Definitions for the icemake Programme
  *
  */
 
-#ifndef LIBCURIE_MULTIPLEX_SYSTEM_H
-#define LIBCURIE_MULTIPLEX_SYSTEM_H
-
-#define HAVE_SIGACTION 1
-#define HAVE_KILL 1
-
-#include <curie/signal.h>
-
-#define SIGNAL_MAX_NUM sig_winch
-
-void a_set_signal_handler (enum signal signal,
-                           void (*handler)(enum signal signal));
-void a_kill (enum signal signal, int pid);
-int a_getpid ();
+#ifndef ICEMAKE_ICEMAKE_SYSTEN_H
+#define ICEMAKE_ICEMAKE_SYSTEM_H
 
 #endif
 

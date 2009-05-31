@@ -26,31 +26,28 @@
  * THE SOFTWARE.
 */
 
-/*! \internal
- *
- * @{
- */
+#include <curie/exec-system.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-/*! \file
- *  \brief Glue Code Header for signal.h
- *
- */
+#include <unistd.h>
 
-#ifndef LIBCURIE_MULTIPLEX_SYSTEM_H
-#define LIBCURIE_MULTIPLEX_SYSTEM_H
+int a_fork() {
+    return -1;
+}
 
-#define HAVE_SIGACTION 1
-#define HAVE_KILL 1
+enum wait_return a_wait(int pid, int *status) {
+    return wr_running;
+}
 
-#include <curie/signal.h>
+int a_wait_all(int *status) {
+    return 0;
+}
 
-#define SIGNAL_MAX_NUM sig_winch
+void a_exec(const char *image, char **argv, char **env) {
+    (void)execve(image, argv, env);
+}
 
-void a_set_signal_handler (enum signal signal,
-                           void (*handler)(enum signal signal));
-void a_kill (enum signal signal, int pid);
-int a_getpid ();
-
-#endif
-
-/*! @} */
+int a_set_sid() {
+    return 0;
+}
