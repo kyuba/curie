@@ -28,7 +28,9 @@
 
 #include <curie/io-system.h>
 
+#if 0
 #include <winsock.h>
+#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -76,7 +78,7 @@ int    a_open_read (const char *path)
 {
     int rv = open(path, O_RDONLY);
     if (rv < 0) examine_error();
-    ioctlsocket (rv, FIONBIO, (void *)0);
+/*    ioctlsocket (rv, FIONBIO, (void *)0);*/
     return rv;
 }
 
@@ -84,7 +86,7 @@ int    a_open_write (const char *path)
 {
     int rv = open(path, O_WRONLY | O_CREAT, 0666);
     if (rv < 0) examine_error();
-    ioctlsocket (rv, FIONBIO, (void *)0);
+/*    ioctlsocket (rv, FIONBIO, (void *)0);*/
     return rv;
 }
 
@@ -92,7 +94,7 @@ int    a_create (const char *path, int mode)
 {
     int rv = open(path, O_WRONLY | O_CREAT, (mode_t)mode);
     if (rv < 0) examine_error();
-    ioctlsocket (rv, FIONBIO, (void *)0);
+/*    ioctlsocket (rv, FIONBIO, (void *)0);*/
     return rv;
 }
 
@@ -122,9 +124,10 @@ int    a_dup_n (int fd)
 }
 
 int    a_make_nonblocking (int fd) {
-    int rv = ioctlsocket (fd, FIONBIO, (void *)0);
+/*    int rv = ioctlsocket (fd, FIONBIO, (void *)0);
     if (rv < 0) examine_error();
-    return rv;
+    return rv;*/
+    return 0;
 }
 
 int    a_unlink (const char *path) {

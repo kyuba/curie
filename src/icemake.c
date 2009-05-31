@@ -1030,20 +1030,34 @@ static sexpr cwhich (char *programme)
 
     while ((*x != 0) && (y < (buffer + BUFFERSIZE - 1)))
     {
-        if ((*x == ':') || (*x == ';'))
-        {
+        if (
+#if !defined(_WIN32)
+        (*x == ':')
+#else
+        (*x == ';')
+#endif
+        ) {
             char subbuffer[BUFFERSIZE];
             struct stat st;
 
             *y = 0;
             y = buffer;
 
+#if !defined(_WIN32)
             snprintf (subbuffer, BUFFERSIZE, "%s/%s", buffer, programme);
 
             if (stat (subbuffer, &st) == 0)
             {
                 return make_string (subbuffer);
             }
+#else
+            snprintf (subbuffer, BUFFERSIZE, "%s\\%s.exe", buffer, programme);
+
+            if (stat (subbuffer, &st) == 0)
+            {
+                return make_string (subbuffer);
+            }
+#endif
         }
         else
         {
@@ -1073,8 +1087,7 @@ static sexpr xwhich (char *programme)
     {
         return w;
     }
-    else if (snprintf (buffer, BUFFERSIZE, "ar"),
-             (w = cwhich (programme)), stringp(w))
+    else if ((w = cwhich (programme)), stringp(w))
     {
         return w;
     }
@@ -1117,10 +1130,13 @@ static void initialise_toolchain_gcc()
     }
 
     p_diff = xwhich ("diff");
-    if (falsep(p_diff))
+    if (falsep(p_latex))
     {
-        fprintf (stderr, "cannot find diff programme.\n");
-        exit (27);
+        sexpr out;
+        sx_write (stdio,
+                  (out = cons (sym_missing_programme,
+                               cons (sym_diff, sx_end_of_list))));
+        sx_destroy (out);
     }
 }
 
@@ -1612,7 +1628,7 @@ int main (int argc, char **argv, char **environ)
         char *toolchain;
 
         uname_toolchain = tc_gcc;
-
+        
 #ifdef POSIX
         struct utsname un;
 
@@ -1651,7 +1667,7 @@ int main (int argc, char **argv, char **environ)
 
     initialise_toolchain_tex ();
     initialise_toolchain_doxygen ();
-
+    
     for (q = 0; uname_os[q] && (uname_os[q] == "darwin"[q]); q++);
     if ((q == 6) && (uname_os[q] == 0)) i_os = os_darwin;
     for (q = 0; uname_os[q] && (uname_os[q] == "linux"[q]); q++);

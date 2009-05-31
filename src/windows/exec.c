@@ -26,54 +26,58 @@
  * THE SOFTWARE.
 */
 
-#include <curie/exec-system.h>
+#include <curie/io-system.h>
 #include <curie/memory.h>
-#include <windows.h>
+#include <curie/io.h>
+#include <curie/exec.h>
+#include <curie/exec-system.h>
+#include <curie/network.h>
 
-int a_exec (const char *image, char **argv, char **env)
+struct exec_context *execute(unsigned int options,
+                             char **command,
+                             char **environment)
 {
-/*BOOL WINAPI CreateProcess(
-  __in_opt     LPCTSTR lpApplicationName,
-  __inout_opt  LPTSTR lpCommandLine,
-  __in_opt     LPSECURITY_ATTRIBUTES lpProcessAttributes,
-  __in_opt     LPSECURITY_ATTRIBUTES lpThreadAttributes,
-  __in         BOOL bInheritHandles,
-  __in         DWORD dwCreationFlags,
-  __in_opt     LPVOID lpEnvironment,
-  __in_opt     LPCTSTR lpCurrentDirectory,
-  __in         LPSTARTUPINFO lpStartupInfo,
-  __out        LPPROCESS_INFORMATION lpProcessInformation
-);*/
+    static struct memory_pool
+            pool = MEMORY_POOL_INITIALISER(sizeof(struct exec_context));
+    struct exec_context *context =
+            (struct exec_context *)get_pool_mem(&pool);
+    struct io *proc_stdout_in, *proc_stdout_out,
+              *proc_stdin_in,  *proc_stdin_out;
 
-    char *av;
-    int length = 0;
-    for (int i = 0; argv[i]; i++)
+    if (context == (struct exec_context *)0)
     {
-        for (int j = 0; argv[i][j]; j++)
-        {
-            length++;
-        }
-        length++;
-    }
-
-    av = aalloc (length);
-
-    for (int i = 0; argv[i]; i++)
-    {
-        if (length > 0) av[length-1] = ' ';
-        for (int j = 0; argv[i][j]; j++)
-        {
-            av[length] = argv[i][j];
-            length++;
-        }
-        av[length] = 0;
-        length++;
+        return (struct exec_context *)0;
     }
     
-    CreateProcess (image, av, (void *)0, (void *)0, 0, 0, env, (void *)0,
-                   (void *)0, (void *)0);
+    if (command == (char **)0)
+    {
+        context->pid = -1;
+    }
+    else
+    {
+        a_exec(command[0], command + 1, environment);
+    }
+    
+    return context;
 }
 
-void a_wait_all ()
-{
+void free_exec_context (struct exec_context *context) {
+    free_pool_mem ((void *)context);
+}
+
+void check_exec_context (struct exec_context *context) {
+/*    int i;
+
+    switch (context->pid) {
+        case 0:
+        case -1:
+            return;
+        default:
+            if ((context->status == ps_running) &&
+                (a_wait (context->pid, &i) != wr_running)) {
+                context->exitstatus = i;
+                context->status = ps_terminated;
+            }
+            return;
+    }*/
 }

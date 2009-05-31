@@ -74,16 +74,24 @@ static void run_tests_library (sexpr name, struct target *t)
 
 static void diff_test_reference_library_gcc (sexpr name, struct target *t)
 {
-    sexpr cur = t->test_reference;
-
-    while (consp (cur))
+    if (falsep(p_diff))
     {
-        sexpr r = car (cur);
-        sexpr o = car (r), g = cdr (r);
-
-        workstack = cons (cons (p_diff, cons (o, cons (g, sx_end_of_list))), workstack);
-
-        cur = cdr (cur);
+        return;
+    }
+    else
+    {
+        sexpr cur = t->test_reference;
+    
+        while (consp (cur))
+        {
+            sexpr r = car (cur);
+            sexpr o = car (r), g = cdr (r);
+    
+            workstack = cons (cons (p_diff, cons (o, cons (g, sx_end_of_list))),
+                              workstack);
+    
+            cur = cdr (cur);
+        }
     }
 }
 

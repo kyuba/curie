@@ -369,6 +369,8 @@ define_symbol (sym_cpp_pic,             "C++-PIC");
 /*! \brief Predefined Symbol */
 define_symbol (sym_tex,                 "TeX");
 /*! \brief Predefined Symbol */
+define_symbol (sym_diff,                "diff");
+/*! \brief Predefined Symbol */
 define_symbol (sym_man,                 "man");
 /*! \brief Predefined Symbol */
 define_symbol (sym_libc,                "libc");
