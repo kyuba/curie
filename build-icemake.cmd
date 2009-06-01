@@ -17,7 +17,7 @@ GOTO MAIN
 
 :GCC_BUILD
 @ECHO ON
-gcc -std=c99 -Wall -pedantic %INCLUDES% -c %1 -o %2
+gcc -std=c99 -Wall -pedantic -g %INCLUDES% -c %1 -o %2
 @ECHO OFF
 SET OBJECTS=%2 %OBJECTS%
 GOTO :EOF

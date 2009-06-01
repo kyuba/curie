@@ -26,11 +26,9 @@
  * THE SOFTWARE.
 */
 
-#define _BSD_SOURCE
-
 #include <curie/memory.h>
 
-#include <stdlib.h>
+#include <windows.h>
 
 typedef void *(*get_mem_recovery_t)(unsigned long int);
 typedef void *(*resize_mem_recovery_t)(unsigned long int, void *, unsigned long int);
@@ -60,7 +58,7 @@ void *get_mem(unsigned long int size) {
     void *rv = (void *)-1;
     size_t msize = get_multiple_of_pagesize(size);
 
-    rv = calloc (1, msize);
+    rv = VirtualAlloc ((void *)0, msize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
     if ((rv == (void *)-1) || (rv == (void *)0)) {
         if (get_mem_recovery != (void *)0)
@@ -75,37 +73,71 @@ void *get_mem(unsigned long int size) {
 }
 
 void *resize_mem(unsigned long int size, void *location, unsigned long int new_size) {
-    void *rv = (void *)-1;
+    size_t msize = get_multiple_of_pagesize(size);
+    size_t mnew_size = get_multiple_of_pagesize(new_size);
 
-    rv = realloc (location, get_multiple_of_pagesize(new_size));
+    if (msize != mnew_size) {
+        int *new_location = (int *)get_mem(new_size);
 
-    if ((rv == (void *)-1) || (rv == (void *)0)) {
-        if (get_mem_recovery != (void *)0)
+        if (new_location == (int *)0)
         {
-            return resize_mem_recovery (size, location, new_size);
-        }
+            if (resize_mem_recovery != (void *)0)
+            {
+                return resize_mem_recovery(size, location, new_size);
+            }
 
-        return (void *)0;
+            return (void *)0;
+        } else {
+            int *old_location = (int *)location;
+            int i = 0,
+                copysize = (int)((size < new_size) ? size : new_size);
+
+            copysize = (int)((copysize / sizeof(int))
+                             + (((copysize % sizeof(int)) == 0) ? 0 : 1));
+
+            while (i < copysize)
+            {
+                /* copy in chunks of ints */
+                new_location[i] = old_location[i];
+                i++;
+            }
+
+            free_mem (size, location);
+
+            return (void*)new_location;
+        }
     }
 
-    return rv;
+    return location;
 }
 
 void free_mem(unsigned long int size, void *location) {
-    free (location);
+/*    size_t msize = get_multiple_of_pagesize(size); */
+
+    (void)VirtualFree (location, 0, MEM_RELEASE);
 }
 
 void *get_mem_chunk() {
     return get_mem(LIBCURIE_PAGE_SIZE);
 }
 
-/* the following functions are not supported with generic ANSI functions */
-
 void mark_mem_ro (unsigned long int size, void *location) {
+    size_t msize = get_multiple_of_pagesize(size);
+    unsigned long p;
+
+    (void)VirtualProtect (location, msize, PAGE_READONLY, &p);
 }
 
 void mark_mem_rw (unsigned long int size, void *location) {
+    size_t msize = get_multiple_of_pagesize(size);
+    unsigned long p;
+
+    (void)VirtualProtect (location, msize, PAGE_READWRITE, &p);
 }
 
 void mark_mem_rx (unsigned long int size, void *location) {
+    size_t msize = get_multiple_of_pagesize(size);
+    unsigned long p;
+
+    (void)VirtualProtect (location, msize, PAGE_EXECUTE_READ, &p);
 }
