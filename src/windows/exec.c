@@ -32,6 +32,7 @@
 #include <curie/exec.h>
 #include <curie/exec-system.h>
 #include <curie/network.h>
+#include <windows.h>
 
 struct exec_context *execute(unsigned int options,
                              char **command,
@@ -55,7 +56,80 @@ struct exec_context *execute(unsigned int options,
     }
     else
     {
-        a_exec(command[0], command + 1, environment);
+        char *av;
+        int alength = 0, elength = 0;
+        char **argv = command;
+        char *envx = (char *)0;
+        for (int i = 0; argv[i]; i++)
+        {
+            for (int j = 0; argv[i][j]; j++)
+            {
+                alength++;
+            }
+            alength++;
+        }
+    
+        av = aalloc (alength);
+        alength = 0;
+
+        for (int i = 0; argv[i]; i++)
+        {
+            if (alength > 0) av[alength-1] = ' ';
+            for (int j = 0; argv[i][j]; j++)
+            {
+                av[alength] = argv[i][j];
+                alength++;
+            }
+            av[alength] = 0;
+            alength++;
+        }
+        
+        if (environment != (char **)0)
+        {
+            for (int i = 0; environment[i]; i++)
+            {
+                for (int j = 0; environment[i][j]; j++)
+                {
+                    elength++;
+                }
+                elength++;
+            }
+            
+            envx = aalloc (elength + 1);
+
+            elength = 0;
+            for (int i = 0; environment[i]; i++)
+            {
+                for (int j = 0; environment[i][j]; j++)
+                {
+                    envx[elength] = environment[i][j];
+                    elength++;
+                }
+                envx[elength] = 0;
+                elength++;
+            }
+            envx[elength] = 0;
+            elength++;
+        }
+       
+        STARTUPINFO s;
+        PROCESS_INFORMATION p;
+        memset (&s, 0, sizeof (s));
+        s.cb = sizeof (s);
+        memset (&p, 0, sizeof (p));
+        
+        if (CreateProcessA(command[0], av, (void *)0, (void *)0, FALSE,
+                           /* CREATE_NEW_CONSOLE */ 0,
+                           envx, (void *)0, &s, &p))
+        {
+            context->pid = p.dwProcessId;
+            CloseHandle (p.hProcess);
+            CloseHandle (p.hThread);
+        }
+        else
+        {
+            context->pid = -1;
+        }
     }
     
     return context;
