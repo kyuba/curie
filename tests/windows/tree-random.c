@@ -29,5 +29,5 @@
 int cmain(void) {
     /* test not supported on windows... */
 
-    return -1;
+    return 0;
 }

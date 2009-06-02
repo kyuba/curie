@@ -95,7 +95,7 @@ static void mx_f_augment(void **rs, int *r) {
     while (l != (struct io_list *)0) {
         struct io *io = l->io;
 
-        if ((io->handle == (void *)0) &&
+        if ((io->handle != (void *)0) &&
             (io->status != io_end_of_file) &&
             (io->status != io_unrecoverable_error))
         {
