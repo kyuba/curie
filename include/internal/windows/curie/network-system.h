@@ -26,6 +26,19 @@
  * THE SOFTWARE.
 */
 
-#include <curie/io-system.h>
+/*! \internal
+ *
+ * @{
+ */
 
-char last_error_recoverable_p = (char)1;
+/*! \file
+ *  \brief Glue Code Header for network.h
+ *
+ */
+
+#ifndef LIBCURIE_NETWORK_SYSTEM_H
+#define LIBCURIE_NETWORK_SYSTEM_H
+
+#endif
+
+/*! @} */

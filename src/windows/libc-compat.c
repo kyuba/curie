@@ -26,6 +26,9 @@
  * THE SOFTWARE.
 */
 
-#include <curie/io-system.h>
+#include <windows.h>
 
-char last_error_recoverable_p = (char)1;
+void cexit (int status)
+{
+    exit (status);
+}

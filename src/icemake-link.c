@@ -144,7 +144,7 @@ static void map_includes_gcc (struct tree_node *node, void *psx)
     char buffer[BUFFERSIZE];
     struct target *t = node_get_value (node);
 
-    snprintf (buffer, BUFFERSIZE, "-Lbuild/%s/%s", sx_string(t->name), archprefix);
+    snprintf (buffer, BUFFERSIZE, "-Lbuild/%s/%s", archprefix, sx_string(t->name));
 
     *sx = cons (make_string (buffer), *sx);
 }
@@ -262,11 +262,11 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
     sexpr sx = sx_end_of_list, cur;
     struct io *pcfile, *pcfile_hosted;
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.pc", sx_string(t->name), archprefix, sx_string(name));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.pc", archprefix, sx_string(t->name), sx_string(name));
 
     multiplex_add_io_no_callback (pcfile = io_open_create (buffer, 0644));
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s-hosted.pc", sx_string(t->name), archprefix, sx_string(name));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s-hosted.pc", archprefix, sx_string(t->name), sx_string(name));
 
     multiplex_add_io_no_callback (pcfile_hosted = io_open_create (buffer, 0644));
 
@@ -308,7 +308,7 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
     {
         struct sexpr_io *io;
 
-        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", sx_string(t->name), archprefix, sx_string(name));
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
 
         io = sx_open_io(io_open(-1), io_open_create(buffer, 0644));
 
@@ -324,7 +324,7 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
         multiplex_add_sexpr (io, (void *)0, (void *)0);
     }
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(t->name), archprefix, sx_string(name));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", archprefix, sx_string(t->name), sx_string(name));
 
     havelib = (stat (buffer, &res) == 0);
 
@@ -390,11 +390,11 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
     sexpr sx = sx_end_of_list, cur;
     struct io *pcfile, *pcfile_hosted;
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.pc", sx_string(t->name), archprefix, sx_string(name));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.pc", archprefix, sx_string(t->name), sx_string(name));
 
     multiplex_add_io_no_callback (pcfile = io_open_create (buffer, 0644));
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s-hosted.pc", sx_string(t->name), archprefix, sx_string(name));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s-hosted.pc", archprefix, sx_string(t->name), sx_string(name));
 
     multiplex_add_io_no_callback (pcfile_hosted = io_open_create (buffer, 0644));
 
@@ -436,7 +436,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
     {
         struct sexpr_io *io;
 
-        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", sx_string(t->name), archprefix, sx_string(name));
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
 
         io = sx_open_io(io_open(-1), io_open_create(buffer, 0644));
 
@@ -453,7 +453,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
     }
 
     snprintf (buffer, BUFFERSIZE, "lib%s.so.%s", sx_string(name), sx_string(t->dversion));
-    snprintf (lbuffer, BUFFERSIZE, "build/%s/%s/lib%s.so", sx_string(t->name), archprefix, sx_string(name));
+    snprintf (lbuffer, BUFFERSIZE, "build/%s/%s/lib%s.so", archprefix, sx_string(t->name), sx_string(name));
 
     symlink (buffer, lbuffer);
 
@@ -464,7 +464,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
         sx = cons (make_string (buffer), sx);
     }
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", sx_string(t->name), archprefix, sx_string(name), sx_string(t->dversion));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
 
     havelib = (stat (buffer, &res) == 0);
 
@@ -508,7 +508,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 static void link_programme_gcc (sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE];
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", sx_string(t->name), archprefix, sx_string(name));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", archprefix, sx_string(t->name), sx_string(name));
 
     link_programme_gcc_filename (make_string (buffer), name, code, t);
 }

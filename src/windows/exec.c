@@ -49,6 +49,16 @@ struct exec_context *execute(unsigned int options,
     {
         return (struct exec_context *)0;
     }
+
+    context->in = (struct io *)0;
+    context->out = (struct io *)0;
+
+    if ((options & EXEC_CALL_NO_IO) == 0) {
+        net_open_loop(&proc_stdout_in, &proc_stdout_out);
+        net_open_loop(&proc_stdin_in, &proc_stdin_out);
+    }
+
+    context->status = ps_running;
     
     if (command == (char **)0)
     {
@@ -117,17 +127,46 @@ struct exec_context *execute(unsigned int options,
         memset (&s, 0, sizeof (s));
         s.cb = sizeof (s);
         memset (&p, 0, sizeof (p));
-        
+
+        if (((options & EXEC_CALL_NO_IO) == 0) &&
+            (proc_stdin_out != (void *)0) && (proc_stdout_in != (void *)0))
+        {
+            s.dwFlags    |= STARTF_USESTDHANDLES;
+            s.hStdInput   = proc_stdin_out->handle;
+            s.hStdOutput  = proc_stdout_in->handle;
+            s.hStdError   = proc_stdout_in->handle;
+        }
+
         if (CreateProcessA(command[0], av, (void *)0, (void *)0, FALSE,
                            /* CREATE_NEW_CONSOLE */ 0,
                            envx, (void *)0, &s, &p))
         {
-            context->pid = p.dwProcessId;
-            CloseHandle (p.hProcess);
+            context->pid    = p.dwProcessId;
+            context->handle = p.hProcess;
+/*            CloseHandle (p.hProcess);*/
             CloseHandle (p.hThread);
+            
+            if ((options & EXEC_CALL_NO_IO) == 0) {
+                io_close (proc_stdout_in);
+                io_close (proc_stdin_out);
+
+                context->in = proc_stdin_in;
+                context->out = proc_stdout_out;
+            }
         }
         else
         {
+            if ((options & EXEC_CALL_NO_IO) == 0) {
+                io_close (proc_stdout_in);
+                io_close (proc_stdout_out);
+                io_close (proc_stdin_in);
+                io_close (proc_stdin_out);
+            }
+
+            context->in = (struct io *)0;
+            context->out = (struct io *)0;
+            context->status = ps_terminated;
+            context->handle = (void *)0;
             context->pid = -1;
         }
     }
@@ -136,22 +175,30 @@ struct exec_context *execute(unsigned int options,
 }
 
 void free_exec_context (struct exec_context *context) {
+    if (context->handle != (void *)0)
+    {
+        CloseHandle (context->handle);
+    }
+
     free_pool_mem ((void *)context);
 }
 
 void check_exec_context (struct exec_context *context) {
-/*    int i;
-
     switch (context->pid) {
         case 0:
         case -1:
             return;
         default:
-            if ((context->status == ps_running) &&
-                (a_wait (context->pid, &i) != wr_running)) {
-                context->exitstatus = i;
-                context->status = ps_terminated;
+            if (context->handle != (void *)0)
+            {
+                GetExitCodeProcess (context->handle, &(context->exitstatus));
+                if (context->exitstatus != 259 /* STILL_ALIVE */)
+                {
+                    context->status = ps_terminated;
+                    CloseHandle (context->handle);
+                    context->handle = (void *)0;
+                }
             }
             return;
-    }*/
+    }
 }

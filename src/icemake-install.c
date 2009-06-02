@@ -41,6 +41,10 @@
 
 #include <icemake/icemake.h>
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 static int files_open                  = 0;
 
 static void mkdir_p (sexpr path)
@@ -57,11 +61,7 @@ static void mkdir_p (sexpr path)
 
             if (stat(buffer, &st) != 0)
             {
-                if (mkdir (buffer, 0777) != 0)
-                {
-                    perror ("mkdir");
-                    exit (67);
-                }
+                mkdir (buffer, 0777);
             }
         }
 
@@ -83,6 +83,50 @@ static void install_read (struct io *in, void *aux)
     }
 }
 
+#if defined(_WIN32)
+/* windows comes with dedicated file copy functions, so let's use those... */
+static void loop_install()
+{
+    struct stat st;
+    sx_write (stdio, cons (sym_phase, cons (sym_install, sx_end_of_list)));
+    int fo = 0;
+    count_print_items();
+
+    more_files:
+
+    while (consp (workstack))
+    {
+        sexpr spec = car (workstack);
+        sexpr source = car (spec);
+        sexpr target = cdr (spec);
+        struct io *in, *out;
+
+        if (truep(equalp(source, sym_symlink))) /* no symlinks on windows */
+        {
+/*            source = car (target);
+            target = cdr (target);
+
+            sx_write (stdio, cons (sym_symlink,
+                      cons (source, cons (target, sx_end_of_list))));
+
+            symlink (sx_string(source), sx_string(target));*/
+        }
+        else if (stat (sx_string (source), &st) == 0)
+        {
+            sx_write (stdio, cons (sym_install,
+                      cons (source, cons (target, sx_end_of_list))));
+
+            mkdir_p (target);
+            CopyFile (sx_string (source), sx_string (target), FALSE);
+        }
+
+        workstack = cdr(workstack);
+    }
+
+    sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
+}
+
+#else
 static void install_close (struct io *in, void *aux)
 {
     struct io *out = (struct io *)aux;
@@ -107,6 +151,8 @@ static void loop_install()
     sx_write (stdio, cons (sym_phase, cons (sym_install, sx_end_of_list)));
     int fo = 0;
     count_print_items();
+
+    more_files:
 
     while (consp (workstack))
     {
@@ -142,6 +188,11 @@ static void loop_install()
         }
 
         workstack = cdr(workstack);
+        
+        if (files_open >= MAX_FILES_IN_PARALLEL)
+        {
+            break;
+        }
     }
 
     while (files_open > 0)
@@ -152,12 +203,18 @@ static void loop_install()
             sx_write (stdio, cons (sym_items_remaining,
                       cons (make_integer (files_open), sx_end_of_list)));
         }
+        
+        if ((files_open < MAX_FILES_IN_PARALLEL) && consp (workstack))
+        {
+            goto more_files;
+        }
 
         multiplex();
     }
 
     sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
 }
+#endif
 
 static sexpr get_library_install_path (sexpr name)
 {
@@ -229,22 +286,45 @@ static sexpr get_programme_install_path (sexpr name)
 {
     char buffer[BUFFERSIZE];
 
-    switch (i_fsl)
+    switch (i_os)
     {
-        case fs_fhs:
-            snprintf (buffer, BUFFERSIZE, "%s/bin/%s", sx_string(i_destdir), sx_string(name));
-            return make_string (buffer);
+        case os_windows:
+            switch (i_fsl)
+            {
+                case fs_fhs:
+                    snprintf (buffer, BUFFERSIZE, "%s/bin/%s.exe", sx_string(i_destdir), sx_string(name));
+                    return make_string (buffer);
+                    break;
+                case fs_fhs_binlib:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s.exe", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(i_pname), sx_string(name));
+                    return make_string (buffer);
+                    break;
+                case fs_proper:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s.exe",
+                              sx_string(i_destdir), uname_os, uname_arch,
+                                        sx_string(name));
+                    return make_string (buffer);
+                    break;
+            }
             break;
-        case fs_fhs_binlib:
-            snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(i_pname), sx_string(name));
-            return make_string (buffer);
-            break;
-        case fs_proper:
-            snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s",
-                      sx_string(i_destdir), uname_os, uname_arch,
-                                sx_string(name));
-            return make_string (buffer);
-            break;
+        default:
+            switch (i_fsl)
+            {
+                case fs_fhs:
+                    snprintf (buffer, BUFFERSIZE, "%s/bin/%s", sx_string(i_destdir), sx_string(name));
+                    return make_string (buffer);
+                    break;
+                case fs_fhs_binlib:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(i_pname), sx_string(name));
+                    return make_string (buffer);
+                    break;
+                case fs_proper:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s",
+                              sx_string(i_destdir), uname_os, uname_arch,
+                                        sx_string(name));
+                    return make_string (buffer);
+                    break;
+            }
     }
 
     return sx_false;
@@ -343,7 +423,7 @@ static void install_library_gcc (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", sx_string(t->name), archprefix, sx_string(name));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", archprefix, sx_string(t->name), sx_string(name));
 
     workstack
         = cons (cons (make_string (buffer),
@@ -356,7 +436,7 @@ static void install_library_gcc (sexpr name, struct target *t)
         char buffer[BUFFERSIZE];
         sexpr fname;
 
-        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", sx_string(t->name), archprefix, sx_string(name), sx_string(t->dversion));
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
 
         fname = make_string(buffer);
 
@@ -381,7 +461,14 @@ static void install_programme_gcc (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", sx_string(t->name), archprefix, sx_string(name));
+    switch (i_os)
+    {
+        case os_windows:
+            snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.exe", archprefix, sx_string(t->name), sx_string(name));
+            break;
+        default:
+            snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", archprefix, sx_string(t->name), sx_string(name));
+    }
 
     workstack
         = cons (cons (make_string (buffer),
@@ -414,7 +501,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
         char buffer[BUFFERSIZE];
         sexpr source = sx_false, target = sx_false;
 
-        snprintf (buffer, BUFFERSIZE, "build/%s/%s/libcurie.sx", sx_string(t->name), archprefix);
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/libcurie.sx", archprefix, sx_string(t->name));
 
         source = make_string (buffer);
 
@@ -439,7 +526,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
         char buffer[BUFFERSIZE];
         sexpr source = sx_false, target = sx_false;
 
-        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.pc", sx_string(t->name), archprefix, sx_string(t->name));
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.pc", archprefix, sx_string(t->name), sx_string(t->name));
 
         source = make_string (buffer);
 
@@ -458,7 +545,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
 
         workstack = cons (cons (source, target), workstack);
 
-        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s-hosted.pc", sx_string(t->name), archprefix, sx_string(t->name));
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s-hosted.pc", archprefix, sx_string(t->name), sx_string(t->name));
 
         source = make_string (buffer);
 
@@ -522,7 +609,7 @@ static void install_documentation_with_suffix (sexpr name, struct target *t, sex
     sexpr fn;
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.%s", sx_string(t->name), archprefix, sx_string(c4), suffix);
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.%s", archprefix, sx_string(t->name), sx_string(c4), suffix);
 
     fn = make_string (buffer);
 

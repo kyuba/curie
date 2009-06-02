@@ -26,6 +26,45 @@
  * THE SOFTWARE.
 */
 
-#include <curie/io-system.h>
+/*! \internal
+ *
+ * @{
+ */
 
-char last_error_recoverable_p = (char)1;
+/*! \file
+ *  \brief Glue Code Header for io.h
+ *
+ */
+
+#ifndef LIBCURIE_IO_SYSTEM_H
+#define LIBCURIE_IO_SYSTEM_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  int a_read  (int fd, void *buf, unsigned int count);
+  int a_write (int fd, const void *buf, unsigned int count);
+
+  int a_open_read (const char *path);
+  int a_open_write (const char *path);
+  int a_create (const char *path, int mode);
+  int a_close (int fd);
+
+  int a_dup (int ofd, int nfd);
+  int a_dup_n (int fd);
+
+  int a_make_nonblocking (int fd);
+
+  int a_unlink (const char *path);
+
+  int a_stat(const char *path, void *buffer);
+  int a_lstat(const char *path, void *buffer);
+
+  extern char last_error_recoverable_p;
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LIBCURIE_IO_SYSTEM_H */
+
+/*! @} */

@@ -26,6 +26,22 @@
  * THE SOFTWARE.
 */
 
-#include <curie/io-system.h>
+#include <curie/main.h>
 
-char last_error_recoverable_p = (char)1;
+#include <stdlib.h>
+#include <unistd.h>
+
+char **curie_argv = (char **)0;
+char **curie_environment = (char **)0;
+int cmain();
+
+int main (int argc, char **argv, char **env)
+{
+    int rv;
+
+    curie_argv = argv;
+    curie_environment = env;
+
+    rv = cmain();
+    return rv;
+}

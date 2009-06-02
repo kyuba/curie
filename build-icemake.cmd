@@ -2,7 +2,7 @@
 REM Build System Bootstrap
 REM Win32/cmd Variant
 
-SET INCLUDES=-Iinclude/windows/internal -Iinclude/windows -Iinclude/internal -Iinclude
+SET INCLUDES=-Iinclude/windows -Iinclude/internal/windows -Iinclude -Iinclude/internal
 
 SET ICEMAKE_FILES=icemake icemake-build icemake-install icemake-link icemake-crosslink icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem
 SET OBJECTS=
@@ -16,6 +16,8 @@ IF NOT EXIST build (
 GOTO MAIN
 
 :GCC_BUILD
+IF EXIST %2 GOTO :EOF
+
 @ECHO ON
 gcc -std=c99 -Wall -pedantic -g %INCLUDES% -c %1 -o %2
 @ECHO OFF
@@ -23,8 +25,10 @@ SET OBJECTS=%2 %OBJECTS%
 GOTO :EOF
 
 :GCC_LINK
+IF EXIST build/b-icemake.exe GOTO :EOF
+
 @ECHO ON
-gcc %* -lws2_32 -o build/b-icemake.exe
+gcc %* -o build/b-icemake.exe
 @ECHO OFF
 GOTO :EOF
 
@@ -60,3 +64,5 @@ GOTO :EOF
 
 CALL :BUILDALL %ICEMAKE_FILES%
 CALL :LINKALL %ICEMAKE_FILES%
+
+build\b-icemake.exe %* curie syscall icemake

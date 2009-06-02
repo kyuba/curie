@@ -26,6 +26,18 @@
  * THE SOFTWARE.
 */
 
-#include <curie/io-system.h>
+#include <curie/sexpr.h>
+#include <curie/filesystem.h>
+#include <windows.h>
 
-char last_error_recoverable_p = (char)1;
+sexpr filep(sexpr path)
+{
+    const char *p = sx_string (path);
+
+    return (GetFileAttributes(p) == 0xffffffff) ? sx_false : sx_true;
+}
+
+sexpr linkp(sexpr path)
+{
+    return filep(path);
+}

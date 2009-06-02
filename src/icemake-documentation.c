@@ -42,7 +42,7 @@ static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
     char dirbuffer[BUFFERSIZE];
     char buffer[BUFFERSIZE];
 
-    snprintf (dirbuffer, BUFFERSIZE, "build/%s/%s", sx_string(t->name), archprefix);
+    snprintf (dirbuffer, BUFFERSIZE, "build/%s/%s", archprefix, sx_string(t->name));
     snprintf (buffer,    BUFFERSIZE, "../../../%s", sx_string(file));
 
     if (stringp (p_pdflatex))

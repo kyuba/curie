@@ -26,6 +26,8 @@
  * THE SOFTWARE.
 */
 
-#include <curie/io-system.h>
+int cmain(void) {
+    /* test not supported on windows... */
 
-char last_error_recoverable_p = (char)1;
+    return -1;
+}

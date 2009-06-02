@@ -48,6 +48,9 @@
 /*! \brief Length of any uname Fields */
 #define UNAMELENGTH 128
 
+/*! \brief Number of Files to install in parallel */
+#define MAX_FILES_IN_PARALLEL 10
+
 /*! \brief Toolchain Codes */
 enum toolchain
 {
@@ -448,6 +451,16 @@ define_string (str_dshared,             "-shared");
 define_string (str_ddynamiclib,         "-dynamiclib");
 /*! \brief Predefined String */
 define_string (str_lc,                  "c");
+/*! \brief Predefined String */
+define_string (str_kernel32,            "kernel32");
+/*! \brief Predefined String */
+define_string (str_mingw32,             "mingw32");
+/*! \brief Predefined String */
+define_string (str_coldname,            "coldname");
+/*! \brief Predefined String */
+define_string (str_mingwex,             "mingwex");
+/*! \brief Predefined String */
+define_string (str_msvcrt,              "msvcrt");
 /*! \brief Predefined String */
 define_string (str_dlc,                 "-lc");
 /*! \brief Predefined String */

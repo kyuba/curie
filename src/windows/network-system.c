@@ -27,27 +27,3 @@
 */
 
 #include <curie/network-system.h>
-#include <curie/io-system.h>
-#include <sys/types.h>
-
-#include <winsock.h>
-
-#include <unistd.h>
-
-#include <errno.h>
-
-enum io_result a_open_loop(int result[]) {
-    return io_unrecoverable_error;
-}
-
-enum io_result a_open_socket(int *result, const char *path) {
-    return io_unrecoverable_error;
-}
-
-enum io_result a_open_listen_socket(int *result, const char *path) {
-    return io_unrecoverable_error;
-}
-
-enum io_result a_accept_socket(int *result, int fd) {
-    return io_unrecoverable_error;
-}

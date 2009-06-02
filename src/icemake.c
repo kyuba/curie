@@ -337,7 +337,7 @@ static sexpr generate_object_file_name (sexpr name, sexpr file)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.o", sx_string(name), archprefix, sx_string(file));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.o", archprefix, sx_string(name), sx_string(file));
 
     return make_string(buffer);
 }
@@ -346,7 +346,7 @@ static sexpr generate_pic_object_file_name (sexpr name, sexpr file)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.pic.o", sx_string(name), archprefix, sx_string(file));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.pic.o", archprefix, sx_string(name), sx_string(file));
 
     return make_string(buffer);
 }
@@ -355,7 +355,7 @@ static sexpr generate_test_object_file_name (sexpr name, sexpr file)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s.o", sx_string(name), archprefix, sx_string(file));
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s.o", archprefix, sx_string(name), sx_string(file));
 
     return make_string(buffer);
 }
@@ -364,7 +364,14 @@ static sexpr generate_test_executable_file_name (sexpr name, sexpr file)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s", sx_string(name), archprefix, sx_string(file));
+    switch (i_os)
+    {
+        case os_windows:
+            snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s.exe", archprefix, sx_string(name), sx_string(file));
+            break;
+        default:
+            snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s", archprefix, sx_string(name), sx_string(file));
+    }
 
     return make_string(buffer);
 }
@@ -834,15 +841,15 @@ static void process_definition (struct target *context, sexpr definition)
         definition = cdr (definition);
     }
 
-    snprintf (buffer, BUFFERSIZE, "build/%s", sx_string(context->name));
+    snprintf (buffer, BUFFERSIZE, "build/%s", archprefix);
 
     mkdir (buffer, 0755);
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s", sx_string(context->name), archprefix);
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s", archprefix, sx_string(context->name));
 
     mkdir (buffer, 0755);
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests", sx_string(context->name), archprefix);
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests", archprefix, sx_string(context->name));
 
     mkdir (buffer, 0755);
 
@@ -904,7 +911,18 @@ static void process_definition (struct target *context, sexpr definition)
 
     if (truep(context->hosted) && falsep (context->have_cpp))
     {
-        context->libraries = cons (str_lc, context->libraries);
+        switch (i_os)
+        {
+            case os_windows:
+                context->libraries = cons (str_kernel32, context->libraries);
+                context->libraries = cons (str_mingw32, context->libraries);
+                context->libraries = cons (str_coldname, context->libraries);
+                context->libraries = cons (str_mingwex, context->libraries);
+                context->libraries = cons (str_msvcrt, context->libraries);
+                break;
+            default:
+                context->libraries = cons (str_lc, context->libraries);
+        }
     }
 
     if (truep(context->use_curie))
@@ -1644,10 +1662,12 @@ int main (int argc, char **argv, char **environ)
 
 #elif defined(_WIN32)
         write_uname_element ("windows", uname_os, UNAMELENGTH-1);
+        write_uname_element ("microsoft", uname_vendor, UNAMELENGTH-1);
+
 #if defined(__ia64__) || defined(__ia64) || defined(_M_IA64)
-        write_uname_element ("x86-64", uname_os, UNAMELENGTH-1);
+        write_uname_element ("x86-64", uname_arch, UNAMELENGTH-1);
 #elif defined(i386) || defined(__i386__) || defined(_X86_) || defined(_M_IX86) || defined(__INTEL__)
-        write_uname_element ("i386", uname_os, UNAMELENGTH-1);
+        write_uname_element ("i386", uname_arch, UNAMELENGTH-1);
 #endif
 #endif
 
