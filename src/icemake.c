@@ -1610,10 +1610,17 @@ int main (int argc, char **argv, char **environ)
         }
 
         target_architecture += j;
-        if (target_architecture != 0)
+/*        if (target_architecture[0] == 'g')
         {
-            /* target_architecture => toolchain ID */
             uname_toolchain = tc_gcc;
+        }
+        else*/ if (target_architecture[0] == 'b')
+        {
+            uname_toolchain = tc_borland;
+        }
+        else if (target_architecture[0] == 'm')
+        {
+            uname_toolchain = tc_msvc;
         }
         else
         {
@@ -1622,24 +1629,26 @@ int main (int argc, char **argv, char **environ)
     }
     else
     {
-        char *os     = uname_os;
-        char *vendor = uname_vendor;
-        char *arch   = uname_arch;
-        char *toolchain;
+        char *toolchain = "unknown";
 
         uname_toolchain = tc_gcc;
-        
-#ifdef POSIX
+
+#if defined(POSIX)
         struct utsname un;
 
         if (uname (&un) >= 0)
         {
-            write_uname_element(un.sysname, uname_os, UNAMELENGTH - 1);
+            write_uname_element(un.sysname, uname_os,   UNAMELENGTH - 1);
             write_uname_element(un.machine, uname_arch, UNAMELENGTH - 1);
         }
 
-        os = uname_os;
-        arch = uname_arch;
+#elif defined(_WIN32)
+        write_uname_element ("windows", uname_os, UNAMELENGTH-1);
+#if defined(__ia64__) || defined(__ia64) || defined(_M_IA64)
+        write_uname_element ("x86-64", uname_os, UNAMELENGTH-1);
+#elif defined(i386) || defined(__i386__) || defined(_X86_) || defined(_M_IX86) || defined(__INTEL__)
+        write_uname_element ("i386", uname_os, UNAMELENGTH-1);
+#endif
 #endif
 
         switch (uname_toolchain)
@@ -1648,7 +1657,7 @@ int main (int argc, char **argv, char **environ)
         }
 
         snprintf (archbuffer, BUFFERSIZE, "%s-%s-%s-%s",
-                  arch, vendor, os, toolchain);
+                  uname_arch, uname_vendor, uname_os, toolchain);
 
         for (int j = 0; archbuffer[j]; j++)
         {
@@ -1667,11 +1676,13 @@ int main (int argc, char **argv, char **environ)
 
     initialise_toolchain_tex ();
     initialise_toolchain_doxygen ();
-    
+
     for (q = 0; uname_os[q] && (uname_os[q] == "darwin"[q]); q++);
     if ((q == 6) && (uname_os[q] == 0)) i_os = os_darwin;
     for (q = 0; uname_os[q] && (uname_os[q] == "linux"[q]); q++);
     if ((q == 5) && (uname_os[q] == 0)) i_os = os_linux;
+    for (q = 0; uname_os[q] && (uname_os[q] == "windows"[q]); q++);
+    if (((q == 7) && (uname_os[q] == 0)) || (q == 3)) i_os = os_windows;
 
     for (q = 0; uname_arch[q] && (uname_arch[q] == "arm"[q]); q++);
     if ((q == 3) || ((q == 4) && (uname_arch[q] == 0))) i_is = is_arm;

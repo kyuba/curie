@@ -51,7 +51,9 @@
 /*! \brief Toolchain Codes */
 enum toolchain
 {
-    tc_gcc      /*!< GNU GCC */
+    tc_gcc,     /*!< GNU GCC */
+    tc_borland, /*!< Borland C/C++ Compiler */
+    tc_msvc     /*!< Microsoft Visual C++ */
 };
 
 /*! \brief Operating System Codes */
@@ -59,7 +61,8 @@ enum operating_system
 {
     os_unknown, /*!< Unknown Operating System */
     os_darwin,  /*!< Darwin/MacOSX */
-    os_linux    /*!< Linux */
+    os_linux,   /*!< Linux */
+    os_windows  /*!< Windows */
 };
 
 /*! \brief Instruction Set Codes */
