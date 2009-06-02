@@ -137,23 +137,6 @@ void multiplex_add_signal
          enum signal_callback_result (*handler)(enum signal, void *),
          void *aux);
 
-/*! \brief Send a Signal
- *  \param[in] signal The signal to send.
- *  \param[in] pid    The process to send the signal to.
- *
- *  This functions send the given signal to the process specified by pid. If the
- *  pid is in an unusual range, i.e. <=0, weird things may happen, so don't do it
- *  unless you know it's safe on the architecture you're on.
- */
-void send_signal (enum signal signal, int pid);
-
-/*! \brief Send a Signal to Self
- *  \param[in] signal The signal to send.
- *
- *  Analoguous to send_signal(), but the signal is sent to the calling process.
- */
-void send_signal_self (enum signal signal);
-
 #ifdef __cplusplus
 }
 #endif

@@ -132,11 +132,3 @@ void multiplex_add_signal (enum signal signal, enum signal_callback_result (*han
     element->next = signal_handlers;
     signal_handlers = element;
 }
-
-void send_signal (enum signal signal, int pid) {
-    a_kill (signal, pid);
-}
-
-void send_signal_self (enum signal signal) {
-    a_kill (signal, a_getpid());
-}

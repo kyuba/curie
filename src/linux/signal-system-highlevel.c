@@ -41,7 +41,6 @@ typedef void (*signal_handler)(enum signal);
 static signal_handler signal_handlers[(SIGNAL_MAX_NUM+1)];
 
 int __a_set_signal_handler (int, void *);
-int __a_send_signal (int, int);
 void __a_sigreturn ();
 
 static enum signal signum2signal (int signum) {
@@ -255,8 +254,4 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
     signal_handlers[signal] = handler;
 
     (void)__a_set_signal_handler (signum, (void *)&(x.action));
-}
-
-void a_kill (enum signal signal, int pid) {
-    (void)__a_send_signal (pid, signal2signum(signal));
 }

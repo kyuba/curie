@@ -230,14 +230,6 @@ void a_set_signal_handler (enum signal sig, void (*handler)(enum signal)) {
 #endif
 }
 
-void a_kill (enum signal signal, int pid) {
-#ifdef HAVE_KILL
-    int signum = signal2signum (signal);
-    if (signum == sig_unused) return;
-    (void)kill ((pid_t)pid, signum);
-#endif
-}
-
 int a_getpid () {
     return (int)getpid();
 }

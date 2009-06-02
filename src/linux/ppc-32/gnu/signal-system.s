@@ -31,23 +31,16 @@
 
 .globl  __a_set_signal_handler
 .globl  a_getpid
-.globl  __a_send_signal
 .globl  __a_sigreturn
 
 .type __a_set_signal_handler,    @function
 .type a_getpid,                  @function
-.type __a_send_signal,           @function
 .type __a_sigreturn,             @function
 
 __a_set_signal_handler:
         li      0, 67 /* sys_sigaction */
         li      5, 0 /* don't care about the old handler */
 
-        sc
-        blr
-
-__a_send_signal:
-        li      0, 37 /* sys_kill */
         sc
         blr
 

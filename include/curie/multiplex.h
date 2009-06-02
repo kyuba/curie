@@ -63,59 +63,13 @@ enum multiplex_result {
     mx_nothing_to_do = 1,
 
     /*! \brief Immediate action possible
+     *  \internal
      *
      *  Used by the ->count() functions to indicate that not only may something
      *  change but in fact things already have changed, so the select() call can
      *  be omitted and the callbacks can be run directly.
      */
     mx_immediate_action = 2
-};
-
-/*! \brief Multiplexer Functions
- *
- *  A set of functions that implement a multiplexer. The whole multiplexer code
- *  basically wraps around the POSIX select() call, so all the multiplexers can
- *  do is wait for file descriptor statuses.
- */
-struct multiplex_functions {
-    /*! \brief Count Function
-     *  \return mx_ok or mx_immediate_action if the callbacks can be run
-     *          directly without waiting for anything.
-     *
-     *  This function is used to count the file descriptors that will be needed
-     *  for the select() call. Basically any multiplexer will just count its own
-     *  file descriptors, and then add the number of fds to check for read
-     *  events to the first integer, and the number of fds to check for write
-     *  events to the second integer.
-     */
-    enum multiplex_result (*count)(int *, int *);
-
-    /*! \brief Augmenter
-     *
-     *  This is used to add the actual file descriptors to check for to a
-     *  pre-allocated buffer. The first argument is a pre-allocated buffer for
-     *  the fds to check for reading, the second is the current position in the
-     *  buffer, which must be updated after adding things. The third and fourth
-     *  argument are the same, but for writing.
-     */
-    void (*augment)(int *, int *, int *, int *);
-
-    /*! \brief Select Callback
-     *
-     *  After the main multiplexer's select() call, this function is called. The
-     *  First argument is an array with fds that can now be read from, the
-     *  second is the number of elements in the array. The third and fourth
-     *  arguments are the same for writable fds.
-     */
-    void (*callback)(int *, int, int *, int);
-
-    /*! \brief Next Set of Multiplexer Functions
-     *  \internal
-     *
-     *  Always set this to (struct multiplex_functions *)0; the multiplexer code
-     *  uses this to implement a list of multiplexers.
-     */
-    struct multiplex_functions *next;
 };
 
 /*! \brief Multiplex
@@ -128,15 +82,6 @@ struct multiplex_functions {
  *  In most programmes you can just call this function in a loop.
  */
 enum multiplex_result multiplex ();
-
-/*! \brief Add Multiplexer
- *  \param[in] mx Descriptor for the multiplexer to add.
- *
- *  Adds a new multiplexer to the set of multiplexers currently in use. The
- *  given mx argument will be used by the multiplexer, so make sure not to
- *  deallocate it afterwards or allocate it a volatile function stack.
- */
-void multiplex_add (struct multiplex_functions *mx);
 
 /*! \brief Initialise I/O Multiplexer
  *

@@ -26,8 +26,8 @@
         "execute-fork-purge" "exit" "filesystem" "graph" "immutable" "io"
         "memory-allocator" "memory-pool" "memory-primitives"
         "multiplex-all-processes" "multiplex-io" "multiplex-network"
-        "multiplex-process" "multiplex-sexpr" "multiplex-signal" "network-loop"
-        "read-write" "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
+        "multiplex-process" "multiplex-sexpr" "network-loop" "read-write"
+        "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
         "tree-random" "tree-random-node-removal" "tree-value" "regex"
         "directory" "io-special")
 

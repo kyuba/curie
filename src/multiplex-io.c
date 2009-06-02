@@ -26,7 +26,7 @@
  * THE SOFTWARE.
 */
 
-#include <curie/multiplex.h>
+#include <curie/multiplex-system.h>
 #include <curie/memory.h>
 
 static enum multiplex_result mx_f_count(int *r, int *w);

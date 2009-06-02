@@ -33,8 +33,6 @@
         .type __a_set_signal_handler, @function
 .globl  a_getpid
         .type a_getpid,          @function
-.globl  __a_send_signal
-        .type __a_send_signal,   @function
 
 .globl  __a_sigreturn
         .type __a_sigreturn,     @function
@@ -53,15 +51,6 @@ __a_set_signal_handler:
     movq $0, %rdx /* don't care about the old handler */
     movq $8, %r10 /* sizeof(sigset_t) */
 
-    syscall
-    leave
-    ret
-
-__a_send_signal:
-    pushq   %rbp
-    movq    %rsp, %rbp
-
-    movq $62, %rax /* sys_kill */
     syscall
     leave
     ret

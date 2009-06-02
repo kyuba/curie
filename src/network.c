@@ -26,7 +26,7 @@
  * THE SOFTWARE.
 */
 
-#include <curie/multiplex.h>
+#include <curie/multiplex-system.h>
 #include <curie/memory.h>
 #include <curie/network.h>
 #include <curie/network-system.h>
