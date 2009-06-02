@@ -42,10 +42,10 @@ int cmain(void) {
         return 2;
 
     for (i = 0; curie_environment[i] != (char *)0; i++) {
-        if ((curie_environment[i][0] == 'P') &&
-            (curie_environment[i][1] == 'A') &&
-            (curie_environment[i][2] == 'T') &&
-            (curie_environment[i][3] == 'H') &&
+        if (((curie_environment[i][0] == 'P') || (curie_environment[i][0] == 'p')) &&
+            ((curie_environment[i][1] == 'A') || (curie_environment[i][1] == 'a')) &&
+            ((curie_environment[i][2] == 'T') || (curie_environment[i][2] == 't')) &&
+            ((curie_environment[i][3] == 'H') || (curie_environment[i][3] == 'h')) &&
             (curie_environment[i][4] == '=')) {
 
             return 0;
