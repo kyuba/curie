@@ -162,7 +162,7 @@ int cmain()
     if (context == (struct exec_context *)0) return -1;
 
     multiplex_add_process (context, icemake_death, (void *)0);
-    multiplex_add_sexpr (sx_open_io (context->out, context->in),
+    multiplex_add_sexpr (sx_open_io (context->in, context->out),
                          icemake_read, (void *)0);
 
     while (1) multiplex();
