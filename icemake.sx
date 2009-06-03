@@ -57,9 +57,7 @@
 
   (test-cases
         "objects" "exceptions" "graph++" "tree++")
-
-  (test-case-reference
-    ("temporary-graph" . "tests/reference/graph")))
+)
 
 (programme "icemake" hosted libcurie
   (name "icemake")

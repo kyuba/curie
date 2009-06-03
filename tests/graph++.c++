@@ -43,7 +43,7 @@ int cxxmain() {
     return 1;
   }
 
-//   forest->addNode(s);
+  forest->addNode(s);
 
   try {
     forest->getNode(0);
@@ -55,10 +55,6 @@ int cxxmain() {
     sx_write(io, e);
   }
 
-
-  if(forest->searchNode(s) == 0) {
-    return 2;
-  }
 
   forest->addNode(s2);
 

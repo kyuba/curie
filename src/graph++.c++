@@ -56,8 +56,11 @@ Node* Graph::getNode(int_32 i) {
   if(i >= 0 && i < nodeCount) {
     return nodes[i];
   }
-  else {
+  else if (i >= nodeCount) {
     throw make_symbol("Index larger than node count");
+  }
+  else {
+    throw make_symbol("Index less than zero");
   }
 }
 
@@ -101,8 +104,11 @@ Edge* Node::getEdge(int_32 i) {
   if(i >= 0 && i < edgeCount) {
     return edges[i];
   }
-  else {
+  else if (i >= edgeCount ){
     throw make_symbol("Index larger than edge count");
+  }
+  else {
+    throw make_symbol("Index less than zero");
   }
 }
 
