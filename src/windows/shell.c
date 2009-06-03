@@ -26,52 +26,69 @@
  * THE SOFTWARE.
 */
 
-#include <curie/main.h>
-#include <windows.h>
+#define BUFFERSIZE 4096
 
-#include <stdlib.h>
-#include <unistd.h>
+#include <curie/sexpr.h>
+#include <curie/filesystem.h>
+#include <curie/shell.h>
 
-char **curie_argv = (char **)0;
-char **curie_environment = (char **)0;
-int cmain();
-
-int main (int argc, char **argv)
+sexpr ewhich (char **environment, sexpr programme)
 {
-    int rv;
-    int indices = 0;
-    
-    const char *env = GetEnvironmentStringsA();
-    for (int i = 0; env[i] != (char)0; i++)
+    define_string (str_slash, "\\");
+    char *x = (char *)0, *y, buffer[BUFFERSIZE];
+
+    for (int i = 0; environment[i]; i++)
     {
-        while (env[i] != (char)0)
+        y = environment[i];
+        if (((y[0] == 'P') || (y[0] == 'p')) &&
+            ((y[1] == 'A') || (y[1] == 'a')) &&
+            ((y[2] == 'T') || (y[2] == 't')) &&
+            ((y[3] == 'H') || (y[3] == 'h')) &&
+            (y[4] == '='))
         {
-            i++;
+            x = y + 5;
+            break;
+        }
+    }
+
+    if (x == (char *)0) x = "\\bin;\\sbin";
+
+    y = buffer;
+
+    while (y < (buffer + BUFFERSIZE - 1))
+    {
+        if ((*x == ';') || ((*x) == 0))
+        {
+            if (y != buffer) /* have at least one character */
+            {
+                *y = 0;
+                y = buffer;
+                sexpr b = make_string (buffer);
+                sexpr f = sx_join (b, str_slash, programme);
+
+                sx_destroy (b);
+
+                if (truep (linkp (f)))
+                {
+                    return f;
+                }
+
+                sx_destroy (f);
+            }
+
+            if ((*x) == 0)
+            {
+                return sx_false;
+            }
+        }
+        else
+        {
+            *y = *x;
+            y++;
         }
 
-        indices++;
+        x++;
     }
-    
-    char *envv[indices + 1];
 
-    indices = 0;
-
-    for (int i = 0; env[i] != (char)0; i++)
-    {
-        envv[indices] = env + i;
-
-        while (env[i] != (char)0)
-        {
-            i++;
-        }
-
-        indices++;
-    }
-    envv[indices] = (char *)0;
-
-    curie_argv          = argv;
-    curie_environment   = envv;
-
-    rv = cmain();
-    return rv;
+    return sx_false;
 }
