@@ -34,49 +34,66 @@ using namespace curiepp;
 #define NULL ((void *)0)
 
 int cxxmain() {
+  struct io *out = io_open_write ("temporary-graph"), *in = io_open (0);
+  struct sexpr_io *io = sx_open_io (in, out);
+//
   Graph *forest = new Graph();
 
   sexpr s = make_integer(1);
-  sexpr s2 = make_integer(2);
+  sexpr s2 = make_integer(42);
 
   if(forest->getNodeCount() > 0) {
     return 1;
   }
-
   forest->addNode(s);
 
   try {
-    forest->getNode(0);
+    forest->getNode(3);
   }
   catch(sexpr e) {
-    struct io *out = io_open_write ("temporary-graph"), *in = io_open (0);
-    struct sexpr_io *io = sx_open_io (in, out);
 
-    sx_write(io, e);
+    sx_write (io, e);
   }
+  try {
+    forest->getNode(-3);
+  }
+  catch(sexpr e) {
 
+    sx_write (io, e);
+  }
 
   forest->addNode(s2);
 
-  if(forest->searchNode(s2) == 0) {
-    return 3;
-  }
+//  if(forest->searchNode(s2) == 0) {
+  //  return 3;
+ // }
 
+
+  if(forest->searchNode(s2) == NULL) return 6;
 
 
   forest->getNode(0)->addEdge(new Edge(make_integer(3), forest->getNode(1)));
 
+
   if(forest->getNode(0)->searchEdge(make_integer(3)) == 0) {
     return 4;
   }
+
   try {
     forest->getNode(0)->getEdge(2);
+
   }
   catch(sexpr e) {
-    struct io *out = io_open_write ("temporary-graph"), *in = io_open (0);
-    struct sexpr_io *io = sx_open_io (in, out);
 
-    sx_write(io, e);
+    sx_write (io, e);
+  }
+  try {
+    forest->getNode(0)->getEdge(-2);
+
+  }
+  catch(sexpr e) {
+
+    sx_write (io, e);
   }
 
   return 0;

@@ -56,11 +56,8 @@ Node* Graph::getNode(int_32 i) {
   if(i >= 0 && i < nodeCount) {
     return nodes[i];
   }
-  else if (i >= nodeCount) {
-    throw make_symbol("Index larger than node count");
-  }
   else {
-    throw make_symbol("Index less than zero");
+    throw make_symbol("Node index out of bounds");
   }
 }
 
@@ -68,7 +65,7 @@ void Graph::addNode(sexpr label) {
 
   Node** new_nodes = new Node* [nodeCount + 1];
   for(int i = 0; i < nodeCount; i++) {
-    nodes[i] = new_nodes[i];
+    new_nodes[i] = nodes[i];
   }
   new_nodes[nodeCount] = new Node(label);
   delete[] nodes;
@@ -77,11 +74,12 @@ void Graph::addNode(sexpr label) {
 }
 
 Node * Graph::searchNode(sexpr s) {
-  int i = 0;
-  Node *rv = 0;
-  while(falsep(equalp(nodes[i]->label, s))) i++;
-  if(i < nodeCount) rv = nodes[i];
-  return rv;
+
+  for(int i = 0; i < nodeCount; ++i) {
+    Node *n = nodes[i];
+    if(n != NULL && truep(equalp(n->label, s))) return nodes[i];
+  }
+  return (Node *) NULL;
 }
 
 Node::Node(sexpr l) {
@@ -104,11 +102,8 @@ Edge* Node::getEdge(int_32 i) {
   if(i >= 0 && i < edgeCount) {
     return edges[i];
   }
-  else if (i >= edgeCount ){
-    throw make_symbol("Index larger than edge count");
-  }
   else {
-    throw make_symbol("Index less than zero");
+    throw make_symbol("Edge index out of bounds");
   }
 }
 
@@ -116,7 +111,7 @@ void Node::addEdge(Edge *e) {
 
   Edge** new_edges = new Edge* [edgeCount + 1];
   for(int i = 0; i < edgeCount; i++) {
-    edges[i] = new_edges[i];
+    new_edges[i] = edges[i];
   }
   new_edges[edgeCount] = e;
   delete[] edges;
@@ -127,7 +122,7 @@ void Node::addEdge(Edge *e) {
 Edge * Node::searchEdge(sexpr s) {
   int i = 0;
   Edge *rv = 0;
-  while(falsep(equalp(edges[i]->label, s))) i++;
+  while(i < edgeCount && falsep(equalp(edges[i]->label, s))) i++;
   if(i < edgeCount) rv = edges[i];
   return rv;
 }
