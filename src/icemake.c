@@ -369,6 +369,17 @@ static sexpr generate_test_object_file_name (sexpr name, sexpr file)
     {
         case tc_borland:
             snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.obj", archprefix, sx_string(name), sx_string(file));
+            {
+                int i;
+
+                for (i = 0; buffer[i]; i++)
+                {
+                    if (buffer[i] == '+')
+                    {
+                        buffer[i] = 'x';
+                    }
+                }
+            }
             break;
         default:
             snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s.o", archprefix, sx_string(name), sx_string(file));
@@ -388,7 +399,18 @@ static sexpr generate_test_executable_file_name (sexpr name, sexpr file)
             switch (uname_toolchain)
             {
                 case tc_borland:
-                    snprintf (buffer, BUFFERSIZE, "build\\%s\\test-case-%s.exe", archprefix, sx_string(file));
+                    snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.exe", archprefix, sx_string(name), sx_string(file));
+                    {
+                        int i;
+
+                        for (i = 0; buffer[i]; i++)
+                        {
+                            if (buffer[i] == '+')
+                            {
+                                buffer[i] = 'x';
+                            }
+                        }
+                    }
                     break;
                 default:
                     snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.exe", archprefix, sx_string(name), sx_string(file));
@@ -907,6 +929,33 @@ static void process_definition (struct target *context, sexpr definition)
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests", archprefix, sx_string(context->name));
 
     mkdir (buffer, 0755);
+    
+    if (uname_toolchain == tc_borland)
+    {
+        int i;
+
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s", archprefix, sx_string(context->name));
+        for (i = 0; buffer[i]; i++)
+        {
+            if (buffer[i] == '+')
+            {
+                buffer[i] = 'x';
+            }
+        }
+
+        mkdir (buffer, 0755);
+
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests", archprefix, sx_string(context->name));
+        for (i = 0; buffer[i]; i++)
+        {
+            if (buffer[i] == '+')
+            {
+                buffer[i] = 'x';
+            }
+        }
+
+        mkdir (buffer, 0755);
+    }
 
     if (uname_toolchain == tc_gcc)
     {

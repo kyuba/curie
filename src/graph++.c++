@@ -30,9 +30,15 @@
 #define NULL ((void *)0)
 
 using namespace curiepp;
+
 Graph::Graph() {
   nodes = (Node**) NULL;
   nodeCount = 0;
+}
+
+ /*! \todo not sure if this is okay yet, but bcc was complaining */
+Graph::~Graph()
+{
 }
 
 Graph::Graph(struct graph *g) {

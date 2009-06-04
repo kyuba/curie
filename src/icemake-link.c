@@ -75,17 +75,6 @@ static void write_curie_linker_flags_gcc (struct io *o, struct target *t)
     }
 }
 
-static void map_includes_common (struct tree_node *node, void *psx)
-{
-    sexpr *sx = (sexpr *)psx;
-    char buffer[BUFFERSIZE];
-    struct target *t = node_get_value (node);
-
-    snprintf (buffer, BUFFERSIZE, "-Lbuild/%s/%s", archprefix, sx_string(t->name));
-
-    *sx = cons (make_string (buffer), *sx);
-}
-
 static sexpr get_special_linker_options_common (sexpr sx)
 {
     char *f = getenv ("LDFLAGS");
@@ -190,7 +179,13 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
 
 static void map_includes_gcc (struct tree_node *node, void *psx)
 {
-    map_includes_common (node, psx);
+    sexpr *sx = (sexpr *)psx;
+    char buffer[BUFFERSIZE];
+    struct target *t = node_get_value (node);
+
+    snprintf (buffer, BUFFERSIZE, "-Lbuild/%s/%s", archprefix, sx_string(t->name));
+
+    *sx = cons (make_string (buffer), *sx);
 }
 
 static sexpr get_special_linker_options_gcc (sexpr sx)
@@ -207,7 +202,22 @@ static sexpr get_libc_linker_options_borland (struct target *t, sexpr sx)
 
 static void map_includes_borland (struct tree_node *node, void *psx)
 {
-    map_includes_common (node, psx);
+    sexpr *sx = (sexpr *)psx;
+    char buffer[BUFFERSIZE];
+    struct target *t = node_get_value (node);
+    int i;
+
+    snprintf (buffer, BUFFERSIZE, "-Lbuild/%s/%s", archprefix, sx_string(t->name));
+
+    for (i = 0; buffer[i]; i++)
+    {
+        if (buffer[i] == '+')
+        {
+            buffer[i] = 'x';
+        }
+    }
+
+    *sx = cons (make_string (buffer), *sx);
 }
 
 static sexpr get_special_linker_options_borland (sexpr sx)
@@ -297,6 +307,17 @@ static void link_programme_borland_filename (sexpr ofile, sexpr name, sexpr code
         sexpr libname = car (cur);
 
         snprintf (buffer, BUFFERSIZE, "lib%s.lib", sx_string (libname));
+        {
+            int i;
+
+            for (i = 0; buffer[i]; i++)
+            {
+                if (buffer[i] == '+')
+                {
+                    buffer[i] = 'x';
+                }
+            }
+        }
 
         sx = cons (make_string (buffer), sx);
 
@@ -328,11 +349,12 @@ static void link_programme_borland_filename (sexpr ofile, sexpr name, sexpr code
     }
 
     if (!havebin) {
-        sx = (get_libc_linker_options_borland (t,
-                  get_special_linker_options_borland (
-                      cons (str_do,
-                          cons (ofile,
-                                sx)))));
+        sx = cons (str_dq,
+                   get_libc_linker_options_borland (t,
+                      get_special_linker_options_borland (
+                          cons (str_do,
+                              cons (ofile,
+                                    sx)))));
 
         workstack = cons (cons (p_linker, sx), workstack);
     }
@@ -636,6 +658,17 @@ static void link_library_borland (sexpr name, sexpr code, struct target *t)
     }
 
     snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.lib", archprefix, sx_string(t->name), sx_string(name));
+    {
+        int i;
+
+        for (i = 0; buffer[i]; i++)
+        {
+            if (buffer[i] == '+')
+            {
+                buffer[i] = 'x';
+            }
+        }
+    }
 
     havelib = (stat (buffer, &res) == 0);
 
