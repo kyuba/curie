@@ -30,22 +30,15 @@
         .align 8
 
 .globl  __a_set_signal_handler
-.globl  a_getpid
 .globl  __a_sigreturn
 
 .type __a_set_signal_handler,    @function
-.type a_getpid,                  @function
 .type __a_sigreturn,             @function
 
 __a_set_signal_handler:
         li      0, 67 /* sys_sigaction */
         li      5, 0 /* don't care about the old handler */
 
-        sc
-        blr
-
-a_getpid:
-        li      0, 20 /* sys_getpid */
         sc
         blr
 

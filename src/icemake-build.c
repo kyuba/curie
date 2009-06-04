@@ -63,6 +63,9 @@ static sexpr permutate_paths_toolchain (sexpr p, sexpr lis)
         case tc_gcc:
             lis = permutate_paths_vendor (sx_string_dir_prefix_c ("gnu", p), lis);
             break;
+        case tc_borland:
+            lis = permutate_paths_vendor (sx_string_dir_prefix_c ("borland", p), lis);
+            break;
     }
     lis = permutate_paths_vendor (p, lis);
 
@@ -146,10 +149,10 @@ static sexpr prepend_cflags_gcc (sexpr x)
     if (f != (char *)0)
     {
         char buffer[BUFFERSIZE];
-        int j = 0;
+        int j = 0, i;
         sexpr t = sx_end_of_list;
 
-        for (int i = 0; f[i] != 0; i++)
+        for (i = 0; f[i] != 0; i++)
         {
             if (f[i] == ' ')
             {
@@ -191,10 +194,10 @@ static sexpr prepend_cxxflags_gcc (sexpr x)
     if (f != (char *)0)
     {
         char buffer[BUFFERSIZE];
-        int j = 0;
+        int j = 0, i;
         sexpr t = sx_end_of_list;
 
-        for (int i = 0; f[i] != 0; i++)
+        for (i = 0; f[i] != 0; i++)
         {
             if (f[i] == ' ')
             {
@@ -222,6 +225,111 @@ static sexpr prepend_cxxflags_gcc (sexpr x)
     }
 
     return prepend_ccflags_gcc(x);
+}
+
+static sexpr prepend_includes_borland (sexpr x)
+{
+    sexpr include_paths = permutate_paths (str_include);
+    sexpr cur = include_paths;
+
+    while (consp (cur))
+    {
+        sexpr sxcar = car(cur);
+        char buffer [BUFFERSIZE];
+
+        snprintf (buffer, BUFFERSIZE, "-I%s", sx_string(sxcar));
+
+        x = cons (make_string (buffer), x);
+
+        cur = cdr (cur);
+    }
+
+    return x;
+}
+
+static sexpr prepend_ccflags_borland (sexpr x)
+{
+    return x;
+}
+
+static sexpr prepend_cflags_borland (sexpr x)
+{
+    char *f = getenv ("CFLAGS");
+
+    if (f != (char *)0)
+    {
+        char buffer[BUFFERSIZE];
+        int j = 0, i;
+        sexpr t = sx_end_of_list;
+
+        for (i = 0; f[i] != 0; i++)
+        {
+            if (f[i] == ' ')
+            {
+                buffer[j] = 0;
+
+                t = cons (make_string (buffer), t);
+
+                j = 0;
+            }
+            else
+            {
+                buffer[j] = f[i];
+                j++;
+            }
+        }
+
+        if (j != 0)
+        {
+            buffer[j] = 0;
+
+            t = cons (make_string (buffer), t);
+        }
+
+        while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
+    }
+
+    return prepend_ccflags_borland(x);
+}
+
+static sexpr prepend_cxxflags_borland (sexpr x)
+{
+    char *f = getenv ("CXXFLAGS");
+
+    if (f != (char *)0)
+    {
+        char buffer[BUFFERSIZE];
+        int j = 0, i;
+        sexpr t = sx_end_of_list;
+
+        for (i = 0; f[i] != 0; i++)
+        {
+            if (f[i] == ' ')
+            {
+                buffer[j] = 0;
+
+                t = cons (make_string (buffer), t);
+
+                j = 0;
+            }
+            else
+            {
+                buffer[j] = f[i];
+                j++;
+            }
+        }
+
+        if (j != 0)
+        {
+            buffer[j] = 0;
+
+            t = cons (make_string (buffer), t);
+        }
+
+        while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
+    }
+
+    return prepend_ccflags_borland(x);
 }
 
 static void build_object_gcc_assembly (const char *source, const char *target)
@@ -289,8 +397,9 @@ static void build_object_gcc_c_combine (sexpr sources, const char *target)
                  )
 #endif
                  ;
+    sexpr cur;
 
-    for (sexpr cur = sources; consp (cur); cur = cdr (cur))
+    for (cur = sources; consp (cur); cur = cdr (cur))
     {
         item = cons (car (cur), item);
     }
@@ -390,8 +499,9 @@ static void build_object_gcc_c_pic_combine (sexpr sources, const char *target)
                  )
 #endif
                  ;
+    sexpr cur;
 
-    for (sexpr cur = sources; consp (cur); cur = cdr (cur))
+    for (cur = sources; consp (cur); cur = cdr (cur))
     {
         item = cons (car (cur), item);
     }
@@ -481,6 +591,53 @@ static void build_object_gcc (sexpr type, sexpr source, sexpr target)
     }
 }
 
+static void build_object_borland_generic (const char *source, const char *target)
+{
+    workstack
+        = cons (cons (p_c_compiler,
+                  cons (str_dAT,
+                  cons (str_dq,
+                    cons (str_dw,
+                      prepend_cflags_borland (
+                      prepend_includes_borland (
+                        cons (str_do,
+                          cons (make_string (target),
+                            cons (str_dc,
+                              cons (make_string(source), sx_end_of_list)))))))))),
+                workstack);
+}
+
+static void build_object_borland_cpp (const char *source, const char *target)
+{
+    workstack
+        = cons (cons (p_c_compiler,
+                  cons (str_dAT,
+                  cons (str_dq,
+                  cons (str_dP,
+                    cons (str_dw,
+                      prepend_cflags_borland (
+                      prepend_includes_borland (
+                        cons (str_do,
+                          cons (make_string (target),
+                            cons (str_dc,
+                              cons (make_string(source), sx_end_of_list))))))))))),
+                workstack);
+}
+
+static void build_object_borland (sexpr type, sexpr source, sexpr target)
+{
+    if (truep(equalp(type, sym_link))) return;
+
+    if (truep(equalp(type, sym_cpp)))
+    {
+        build_object_borland_cpp (sx_string(source), sx_string(target));
+    }
+    else
+    {
+        build_object_borland_generic (sx_string(source), sx_string(target));
+    }
+}
+
 static void build_object(sexpr desc)
 {
     sexpr type = car(desc);
@@ -496,6 +653,8 @@ static void build_object(sexpr desc)
     {
         case tc_gcc:
             build_object_gcc (type, source, target); break;
+        case tc_borland:
+            build_object_borland (type, source, target); break;
     }
 }
 
@@ -549,10 +708,10 @@ static void target_map_build (struct tree_node *node, void *u)
 
 void build (sexpr buildtargets)
 {
-    sx_write (stdio, cons (sym_phase, cons (sym_build, sx_end_of_list)));
-
     sexpr cursor = buildtargets;
     sexpr use_objects = sx_end_of_list;
+
+    sx_write (stdio, cons (sym_phase, cons (sym_build, sx_end_of_list)));
 
     if (eolp(cursor))
     {

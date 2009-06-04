@@ -28,6 +28,7 @@
 
 #include <curie/filesystem.h>
 #include <curie/directory.h>
+#include <curie/memory.h>
 
 define_string (str_slash,    "/");
 define_string (str_slashdot, "/.");
@@ -53,7 +54,8 @@ sexpr read_directory_sx (sexpr rx)
 sexpr read_directory    (const char *p)
 {
     sexpr r = sx_end_of_list;
-    unsigned int l = 0, s = 0, c = 0;
+    unsigned int l = 0, s = 0, c = 0, map_s, mapd_l;
+    char **map, *mapd;
 
     while (p[l]) {
         if (p[l] == '/') s++;
@@ -63,9 +65,12 @@ sexpr read_directory    (const char *p)
 
     s++;
     l++;
+    
+    map_s  = sizeof (char *) * s;
+    mapd_l = l;
 
-    char *map [s];
-    char mapd [l];
+    map  = aalloc (map_s);
+    mapd = aalloc (mapd_l);
 
     map[0] = mapd;
 
@@ -96,16 +101,18 @@ sexpr read_directory    (const char *p)
 
     for (c = 0; c < s; c++)
     {
-        if (map[c][0] == 0) continue;
-
         char regex = 0;
         char *t = map[c];
         sexpr nr = sx_end_of_list;
 
+        if (map[c][0] == 0) continue;
+
         if (!((t[0] == '.') &&
                ((t[1] == 0) || ((t[1] == '.') && (t[2] == 0)))))
         {
-            for (unsigned int cx = 0; (regex == 0) && t[cx]; cx++)
+            unsigned int cx;
+
+            for (cx = 0; (regex == 0) && t[cx]; cx++)
             {
                 switch (t[cx])
                 {
@@ -129,13 +136,15 @@ sexpr read_directory    (const char *p)
         if (regex)
         {
             struct graph *g = rx_compile (map[c]);
+            sexpr c;
 
-            for (sexpr c = r; consp(c); c = cdr(c))
+            for (c = r; consp(c); c = cdr(c))
             {
                 sexpr ca = car (c);
                 sexpr n = read_directory_rx (sx_string (ca), g);
+                sexpr e;
 
-                for (sexpr e = n; consp (e); e = cdr (e))
+                for (e = n; consp (e); e = cdr (e))
                 {
                     sexpr b = car (e);
 
@@ -151,8 +160,9 @@ sexpr read_directory    (const char *p)
         else
         {
             sexpr b = make_string (t);
+            sexpr c;
 
-            for (sexpr c = r; consp(c); c = cdr(c))
+            for (c = r; consp(c); c = cdr(c))
             {
                 sexpr ca = car (c);
                 sexpr nf = sx_join (ca, str_slash, b);
@@ -169,6 +179,9 @@ sexpr read_directory    (const char *p)
 
         r = nr;
     }
+
+    afree (map_s,  map);
+    afree (mapd_l, mapd);
 
     return r;
 }

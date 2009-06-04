@@ -28,6 +28,7 @@
 
 #include <curie/multiplex.h>
 #include <curie/multiplex-system.h>
+#include <curie/memory.h>
 #include <windows.h>
 
 #include <stdio.h>
@@ -59,7 +60,8 @@ enum multiplex_result multiplex () {
     if (rnum == 0) {
         return mx_nothing_to_do;
     } else {
-        void *rfds[rnum];
+        int rfdss = sizeof(void *) * rnum;
+        void **rfds = aalloc (rfdss);
 
         rnum = 0;
 
@@ -70,16 +72,19 @@ enum multiplex_result multiplex () {
         }
 
         if (rnum == 0) {
+            afree (rfdss, rfds);
             return mx_nothing_to_do;
         }
 
-        WaitForMultipleObjects(rnum, rfds, FALSE, 100);
+        WaitForMultipleObjects(rnum, rfds, FALSE, INFINITE);
 
         for (cur = mx_func_list;
              cur != (struct multiplex_functions *)0;
              cur = cur->next) {
             cur->callback (rfds, rnum);
         }
+        
+        afree (rfdss, rfds);
 
         return mx_ok;
     }

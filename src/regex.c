@@ -118,7 +118,9 @@ static struct graph_node *rx_compile_recurse
 
                         if (range == 1)
                         {
-                            for (int n = lastchar; n <= ra; n++)
+                            int n;
+
+                            for (n = lastchar; n <= ra; n++)
                             {
                                 graph_node_add_edge (last, t, make_integer(n));
                             }
@@ -287,14 +289,15 @@ static void rx_match_add_nfa_state
 {
     static struct memory_pool pool =
             MEMORY_POOL_INITIALISER (sizeof(struct nfa_state));
+    struct nfa_state *c, *ns;
 
     /* don't add nfa states that are already in the list */
-    for (struct nfa_state *c = *s; c != (struct nfa_state *)0; c = c->next)
+    for (c = *s; c != (struct nfa_state *)0; c = c->next)
     {
         if ((c->n == n) && (c->p == p)) return;
     }
 
-    struct nfa_state *ns = get_pool_mem (&pool);
+    ns = get_pool_mem (&pool);
 
     ns->n = n;
     ns->p = p;
@@ -309,15 +312,19 @@ static sexpr rx_match_nfa_state_progress
     unsigned int p = ns->p, np;
     struct graph_node *n = ns->n;
     char haveedge = 0;
-
-    if (truep(n->label)) return sx_true;
-
     int_32 ra;
+    sexpr sx;
+    unsigned int i;
+
+    if (truep(n->label)) {
+        return sx_true;
+    }
+
     np = utf8_get_character (s, p, &ra);
 
-    sexpr sx = make_integer(ra);
+    sx = make_integer(ra);
 
-    for (unsigned int i = 0; i < n->edge_count; i++)
+    for (i = 0; i < n->edge_count; i++)
     {
         struct graph_edge *e = n->edges[i];
         sexpr l = e->label;
@@ -380,6 +387,7 @@ static sexpr rx_match_recurse
             else if (nexp (sx))
             {
                 struct nfa_state *f = c;
+                struct nfa_state *y;
 
                 c = c->next;
 
@@ -389,9 +397,7 @@ static sexpr rx_match_recurse
                 {
                     *ns = c;
                 }
-                else for (struct nfa_state *y = *ns;
-                          y != (struct nfa_state *)0;
-                          y = y->next)
+                else for (y = *ns; y != (struct nfa_state *)0; y = y->next)
                 {
                     if (y->next == f)
                     {
@@ -430,9 +436,15 @@ sexpr rx_match (struct graph *g, const char *s)
     struct graph_node *n = graph_search_node (g, sx_nil);
     struct nfa_state *ns = get_pool_mem (&pool);
 
-    if (n == (struct graph_node *)0) return sx_false;
+    if (n == (struct graph_node *)0) 
+    {
+        return sx_false;
+    }
 
-    if (truep(n->label)) return sx_true;
+    if (truep(n->label))
+    {
+        return sx_true;
+    }
 
     ns->next = (struct nfa_state *)0;
     ns->n = n;

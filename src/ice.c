@@ -46,9 +46,9 @@ static void update_screen ()
 {
     char buffer[0x1000] = "\r * ";
     const char *s = sx_symbol (phase);
-    int i = 4, p = 4;
+    int i = 4, p = 4, j, x;
 
-    for (int j = 0; s[j] != (char)0; j++, i++, p++)
+    for (j = 0; s[j] != (char)0; j++, i++, p++)
     {
         buffer[i] = s[j];
     }
@@ -60,14 +60,14 @@ static void update_screen ()
 
     if (items_have > items_total) items_have = items_total;
 
-    for (int j = 0, x = ((double)items_have / (double)items_total)
+    for (j = 0, x = ((double)items_have / (double)items_total)
                         * (WIDTH - p - 3);
          j < x; j++, i++, p++)
     {
         buffer[i] = '#';
     }
 
-    for (int j = 0, x = WIDTH - p - 3; j < x; j++, i++, p++)
+    for (j = 0, x = WIDTH - p - 3; j < x; j++, i++, p++)
     {
         buffer[i] = ' ';
     }
@@ -133,14 +133,16 @@ static void icemake_read (sexpr sx, struct sexpr_io *io, void *aux)
 int cmain()
 {
     struct exec_context *context;
-    int i = 0;
+    int i = 0, argvsize;
     define_string (str_icemake, "icemake");
     sexpr icemake;
+    char **argv;
 
     while (curie_argv[i] != (char *)0) { i++; }
 
-    char *argv[i + 1];
-
+    argvsize = sizeof (char *) * (i + 1);
+    argv = aalloc (argvsize);
+    
     for (i = 0; curie_argv[i] != (char *)0; i++)
     {
         argv[i] = curie_argv[i];
@@ -166,6 +168,8 @@ int cmain()
                          icemake_read, (void *)0);
 
     while (1) multiplex();
+
+    afree (argvsize, argv);
 
     return 0;
 }

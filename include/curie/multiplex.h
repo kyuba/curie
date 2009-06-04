@@ -81,7 +81,7 @@ enum multiplex_result {
  *
  *  In most programmes you can just call this function in a loop.
  */
-enum multiplex_result multiplex ();
+enum multiplex_result multiplex ( void );
 
 /*! \brief Initialise I/O Multiplexer
  *
@@ -89,14 +89,14 @@ enum multiplex_result multiplex ();
  *  multiplex_add_io(), multiplex_add_io_no_callback() or the multiplex_del_io()
  *  functions.
  */
-void multiplex_io ();
+void multiplex_io ( void );
 
 /*! \brief Initialise Process Multiplexer
  *
  *  Use this function before using the process multiplexer, i.e. before calling
  *  multiplex_add_process().
  */
-void multiplex_process ();
+void multiplex_process ( void );
 
 /*! \brief Initialise Process Multiplexer (Reap All Processes)
  *
@@ -109,14 +109,14 @@ void multiplex_process ();
  *  Theoretically, this variant ought to be faster, since less syscalls are
  *  involved when keeping track of multiple processes.
  */
-void multiplex_all_processes ();
+void multiplex_all_processes ( void );
 
 /*! \brief Initialise S-Expression I/O Multiplexer
  *
  *  Use this function before using the sexpr multiplexer, i.e. before calling
  *  multiplex_add_sexpr().
  */
-void multiplex_sexpr ();
+void multiplex_sexpr ( void );
 
 /*! \brief Register Callbacks for an I/O Structure
  *  \param[in] io       The structure to keep track of.

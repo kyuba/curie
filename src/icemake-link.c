@@ -37,7 +37,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <icemake/icemake.h>
 
@@ -74,6 +73,57 @@ static void write_curie_linker_flags_gcc (struct io *o, struct target *t)
             }
         }
     }
+}
+
+static void map_includes_common (struct tree_node *node, void *psx)
+{
+    sexpr *sx = (sexpr *)psx;
+    char buffer[BUFFERSIZE];
+    struct target *t = node_get_value (node);
+
+    snprintf (buffer, BUFFERSIZE, "-Lbuild/%s/%s", archprefix, sx_string(t->name));
+
+    *sx = cons (make_string (buffer), *sx);
+}
+
+static sexpr get_special_linker_options_common (sexpr sx)
+{
+    char *f = getenv ("LDFLAGS");
+
+    if (f != (char *)0)
+    {
+        char buffer[BUFFERSIZE];
+        int j = 0, i;
+        sexpr t = sx_end_of_list;
+
+        for (i = 0; f[i] != 0; i++)
+        {
+            if (f[i] == ' ')
+            {
+                buffer[j] = 0;
+
+                t = cons (make_string (buffer), t);
+
+                j = 0;
+            }
+            else
+            {
+                buffer[j] = f[i];
+                j++;
+            }
+        }
+
+        if (j != 0)
+        {
+            buffer[j] = 0;
+
+            t = cons (make_string (buffer), t);
+        }
+
+        while (consp (t)) { sx = cons (car(t), sx); t = cdr (t); }
+    }
+
+    return sx;
 }
 
 static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
@@ -140,55 +190,31 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
 
 static void map_includes_gcc (struct tree_node *node, void *psx)
 {
-    sexpr *sx = (sexpr *)psx;
-    char buffer[BUFFERSIZE];
-    struct target *t = node_get_value (node);
-
-    snprintf (buffer, BUFFERSIZE, "-Lbuild/%s/%s", archprefix, sx_string(t->name));
-
-    *sx = cons (make_string (buffer), *sx);
+    map_includes_common (node, psx);
 }
 
 static sexpr get_special_linker_options_gcc (sexpr sx)
 {
-    char *f = getenv ("LDFLAGS");
-
     tree_map (&targets, map_includes_gcc, (void *)&sx);
+    
+    return get_special_linker_options_common (sx);
+}
 
-    if (f != (char *)0)
-    {
-        char buffer[BUFFERSIZE];
-        int j = 0;
-        sexpr t = sx_end_of_list;
-
-        for (int i = 0; f[i] != 0; i++)
-        {
-            if (f[i] == ' ')
-            {
-                buffer[j] = 0;
-
-                t = cons (make_string (buffer), t);
-
-                j = 0;
-            }
-            else
-            {
-                buffer[j] = f[i];
-                j++;
-            }
-        }
-
-        if (j != 0)
-        {
-            buffer[j] = 0;
-
-            t = cons (make_string (buffer), t);
-        }
-
-        while (consp (t)) { sx = cons (car(t), sx); t = cdr (t); }
-    }
-
+static sexpr get_libc_linker_options_borland (struct target *t, sexpr sx)
+{
     return sx;
+}
+
+static void map_includes_borland (struct tree_node *node, void *psx)
+{
+    map_includes_common (node, psx);
+}
+
+static sexpr get_special_linker_options_borland (sexpr sx)
+{
+    tree_map (&targets, map_includes_borland, (void *)&sx);
+
+    return get_special_linker_options_common (sx);
 }
 
 static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, struct target *t)
@@ -254,6 +280,64 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
     }
 }
 
+static void link_programme_borland_filename (sexpr ofile, sexpr name, sexpr code, struct target *t)
+{
+    char buffer[BUFFERSIZE];
+    struct stat res, st;
+    char havebin;
+    sexpr cur;
+    sexpr sx = sx_end_of_list;
+    
+    havebin = (stat (sx_string (ofile), &res) == 0);
+
+    cur = t->libraries;
+
+    while (consp (cur))
+    {
+        sexpr libname = car (cur);
+
+        snprintf (buffer, BUFFERSIZE, "lib%s.lib", sx_string (libname));
+
+        sx = cons (make_string (buffer), sx);
+
+        cur = cdr (cur);
+    }
+
+    while (consp (code))
+    {
+        sexpr txn = car (code);
+        sexpr ttype = car (txn);
+        sexpr objectfile = car (cdr (cdr (txn)));
+
+        if (truep(equalp(ttype, sym_assembly)) ||
+            truep(equalp(ttype, sym_preproc_assembly)) ||
+            truep(equalp(ttype, sym_c)) ||
+            (truep(equalp(ttype, sym_cpp))))
+        {
+            sx = cons (objectfile, sx);
+
+            if (havebin &&
+                (stat (sx_string(objectfile), &st) == 0) &&
+                (st.st_mtime > res.st_mtime))
+            {
+                havebin = 0;
+            }
+        }
+
+        code = cdr (code);
+    }
+
+    if (!havebin) {
+        sx = (get_libc_linker_options_borland (t,
+                  get_special_linker_options_borland (
+                      cons (str_do,
+                          cons (ofile,
+                                sx)))));
+
+        workstack = cons (cons (p_linker, sx), workstack);
+    }
+}
+
 static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE];
@@ -310,7 +394,7 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 
         snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
 
-        io = sx_open_io(io_open(-1), io_open_create(buffer, 0644));
+        io = sx_open_io(io_open_null, io_open_create(buffer, 0644));
 
         if (truep(co_freestanding))
         {
@@ -438,7 +522,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
         snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
 
-        io = sx_open_io(io_open(-1), io_open_create(buffer, 0644));
+        io = sx_open_io(io_open_null, io_open_create(buffer, 0644));
 
         if (truep(co_freestanding))
         {
@@ -452,10 +536,21 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
         multiplex_add_sexpr (io, (void *)0, (void *)0);
     }
 
-    snprintf (buffer, BUFFERSIZE, "lib%s.so.%s", sx_string(name), sx_string(t->dversion));
-    snprintf (lbuffer, BUFFERSIZE, "build/%s/%s/lib%s.so", archprefix, sx_string(t->name), sx_string(name));
+    switch (i_os)
+    {
+        case os_windows:
+            snprintf (buffer, BUFFERSIZE, "lib%s.%s.dll", sx_string(name), sx_string(t->dversion));
+            snprintf (lbuffer, BUFFERSIZE, "build/%s/%s/lib%s.dll", archprefix, sx_string(t->name), sx_string(name));
+            break;
+        default:
+            snprintf (buffer, BUFFERSIZE, "lib%s.so.%s", sx_string(name), sx_string(t->dversion));
+            snprintf (lbuffer, BUFFERSIZE, "build/%s/%s/lib%s.so", archprefix, sx_string(t->name), sx_string(name));
+            break;
+    }
 
+#if !defined(_WIN32)
     symlink (buffer, lbuffer);
+#endif
 
     if (i_os == os_linux)
     {
@@ -464,7 +559,15 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
         sx = cons (make_string (buffer), sx);
     }
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
+    switch (i_os)
+    {
+        case os_windows:
+            snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.%s.dll", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
+            break;
+        default:
+            snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
+            break;
+    }
 
     havelib = (stat (buffer, &res) == 0);
 
@@ -505,12 +608,214 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
     }
 }
 
+static void link_library_borland (sexpr name, sexpr code, struct target *t)
+{
+    char buffer[BUFFERSIZE], lbuffer[BUFFERSIZE];
+    struct stat res, st;
+    char havelib;
+    sexpr sx = sx_end_of_list, cur;
+
+    if (truep(equalp(name, str_curie)))
+    {
+        struct sexpr_io *io;
+
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
+
+        io = sx_open_io(io_open_null, io_open_create(buffer, 0644));
+
+        if (truep(co_freestanding))
+        {
+            sx_write (io, sym_freestanding);
+        }
+        else
+        {
+            sx_write (io, sym_hosted);
+        }
+
+        multiplex_add_sexpr (io, (void *)0, (void *)0);
+    }
+
+    snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.lib", archprefix, sx_string(t->name), sx_string(name));
+
+    havelib = (stat (buffer, &res) == 0);
+
+    while (consp (code))
+    {
+        sexpr txn = car (code);
+        sexpr ttype = car (txn);
+        sexpr objectfile = car (cdr (cdr (txn)));
+
+        sx = cons (objectfile, sx);
+
+        if (havelib &&
+            (stat (sx_string(objectfile), &st) == 0) &&
+            (st.st_mtime > res.st_mtime))
+        {
+            havelib = 0;
+        }
+
+        code = cdr (code);
+    }
+
+    if (!havelib) {
+        sexpr sxx = sx_end_of_list;
+
+        while (consp (sx))
+        {
+            sxx = cons (str_plus, cons (car (sx), sxx));
+            sx = cdr (sx);
+        }
+
+        workstack
+                = cons (cons (p_archiver,
+                              cons (make_string (buffer), sxx)),
+                        workstack);
+    }
+
+    if (truep(do_tests))
+    {
+        sexpr s = t->test_cases;
+
+        while (consp (s))
+        {
+            sexpr s1 = car(s);
+            sexpr s2 = cdr(cdr(s1));
+            sexpr s3 = car(s2);
+            sexpr s4 = car(cdr(s2));
+            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
+
+            link_programme_borland_filename (s4, name, s5, t);
+
+            s = cdr (s);
+        }
+    }
+}
+
+static void link_library_borland_dynamic (sexpr name, sexpr code, struct target *t)
+{
+    char buffer[BUFFERSIZE], lbuffer[BUFFERSIZE];
+    struct stat res, st;
+    char havelib;
+    sexpr sx = sx_end_of_list, cur;
+
+    if (truep(equalp(name, str_curie)))
+    {
+        struct sexpr_io *io;
+
+        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
+
+        io = sx_open_io(io_open_null, io_open_create(buffer, 0644));
+
+        if (truep(co_freestanding))
+        {
+            sx_write (io, sym_freestanding);
+        }
+        else
+        {
+            sx_write (io, sym_hosted);
+        }
+
+        multiplex_add_sexpr (io, (void *)0, (void *)0);
+    }
+
+    switch (i_os)
+    {
+        case os_windows:
+            snprintf (buffer, BUFFERSIZE, "lib%s.%s.dll", sx_string(name), sx_string(t->dversion));
+            snprintf (lbuffer, BUFFERSIZE, "build/%s/%s/lib%s.dll", archprefix, sx_string(t->name), sx_string(name));
+            break;
+        default:
+            snprintf (buffer, BUFFERSIZE, "lib%s.so.%s", sx_string(name), sx_string(t->dversion));
+            snprintf (lbuffer, BUFFERSIZE, "build/%s/%s/lib%s.so", archprefix, sx_string(t->name), sx_string(name));
+            break;
+    }
+
+#if !defined(_WIN32)
+    symlink (buffer, lbuffer);
+#endif
+
+    switch (i_os)
+    {
+        case os_windows:
+            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.%s.dll", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
+            break;
+        default:
+            snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
+            break;
+    }
+
+    havelib = (stat (buffer, &res) == 0);
+
+    while (consp (code))
+    {
+        sexpr txn = car (code);
+        sexpr ttype = car (txn);
+        sexpr objectfile = car (cdr (cdr (txn)));
+
+        sx = cons (objectfile, sx);
+
+        if (havelib &&
+            (stat (sx_string(objectfile), &st) == 0) &&
+            (st.st_mtime > res.st_mtime))
+        {
+            havelib = 0;
+        }
+
+        code = cdr (code);
+    }
+
+    if (!havelib) {
+        workstack
+                = cons (cons (p_linker,
+                              cons (str_dq, cons (str_dWD,
+                                    cons (str_do, cons (make_string (buffer), sx))))),
+                        workstack);
+       
+        if (i_os == os_windows)
+        {
+            snprintf (lbuffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.dll", archprefix, sx_string(t->name), sx_string(name));
+
+            workstack
+                    = cons (cons (p_linker,
+                                  cons (str_dq, cons (str_dWD,
+                                        cons (str_do, cons (make_string (lbuffer), sx))))),
+                            workstack);
+        }
+    }
+}
+
 static void link_programme_gcc (sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE];
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", archprefix, sx_string(t->name), sx_string(name));
+    
+    switch (i_os)
+    {
+        case os_windows:
+            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.exe", archprefix, sx_string(t->name), sx_string(name));
+            break;
+        default:
+            snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", archprefix, sx_string(t->name), sx_string(name));
+            break;
+    }
 
     link_programme_gcc_filename (make_string (buffer), name, code, t);
+}
+
+static void link_programme_borland (sexpr name, sexpr code, struct target *t)
+{
+    char buffer[BUFFERSIZE];
+    
+    switch (i_os)
+    {
+        case os_windows:
+            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.exe", archprefix, sx_string(t->name), sx_string(name));
+            break;
+        default:
+            snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s", archprefix, sx_string(t->name), sx_string(name));
+            break;
+    }
+
+    link_programme_borland_filename (make_string (buffer), name, code, t);
 }
 
 static void link_library (sexpr name, sexpr code, struct target *t)
@@ -518,7 +823,9 @@ static void link_library (sexpr name, sexpr code, struct target *t)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            link_library_gcc (name, code, t); break;
+            link_library_gcc     (name, code, t); break;
+        case tc_borland:
+            link_library_borland (name, code, t); break;
     }
 }
 
@@ -528,6 +835,8 @@ static void link_library_dynamic (sexpr name, sexpr code, struct target *t)
     {
         case tc_gcc:
             link_library_gcc_dynamic (name, code, t); break;
+        case tc_borland:
+            link_library_borland_dynamic (name, code, t); break;
     }
 }
 
@@ -536,7 +845,9 @@ static void link_programme (sexpr name, sexpr code, struct target *t)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            link_programme_gcc (name, code, t); break;
+            link_programme_gcc     (name, code, t); break;
+        case tc_borland:
+            link_programme_borland (name, code, t); break;
     }
 }
 
@@ -582,9 +893,9 @@ static void target_map_link (struct tree_node *node, void *u)
 
 void ice_link (sexpr buildtargets)
 {
+    sexpr cursor = buildtargets;
     sx_write (stdio, cons (sym_phase, cons (sym_link, sx_end_of_list)));
 
-    sexpr cursor = buildtargets;
     if (eolp(cursor))
     {
         tree_map (&targets, target_map_link, (void *)0);

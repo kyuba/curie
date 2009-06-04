@@ -474,6 +474,22 @@ define_string (str_dr,                  "-r");
 /*! \brief Predefined String */
 define_string (str_ds,                  "-s");
 /*! \brief Predefined String */
+define_string (str_dw,                  "-w");
+/*! \brief Predefined String */
+define_string (str_dP,                  "-P");
+/*! \brief Predefined String */
+define_string (str_dAT,                 "-AT");
+/*! \brief Predefined String */
+define_string (str_dlGi,                "-lGi");
+/*! \brief Predefined String */
+define_string (str_plus,                "+");
+/*! \brief Predefined String */
+define_string (str_dWD,                 "-WD");
+/*! \brief Predefined String */
+define_string (str_dB,                  "-B");
+/*! \brief Predefined String */
+define_string (str_dq,                  "-q");
+/*! \brief Predefined String */
 define_string (str_dposix,              "-DPOSIX");
 /*! \brief Predefined String */
 define_string (str_dgcc,                "-DGCC");
@@ -561,14 +577,14 @@ void build_documentation (sexpr targets);
  *  This step is a bit tricky, it's supposed to be used when directly joining
  *  multiple libraries during the build.
  */
-void crosslink_objects ();
+void crosslink_objects ( void );
 
 /*! \brief Loop over all Processes
  *
  *  This will go through the workstack and process all of the items. If any of
  *  the programmes fail, icemake terminates.
  */
-void loop_processes ();
+void loop_processes ( void );
 
 /*! \brief Loop over all Processes
  *
@@ -576,14 +592,14 @@ void loop_processes ();
  *  won't die if any of the executed programmes die, instead this will count
  *  how many have failed and finally return that. This is used for test cases.
  */
-void loop_processes_nokill ();
+void loop_processes_nokill ( void );
 
 /*! \brief Count Workstack Items
  *
  *  This function will count the number of workstack items and print them to
  *  stdio as "(items-total X)", if there's more than one item.
  */
-void count_print_items ();
+void count_print_items ( void );
 
 #endif
 

@@ -123,7 +123,7 @@ struct tree_node_pointer {
  *
  *  Create and initialise a new tree without any nodes.
  */
-struct tree * tree_create ();
+struct tree * tree_create ( void );
 
 /*! \brief Destroy a Tree
  *  \param[in] tree The tree to destroy.

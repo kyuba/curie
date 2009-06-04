@@ -103,6 +103,9 @@ int_32 str_hash(const char *data, unsigned long *len)
     if (((int_pointer)data % 4) != (int_pointer)0)
     {
         unsigned long clen = 0;
+        char *buffer;
+        int_32 rv;
+
         while (data[clen] != (const char)0) clen++;
 
         if (clen == 0)
@@ -111,7 +114,7 @@ int_32 str_hash(const char *data, unsigned long *len)
             return 0;
         }
 
-        char buffer[clen];
+        buffer = aalloc (clen);
 
         clen = 0;
         while (data[clen] != (const char)0)
@@ -122,7 +125,11 @@ int_32 str_hash(const char *data, unsigned long *len)
 
         *len = clen;
 
-        return str_hash_realigned (buffer, clen);
+        rv = str_hash_realigned (buffer, clen);
+
+        afree (clen, buffer);
+        
+        return rv;
     }
 
     // this unrolls to better optimized code on most compilers

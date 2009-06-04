@@ -236,6 +236,16 @@ struct io {
 struct io *io_open
         (int fd);
 
+/*! \brief Open Dummy File Desriptor
+ *  \return A new struct io. (struct io *)0 is only returned for memory
+ *          allocation errors.
+ *
+ *  This will open a dummy file descriptor for use with functions that require
+ *  an in- as well as an output i/o port. The only reason for this function
+ *  is that io_open(-1) only works on non-windows systems.
+ */
+#define io_open_null io_open(-1)
+
 
 /*! \brief Open File for reading
  *  \param[in] filename The file to open for reading.
@@ -286,7 +296,7 @@ struct io *io_open_create
  *  Writing to the resulting IO structure will write to a memory-only buffer,
  *  reading from it will report io_changes once after each write operation.
  */
-struct io *io_open_special ();
+struct io *io_open_special ( void );
 
 /*! \brief Write Data to I/O Structure
  *  \param[in] io     The I/O structure to write data to.

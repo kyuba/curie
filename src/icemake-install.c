@@ -37,12 +37,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 
 #include <icemake/icemake.h>
 
 #if defined(_WIN32)
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 static int files_open                  = 0;
@@ -52,8 +53,9 @@ static void mkdir_p (sexpr path)
     char buffer[BUFFERSIZE];
     struct stat st;
     const char *p = sx_string (path);
+    int i;
 
-    for (int i = 0; (p[i] != 0) && (i < (BUFFERSIZE - 2)); i++)
+    for (i = 0; (p[i] != 0) && (i < (BUFFERSIZE - 2)); i++)
     {
         if (((p[i] == '/') || (p[i] == '\\')) && (i > 0))
         {
@@ -88,8 +90,8 @@ static void install_read (struct io *in, void *aux)
 static void loop_install()
 {
     struct stat st;
-    sx_write (stdio, cons (sym_phase, cons (sym_install, sx_end_of_list)));
     int fo = 0;
+    sx_write (stdio, cons (sym_phase, cons (sym_install, sx_end_of_list)));
     count_print_items();
 
     more_files:
@@ -224,13 +226,27 @@ static sexpr get_library_install_path (sexpr name)
     {
         case fs_fhs:
         case fs_fhs_binlib:
-            snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.a", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
+            switch (uname_toolchain)
+            {
+                case tc_borland:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.lib", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
+                    break;
+                default:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.a", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
+                    break;
+            }
             return make_string (buffer);
             break;
         case fs_proper:
-            snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.a",
-                      sx_string(i_destdir), uname_os, uname_arch,
-                                sx_string(name));
+            switch (uname_toolchain)
+            {
+                case tc_borland:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.lib", sx_string(i_destdir), uname_os, uname_arch, sx_string(name));
+                    break;
+                default:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.a", sx_string(i_destdir), uname_os, uname_arch, sx_string(name));
+                    break;
+            }
             return make_string (buffer);
             break;
     }
@@ -246,13 +262,27 @@ static sexpr get_so_library_install_path (sexpr name, sexpr version)
     {
         case fs_fhs:
         case fs_fhs_binlib:
-            snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.so.%s", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name), sx_string(version));
+            switch (i_os)
+            {
+                case os_windows:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.%s.lib", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name), sx_string(version));
+                    break;
+                default:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.so.%s", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name), sx_string(version));
+                    break;
+            }
             return make_string (buffer);
             break;
         case fs_proper:
-            snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.so.%s",
-                      sx_string(i_destdir), uname_os, uname_arch,
-                                sx_string(name), sx_string(version));
+            switch (i_os)
+            {
+                case os_windows:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.%s.dll", sx_string(i_destdir), uname_os, uname_arch, sx_string(name), sx_string(version));
+                    break;
+                default:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.so.%s", sx_string(i_destdir), uname_os, uname_arch, sx_string(name), sx_string(version));
+                    break;
+            }
             return make_string (buffer);
             break;
     }
@@ -268,13 +298,27 @@ static sexpr get_so_library_symlink_path (sexpr name)
     {
         case fs_fhs:
         case fs_fhs_binlib:
-            snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.so", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
+            switch (i_os)
+            {
+                case os_windows:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.dll", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
+                    break;
+                default:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.so", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
+                    break;
+            }
             return make_string (buffer);
             break;
         case fs_proper:
-            snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.so",
-                      sx_string(i_destdir), uname_os, uname_arch,
-                                sx_string(name));
+            switch (i_os)
+            {
+                case os_windows:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.dll", sx_string(i_destdir), uname_os, uname_arch, sx_string(name));
+                    break;
+                default:
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.so", sx_string(i_destdir), uname_os, uname_arch, sx_string(name));
+                    break;
+            }
             return make_string (buffer);
             break;
     }
@@ -419,6 +463,53 @@ static sexpr get_data_install_path (sexpr name, sexpr file)
     return sx_false;
 }
 
+static void install_library_dynamic_common (sexpr name, struct target *t)
+{
+    char buffer[BUFFERSIZE];
+
+    if (truep (i_dynamic_libraries) &&
+        (falsep (t->have_cpp) || (i_os == os_linux)))
+    {
+        char buffer[BUFFERSIZE];
+        sexpr fname;
+
+        switch (i_os)
+        {
+            case os_windows:
+                snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.%s.dll", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
+                break;
+            default:
+                snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
+                break;
+        }
+
+        fname = make_string(buffer);
+
+        if (truep(filep(fname)))
+        {
+            workstack
+                    = cons (cons (make_string (buffer),
+                            get_so_library_install_path(name, t->dversion)),
+                    workstack);
+
+            switch (i_os)
+            {
+                case os_windows:
+                    snprintf (buffer, BUFFERSIZE, "lib%s.%s.dll", sx_string(name), sx_string(t->dversion));
+                    break;
+                default:
+                    snprintf (buffer, BUFFERSIZE, "lib%s.so.%s", sx_string(name), sx_string(t->dversion));
+                    break;
+            }
+
+            workstack
+                    = cons (cons (sym_symlink, cons (make_string (buffer),
+                            get_so_library_symlink_path(name))),
+                    workstack);
+        }
+    }
+}
+
 static void install_library_gcc (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
@@ -430,34 +521,24 @@ static void install_library_gcc (sexpr name, struct target *t)
                       get_library_install_path(name)),
                 workstack);
 
-    if (truep (i_dynamic_libraries) &&
-        (falsep (t->have_cpp) || (i_os == os_linux)))
-    {
-        char buffer[BUFFERSIZE];
-        sexpr fname;
-
-        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
-
-        fname = make_string(buffer);
-
-        if (truep(filep(fname)))
-        {
-            workstack
-                    = cons (cons (make_string (buffer),
-                            get_so_library_install_path(name, t->dversion)),
-                    workstack);
-
-            snprintf (buffer, BUFFERSIZE, "lib%s.so.%s", sx_string(name), sx_string(t->dversion));
-
-            workstack
-                    = cons (cons (sym_symlink, cons (make_string (buffer),
-                            get_so_library_symlink_path(name))),
-                    workstack);
-        }
-    }
+    install_library_dynamic_common (name, t);
 }
 
-static void install_programme_gcc (sexpr name, struct target *t)
+static void install_library_borland (sexpr name, struct target *t)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.lib", archprefix, sx_string(t->name), sx_string(name));
+
+    workstack
+        = cons (cons (make_string (buffer),
+                      get_library_install_path(name)),
+                workstack);
+
+    install_library_dynamic_common (name, t);
+}
+
+static void install_programme_common (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
 
@@ -475,7 +556,17 @@ static void install_programme_gcc (sexpr name, struct target *t)
                       get_programme_install_path(name)), workstack);
 }
 
-static void install_headers_gcc (sexpr name, struct target *t)
+static void install_programme_gcc (sexpr name, struct target *t)
+{
+    install_programme_common (name, t);
+}
+
+static void install_programme_borland (sexpr name, struct target *t)
+{
+    install_programme_common (name, t);
+}
+
+static void install_headers_common (sexpr name, struct target *t)
 {
     sexpr c = t->headers;
 
@@ -492,7 +583,17 @@ static void install_headers_gcc (sexpr name, struct target *t)
     }
 }
 
-static void install_support_files_gcc (sexpr name, struct target *t)
+static void install_headers_gcc (sexpr name, struct target *t)
+{
+    install_headers_common (name, t);
+}
+
+static void install_headers_borland (sexpr name, struct target *t)
+{
+    install_headers_common (name, t);
+}
+
+static void install_support_files_common (sexpr name, struct target *t)
 {
     sexpr cur = t->data, dname;
 
@@ -520,6 +621,32 @@ static void install_support_files_gcc (sexpr name, struct target *t)
 
         workstack = cons (cons (source, target), workstack);
     }
+
+    while (consp (cur))
+    {
+        sexpr item = car (cur);
+        sexpr ccur = cdr (item);
+
+        dname = car (item);
+
+        while (consp(ccur))
+        {
+            sexpr s = car (ccur);
+
+            workstack = cons (cons (cdr (s), get_data_install_path (dname, car (s))), workstack);
+
+            ccur = cdr (ccur);
+        }
+
+        cur = cdr (cur);
+    }
+}
+
+static void install_support_files_gcc (sexpr name, struct target *t)
+{
+    sexpr cur = t->data, dname;
+    
+    install_support_files_common (name, t);
 
     if (truep(t->library))
     {
@@ -564,26 +691,11 @@ static void install_support_files_gcc (sexpr name, struct target *t)
 
         workstack = cons (cons (source, target), workstack);
     }
+}
 
-
-    while (consp (cur))
-    {
-        sexpr item = car (cur);
-
-        dname = car (item);
-        sexpr ccur = cdr (item);
-
-        while (consp(ccur))
-        {
-            sexpr s = car (ccur);
-
-            workstack = cons (cons (cdr (s), get_data_install_path (dname, car (s))), workstack);
-
-            ccur = cdr (ccur);
-        }
-
-        cur = cdr (cur);
-    }
+static void install_support_files_borland (sexpr name, struct target *t)
+{
+    install_support_files_common (name, t);
 }
 
 static void install_library (sexpr name, struct target *t)
@@ -591,7 +703,9 @@ static void install_library (sexpr name, struct target *t)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            install_library_gcc (name, t); break;
+            install_library_gcc     (name, t); break;
+        case tc_borland:
+            install_library_borland (name, t); break;
     }
 }
 
@@ -600,7 +714,9 @@ static void install_headers (sexpr name, struct target *t)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            install_headers_gcc (name, t); break;
+            install_headers_gcc     (name, t); break;
+        case tc_borland:
+            install_headers_borland (name, t); break;
     }
 }
 
@@ -666,7 +782,9 @@ static void install_support_files (sexpr name, struct target *t)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            install_support_files_gcc (name, t); break;
+            install_support_files_gcc     (name, t); break;
+        case tc_borland:
+            install_support_files_borland (name, t); break;
     }
 }
 
@@ -675,7 +793,9 @@ static void install_programme (sexpr name, struct target *t)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            install_programme_gcc (name, t); break;
+            install_programme_gcc     (name, t); break;
+        case tc_borland:
+            install_programme_borland (name, t); break;
     }
 }
 

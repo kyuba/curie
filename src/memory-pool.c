@@ -90,10 +90,11 @@ static void *get_pool_mem_inner
         if (x)
         {
             BITMAPENTITYTYPE cell = (HASH_MAGIC_TABLE [(((x & -x) * HASH_MAGIC_MULTIPLIER) >> HASH_MAGIC_SHIFT) & HASH_MAGIC_TABLE_MASK]);
+            BITMAPENTITYTYPE index;
 
             x = frame->map[cell];
 
-            BITMAPENTITYTYPE index = cell * BITSPERBITMAPENTITY +
+            index = cell * BITSPERBITMAPENTITY +
                     (HASH_MAGIC_TABLE [(((x & -x) * HASH_MAGIC_MULTIPLIER) >> HASH_MAGIC_SHIFT) & HASH_MAGIC_TABLE_MASK]);
 
             if (index < frame->maxentities) {
@@ -216,16 +217,18 @@ void optimise_memory_pool(struct memory_pool *pool)
 
 void optimise_static_memory_pools()
 {
+    unsigned int i;
     optimise_counter = AUTOOPT_N;
 
-    for (unsigned int i = 0; i < POOLCOUNT; i++)
+    for (i = 0; i < POOLCOUNT; i++)
     {
         if (static_pools[i] != (struct memory_pool *)0)
         {
+            struct memory_pool_frame_header *h;
+
             optimise_memory_pool (static_pools[i]);
 
-            for (struct memory_pool_frame_header *h =
-                         (struct memory_pool_frame_header *)(static_pools[i]);
+            for (h = (struct memory_pool_frame_header *)(static_pools[i]);
                  h != (struct memory_pool_frame_header *)0;)
             {
                 unsigned int j;

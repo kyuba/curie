@@ -98,14 +98,13 @@ extern "C" {
  */
 void cexit (int status);
 
-
 /*! \brief Main Function
  *  \return The status code to return to the calling process.
  *
  *  This is the main entry point for plain curie applications. Once this
  *  function terminates, the process will also terminate.
  */
-int cmain();
+int cmain ( void );
 
 /*! \brief Command-line Arguments
  *

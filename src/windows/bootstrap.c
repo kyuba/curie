@@ -27,10 +27,10 @@
 */
 
 #include <curie/main.h>
+#include <curie/memory.h>
 #include <windows.h>
 
 #include <stdlib.h>
-#include <unistd.h>
 
 char **curie_argv = (char **)0;
 char **curie_environment = (char **)0;
@@ -38,11 +38,11 @@ int cmain();
 
 int main (int argc, char **argv)
 {
-    int rv;
-    int indices = 0;
-    
+    int rv, i, envvsize, indices = 0;
+    char **envv;
     const char *env = GetEnvironmentStringsA();
-    for (int i = 0; env[i] != (char)0; i++)
+
+    for (i = 0; env[i] != (char)0; i++)
     {
         while (env[i] != (char)0)
         {
@@ -52,13 +52,14 @@ int main (int argc, char **argv)
         indices++;
     }
     
-    char *envv[indices + 1];
+    envvsize = sizeof (char *) * (indices + 1);
+    envv     = aalloc (envvsize);
 
-    indices = 0;
+    indices  = 0;
 
-    for (int i = 0; env[i] != (char)0; i++)
+    for (i = 0; env[i] != (char)0; i++)
     {
-        envv[indices] = env + i;
+        envv[indices] = (char *)(env + i);
 
         while (env[i] != (char)0)
         {
@@ -73,5 +74,8 @@ int main (int argc, char **argv)
     curie_environment   = envv;
 
     rv = cmain();
+
+    afree (envvsize, envv);
+
     return rv;
 }

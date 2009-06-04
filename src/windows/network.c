@@ -36,11 +36,11 @@
 void net_open_loop (struct io **in, struct io **out) {
     struct io *iin, *iout;
     void *ihandle, *ohandle;
-    SECURITY_ATTRIBUTES s = {
-        .nLength              = sizeof (s),
-        .lpSecurityDescriptor = (void *)0,
-        .bInheritHandle       = TRUE
-    };
+    SECURITY_ATTRIBUTES s;
+    
+    s.nLength              = sizeof (s);
+    s.lpSecurityDescriptor = (void *)0;
+    s.bInheritHandle       = TRUE;
 
     if (CreatePipe (&ihandle, &ohandle, &s, 0x1000) == FALSE)
     {

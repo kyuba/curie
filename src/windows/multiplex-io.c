@@ -35,10 +35,10 @@ static void mx_f_augment(void **rs, int *r);
 static void mx_f_callback(void **rs, int r);
 
 static struct multiplex_functions mx_functions = {
-    .count = mx_f_count,
-    .augment = mx_f_augment,
-    .callback = mx_f_callback,
-    .next = (struct multiplex_functions *)0
+    mx_f_count,
+    mx_f_augment,
+    mx_f_callback,
+    (struct multiplex_functions *)0
 };
 
 struct io_list {

@@ -70,47 +70,115 @@ struct exec_context *execute(unsigned int options,
         int alength = 0, elength = 0;
         char **argv = command;
         char *envx = (char *)0;
-        for (int i = 0; argv[i]; i++)
+        char *lastbs;
+        char *nq;
+        int i, j, argvsize, envvsize, nqsize;
+        STARTUPINFO s;
+        PROCESS_INFORMATION p;
+
+        for (i = 0; command[i]; i++); i++;
+        argvsize = sizeof (char *) * i;
+        argv = aalloc (argvsize);
+        nqsize = i;
+        nq = aalloc (nqsize);
+
+        for (i = 0; command[i]; i++)
         {
-            for (int j = 0; argv[i][j]; j++)
+            argv[i] = command[i];
+        }
+        argv[i] = (char *)0;
+
+        for (i = 0, lastbs = argv[0]; argv[0][i]; i++)
+        {
+            if (argv[0][i] == '\\')
+            {
+                lastbs = argv[0] + i + 1;
+            }
+        }
+        argv[0] = lastbs;        
+
+        for (i = 0; argv[i]; i++)
+        {
+            nq[i] = 0;
+
+            for (j = 0; argv[i][j]; j++)
+            {
+                if ((argv[i][j] == ' ') || (argv[i][j] == '\\'))
+                {
+                    nq[i] = 1;
+                }
+
+                if (argv[i][j] == '"')
+                {
+                    alength++;
+                }
+
+                alength++;
+            }
+
+            if (nq[i])
+            {
+                 /* one for the trailing space, two for the quotes */
+                alength += 3;
+            }
+            else
             {
                 alength++;
             }
-            alength++;
         }
     
         av = aalloc (alength);
         alength = 0;
 
-        for (int i = 0; argv[i]; i++)
+        for (i = 0; argv[i]; i++)
         {
             if (alength > 0) av[alength-1] = ' ';
-            for (int j = 0; argv[i][j]; j++)
+
+            if (nq[i])
             {
+                av[alength] = '"';
+                alength++;
+            }
+
+            for (j = 0; argv[i][j]; j++)
+            {
+                if (argv[i][j] == '"')
+                {
+                    av[alength] = '\\';
+                    alength++;
+                }
+
                 av[alength] = argv[i][j];
+                alength++;
+            }
+
+            if (nq[i])
+            {
+                av[alength] = '"';
                 alength++;
             }
             av[alength] = 0;
             alength++;
         }
-        
+
         if (environment != (char **)0)
         {
-            for (int i = 0; environment[i]; i++)
+            for (i = 0; environment[i]; i++)
             {
-                for (int j = 0; environment[i][j]; j++)
+                for (j = 0; environment[i][j]; j++)
                 {
                     elength++;
                 }
                 elength++;
             }
-            
-            envx = aalloc (elength + 1);
+
+            envvsize = elength + 1;
+            envx = aalloc (envvsize);
 
             elength = 0;
-            for (int i = 0; environment[i]; i++)
+            for (i = 0; environment[i]; i++)
             {
-                for (int j = 0; environment[i][j]; j++)
+                for (j = 0; environment[i][j]; j++)
                 {
                     envx[elength] = environment[i][j];
                     elength++;
@@ -119,11 +187,8 @@ struct exec_context *execute(unsigned int options,
                 elength++;
             }
             envx[elength] = 0;
-            elength++;
         }
        
-        STARTUPINFO s;
-        PROCESS_INFORMATION p;
         memset (&s, 0, sizeof (s));
         s.cb = sizeof (s);
         memset (&p, 0, sizeof (p));
@@ -169,6 +234,10 @@ struct exec_context *execute(unsigned int options,
             context->handle = (void *)0;
             context->pid = -1;
         }
+
+        afree (argvsize, argv);
+        afree (nqsize,   nq);
+        afree (envvsize, envx);
     }
     
     return context;

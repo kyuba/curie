@@ -57,6 +57,9 @@ sexpr filep(sexpr path);
  *  Same as filep(), but for symlinks it only checks the presence of the
  *  symlink, as opposed to checking for the actual file referenced by the
  *  symlink.
+ *
+ *  \note On systems that do not actually support symlinks, this function is
+ *        pretty much the same as filep().
  */
 sexpr linkp(sexpr path);
 

@@ -32,7 +32,6 @@
 #include <curie/signal-system.h>
 #include <sys/types.h>
 #include <signal.h>
-#include <unistd.h>
 
 typedef void (*signal_handler)(enum signal);
 static signal_handler signal_handlers[20]; /* 20 is sig_usr2 + 1 */
@@ -226,10 +225,8 @@ void a_set_signal_handler (enum signal sig, void (*handler)(enum signal)) {
     int signum = signal2signum (sig);
     if (signum == sig_unused) return;
 
+    signal_handlers[sig] = handler;
+
     (void)signal (signum, invoker);
 #endif
-}
-
-int a_getpid () {
-    return (int)getpid();
 }

@@ -48,7 +48,6 @@
 
 void a_set_signal_handler (enum signal signal,
                            void (*handler)(enum signal signal));
-int a_getpid ();
 
 #endif
 

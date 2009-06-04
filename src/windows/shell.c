@@ -36,8 +36,9 @@ sexpr ewhich (char **environment, sexpr programme)
 {
     define_string (str_slash, "\\");
     char *x = (char *)0, *y, buffer[BUFFERSIZE];
+    int i;
 
-    for (int i = 0; environment[i]; i++)
+    for (i = 0; environment[i]; i++)
     {
         y = environment[i];
         if (((y[0] == 'P') || (y[0] == 'p')) &&
@@ -61,10 +62,11 @@ sexpr ewhich (char **environment, sexpr programme)
         {
             if (y != buffer) /* have at least one character */
             {
+                sexpr b, f;
                 *y = 0;
                 y = buffer;
-                sexpr b = make_string (buffer);
-                sexpr f = sx_join (b, str_slash, programme);
+                b = make_string (buffer);
+                f = sx_join (b, str_slash, programme);
 
                 sx_destroy (b);
 

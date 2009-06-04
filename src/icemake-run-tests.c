@@ -32,13 +32,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include <icemake/icemake.h>
 
-static void run_tests_library_gcc (sexpr name, struct target *t)
+static void run_tests_library_common (sexpr name, struct target *t)
 {
     sexpr s = t->test_cases;
 
@@ -50,6 +49,16 @@ static void run_tests_library_gcc (sexpr name, struct target *t)
 
         s = cdr (s);
     }
+}
+
+static void run_tests_library_gcc (sexpr name, struct target *t)
+{
+    run_tests_library_common (name, t);
+}
+
+static void run_tests_library_borland (sexpr name, struct target *t)
+{
+    run_tests_library_common (name, t);
 }
 
 static void run_tests_library (sexpr name, struct target *t)
@@ -69,10 +78,12 @@ static void run_tests_library (sexpr name, struct target *t)
     {
         case tc_gcc:
             run_tests_library_gcc (name, t); break;
+        case tc_borland:
+            run_tests_library_borland (name, t); break;
     }
 }
 
-static void diff_test_reference_library_gcc (sexpr name, struct target *t)
+static void diff_test_reference_library_common (sexpr name, struct target *t)
 {
     if (falsep(p_diff))
     {
@@ -95,12 +106,24 @@ static void diff_test_reference_library_gcc (sexpr name, struct target *t)
     }
 }
 
+static void diff_test_reference_library_gcc (sexpr name, struct target *t)
+{
+    diff_test_reference_library_common (name, t);
+}
+
+static void diff_test_reference_library_borland (sexpr name, struct target *t)
+{
+    diff_test_reference_library_common (name, t);
+}
+
 static void diff_test_reference_library (sexpr name, struct target *t)
 {
     switch (uname_toolchain)
     {
         case tc_gcc:
             diff_test_reference_library_gcc (name, t); break;
+        case tc_borland:
+            diff_test_reference_library_borland (name, t); break;
     }
 }
 
@@ -130,9 +153,9 @@ static void run_tests_target (const char *target)
 
 void run_tests (sexpr buildtargets)
 {
+    sexpr cursor = buildtargets;
     sx_write (stdio, cons (sym_phase, cons (sym_run_tests, sx_end_of_list)));
 
-    sexpr cursor = buildtargets;
     if (eolp(cursor))
     {
         tree_map (&targets, target_map_run_tests, (void *)0);

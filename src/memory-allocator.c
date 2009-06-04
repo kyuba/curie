@@ -31,7 +31,8 @@
 
 void *aalloc   (unsigned long size) {
     if (size < CURIE_POOL_CUTOFF) {
-        struct memory_pool pool = MEMORY_POOL_INITIALISER(size);
+        struct memory_pool pool = MEMORY_POOL_INITIALISER (0);
+        pool.entitysize = calculate_aligned_memory_size (size);
 
         return get_pool_mem (&pool);
     } else {
@@ -58,11 +59,12 @@ void *arealloc (unsigned long size, void *p, unsigned long new_size) {
             {
                 unsigned int *old_location = (unsigned int *)p;
                 int copysize = (int)((msize < mnew_size) ? msize : mnew_size);
+                int i = 0;
 
                 copysize = (int)((copysize / sizeof(int))
                         + (((copysize % sizeof(int)) == 0) ? 0 : 1));
 
-                for(int i = 0; i < copysize; i++) {
+                for(i = 0; i < copysize; i++) {
                     /* copy in chunks of ints */
                     new_location[i] = old_location[i];
                 }

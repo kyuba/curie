@@ -41,7 +41,6 @@
 #define ICEMAKE_ICEMAKE_SYSTEM_H
 
 #define mkdir(p,n) mkdir (p)
-#define symlink(a,b)
 
 #endif
 

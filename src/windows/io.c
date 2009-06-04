@@ -214,6 +214,8 @@ enum io_result io_write(struct io *io, const char *data, unsigned int length)
 
 void io_flush (struct io *io)
 {
+    unsigned int newsize;
+
     if (io->buffer == (char *)0)
     {
         io->buffersize = 0;
@@ -229,7 +231,7 @@ void io_flush (struct io *io)
 
     relocate_buffer(io);
 
-    unsigned int newsize = (io->length + IO_CHUNKSIZE);
+    newsize = (io->length + IO_CHUNKSIZE);
     if ((newsize % IO_CHUNKSIZE) != 0) {
         newsize = ((newsize / IO_CHUNKSIZE) + 1) * IO_CHUNKSIZE;
     }

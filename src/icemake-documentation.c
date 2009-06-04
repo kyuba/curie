@@ -48,9 +48,10 @@ static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
     if (stringp (p_pdflatex))
     {
         char tarbuffer[BUFFERSIZE];
+        struct stat sst, tst;
+
         snprintf (tarbuffer, BUFFERSIZE, "%s/%s.pdf", dirbuffer, sx_string(base));
 
-        struct stat sst, tst;
         if ((stat (sx_string (file), &sst) == 0) &&
             (stat (tarbuffer, &tst) == 0) &&
             (tst.st_mtime > sst.st_mtime)) return;
@@ -71,9 +72,10 @@ static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
     else if (stringp (p_latex))
     {
         char tarbuffer[BUFFERSIZE];
+        struct stat sst, tst;
+
         snprintf (tarbuffer, BUFFERSIZE, "%s/%s.dvi", dirbuffer, sx_string(base));
 
-        struct stat sst, tst;
         if ((stat (sx_string (file), &sst) == 0) &&
             (stat (tarbuffer, &tst) == 0) &&
             (tst.st_mtime > sst.st_mtime)) return;
@@ -105,7 +107,9 @@ static void build_documentation_doxygen ()
 
 static void do_build_documentation_target (struct target *t)
 {
-    for (sexpr c = t->documentation; consp(c); c = cdr (c))
+    sexpr c;
+
+    for (c = t->documentation; consp(c); c = cdr (c))
     {
         sexpr ccar  = car (c);
         sexpr ccaar = car (ccar);
@@ -137,9 +141,10 @@ static void build_documentation_target (const char *target)
 
 void build_documentation (sexpr buildtargets)
 {
+    sexpr cursor = buildtargets;
+
     sx_write (stdio, cons (sym_phase, cons (sym_build_documentation, sx_end_of_list)));
 
-    sexpr cursor = buildtargets;
     if (eolp(cursor))
     {
         tree_map (&targets, target_map_build_documentation, (void *)0);

@@ -43,12 +43,12 @@ static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
 }
 
 int cmain(void) {
-    void *y = get_mem (1);
+    void *y = get_mem (1), *z;
 
     if (y == (void *)0) return 1;
 
     set_resize_mem_recovery_function(rm_recover);
-    void *z = resize_mem (1, y, ~0); /* rm_recover (hopefully) */
+    z = resize_mem (1, y, ~0); /* rm_recover (hopefully) */
 
     if (z != (void *)1) return 2; /* value from rm_recover */
     resize_mem (1, y, ~0); /* now it should call cexit() */

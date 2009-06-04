@@ -64,13 +64,17 @@ void graph_destroy (struct graph *gr)
 {
     if (gr->node_count != 0)
     {
-        for (unsigned int i = 0; i < gr->node_count; i++)
+        unsigned int i;
+
+        for (i = 0; i < gr->node_count; i++)
         {
             struct graph_node *n = gr->nodes[i];
 
             if (n->edge_count != 0)
             {
-                for (unsigned int j = 0; j < n->edge_count; j++)
+                unsigned int j;
+
+                for (j = 0; j < n->edge_count; j++)
                 {
                     struct graph_edge *e = n->edges[j];
 
@@ -91,7 +95,9 @@ void graph_destroy (struct graph *gr)
 
 struct graph_node *graph_search_node(struct graph *gr, sexpr label)
 {
-    for(int i = 0; i < gr->node_count; i++) {
+    int i;
+
+    for(i = 0; i < gr->node_count; i++) {
         if(truep(equalp(gr->nodes[i]->label, label)))
            return gr->nodes[i];
     }
@@ -120,7 +126,9 @@ struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_nod
 
 struct graph_edge *graph_node_search_edge(struct graph_node *node, sexpr label)
 {
-    for(int i = 0; i < node->edge_count; i++) {
+    int i;
+
+    for(i = 0; i < node->edge_count; i++) {
         if(truep(equalp(node->edges[i]->label, label)))
            return node->edges[i];
     }
@@ -136,21 +144,25 @@ sexpr graph_to_sexpr (struct graph *g)
     {
         sexpr nodes = sx_end_of_list;
         sexpr edges = sx_end_of_list;
+        unsigned int i;
 
-        for (unsigned int i = 0; i < g->node_count; i++)
+        for (i = 0; i < g->node_count; i++)
         {
             struct graph_node *n = g->nodes[i];
             sexpr sxx = n->label;
             sexpr sxn = make_integer(i);
+            unsigned int j;
+
             sx_xref (sxx);
 
             nodes = cons (cons (sxn, sxx), nodes);
 
-            for (unsigned int j = 0; j < n->edge_count; j++)
+            for (j = 0; j < n->edge_count; j++)
             {
                 struct graph_edge *e = n->edges[j];
+                unsigned int k;
 
-                for (unsigned int k = 0; k < g->node_count; k++)
+                for (k = 0; k < g->node_count; k++)
                 {
                     if (g->nodes[k] == e->target)
                     {

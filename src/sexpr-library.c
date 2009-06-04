@@ -28,6 +28,7 @@
 
 #include <curie/sexpr.h>
 #include <curie/string.h>
+#include <curie/memory.h>
 
 sexpr equalp (sexpr a, sexpr b)
 {
@@ -82,6 +83,8 @@ sexpr sx_join (sexpr a, sexpr b, sexpr c)
 {
     unsigned int i = 0, j = 0;
     const char *s;
+    char *g;
+    sexpr rv;
 
     if (stringp (a) || symbolp(a))
     {
@@ -105,7 +108,7 @@ sexpr sx_join (sexpr a, sexpr b, sexpr c)
 
     i++;
 
-    char g[i];
+    g = aalloc (i);
 
     i = 0;
     s = stringp (a) ? sx_string (a) : sx_symbol(a);
@@ -131,5 +134,8 @@ sexpr sx_join (sexpr a, sexpr b, sexpr c)
     }
     g[i] = 0;
 
-    return stringp(a) ? make_string (g) : make_symbol (g);
+    rv = stringp(a) ? make_string (g) : make_symbol (g);
+    afree (i, g);
+
+    return rv;
 }

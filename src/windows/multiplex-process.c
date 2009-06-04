@@ -39,10 +39,10 @@ static void mx_f_augment(void **rs, int *r);
 static void mx_f_callback(void **rs, int r);
 
 static struct multiplex_functions mx_functions = {
-    .count = mx_f_count,
-    .augment = mx_f_augment,
-    .callback = mx_f_callback,
-    .next = (struct multiplex_functions *)0
+    mx_f_count,
+    mx_f_augment,
+    mx_f_callback,
+    (struct multiplex_functions *)0
 };
 
 struct exec_cx {
@@ -55,7 +55,9 @@ struct exec_cx {
 static struct exec_cx *elements = (struct exec_cx *)0;
 
 static enum multiplex_result mx_f_count(int *r) {
-    for (struct exec_cx *l = elements; l != (struct exec_cx *)0; l = l->next)
+    struct exec_cx *l;
+
+    for (l = elements; l != (struct exec_cx *)0; l = l->next)
     {
         (*r)++;
     }
@@ -65,7 +67,9 @@ static enum multiplex_result mx_f_count(int *r) {
 
 static void mx_f_augment(void **rs, int *r)
 {
-    for (struct exec_cx *l = elements; l != (struct exec_cx *)0; l = l->next)
+    struct exec_cx *l;
+
+    for (l = elements; l != (struct exec_cx *)0; l = l->next)
     {
         int i, t = *r;
         void *handle = l->context->handle;
@@ -87,7 +91,10 @@ static void mx_f_augment(void **rs, int *r)
 
 static void mx_f_callback(void **rs, int r)
 {
-    for (struct exec_cx *l = elements; l != (struct exec_cx *)0; l = l->next)
+    struct exec_cx *l;
+    struct exec_cx **p;
+
+    for (l = elements; l != (struct exec_cx *)0; l = l->next)
     {
         struct exec_context *cx = l->context;
         if (cx->status == ps_running)
@@ -100,9 +107,9 @@ static void mx_f_callback(void **rs, int r)
         }
     }
 
-    struct exec_cx **p = (void *)&elements;
+    p = (void *)&elements;
 
-    for (struct exec_cx *l = elements; l != (struct exec_cx *)0; l = l->next)
+    for (l = elements; l != (struct exec_cx *)0; l = l->next)
     {
         struct exec_context *cx = l->context;
         if (cx->status == ps_terminated)

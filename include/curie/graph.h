@@ -111,7 +111,7 @@ struct graph_edge {
  *
  *  This function initialises a new graph without any nodes.
  */
-struct graph * graph_create();
+struct graph * graph_create ( void );
 
 /*! \brief Destroy a Graph
  *  \param[in] g The graph to destroy.
