@@ -343,6 +343,16 @@ static sexpr generate_object_file_name (sexpr name, sexpr file)
     {
         case tc_borland:
             snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.obj", archprefix, sx_string(name), sx_string(file));
+            {
+                int i;
+                for (i = 0; buffer[i]; i++)
+                {
+                    if (buffer[i] == '+')
+                    {
+                        buffer[i] = 'x';
+                    }
+                }
+            }
             break;
         default:
             snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.o", archprefix, sx_string(name), sx_string(file));
@@ -908,7 +918,11 @@ static void process_definition (struct target *context, sexpr definition)
                 else
                 {
                     co_freestanding = sx_false;
-                    i_dynamic_libraries = sx_false;
+
+                    if (i_os != os_windows)
+                    {
+                        i_dynamic_libraries = sx_false;
+                    }
 
                     break;
                 }
@@ -1879,7 +1893,11 @@ int main (int argc, char **argv, char **environ)
 
     if (nilp(in_dynamic_libraries))
     {
-        if (falsep(co_freestanding))
+        if (i_os == os_windows)
+        {
+            i_dynamic_libraries = sx_true;
+        }
+        else if (falsep(co_freestanding))
         {
             i_dynamic_libraries = sx_false;
         }

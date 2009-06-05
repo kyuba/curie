@@ -265,7 +265,19 @@ static sexpr get_so_library_install_path (sexpr name, sexpr version)
             switch (i_os)
             {
                 case os_windows:
-                    snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.%s.lib", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name), sx_string(version));
+                    snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.%s.dll", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name), sx_string(version));
+                    if (uname_toolchain == tc_borland)
+                    {
+                        int i;
+
+                        for (i = 0; buffer[i]; i++)
+                        {
+                            if (buffer[i] == '+')
+                            {
+                                buffer[i] = 'x';
+                            }
+                        }
+                    }
                     break;
                 default:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.so.%s", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name), sx_string(version));
@@ -278,6 +290,18 @@ static sexpr get_so_library_install_path (sexpr name, sexpr version)
             {
                 case os_windows:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.%s.dll", sx_string(i_destdir), uname_os, uname_arch, sx_string(name), sx_string(version));
+                    if (uname_toolchain == tc_borland)
+                    {
+                        int i;
+
+                        for (i = 0; buffer[i]; i++)
+                        {
+                            if (buffer[i] == '+')
+                            {
+                                buffer[i] = 'x';
+                            }
+                        }
+                    }
                     break;
                 default:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.so.%s", sx_string(i_destdir), uname_os, uname_arch, sx_string(name), sx_string(version));
@@ -302,6 +326,18 @@ static sexpr get_so_library_symlink_path (sexpr name)
             {
                 case os_windows:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.dll", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
+                    if (uname_toolchain == tc_borland)
+                    {
+                        int i;
+
+                        for (i = 0; buffer[i]; i++)
+                        {
+                            if (buffer[i] == '+')
+                            {
+                                buffer[i] = 'x';
+                            }
+                        }
+                    }
                     break;
                 default:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.so", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
@@ -314,6 +350,18 @@ static sexpr get_so_library_symlink_path (sexpr name)
             {
                 case os_windows:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.dll", sx_string(i_destdir), uname_os, uname_arch, sx_string(name));
+                    if (uname_toolchain == tc_borland)
+                    {
+                        int i;
+
+                        for (i = 0; buffer[i]; i++)
+                        {
+                            if (buffer[i] == '+')
+                            {
+                                buffer[i] = 'x';
+                            }
+                        }
+                    }
                     break;
                 default:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.so", sx_string(i_destdir), uname_os, uname_arch, sx_string(name));
@@ -468,7 +516,7 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
     char buffer[BUFFERSIZE];
 
     if (truep (i_dynamic_libraries) &&
-        (falsep (t->have_cpp) || (i_os == os_linux)))
+        (falsep (t->have_cpp) || (i_os != os_darwin)))
     {
         char buffer[BUFFERSIZE];
         sexpr fname;
@@ -476,7 +524,19 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
         switch (i_os)
         {
             case os_windows:
-                snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.%s.dll", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
+                snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.%s.dll", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
+                if (uname_toolchain == tc_borland)
+                {
+                    int i;
+
+                    for (i = 0; buffer[i]; i++)
+                    {
+                        if (buffer[i] == '+')
+                        {
+                            buffer[i] = 'x';
+                        }
+                    }
+                }
                 break;
             default:
                 snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
@@ -488,24 +548,37 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
         if (truep(filep(fname)))
         {
             workstack
-                    = cons (cons (make_string (buffer),
-                            get_so_library_install_path(name, t->dversion)),
+                    = cons (cons (make_string (buffer), get_so_library_install_path(name, t->dversion)),
                     workstack);
 
             switch (i_os)
             {
                 case os_windows:
-                    snprintf (buffer, BUFFERSIZE, "lib%s.%s.dll", sx_string(name), sx_string(t->dversion));
+                    snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.dll", archprefix, sx_string(t->name), sx_string(name));
+                    if (uname_toolchain == tc_borland)
+                    {
+                        int i;
+
+                        for (i = 0; buffer[i]; i++)
+                        {
+                            if (buffer[i] == '+')
+                            {
+                                buffer[i] = 'x';
+                            }
+                        }
+                    }
+                    workstack
+                            = cons (cons (make_string (buffer), get_so_library_symlink_path(name)),
+                                    workstack);
                     break;
                 default:
                     snprintf (buffer, BUFFERSIZE, "lib%s.so.%s", sx_string(name), sx_string(t->dversion));
+                    workstack
+                            = cons (cons (sym_symlink, cons (make_string (buffer),
+                                          get_so_library_symlink_path(name))),
+                                    workstack);
                     break;
             }
-
-            workstack
-                    = cons (cons (sym_symlink, cons (make_string (buffer),
-                            get_so_library_symlink_path(name))),
-                    workstack);
         }
     }
 }
