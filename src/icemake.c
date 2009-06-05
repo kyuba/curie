@@ -1850,7 +1850,7 @@ int main (int argc, char **argv, char **environ)
         archprefix = archbuffer;
     }
 
-    stdio                   = sx_open_stdio();
+    stdio                   = sx_open_stdout();
 
     switch (uname_toolchain)
     {

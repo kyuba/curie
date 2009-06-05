@@ -185,7 +185,23 @@ struct sexpr_io *sx_open_io
  *  Analoguous to sx_open_io(), but it uses the standard file descriptors '0'
  *  and '1'.
  */
-struct sexpr_io *sx_open_stdio ();
+struct sexpr_io *sx_open_stdio ( void );
+
+/*! \brief Create Standard I/O as S-Expression I/O Context
+ *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
+ *          allocated.
+ *
+ *  Same as sx_open_stdio(), but only opens stdout.
+ */
+struct sexpr_io *sx_open_stdout ( void );
+
+/*! \brief Create Standard I/O as S-Expression I/O Context
+ *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
+ *          allocated.
+ *
+ *  Same as sx_open_stdio(), but only opens stdin.
+ */
+struct sexpr_io *sx_open_stdin ( void );
 
 /*! \brief Close S-Expression I/O Context
  *  \param[in] io The context to close.

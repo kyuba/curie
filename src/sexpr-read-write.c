@@ -70,23 +70,6 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
     return rv;
 }
 
-struct sexpr_io *sx_open_stdio() {
-    struct io *in, *out;
-
-    if ((in = io_open (0)) == (struct io *)0)
-    {
-        return (struct sexpr_io *)0;
-    }
-
-    if ((out = io_open (1)) == (struct io *)0)
-    {
-        io_close (in);
-        return (struct sexpr_io *)0;
-    }
-
-    return sx_open_io (in, out);
-}
-
 void sx_close_io (struct sexpr_io *io) {
     io_close (io->in);
     io_close (io->out);

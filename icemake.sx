@@ -14,7 +14,7 @@
         "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
         "directory" "directory-common" "libc-compat" "utf-8" "shell"
-        "memory-error-handling")
+        "memory-error-handling" "sexpr-stdio")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
@@ -73,14 +73,6 @@
   (documentation
         "icemake"))
 
-(programme "ice" libcurie
-  (name "ice")
-  (description "Pretty-printing tool for icemake")
-  (version "1")
-  (libraries "syscall")
-
-  (code "ice"))
-
 (library "syscall" libcurie
   (name "libsyscall")
   (description "raw syscall library, useful for implementing libcs and low-level system tools")
@@ -90,3 +82,11 @@
 
   (headers
         "syscall"))
+
+(programme "ice" libcurie
+  (name "ice")
+  (description "Pretty-printing tool for icemake")
+  (version "1")
+  (libraries "syscall")
+
+  (code "ice"))
