@@ -251,6 +251,33 @@ struct io *io_open
  */
 #define io_open_null io_open((void *)0)
 
+/*! \brief Open Standard Input File Desriptor
+ *  \return A new struct io. (struct io *)0 is only returned for memory
+ *          allocation errors.
+ *
+ *  This will create a regular i/o structurue pointing to the process's standard
+ *  input.
+ */
+struct io *io_open_stdin ( void );
+
+/*! \brief Open Standard Output File Desriptor
+ *  \return A new struct io. (struct io *)0 is only returned for memory
+ *          allocation errors.
+ *
+ *  This will create a regular i/o structurue pointing to the process's standard
+ *  output.
+ */
+struct io *io_open_stdout ( void );
+
+/*! \brief Open Standard Error Output File Desriptor
+ *  \return A new struct io. (struct io *)0 is only returned for memory
+ *          allocation errors.
+ *
+ *  This will create a regular i/o structurue pointing to the process's standard
+ *  error output.
+ */
+struct io *io_open_stderr ( void );
+
 /*! \brief Open File for reading
  *  \param[in] filename The file to open for reading.
  *  \return A new struct io. (struct io *)0 is only returned for memory

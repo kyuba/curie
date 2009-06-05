@@ -26,49 +26,41 @@
  * THE SOFTWARE.
 */
 
-#include <curie/sexpr.h>
 #include <curie/io.h>
 #include <curie/io-system.h>
 
-#include <curie/sexpr-internal.h>
-
-#include <windows.h>
-
-struct sexpr_io *sx_open_stdio() {
-    struct io *in, *out;
-
-    if ((in = io_open (GetStdHandle(STD_INPUT_HANDLE))) == (struct io *)0)
-    {
-        return (struct sexpr_io *)0;
-    }
-
-    if ((out = io_open (GetStdHandle(STD_OUTPUT_HANDLE))) == (struct io *)0)
-    {
-        io_close (in);
-        return (struct sexpr_io *)0;
-    }
-
-    return sx_open_io (in, out);
-}
-
-struct sexpr_io *sx_open_stdout() {
-    struct io *out;
-
-    if ((out = io_open (GetStdHandle(STD_OUTPUT_HANDLE))) == (struct io *)0)
-    {
-        return (struct sexpr_io *)0;
-    }
-
-    return sx_open_io (io_open_null, out);
-}
-
-struct sexpr_io *sx_open_stdin() {
+struct io *io_open_stdin ()
+{
     struct io *in;
 
-    if ((in = io_open (GetStdHandle(STD_INPUT_HANDLE))) == (struct io *)0)
+    if ((in = io_open (0)) == (struct io *)0)
     {
         return (struct sexpr_io *)0;
     }
 
-    return sx_open_io (in, io_open_null);
+    return in;
+}
+
+struct io *io_open_stdout ()
+{
+    struct io *out;
+
+    if ((out = io_open (1)) == (struct io *)0)
+    {
+        return (struct sexpr_io *)0;
+    }
+
+    return out;
+}
+
+struct io *io_open_stderr ()
+{
+    struct io *out;
+
+    if ((out = io_open (2)) == (struct io *)0)
+    {
+        return (struct sexpr_io *)0;
+    }
+
+    return out;
 }

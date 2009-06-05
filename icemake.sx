@@ -14,7 +14,7 @@
         "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
         "directory" "directory-common" "libc-compat" "utf-8" "shell"
-        "memory-error-handling" "sexpr-stdio")
+        "memory-error-handling" "sexpr-stdio" "stdio")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
