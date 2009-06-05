@@ -36,22 +36,29 @@ int cxxmain() {
 
   t->addNode(new TreeNode(10, NULL, (TreeNode *)NULL, (TreeNode *)NULL));
 
+  if(t == NULL) return -2;
+  if(t->root == NULL) return -1;
+
   if(t->getNode(10) == (TreeNode *)NULL) return 1;
 
   t->addNode(new TreeNode(1, NULL, (TreeNode *)NULL, (TreeNode *)NULL));
 
   if(t->root->left == (TreeNode *)NULL) return 2;
-  if(t->root->right != NULL) return 3;
 
-  t->addNode(new TreeNode(23, NULL, (TreeNode *)NULL, (TreeNode *)NULL));
+  if(t->root->right != NULL) return 3;
+//
+  TreeNode *tn23 = new TreeNode(23, NULL, (TreeNode *)NULL, (TreeNode *)NULL);
+  t->addNode(tn23);
 
   if(t->root->right == (TreeNode *)NULL) return 4;
   if(t->root->right->key != 23) return 5;
 
-  TreeNode *tn = t->getNode(23);
+   TreeNode *tn = t->getNode(23);
 
   if(tn == (TreeNode*) NULL) return 6;
   if(tn->key != 23) return 7;
 
-  delete t;
+
+   delete t;
+  return 0;
 }

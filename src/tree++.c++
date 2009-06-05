@@ -27,8 +27,27 @@
 */
 #include <curie++/tree.h>
 #include <curie/memory.h>
+#include <curie/tree.h>
 using namespace curiepp;
+//
+struct tree_node * toStruct(TreeNode *tn) {
+  if(tn == (TreeNode *) NULL) return (struct tree_node *) NULL;
+  struct tree_node n;
+  struct tree_node* node = &n;
+  node->key = tn->key;
+  node->right = toStruct(tn->right);
+  node->left = toStruct(tn->left);
 
+  return node;
+}
+
+struct tree * toStruct(Tree *t) {
+  if(t == (Tree *) NULL) return (struct tree *) NULL;
+  struct tree tr;
+  struct tree * tree = &tr;
+  tree->root = toStruct(t->root);
+  return tree;
+}
 
 TreeNode::TreeNode(int_pointer key_, void *value_, TreeNode *right_, TreeNode *left_) {
   key = key_;
@@ -46,7 +65,7 @@ TreeNode::~TreeNode() {
 
 
 Tree::Tree() {
-  root = (TreeNode *) NULL;
+  root = TREE_INITIALIZER;
 }
 
 Tree::~Tree() {
@@ -82,19 +101,21 @@ void Tree::addNode(TreeNode *n) {
 
 TreeNode* Tree::getNode(int_pointer key)
 {
-  Tree *t = this;
-  this->root = t->root;
+  TreeNode *cur = this->root;
 
-  for(;;) {
-    if(t->root == NULL) return (TreeNode*) NULL;
+  while(cur != (TreeNode*) NULL) {
+    if(cur->key == key) break;
 
-    else if(t->root->key == key) return root;
-
-    if(root->key < key)
-      t->root = this->root->right;
-
-    if(root->key > key)
-      t->root = this->root->left;
+    if(key > cur->key)
+      cur = cur->right;
+    if(key < cur->key)
+      cur = cur->left;
   }
+  return cur;
+}
 
+void Tree::removeNodeSpecific(int_pointer key, TreeNode *node)
+{
+  struct tree *tn = toStruct(this);
+  tree_remove_node_specific(tn, key, toStruct(node));
 }

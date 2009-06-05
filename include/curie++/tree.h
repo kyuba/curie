@@ -40,7 +40,7 @@ namespace curiepp
    class Tree {
 
  #define TREE_INITIALIZER ((TreeNode*) 0)
- #define removeNode(t, k) t.removeNodeSpecific (k, ((TreeNode *) 0))
+ #define removeNode(t, k) t->removeNodeSpecific (k, ((TreeNode *) 0))
  #define removeNodeString(t, k) t.removeNodeStringSpecific (k, ((TreeNode *) 0))
  #define getValue (n) ((TreeNode *) n)->value
   private:
