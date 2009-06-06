@@ -95,14 +95,14 @@ IF "%ERRORLEVEL%"=="0" (
     SET TOOLCHAINTYPE=msvc
 )
 
-IF NOT "%TOOLCHAINTYPE%"=="" GOTO :EOL
+IF NOT "%TOOLCHAINTYPE%"=="" GOTO :EOF
 
 bcc32 --version
 IF "%ERRORLEVEL%"=="0" (
     SET TOOLCHAINTYPE=borland
 )
 
-IF NOT "%TOOLCHAINTYPE%"=="" GOTO :EOL
+IF NOT "%TOOLCHAINTYPE%"=="" GOTO :EOF
 
 gcc --version
 IF "%ERRORLEVEL%"=="0" (
