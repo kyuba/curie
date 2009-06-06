@@ -1970,9 +1970,9 @@ int main (int argc, char **argv, char **environ)
 
     multiplex_io();
 /*    multiplex_all_processes();*/
+    multiplex_signal_primary();
     multiplex_process();
     multiplex_sexpr();
-    multiplex_signal();
 
     multiplex_add_signal (sig_segv, cb_on_bad_signal, (void *)0);
     multiplex_add_signal (sig_int,  cb_on_bad_signal, (void *)0);

@@ -31,6 +31,7 @@
 #include <curie/signal-system.h>
 #include <curie/tree.h>
 #include <curie/memory.h>
+#include <curie/network.h>
 
 struct handler {
     enum signal signal;
@@ -41,6 +42,7 @@ struct handler {
 
 static struct handler *signal_handlers
         = (struct handler *)0;
+static char installed = (char)0;
 
 static void invoke (enum signal signal) {
     struct handler *h = signal_handlers, *hp = (struct handler *)0;
@@ -98,8 +100,6 @@ static void generic_signal_handler (enum signal signal) {
 }
 
 void multiplex_signal () {
-    static char installed = (char)0;
-
     if (installed == (char)0) {
         int i;
 
@@ -115,6 +115,26 @@ void multiplex_signal () {
         }
 
         multiplex_add_io (signal_queue, queue_on_read, queue_on_close, (void *)0);
+
+        installed = (char)1;
+    }
+}
+
+void multiplex_signal_primary () {
+    if (installed == (char)0) {
+        static struct io *signal_queue_in;
+        int i;
+
+        multiplex_io();
+
+        for (i = 0; i < SIGNAL_MAX_NUM; i++) {
+            a_set_signal_handler ((enum signal)i, generic_signal_handler);
+        }
+
+        net_open_loop (&signal_queue_in, &signal_queue);
+
+        multiplex_add_io (signal_queue_in, queue_on_read, queue_on_close, (void *)0);
+        multiplex_add_io_no_callback (signal_queue);
 
         installed = (char)1;
     }

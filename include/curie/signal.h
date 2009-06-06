@@ -123,6 +123,22 @@ enum signal_callback_result {
  */
 void multiplex_signal ();
 
+/*! \brief Catch Signals
+ *
+ *  This function is very similar to multiplex_signal(). The normal method of
+ *  handling signals uses a memory buffer to store the incoming signals. This
+ *  works very well with the multiplexer in regular programmes, i.e. those that
+ *  also wait for incoming data on stdio or some other socket or pipe. However,
+ *  this method fails to work properly on systems where the multiplexer uses
+ *  select() when no data is intended to come in through any of the other
+ *  multiplexers. This method uses the old self-pipe trick to check for
+ *  triggered signals, which works in this case and is generally more reliable,
+ *  but it also wastes precious file descriptors which might even be inherited
+ *  to child processes, which would then possibly also introduce security
+ *  issues.
+ */
+void multiplex_signal_primary ();
+
 /*! \brief Register Callback for a Signal
  *  \param[in] signal  The signal to listen for.
  *  \param[in] handler The function to call when the signal is caught.
