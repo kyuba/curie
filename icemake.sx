@@ -64,7 +64,7 @@
 (programme "icemake" hosted libcurie
   (name "icemake")
   (description "simple build tool for curie, based on curie")
-  (version "5")
+  (version "9")
 
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
         "icemake-link" "icemake-crosslink" "icemake-post-process"
