@@ -162,6 +162,7 @@ int cmain()
     context = execute (EXEC_CALL_PURGE, argv, curie_environment);
 
     if (context == (struct exec_context *)0) return -1;
+    if (context->pid <= 0) return -3;
 
     multiplex_add_process (context, icemake_death, (void *)0);
     multiplex_add_sexpr (sx_open_io (context->in, context->out),
