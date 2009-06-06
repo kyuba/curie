@@ -51,12 +51,17 @@ static void run_tests_library_common (sexpr name, struct target *t)
     }
 }
 
-static void run_tests_library_gcc (sexpr name, struct target *t)
+static void run_tests_library_gcc     (sexpr name, struct target *t)
 {
     run_tests_library_common (name, t);
 }
 
 static void run_tests_library_borland (sexpr name, struct target *t)
+{
+    run_tests_library_common (name, t);
+}
+
+static void run_tests_library_msvc    (sexpr name, struct target *t)
 {
     run_tests_library_common (name, t);
 }
@@ -77,9 +82,11 @@ static void run_tests_library (sexpr name, struct target *t)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            run_tests_library_gcc (name, t); break;
+            run_tests_library_gcc     (name, t); break;
         case tc_borland:
             run_tests_library_borland (name, t); break;
+        case tc_msvc:
+            run_tests_library_msvc    (name, t); break;
     }
 }
 
@@ -116,14 +123,21 @@ static void diff_test_reference_library_borland (sexpr name, struct target *t)
     diff_test_reference_library_common (name, t);
 }
 
+static void diff_test_reference_library_msvc (sexpr name, struct target *t)
+{
+    diff_test_reference_library_common (name, t);
+}
+
 static void diff_test_reference_library (sexpr name, struct target *t)
 {
     switch (uname_toolchain)
     {
         case tc_gcc:
-            diff_test_reference_library_gcc (name, t); break;
+            diff_test_reference_library_gcc     (name, t); break;
         case tc_borland:
             diff_test_reference_library_borland (name, t); break;
+        case tc_msvc:
+            diff_test_reference_library_msvc    (name, t); break;
     }
 }
 

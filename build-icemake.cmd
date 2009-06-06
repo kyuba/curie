@@ -3,6 +3,7 @@ REM Build System Bootstrap
 REM Win32\cmd Variant
 
 SET INCLUDES=-Iinclude\windows -Iinclude\internal\windows -Iinclude -Iinclude\internal
+SET INCLUDESMSVC=/Iinclude\windows /Iinclude\internal\windows /Iinclude /Iinclude\internal
 SET ICEMAKE_FILES=icemake icemake-build icemake-install icemake-link icemake-crosslink icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio
 SET OBJECTS=
 
@@ -13,6 +14,19 @@ IF NOT EXIST build (
 )
 
 GOTO MAIN
+
+:MSVC_BUILD
+SET OBJECTS=%2bj %OBJECTS%
+IF EXIST %2bj GOTO :EOF
+
+cl /c /TC %INCLUDESMSVC% /nologo %1 /Fo%2bj
+GOTO :EOF
+
+:MSVC_LINK
+IF EXIST build\b-icemake.exe GOTO :EOF
+
+cl /nologo /Febuild\b-icemake.exe %*
+GOTO :EOF
 
 :BORLAND_BUILD
 SET OBJECTS=%2bj %OBJECTS%
@@ -75,14 +89,24 @@ SET OBJECTS=
 GOTO :EOF
 
 :GETTOOLCHAIN
+
+cl
+IF "%ERRORLEVEL%"=="0" (
+    SET TOOLCHAINTYPE=msvc
+)
+
+IF NOT "%TOOLCHAINTYPE%"=="" GOTO :EOL
+
 bcc32 --version
-IF %ERRORLEVEL% == 0 (
+IF "%ERRORLEVEL%"=="0" (
     SET TOOLCHAINTYPE=borland
-) ELSE (
-    gcc --version
-    IF %ERRORLEVEL% == 0 (
-        SET TOOLCHAINTYPE=gcc
-    )
+)
+
+IF NOT "%TOOLCHAINTYPE%"=="" GOTO :EOL
+
+gcc --version
+IF "%ERRORLEVEL%"=="0" (
+    SET TOOLCHAINTYPE=gcc
 )
 
 GOTO :EOF

@@ -26,10 +26,51 @@
  * THE SOFTWARE.
 */
 
-#include <curie/main.h>
+#include <curie/directory.h>
+#include <curie/memory.h>
+#include <sys/types.h>
 
-int cmain()
+#include <windows.h>
+
+sexpr read_directory_rx (const char *base, struct graph *rx)
 {
-/* test whether returning from main has the intended result */
-    return 0;
+    char *buffer;
+    int i, blength;
+    WIN32_FIND_DATA data;
+    HANDLE dir;
+    sexpr r = sx_end_of_list;
+
+    for (i = 0; base[i]; i++); blength = i + 2;
+
+    buffer = aalloc (blength);
+
+    for (i = 0; base[i]; i++)
+    {
+        buffer[i] = base[i];
+    }
+
+    buffer[i] = '\\';
+    buffer[i+1] = '*';
+    buffer[i+2] = 0;
+
+    dir = FindFirstFileA (buffer, &data);
+    
+    afree (blength, buffer);
+
+    if (dir != INVALID_HANDLE_VALUE)
+    {
+        do
+        {
+            char *s = data.cFileName;
+
+            if (truep (rx_match (rx, s)))
+            {
+                r = cons (make_string (s), r);
+            }
+        } while (FindNextFileA (dir, &data));
+        
+        CloseHandle (dir);
+    }
+
+    return r;
 }

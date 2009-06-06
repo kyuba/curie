@@ -66,6 +66,9 @@ static sexpr permutate_paths_toolchain (sexpr p, sexpr lis)
         case tc_borland:
             lis = permutate_paths_vendor (sx_string_dir_prefix_c ("borland", p), lis);
             break;
+        case tc_msvc:
+            lis = permutate_paths_vendor (sx_string_dir_prefix_c ("msvc", p), lis);
+            break;
     }
     lis = permutate_paths_vendor (p, lis);
 
@@ -103,10 +106,28 @@ static sexpr permutate_paths (sexpr p)
     return lis;
 }
 
-static sexpr prepend_includes_gcc (sexpr x)
+static sexpr prepend_includes_common (sexpr x)
 {
     sexpr include_paths = permutate_paths (str_include);
     sexpr cur = include_paths;
+
+    if (stringp (i_destdir))
+    {
+        char buffer[BUFFERSIZE];
+
+        switch (i_fsl)
+        {
+            case fs_fhs:
+            case fs_fhs_binlib:
+                snprintf (buffer, BUFFERSIZE, "-I%s/include", sx_string(i_destdir));
+                break;
+            case fs_proper:
+                snprintf (buffer, BUFFERSIZE, "-I%s/%s/%s/include", sx_string(i_destdir), uname_os, uname_arch);
+                break;
+        }
+        
+        x = cons (make_string (buffer), x);
+    }
 
     while (consp (cur))
     {
@@ -121,6 +142,11 @@ static sexpr prepend_includes_gcc (sexpr x)
     }
 
     return x;
+}
+
+static sexpr prepend_includes_gcc (sexpr x)
+{
+    return prepend_includes_common (x);
 }
 
 static sexpr prepend_ccflags_gcc (sexpr x)
@@ -229,22 +255,7 @@ static sexpr prepend_cxxflags_gcc (sexpr x)
 
 static sexpr prepend_includes_borland (sexpr x)
 {
-    sexpr include_paths = permutate_paths (str_include);
-    sexpr cur = include_paths;
-
-    while (consp (cur))
-    {
-        sexpr sxcar = car(cur);
-        char buffer [BUFFERSIZE];
-
-        snprintf (buffer, BUFFERSIZE, "-I%s", sx_string(sxcar));
-
-        x = cons (make_string (buffer), x);
-
-        cur = cdr (cur);
-    }
-
-    return x;
+    return prepend_includes_common (x);
 }
 
 static sexpr prepend_ccflags_borland (sexpr x)
@@ -330,6 +341,129 @@ static sexpr prepend_cxxflags_borland (sexpr x)
     }
 
     return prepend_ccflags_borland(x);
+}
+
+static sexpr prepend_includes_msvc (sexpr x)
+{
+    sexpr include_paths = permutate_paths (str_include);
+    sexpr cur = include_paths;
+
+    if (stringp (i_destdir))
+    {
+        char buffer[BUFFERSIZE];
+
+        switch (i_fsl)
+        {
+            case fs_fhs:
+            case fs_fhs_binlib:
+                snprintf (buffer, BUFFERSIZE, "/I%s\\include", sx_string(i_destdir));
+                break;
+            case fs_proper:
+                snprintf (buffer, BUFFERSIZE, "/I%s\\%s\\%s\\include", sx_string(i_destdir), uname_os, uname_arch);
+                break;
+        }
+        
+        x = cons (make_string (buffer), x);
+    }
+
+    while (consp (cur))
+    {
+        sexpr sxcar = car(cur);
+        char buffer [BUFFERSIZE];
+
+        snprintf (buffer, BUFFERSIZE, "/I%s", sx_string(sxcar));
+
+        x = cons (make_string (buffer), x);
+
+        cur = cdr (cur);
+    }
+
+    return x;
+}
+
+static sexpr prepend_ccflags_msvc (sexpr x)
+{
+    return x;
+}
+
+static sexpr prepend_cflags_msvc (sexpr x)
+{
+    char *f = getenv ("CFLAGS");
+
+    if (f != (char *)0)
+    {
+        char buffer[BUFFERSIZE];
+        int j = 0, i;
+        sexpr t = sx_end_of_list;
+
+        for (i = 0; f[i] != 0; i++)
+        {
+            if (f[i] == ' ')
+            {
+                buffer[j] = 0;
+
+                t = cons (make_string (buffer), t);
+
+                j = 0;
+            }
+            else
+            {
+                buffer[j] = f[i];
+                j++;
+            }
+        }
+
+        if (j != 0)
+        {
+            buffer[j] = 0;
+
+            t = cons (make_string (buffer), t);
+        }
+
+        while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
+    }
+
+    return prepend_ccflags_msvc(x);
+}
+
+static sexpr prepend_cxxflags_msvc (sexpr x)
+{
+    char *f = getenv ("CXXFLAGS");
+
+    if (f != (char *)0)
+    {
+        char buffer[BUFFERSIZE];
+        int j = 0, i;
+        sexpr t = sx_end_of_list;
+
+        for (i = 0; f[i] != 0; i++)
+        {
+            if (f[i] == ' ')
+            {
+                buffer[j] = 0;
+
+                t = cons (make_string (buffer), t);
+
+                j = 0;
+            }
+            else
+            {
+                buffer[j] = f[i];
+                j++;
+            }
+        }
+
+        if (j != 0)
+        {
+            buffer[j] = 0;
+
+            t = cons (make_string (buffer), t);
+        }
+
+        while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
+    }
+
+    return prepend_ccflags_msvc(x);
 }
 
 static void build_object_gcc_assembly (const char *source, const char *target)
@@ -615,7 +749,7 @@ static void build_object_borland_cpp (const char *source, const char *target)
                   cons (str_dq,
                   cons (str_dP,
                     cons (str_dw,
-                      prepend_cflags_borland (
+                      prepend_cxxflags_borland (
                       prepend_includes_borland (
                         cons (str_do,
                           cons (make_string (target),
@@ -638,6 +772,56 @@ static void build_object_borland (sexpr type, sexpr source, sexpr target)
     }
 }
 
+static void build_object_msvc_generic (const char *source, const char *target)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "/Fo%s", target);
+
+    workstack
+        = cons (cons (p_c_compiler,
+                      cons (str_sc,
+                      cons (str_snologo,
+                      cons (str_sTC,
+                        prepend_cflags_msvc (
+                        prepend_includes_msvc (
+                          cons (make_string (source),
+                              cons (make_string(buffer), sx_end_of_list)))))))),
+                workstack);
+}
+
+static void build_object_msvc_cpp (const char *source, const char *target)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "/Fo%s", target);
+
+    workstack
+        = cons (cons (p_c_compiler,
+                      cons (str_sc,
+                      cons (str_snologo,
+                      cons (str_sTP,
+                        prepend_cflags_msvc (
+                        prepend_includes_msvc (
+                          cons (make_string (source),
+                              cons (make_string(buffer), sx_end_of_list)))))))),
+                workstack);
+}
+
+static void build_object_msvc (sexpr type, sexpr source, sexpr target)
+{
+    if (truep(equalp(type, sym_link))) return;
+
+    if (truep(equalp(type, sym_cpp)))
+    {
+        build_object_msvc_cpp (sx_string(source), sx_string(target));
+    }
+    else
+    {
+        build_object_msvc_generic (sx_string(source), sx_string(target));
+    }
+}
+
 static void build_object(sexpr desc)
 {
     sexpr type = car(desc);
@@ -652,9 +836,11 @@ static void build_object(sexpr desc)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            build_object_gcc (type, source, target); break;
+            build_object_gcc     (type, source, target); break;
         case tc_borland:
             build_object_borland (type, source, target); break;
+        case tc_msvc:
+            build_object_msvc    (type, source, target); break;
     }
 }
 

@@ -60,7 +60,7 @@ namespace curiepp
 
 
       public:
-        char characterData[];
+        char *characterData;
 
         virtual SExprStringOrSymbol *join(SExprStringOrSymbol *sx);
     };

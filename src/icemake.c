@@ -120,7 +120,15 @@ static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), sx_string(f));
+    switch (i_os)
+    {
+        case os_windows:
+            snprintf (buffer, BUFFERSIZE, "%s\\%s", sx_string(p), sx_string(f));
+            break;
+        default:
+            snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), sx_string(f));
+            break;
+    }
 
     return make_string(buffer);
 }
@@ -129,7 +137,15 @@ sexpr sx_string_dir_prefix_c (char *f, sexpr p)
 {
     char buffer[BUFFERSIZE];
 
-    snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), f);
+    switch (i_os)
+    {
+        case os_windows:
+            snprintf (buffer, BUFFERSIZE, "%s\\%s", sx_string(p), f);
+            break;
+        default:
+            snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), f);
+            break;
+    }
 
     return make_string(buffer);
 }
@@ -171,6 +187,18 @@ static sexpr find_in_permutations_toolchain (sexpr p, sexpr file)
     {
         case tc_gcc:
             if ((r = find_in_permutations_vendor (sx_string_dir_prefix_c ("gnu", p), file)), stringp(r))
+            {
+                return r;
+            }
+            break;
+        case tc_borland:
+            if ((r = find_in_permutations_vendor (sx_string_dir_prefix_c ("borland", p), file)), stringp(r))
+            {
+                return r;
+            }
+            break;
+        case tc_msvc:
+            if ((r = find_in_permutations_vendor (sx_string_dir_prefix_c ("msvc", p), file)), stringp(r))
             {
                 return r;
             }
@@ -341,6 +369,9 @@ static sexpr generate_object_file_name (sexpr name, sexpr file)
 
     switch (uname_toolchain)
     {
+        case tc_msvc:
+            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.obj", archprefix, sx_string(name), sx_string(file));
+            break;
         case tc_borland:
             snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.obj", archprefix, sx_string(name), sx_string(file));
             {
@@ -354,7 +385,7 @@ static sexpr generate_object_file_name (sexpr name, sexpr file)
                 }
             }
             break;
-        default:
+        case tc_gcc:
             snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.o", archprefix, sx_string(name), sx_string(file));
             break;
     }
@@ -377,6 +408,9 @@ static sexpr generate_test_object_file_name (sexpr name, sexpr file)
 
     switch (uname_toolchain)
     {
+        case tc_msvc:
+            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.obj", archprefix, sx_string(name), sx_string(file));
+            break;
         case tc_borland:
             snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.obj", archprefix, sx_string(name), sx_string(file));
             {
@@ -391,7 +425,7 @@ static sexpr generate_test_object_file_name (sexpr name, sexpr file)
                 }
             }
             break;
-        default:
+        case tc_gcc:
             snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s.o", archprefix, sx_string(name), sx_string(file));
             break;
     }
@@ -408,6 +442,9 @@ static sexpr generate_test_executable_file_name (sexpr name, sexpr file)
         case os_windows:
             switch (uname_toolchain)
             {
+                case tc_msvc:
+                    snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.exe", archprefix, sx_string(name), sx_string(file));
+                    break;
                 case tc_borland:
                     snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.exe", archprefix, sx_string(name), sx_string(file));
                     {
@@ -422,7 +459,7 @@ static sexpr generate_test_executable_file_name (sexpr name, sexpr file)
                         }
                     }
                     break;
-                default:
+                case tc_gcc:
                     snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.exe", archprefix, sx_string(name), sx_string(file));
             }
             break;
@@ -1265,7 +1302,7 @@ static void initialise_toolchain_gcc()
     }
 
     p_diff = xwhich ("diff");
-    if (falsep(p_latex))
+    if (falsep(p_diff))
     {
         sexpr out;
         sx_write (stdio,
@@ -1296,7 +1333,38 @@ static void initialise_toolchain_borland()
     }
 
     p_diff = xwhich ("diff");
-    if (falsep(p_latex))
+    if (falsep(p_diff))
+    {
+        sexpr out;
+        sx_write (stdio,
+                  (out = cons (sym_missing_programme,
+                               cons (sym_diff, sx_end_of_list))));
+        sx_destroy (out);
+    }
+}
+
+static void initialise_toolchain_msvc()
+{
+    p_c_compiler = xwhich ("cl");
+    if (falsep(p_c_compiler))
+    {
+        fprintf (stderr, "cannot find C compiler.\n");
+        exit (21);
+    }
+
+    p_linker = p_c_compiler;
+    p_assembler = p_c_compiler;
+    p_cpp_compiler = p_c_compiler;
+
+    p_archiver = xwhich ("lib");
+    if (falsep(p_archiver))
+    {
+        fprintf (stderr, "cannot find archiver.\n");
+        exit (25);
+    }
+
+    p_diff = xwhich ("diff");
+    if (falsep(p_diff))
     {
         sexpr out;
         sx_write (stdio,
@@ -1412,7 +1480,7 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
         sexpr cfcdar = car (cfcdr);
 
         wdir = sx_string (cfcdar);
-        if (getcwd (odir, BUFFERSIZE) == (char *)0)
+        if ((char *)getcwd (odir, BUFFERSIZE) == (char *)0)
         {
             return;
         }
@@ -1804,7 +1872,11 @@ int main (int argc, char **argv, char **environ)
         char *toolchain = "unknown";
         int j;
 
-        if (!falsep(cwhich("bcc32")))
+        if (!falsep(cwhich("cl")))
+        {
+            uname_toolchain = tc_msvc;
+        }
+        else if (!falsep(cwhich("bcc32")))
         {
             uname_toolchain = tc_borland;
         }
@@ -1837,6 +1909,7 @@ int main (int argc, char **argv, char **environ)
         {
             case tc_gcc:     toolchain = "gnu";     break;
             case tc_borland: toolchain = "borland"; break;
+            case tc_msvc:    toolchain = "msvc";    break;
         }
 
         snprintf (archbuffer, BUFFERSIZE, "%s-%s-%s-%s",
@@ -1856,6 +1929,7 @@ int main (int argc, char **argv, char **environ)
     {
         case tc_gcc:     initialise_toolchain_gcc();     break;
         case tc_borland: initialise_toolchain_borland(); break;
+        case tc_msvc:    initialise_toolchain_msvc();    break;
     }
 
     initialise_toolchain_tex ();

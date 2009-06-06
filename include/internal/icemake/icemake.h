@@ -510,6 +510,20 @@ define_string (str_pedantic,            "-pedantic");
 /*! \brief Predefined String */
 define_string (str_dcombine,            "-combine");
 /*! \brief Predefined String */
+define_string (str_snologo,             "/nologo");
+/*! \brief Predefined String */
+define_string (str_sc,                  "/c");
+/*! \brief Predefined String */
+define_string (str_sTC,                 "/TC");
+/*! \brief Predefined String */
+define_string (str_sTP,                 "/TP");
+/*! \brief Predefined String */
+define_string (str_slink,               "/link");
+/*! \brief Predefined String */
+define_string (str_sDLL,                "/DLL");
+/*! \brief Predefined String */
+define_string (str_sINCLUDEcmain,       "/INCLUDE:_main");
+/*! \brief Predefined String */
 define_string (str_lib,                 "lib");
 /*! \brief Predefined String */
 define_string (str_gcc,                 "gcc");

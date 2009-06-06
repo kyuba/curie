@@ -37,7 +37,7 @@ struct io *io_open_stdin ()
 
     if ((in = io_open (GetStdHandle(STD_INPUT_HANDLE))) == (struct io *)0)
     {
-        return (struct sexpr_io *)0;
+        return (struct io *)0;
     }
 
     return in;
@@ -49,7 +49,7 @@ struct io *io_open_stdout ()
 
     if ((out = io_open (GetStdHandle(STD_OUTPUT_HANDLE))) == (struct io *)0)
     {
-        return (struct sexpr_io *)0;
+        return (struct io *)0;
     }
 
     return out;
@@ -61,7 +61,7 @@ struct io *io_open_stderr ()
 
     if ((out = io_open (GetStdHandle(STD_ERROR_HANDLE))) == (struct io *)0)
     {
-        return (struct sexpr_io *)0;
+        return (struct io *)0;
     }
 
     return out;

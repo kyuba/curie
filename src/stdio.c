@@ -35,7 +35,7 @@ struct io *io_open_stdin ()
 
     if ((in = io_open (0)) == (struct io *)0)
     {
-        return (struct sexpr_io *)0;
+        return (struct io *)0;
     }
 
     return in;
@@ -47,7 +47,7 @@ struct io *io_open_stdout ()
 
     if ((out = io_open (1)) == (struct io *)0)
     {
-        return (struct sexpr_io *)0;
+        return (struct io *)0;
     }
 
     return out;
@@ -59,7 +59,7 @@ struct io *io_open_stderr ()
 
     if ((out = io_open (2)) == (struct io *)0)
     {
-        return (struct sexpr_io *)0;
+        return (struct io *)0;
     }
 
     return out;
