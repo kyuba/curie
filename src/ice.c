@@ -37,7 +37,7 @@
 
 #include <icemake/icemake.h>
 
-#define WIDTH 79
+#define WIDTH 78
 static int items_total = 1;
 static int items_have = 0;
 static sexpr phase = sx_false;
