@@ -10,12 +10,15 @@
 NOTE:
   Library documentation has gotten somewhat better, but this new build system
   could have made things a tiny bit trickier. This has been tested on
-  linux/x86-64, linux/powerpc and darwin/powerpc though.
+  linux/x86-64, linux/powerpc, darwin/powerpc and windows/x86 though.
 
 NOTE.2:
   Please take note of the library licence (the COPYING file), as well as the
   credits (the CREDITS file).
 
+NOTE.3:
+  This is the description for POSIX-ish systems. For details on how to get this
+  running on Windows systems, see README.txt.
 
 ###- DETAILS -##################################################################
 
