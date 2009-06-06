@@ -121,6 +121,9 @@ void multiplex_signal () {
 }
 
 void multiplex_signal_primary () {
+#if defined(_WIN32)
+    multiplex_signal ();
+#else
     if (installed == (char)0) {
         static struct io *signal_queue_in;
         int i;
@@ -138,6 +141,7 @@ void multiplex_signal_primary () {
 
         installed = (char)1;
     }
+#endif
 }
 
 void multiplex_add_signal (enum signal signal, enum signal_callback_result (*handler)(enum signal, void *), void *data) {
