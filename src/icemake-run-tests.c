@@ -37,6 +37,12 @@
 
 #include <icemake/icemake.h>
 
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 static void run_tests_library_common (sexpr name, struct target *t)
 {
     sexpr s = t->test_cases;
@@ -99,15 +105,15 @@ static void diff_test_reference_library_common (sexpr name, struct target *t)
     else
     {
         sexpr cur = t->test_reference;
-    
+
         while (consp (cur))
         {
             sexpr r = car (cur);
             sexpr o = car (r), g = cdr (r);
-    
+
             workstack = cons (cons (p_diff, cons (o, cons (g, sx_end_of_list))),
                               workstack);
-    
+
             cur = cdr (cur);
         }
     }

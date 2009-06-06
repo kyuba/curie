@@ -40,6 +40,12 @@
 
 #include <icemake/icemake.h>
 
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 static void write_curie_linker_flags_gcc (struct io *o, struct target *t)
 {
     if (truep(t->use_curie))
@@ -254,7 +260,7 @@ static sexpr get_special_linker_options_borland (sexpr sx)
                 snprintf (buffer, BUFFERSIZE, "-L%s/%s/%s/lib", sx_string(i_destdir), uname_os, uname_arch);
                 break;
         }
-        
+
         sx = cons (make_string (buffer), sx);
     }
 
@@ -273,7 +279,6 @@ static void map_includes_msvc (struct tree_node *node, void *psx)
     sexpr *sx = (sexpr *)psx;
     char buffer[BUFFERSIZE];
     struct target *t = node_get_value (node);
-    int i;
 
     snprintf (buffer, BUFFERSIZE, "/LIBPATH:build\\%s\\%s", archprefix, sx_string(t->name));
 
@@ -296,7 +301,7 @@ static sexpr get_special_linker_options_msvc (sexpr sx)
                 snprintf (buffer, BUFFERSIZE, "/LIBPATH:%s\\%s\\%s\\lib", sx_string(i_destdir), uname_os, uname_arch);
                 break;
         }
-        
+
         sx = cons (make_string (buffer), sx);
     }
 
@@ -800,10 +805,10 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
 static void link_library_borland (sexpr name, sexpr code, struct target *t)
 {
-    char buffer[BUFFERSIZE], lbuffer[BUFFERSIZE];
+    char buffer[BUFFERSIZE];
     struct stat res, st;
     char havelib;
-    sexpr sx = sx_end_of_list, cur;
+    sexpr sx = sx_end_of_list;
     int i;
 
     if (truep(equalp(name, str_curie)))
@@ -840,7 +845,6 @@ static void link_library_borland (sexpr name, sexpr code, struct target *t)
     while (consp (code))
     {
         sexpr txn = car (code);
-        sexpr ttype = car (txn);
         sexpr objectfile = car (cdr (cdr (txn)));
 
         sx = cons (objectfile, sx);
@@ -921,7 +925,7 @@ static void link_library_borland_dynamic (sexpr name, sexpr code, struct target 
     while (consp (cur))
     {
         sexpr libname = car (cur);
-        
+
         if (falsep(equalp(str_curie_bootstrap, libname)) && falsep(equalp(name, libname)))
         {
             snprintf (buffer, BUFFERSIZE, "lib%s.lib", sx_string (libname));
@@ -957,7 +961,6 @@ static void link_library_borland_dynamic (sexpr name, sexpr code, struct target 
     while (consp (code))
     {
         sexpr txn = car (code);
-        sexpr ttype = car (txn);
         sexpr objectfile = car (cdr (cdr (txn)));
 
         sx = cons (objectfile, sx);
@@ -979,7 +982,7 @@ static void link_library_borland_dynamic (sexpr name, sexpr code, struct target 
                                     get_special_linker_options_borland (
                                         cons (str_do, cons (make_string (buffer), sx)))))),
                         workstack);
-       
+
         snprintf (lbuffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.dll", archprefix, sx_string(t->name), sx_string(name));
         for (i = 0; lbuffer[i]; i++)
         {
@@ -1003,8 +1006,7 @@ static void link_library_msvc (sexpr name, sexpr code, struct target *t)
     char buffer[BUFFERSIZE], lbuffer[BUFFERSIZE];
     struct stat res, st;
     char havelib;
-    sexpr sx = sx_end_of_list, cur;
-    int i;
+    sexpr sx = sx_end_of_list;
 
     if (truep(equalp(name, str_curie)))
     {
@@ -1034,7 +1036,6 @@ static void link_library_msvc (sexpr name, sexpr code, struct target *t)
     while (consp (code))
     {
         sexpr txn = car (code);
-        sexpr ttype = car (txn);
         sexpr objectfile = car (cdr (cdr (txn)));
 
         sx = cons (objectfile, sx);
@@ -1078,11 +1079,10 @@ static void link_library_msvc (sexpr name, sexpr code, struct target *t)
 
 static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
 {
-    char buffer[BUFFERSIZE], lbuffer[BUFFERSIZE];
+    char buffer[BUFFERSIZE];
     struct stat res, st;
     char havelib;
-    sexpr sx = sx_end_of_list, cur;
-    int i;
+    sexpr sx = sx_end_of_list;
 
     if (truep(equalp(name, str_curie)))
     {
@@ -1111,7 +1111,6 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
     while (consp (code))
     {
         sexpr txn = car (code);
-        sexpr ttype = car (txn);
         sexpr objectfile = car (cdr (cdr (txn)));
 
         sx = cons (objectfile, sx);

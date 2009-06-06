@@ -537,6 +537,9 @@ static void find_code (struct target *context, sexpr file)
                     case tc_gcc:
                         secundus = cons(sym_preproc_assembly_pic, cons (find_code_pic_S (file), cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
                         break;
+                    case tc_msvc:
+                    case tc_borland:
+                        break;
                 }
             }
 
@@ -547,6 +550,9 @@ static void find_code (struct target *context, sexpr file)
                 {
                     case tc_gcc:
                         quartus = find_code_highlevel_pic (context, file);
+                        break;
+                    case tc_msvc:
+                    case tc_borland:
                         break;
                 }
             }
@@ -562,6 +568,9 @@ static void find_code (struct target *context, sexpr file)
                     case tc_gcc:
                         secundus = cons(sym_assembly_pic, cons (find_code_pic_s (file), cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
                         break;
+                    case tc_msvc:
+                    case tc_borland:
+                        break;
                 }
             }
 
@@ -572,6 +581,9 @@ static void find_code (struct target *context, sexpr file)
                 {
                     case tc_gcc:
                         quartus = find_code_highlevel_pic (context, file);
+                        break;
+                    case tc_msvc:
+                    case tc_borland:
                         break;
                 }
             }
@@ -593,6 +605,9 @@ static void find_code (struct target *context, sexpr file)
                     case tc_gcc:
                         secundus = cons(sym_cpp_pic, cons (r, cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
                         break;
+                    case tc_msvc:
+                    case tc_borland:
+                        break;
                 }
             }
         }
@@ -606,6 +621,9 @@ static void find_code (struct target *context, sexpr file)
                 {
                     case tc_gcc:
                         secundus = cons(sym_c_pic, cons (r, cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
+                        break;
+                    case tc_msvc:
+                    case tc_borland:
                         break;
                 }
             }

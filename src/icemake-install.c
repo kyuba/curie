@@ -518,7 +518,6 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
     if (truep (i_dynamic_libraries) &&
         (falsep (t->have_cpp) || (i_os != os_darwin)))
     {
-        char buffer[BUFFERSIZE];
         sexpr fname;
 
         switch (i_os)
@@ -751,8 +750,6 @@ static void install_support_files_common (sexpr name, struct target *t)
 
 static void install_support_files_gcc (sexpr name, struct target *t)
 {
-    sexpr cur = t->data, dname;
-    
     install_support_files_common (name, t);
 
     if (truep(t->library))
