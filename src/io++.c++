@@ -99,11 +99,12 @@ enum io_result IO::finish ()
     return io_unrecoverable_error;
 }
 
-char *IO::getBuffer ()
+char *IO::getBuffer (int &length)
 {
     if (context != (struct io *)0)
     {
         context->buffer + context->position;
+        length = context->length - context->position;
     }
 
     return (char *)0;
@@ -115,11 +116,6 @@ void IO::setPosition (int_32 position)
     {
         context->position = position;
     }
-}
-
-void IO::clearContext ()
-{
-    context = (struct io *)0;
 }
 
 IOReader::IOReader (const char *filename)
@@ -201,14 +197,18 @@ IOMultiplexer::~IOMultiplexer()
     if ((context != (IO *)0) && (context->context != (struct io *)0))
     {
         multiplex_del_io (context->context);
-        context->clearContext();
+        clearContext();
     }
 }
 
 void IOMultiplexer::clearContext ()
 {
-    context->clearContext ();
-    context = (IO *)0;
+    if (context != (IO *)0)
+    {
+        context->context = (struct io *)0;
+        delete context;
+        context = (IO *)0;
+    }
 }
 
 /* stubs */

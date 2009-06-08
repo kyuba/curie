@@ -69,11 +69,9 @@ namespace curiepp
             enum io_result commit ();
             enum io_result finish ();
 
-            char *getBuffer ();
+            char *getBuffer (int &length);
 
             void setPosition (int_32 position);
-
-            void clearContext();
 
         protected:
             struct io *context;
