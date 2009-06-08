@@ -29,6 +29,7 @@
 #ifndef LIBCURIEPP_SEXPR_H
 #define LIBCURIEPP_SEXPR_H
 
+#include <curie/sexpr.h>
 #include <curie++/int.h>
 #include <curie++/io.h>
 #include <curie++/multiplex.h>
@@ -38,113 +39,86 @@ namespace curiepp
 
     class SExpr
     {
+        public:
+            SExpr         ();
+            SExpr         (sexpr sx);
+            ~SExpr        ();
 
-      public:
+            bool isNil    ();
+            bool isTrue   ();
+            bool isFalse  ();
+            bool isEmpty  ();
+            bool isEol    ();
+            bool isEof    ();
+            bool isNan    ();
+            bool isNex    ();
+            bool isDot    ();
+            bool isQuote  ();
+            bool isQq     ();
+            bool isUnquote();
+            bool isSplice ();
+            bool isCons   ();
+            bool isString ();
+            bool isSymbol ();
+            bool isInteger();
 
-        SExpr();
-        //! allows for compatibility with the C types
-        SExpr(sexpr);
-        ~SExpr();
-        unsigned int references;
-
-        virtual SExpr* equalp (SExpr *a);
-        virtual void xref();
-        virtual void destroy();
-
+        protected:
+            sexpr value;
+            friend class SExprCons;
     };
 
-    // virtual base class for strings and symbols
-    class SExprStringOrSymbol : SExpr
+    class SExprSymbol : public SExpr
     {
-      private:
-
-
-      public:
-        char *characterData;
-
-        virtual SExprStringOrSymbol *join(SExprStringOrSymbol *sx);
+        public:
+            SExprSymbol   (const char *symbol);
     };
 
-    class SExprString : SExprStringOrSymbol
+    class SExprString : public SExpr
     {
-      private:
-
-      public:
-        SExprString(const char *data);
-        ~SExprString();
+        public:
+            SExprString   (const char *string);
     };
 
-    class SExprSymbol : SExprStringOrSymbol
+    class SExprInteger : public SExpr
     {
-      private:
-      public:
-        SExprSymbol(const char *data);
-        ~SExprSymbol();
-
+        public:
+            SExprInteger  (signed long integer);
     };
 
-    class SExprCons : SExpr
+    class SExprCons    : public SExpr
     {
-      private:
-
-
-
-      public:
-        SExprCons (SExpr *car, SExpr *cdr);
-        ~SExprCons();
-        SExpr *car;
-        SExpr *cdr;
-
-        SExprCons *cons (SExpr *car, SExpr *cdr);
-
-        void map(void (*f) (sexpr));
-        SExpr *fold(sexpr(*f)(sexpr, sexpr), sexpr seed);
+        public:
+            SExprCons     (SExpr &car, SExpr &cdr);
     };
 
     class SExprIO
     {
-      private:
-        SExprIO();
-        SExprIO(IO *in, IO *out);
+        public:
+            SExprIO       (IO *in, IO *out);
+            ~SExprIO      ();
 
-        SExprString *readString(unsigned int *i, char *buf, unsigned int length);
-        SExprSymbol *readSymbol(unsigned int *i, char *buf, unsigned int length);
-        SExpr *readNumber(unsigned int *i, char *buf, unsigned int length);
-        SExprCons *readCons(unsigned int *i, char *buf, unsigned int length);
-        SExprCons *readConsFinalise(unsigned int *i, char *buf, unsigned int length);
-        void readDispatch(unsigned int *i, char *buf, unsigned int length);
+            void write    (SExpr sx);
+            SExpr read    ();
 
-        void writeStringOrSymbol(SExprStringOrSymbol *s);
-        void writeCons(SExprCons *c);
-        void writeInteger(SExpr *i);
-        void writeDispatch (SExpr *sexp);
-
-      protected:
-        struct sexpr_io *context;
-
-      public:
-        SExprIO* openIO(IO *in, IO *out);
-        SExprIO* openStdIO();
-        ~SExprIO();
-        void close();
-
-        SExpr* read();
-        void write(SExpr* sx);
+        protected:
+            struct sexpr_io *context;
     };
 
-    class SExprIOMultiplexer : public SExprIO, public Multiplexer
+    class SExprIOMultiplexer : public Multiplexer
     {
-      private:
+        public:
+            SExprIOMultiplexer
+                          (SExprIO *io);
+            ~SExprIOMultiplexer
+                          ();
 
-      public:
-        SExprIOMultiplexer();
+            void on_read  (SExpr sx);
+            void on_close ();
 
-        void Add(void (*on_read)(sexpr,
-            struct sexpr_io *,
-            void *),
-            void *aux);
+            void clearContext();
 
-        void Delete();
+        protected:
+            SExprIO *context;
     };
 }
 

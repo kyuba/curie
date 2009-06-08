@@ -50,7 +50,7 @@
   (version "10")
   (url "http://kyuba.org/")
 
-  (code "memory++" "io++" "libc++-compat" "graph++" "tree++")
+  (code "memory++" "io++" "libc++-compat" "graph++" "tree++" "sexpr++")
 
   (headers
         "int" "io" "multiplex" "sexpr" "tree" "graph" "regex")
