@@ -48,60 +48,121 @@ namespace curiepp
     /*! \brief Basic Input and Output
      *
      *  This class performs basic in- and output; it's a wrapper around the code
-     *  in curie/io.h.
+     *  in curie/io.h. The limitations for curie/io.h still apply, especially
+     *  the thing about multiplexing.
      *
-     *  The limitations for curie/io.h still apply, especially the thing about
-     *  multiplexing.
+     *  This base class provides a memory buffer for I/O, like the
+     *  io_open_special() function does for curie, unless you use the
+     *  constructor that itself takes a struct io *, in which case you're
+     *  supposed to know what you're doing.
      */
     class IO
     {
         public:
             IO ();
-            IO (char *filename);
-            IO (sexpr filename);
-            IO (int fd);
-            IO (int fd, io_type type);
+            IO (struct io *io);
             ~IO();
-
-            void open ();
-            void open (sexpr &filename);
-            void open (io_type type);
-            void open (sexpr &filename, io_type type);
 
             enum io_result read ();
             enum io_result collect (const char *data, int_pointer length);
             enum io_result write (const char *data, int_pointer length);
             enum io_result commit ();
             enum io_result finish ();
-            void close ();
 
             char *getBuffer ();
 
             void setPosition (int_32 position);
 
+            void clearContext();
+
         protected:
             struct io *context;
+            friend class IOMultiplexer;
+    };
 
-        private:
-            sexpr filename;
+    /*! \brief I/O Reader
+     *
+     *  This class wraps up I/O structures to read from. That is to say, the
+     *  structures normally opened with io_open_read().
+     */
+    class IOReader : public IO
+    {
+        public:
+            IOReader (const char *filename);
+            IOReader (sexpr filename);
+    };
+
+    /*! \brief I/O Writer
+     *
+     *  This class wraps up I/O structures to write to. That is to say, the
+     *  structures normally opened with io_open_write() or io_open_create().
+     */
+    class IOWriter : public IO
+    {
+        public:
+            IOWriter (const char *filename);
+            IOWriter (const char *filename, int mode);
+            IOWriter (sexpr filename);
+            IOWriter (sexpr filename, int mode);
+    };
+
+    /*! \brief Standard Input
+     *
+     *  Use this to get a hold of the process's standard input.
+     */
+    class IOStandardInput : public IO
+    {
+        public:
+            IOStandardInput ();
+    };
+
+    /*! \brief Standard Output
+     *
+     *  Use this to get a hold of the process's standard output.
+     */
+    class IOStandardOutput : public IO
+    {
+        public:
+            IOStandardOutput ();
+    };
+
+    /*! \brief Standard Error
+     *
+     *  Use this to get a hold of the process's standard error output.
+     */
+    class IOStandardError : public IO
+    {
+        public:
+            IOStandardError ();
+    };
+
+    /*! \brief Standard Error
+     *
+     *  Use this to get a dummy IO object in case you need one.
+     */
+    class IONull : public IO
+    {
+        public:
+            IONull ();
     };
 
     /*! \brief I/O Multiplexer
      *
      *  This is a base class to derive your own I/O multiplexers from.
      */
-    class IOMultiplexer: public IO, public Multiplexer
+    class IOMultiplexer: public Multiplexer
     {
-      public:
-        IOMultiplexer();
+        public:
+            IOMultiplexer  (IO *io);
+            ~IOMultiplexer ();
 
-        void Add(void (*on_read)(struct io *, void *),
-                     void (*on_close)(struct io *, void *),
-                     void *aux);
+            void on_read   ();
+            void on_close  ();
 
-        void AddNoCallback();
+            void clearContext();
 
-        void Delete();
+        protected:
+            IO *context;
     };
 }
 

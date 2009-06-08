@@ -26,116 +26,192 @@
  * THE SOFTWARE.
 */
 
+#include <curie/multiplex.h>
 #include <curie++/io.h>
 
 using namespace curiepp;
 
 IO::IO()
 {
-    filename = sx_nonexistent;
+    context = io_open_special ();
 }
 
-IO::IO(sexpr f) : filename (f)
+IO::IO(struct io *io)
 {
-    sx_xref (filename);
-    filename = sx_nonexistent;
-}
-
-IO::IO(char *f)
-{
-    filename = make_string (f);
-}
-
-IO::IO (int fd)
-{
-    context = io_open (fd);
-    filename = sx_nonexistent;
-}
-
-IO::IO (int fd, io_type type)
-{
-    context = io_open (fd);
-    if (context != (struct io *)0) context->type = type;
-    filename = sx_nonexistent;
+    context = io;
 }
 
 IO::~IO()
 {
-    if (context != (struct io *)0) io_close (context);
-    sx_destroy(filename);
-}
-
-void IO::open()
-{
-    this->open (filename, iot_read);
-}
-
-void IO::open (sexpr &f)
-{
-    this->open (f, iot_read);
-}
-
-void IO::open (io_type type)
-{
-    this->open (filename, type);
-}
-
-void IO::open (sexpr &f, io_type type)
-{
-    if (!stringp(f)) return;
-
-    switch (type)
+    if (context != (struct io *)0)
     {
-        case iot_read:
-            context = io_open_read(sx_string(f));
-            return;
-        case iot_write:
-            context = io_open_write(sx_string(f));
-            return;
-        default:
-            return;
+        io_close (context);
     }
 }
 
 enum io_result IO::read ()
 {
-    if (context == (struct io *)0) this->open(iot_read);
-    if (context == (struct io *)0) return io_unrecoverable_error;
+    if (context != (struct io *)0)
+    {
+        return io_read (context);
+    }
 
-    return io_read(context);
+    return io_unrecoverable_error;
 }
 
 enum io_result IO::collect (const char *data, int_pointer length)
 {
-    if (context == (struct io *)0) this->open(iot_write);
-    if (context == (struct io *)0) return io_unrecoverable_error;
+    if (context != (struct io *)0)
+    {
+        return io_collect (context, data, length);
+    }
 
-    return io_collect (context, data, length);
+    return io_unrecoverable_error;
 }
 
 enum io_result IO::write (const char *data, int_pointer length)
 {
-    if (context == (struct io *)0) this->open(iot_write);
-    if (context == (struct io *)0) return io_unrecoverable_error;
+    if (context != (struct io *)0)
+    {
+        return io_write (context, data, length);
+    }
 
-    return io_write (context, data, length);
+    return io_unrecoverable_error;
 }
 
 enum io_result IO::commit ()
 {
-    if (context == (struct io *)0) return io_complete;
+    if (context != (struct io *)0)
+    {
+        return io_commit (context);
+    }
 
-    return io_commit(context);
+    return io_unrecoverable_error;
 }
 
 enum io_result IO::finish ()
 {
-    if (context == (struct io *)0) return io_complete;
+    if (context != (struct io *)0)
+    {
+        return io_finish (context);
+    }
 
-    return io_finish(context);
+    return io_unrecoverable_error;
 }
 
-void IO::close ()
+char *IO::getBuffer ()
 {
-    io_close (context);
+    if (context != (struct io *)0)
+    {
+        context->buffer + context->position;
+    }
+
+    return (char *)0;
 }
+
+void IO::setPosition (int_32 position)
+{
+    if (context != (struct io *)0)
+    {
+        context->position = position;
+    }
+}
+
+void IO::clearContext ()
+{
+    context = (struct io *)0;
+}
+
+IOReader::IOReader (const char *filename)
+{
+    context = io_open_read (filename);
+}
+
+IOReader::IOReader (sexpr filename)
+{
+    const char *f = sx_string (filename);
+    context = io_open_read (f);
+}
+
+IOWriter::IOWriter (const char *filename)
+{
+    context = io_open_write (filename);
+}
+
+IOWriter::IOWriter (const char *filename, int mode)
+{
+    context = io_open_create (filename, mode);
+}
+
+IOWriter::IOWriter (sexpr filename)
+{
+    const char *f = sx_string (filename);
+    context = io_open_write (f);
+}
+
+IOWriter::IOWriter (sexpr filename, int mode)
+{
+    const char *f = sx_string (filename);
+    context = io_open_create (f, mode);
+}
+
+IOStandardInput::IOStandardInput()
+{
+    context = io_open_stdin();
+}
+
+IOStandardOutput::IOStandardOutput()
+{
+    context = io_open_stdout();
+}
+
+IOStandardError::IOStandardError()
+{
+    context = io_open_stderr();
+}
+
+IONull::IONull()
+{
+    context = io_open_null;
+}
+
+static void mx_on_read (struct io *i, void *aux)
+{
+    IOMultiplexer *m = (IOMultiplexer *)aux;
+    m->on_read ();
+}
+
+static void mx_on_close (struct io *i, void *aux)
+{
+    IOMultiplexer *m = (IOMultiplexer *)aux;
+    m->on_close ();
+
+    m->clearContext ();
+}
+
+IOMultiplexer::IOMultiplexer(IO *io)
+{
+    multiplex_io ();
+
+    multiplex_add_io (io->context, mx_on_read, mx_on_close, (void *)this);
+}
+
+IOMultiplexer::~IOMultiplexer()
+{
+    if ((context != (IO *)0) && (context->context != (struct io *)0))
+    {
+        multiplex_del_io (context->context);
+        context->clearContext();
+    }
+}
+
+void IOMultiplexer::clearContext ()
+{
+    context->clearContext ();
+    context = (IO *)0;
+}
+
+/* stubs */
+
+void IOMultiplexer::on_read()  {}
+void IOMultiplexer::on_close() {}
