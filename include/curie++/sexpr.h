@@ -121,10 +121,10 @@ namespace curiepp
         protected:
             virtual void onRead  (SExpr sx);
 
+            SExprIO context;
+
         private:
             static void onReadCallback(sexpr v, struct sexpr_io *io, void *aux);
-
-            SExprIO context;
     };
 }
 

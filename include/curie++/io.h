@@ -160,11 +160,11 @@ namespace curiepp
             virtual void onRead  ();
             virtual void onClose ();
 
+            IO context;
+
         private:
             static void onReadCallback  (struct io *i, void *aux);
             static void onCloseCallback (struct io *i, void *aux);
-
-            IO context;
     };
 }
 
