@@ -75,7 +75,9 @@ namespace curiepp
 
         protected:
             struct io *context;
+
             friend class IOMultiplexer;
+            friend class SExprIO;
     };
 
     /*! \brief I/O Reader
@@ -151,16 +153,18 @@ namespace curiepp
     class IOMultiplexer: public Multiplexer
     {
         public:
-            IOMultiplexer  (IO *io);
+            IOMultiplexer  (IO &io);
             ~IOMultiplexer ();
 
-            void on_read   ();
-            void on_close  ();
-
-            void clearContext();
-
         protected:
-            IO *context;
+            virtual void onRead  ();
+            virtual void onClose ();
+
+        private:
+            static void onReadCallback  (struct io *i, void *aux);
+            static void onCloseCallback (struct io *i, void *aux);
+
+            IO context;
     };
 }
 

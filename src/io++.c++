@@ -171,47 +171,46 @@ IONull::IONull()
     context = io_open_null;
 }
 
-static void mx_on_read (struct io *i, void *aux)
-{
-    IOMultiplexer *m = (IOMultiplexer *)aux;
-    m->on_read ();
-}
-
-static void mx_on_close (struct io *i, void *aux)
-{
-    IOMultiplexer *m = (IOMultiplexer *)aux;
-    m->on_close ();
-
-    m->clearContext ();
-}
-
-IOMultiplexer::IOMultiplexer(IO *io)
+IOMultiplexer::IOMultiplexer(IO &io)
 {
     multiplex_io ();
 
-    multiplex_add_io (io->context, mx_on_read, mx_on_close, (void *)this);
+    context    = io;
+    io.context = (struct io *)0;
+
+    if (context.context != (struct io *)0)
+    {
+        multiplex_add_io (context.context, onReadCallback, onCloseCallback,
+                          (void *)this);
+    }
 }
 
 IOMultiplexer::~IOMultiplexer()
 {
-    if ((context != (IO *)0) && (context->context != (struct io *)0))
+    if (context.context != (struct io *)0)
     {
-        multiplex_del_io (context->context);
-        clearContext();
+        multiplex_del_io (context.context);
+
+        context.context = (struct io *)0;
     }
 }
 
-void IOMultiplexer::clearContext ()
+void IOMultiplexer::onReadCallback (struct io *i, void *aux)
 {
-    if (context != (IO *)0)
+    IOMultiplexer *m = (IOMultiplexer *)aux;
+    m->onRead ();
+}
+
+void IOMultiplexer::onCloseCallback (struct io *i, void *aux)
+{
+    IOMultiplexer *m = (IOMultiplexer *)aux;
+    m->onClose ();
+
+    if (m->context.context != (struct io *)0)
     {
-        context->context = (struct io *)0;
-        delete context;
-        context = (IO *)0;
+        m->context.context = (struct io *)0;
     }
 }
 
-/* stubs */
-
-void IOMultiplexer::on_read()  {}
-void IOMultiplexer::on_close() {}
+void IOMultiplexer::onRead()  {}
+void IOMultiplexer::onClose() {}

@@ -130,6 +130,16 @@ bool SExpr::isInteger      ()
     return integerp        (value);
 }
 
+sexpr SExpr::operator=     (SExpr &v)
+{
+    return v.value;
+}
+
+SExpr SExpr::operator=     (sexpr v)
+{
+    return           SExpr (v);
+}
+
 SExprSymbol::SExprSymbol   (const char *symbol)
 {
     value                = make_symbol (symbol);
@@ -148,4 +158,74 @@ SExprInteger::SExprInteger (signed long integer)
 SExprCons::SExprCons       (SExpr &car, SExpr &cdr)
 {
     value                = cons (car.value, cdr.value);
+}
+
+SExprIO::SExprIO           ()
+{
+    context = (struct sexpr_io *)0;
+}
+
+SExprIO::SExprIO           (IO &in, IO &out)
+{
+    context = ((in.context  == (struct io *)0) &&
+               (out.context == (struct io *)0)) ?
+              (struct sexpr_io *)0 :
+              sx_open_io   (in.context, out.context);
+}
+
+SExprIO::~SExprIO          ()
+{
+    if (context         != (struct sexpr_io *)0)
+    {
+        sx_close_io        (context);
+    }
+}
+
+void SExprIO::write        (SExpr sx)
+{
+    if (context         != (struct sexpr_io *)0)
+    {
+        sx_write           (context, sx.value);
+    }
+}
+
+SExpr SExprIO::read        ()
+{
+    if (context         != (struct sexpr_io *)0)
+    {
+        return SExpr       (sx_read (context));
+    }
+
+    return SExpr           (sx_nonexistent);
+}
+
+SExprIOMultiplexer::SExprIOMultiplexer (SExprIO &io)
+{
+    multiplex_sexpr        ();
+
+    context              = io;
+    io.context           = (struct sexpr_io *)0;
+
+    if (context.context != (struct sexpr_io *)0)
+    {
+        multiplex_add_sexpr (context.context, onReadCallback, (void *)this);
+    }
+}
+
+SExprIOMultiplexer::~SExprIOMultiplexer()
+{
+    if (context.context != (struct sexpr_io *)0)
+    {
+        sx_close_io        (context.context);
+    }
+}
+
+void SExprIOMultiplexer::onRead        (SExpr sx)
+{
+}
+
+void SExprIOMultiplexer::onReadCallback(sexpr v, struct sexpr_io *io, void *aux)
+{
+    SExprIOMultiplexer *m = (SExprIOMultiplexer *)aux;
+    m->onRead               (v);
 }

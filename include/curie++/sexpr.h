@@ -62,9 +62,14 @@ namespace curiepp
             bool isSymbol ();
             bool isInteger();
 
+            sexpr operator= (SExpr &v);
+            SExpr operator= (sexpr v);
+
         protected:
             sexpr value;
+
             friend class SExprCons;
+            friend class SExprIO;
     };
 
     class SExprSymbol : public SExpr
@@ -94,7 +99,8 @@ namespace curiepp
     class SExprIO
     {
         public:
-            SExprIO       (IO *in, IO *out);
+            SExprIO       ();
+            SExprIO       (IO &in, IO &out);
             ~SExprIO      ();
 
             void write    (SExpr sx);
@@ -102,23 +108,23 @@ namespace curiepp
 
         protected:
             struct sexpr_io *context;
+
+            friend class SExprIOMultiplexer;
     };
 
     class SExprIOMultiplexer : public Multiplexer
     {
         public:
-            SExprIOMultiplexer
-                          (SExprIO *io);
-            ~SExprIOMultiplexer
-                          ();
-
-            void on_read  (SExpr sx);
-            void on_close ();
-
-            void clearContext();
+            SExprIOMultiplexer   (SExprIO &io);
+            ~SExprIOMultiplexer  ();
 
         protected:
-            SExprIO *context;
+            virtual void onRead  (SExpr sx);
+
+        private:
+            static void onReadCallback(sexpr v, struct sexpr_io *io, void *aux);
+
+            SExprIO context;
     };
 }
 
