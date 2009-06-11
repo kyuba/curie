@@ -62,14 +62,10 @@ namespace curiepp
             bool isSymbol ();
             bool isInteger();
 
-            sexpr operator= (SExpr &v);
-            SExpr operator= (sexpr v);
+            operator sexpr(); // sexp? 
 
         protected:
             sexpr value;
-
-            friend class SExprCons;
-            friend class SExprIO;
     };
 
     class SExprSymbol : public SExpr

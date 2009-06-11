@@ -130,14 +130,9 @@ bool SExpr::isInteger      ()
     return integerp        (value);
 }
 
-sexpr SExpr::operator=     (SExpr &v)
+inline SExpr::operator     sexpr ()
 {
-    return v.value;
-}
-
-SExpr SExpr::operator=     (sexpr v)
-{
-    return           SExpr (v);
+    return value;
 }
 
 SExprSymbol::SExprSymbol   (const char *symbol)
@@ -157,7 +152,7 @@ SExprInteger::SExprInteger (signed long integer)
 
 SExprCons::SExprCons       (SExpr &car, SExpr &cdr)
 {
-    value                = cons (car.value, cdr.value);
+    value                = cons (car, cdr);
 }
 
 SExprIO::SExprIO           ()
@@ -185,7 +180,7 @@ void SExprIO::write        (SExpr sx)
 {
     if (context         != (struct sexpr_io *)0)
     {
-        sx_write           (context, sx.value);
+        sx_write           (context, sx);
     }
 }
 
