@@ -29,25 +29,6 @@
 #include <curie/memory.h>
 #include <curie/tree.h>
 using namespace curiepp;
-//
-struct tree_node * toStruct(TreeNode *tn) {
-  if(tn == (TreeNode *) NULL) return (struct tree_node *) NULL;
-  struct tree_node n;
-  struct tree_node* node = &n;
-  node->key = tn->key;
-  node->right = toStruct(tn->right);
-  node->left = toStruct(tn->left);
-
-  return node;
-}
-
-struct tree * toStruct(Tree *t) {
-  if(t == (Tree *) NULL) return (struct tree *) NULL;
-  struct tree tr;
-  struct tree * tree = &tr;
-  tree->root = toStruct(t->root);
-  return tree;
-}
 
 TreeNode::TreeNode(int_pointer key_, void *value_, TreeNode *right_, TreeNode *left_) {
   key = key_;
@@ -116,6 +97,5 @@ TreeNode* Tree::getNode(int_pointer key)
 
 void Tree::removeNodeSpecific(int_pointer key, TreeNode *node)
 {
-  struct tree *tn = toStruct(this);
-  tree_remove_node_specific(tn, key, toStruct(node));
+
 }

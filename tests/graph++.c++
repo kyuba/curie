@@ -96,6 +96,12 @@ int cxxmain() {
     sx_write (io, e);
   }
 
+  sexpr s3 = make_string("nyu");
+
+  if(forest->searchNode(s3) != NULL) return 7;
+  forest->addNode(s3);
+  if(forest->searchNode(s3) == NULL) return 8;
+
   return 0;
 
 }
