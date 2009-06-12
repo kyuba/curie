@@ -1,6 +1,6 @@
 #!/bin/sh
 # Build System Wrapper
-# Win32/cmd Variant
+# POSIX/sh Variant
 
 if ! [ -f build/bin/ice ] || ! [ -f build/bin/icemake ]; then
     if ./build-icemake.sh -fLoid build/; then
