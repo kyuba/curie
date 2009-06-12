@@ -86,7 +86,6 @@
 (programme "ice" libcurie
   (name "ice")
   (description "Pretty-printing tool for icemake")
-  (version "1")
-  (libraries "syscall")
+  (version "2")
 
   (code "ice"))

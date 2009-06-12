@@ -117,4 +117,4 @@ CALL :GETTOOLCHAIN
 CALL :BUILDALL %ICEMAKE_FILES%
 CALL :LINKALL %ICEMAKE_FILES%
 
-build\b-icemake.exe %* curie syscall icemake
+build\b-icemake.exe %* curie icemake

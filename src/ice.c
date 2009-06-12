@@ -33,8 +33,6 @@
 #include <curie/shell.h>
 #include <curie/memory.h>
 
-#include <syscall/syscall.h>
-
 #include <icemake/icemake.h>
 
 #define WIDTH 78
@@ -43,6 +41,7 @@ static int items_have   = 0;
 static int exitstatus   = -1;
 static int items_failed = 0;
 static sexpr phase      = sx_false;
+static struct io *out;
 
 static void update_screen ()
 {
@@ -79,16 +78,12 @@ static void update_screen ()
     buffer[i+2]   = ' ';
     i += 3;
 
-#if defined(have_sys_write)
-    sys_write (1, buffer, i);
-#endif
+    io_write (out, buffer, i);
 }
 
 static void complete ()
 {
-#if defined(have_sys_write)
-    sys_write (1, (char*)"\n", 1);
-#endif
+    io_write (out, (char*)"\n", 1);
     cexit (exitstatus);
 }
 
@@ -168,6 +163,8 @@ int cmain()
     sexpr icemake;
     char **argv;
 
+    terminate_on_allocation_errors();
+
     while (curie_argv[i] != (char *)0) { i++; }
 
     argvsize = sizeof (char *) * (i + 1);
@@ -179,13 +176,15 @@ int cmain()
     }
     curie_argv[i] = (char *)0;
 
-    terminate_on_allocation_errors();
+    multiplex_io();
     multiplex_sexpr();
     multiplex_process();
 
     icemake = which (str_icemake);
 
     if (!stringp (icemake)) return -2;
+
+    out = io_open_stdout ();
 
     argv[0] = (char *)sx_string (icemake);
 
@@ -194,6 +193,7 @@ int cmain()
     if (context == (struct exec_context *)0) return -1;
     if (context->pid <= 0) return -3;
 
+    multiplex_add_io_no_callback (out);
     multiplex_add_process (context, icemake_death, (void *)0);
     multiplex_add_sexpr (sx_open_io (context->in, context->out),
                          icemake_read, (void *)0);

@@ -21,15 +21,6 @@ All parameters are passed to icemake verbatim, so see
 .BR icemake (1)
 for a summary of command line options.
 
-.SH BUGS
-.I Host System Compatibility
-.RS
-The programme will link and compile fine on all target systems, but it only
-produces output on systems where libsyscall provides a sys_write() function.
-Most notably this affects Microsoft Windows hosts, regardless of toolchain used
-to compile the programme. This limitation will be fixed in a future release.
-.RE
-
 .SH AUTHOR
 Magnus Deininger <magnus.deininger@student.uni-tuebingen.de>
 
