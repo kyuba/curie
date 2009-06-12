@@ -30,7 +30,6 @@
 #define LIBCURIEPP_SEXPR_H
 
 #include <curie/sexpr.h>
-#include <curie++/int.h>
 #include <curie++/io.h>
 #include <curie++/multiplex.h>
 

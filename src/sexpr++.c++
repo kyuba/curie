@@ -30,137 +30,137 @@
 
 using namespace curiepp;
 
-SExpr::SExpr               ()
+SExpr::SExpr ()
 {
-    value                = sx_nil;
+    value = sx_nil;
 }
 
-SExpr::SExpr               (sexpr sx)
+SExpr::SExpr (sexpr sx)
 {
-    value                = sx;
+    value = sx;
 }
 
-SExpr::~SExpr              ()
+SExpr::~SExpr ()
 {
-    sx_destroy             (value);
+    sx_destroy (value);
 }
 
-bool SExpr::isNil          ()
+inline bool SExpr::isNil ()
 {
-    return nilp            (value);
+    return nilp (value);
 }
 
-bool SExpr::isTrue         ()
+inline bool SExpr::isTrue ()
 {
-    return truep           (value);
+    return truep (value);
 }
 
-bool SExpr::isFalse        ()
+inline bool SExpr::isFalse ()
 {
-    return falsep          (value);
+    return falsep (value);
 }
 
-bool SExpr::isEmpty        ()
+inline bool SExpr::isEmpty ()
 {
-    return emptyp          (value);
+    return emptyp (value);
 }
 
-bool SExpr::isEol          ()
+inline bool SExpr::isEol ()
 {
-    return eolp            (value);
+    return eolp (value);
 }
 
-bool SExpr::isEof          ()
+inline bool SExpr::isEof ()
 {
-    return eofp            (value);
+    return eofp (value);
 }
 
-bool SExpr::isNan          ()
+inline bool SExpr::isNan ()
 {
-    return nanp            (value);
+    return nanp (value);
 }
 
-bool SExpr::isNex          ()
+inline bool SExpr::isNex ()
 {
-    return nexp            (value);
+    return nexp (value);
 }
 
-bool SExpr::isDot          ()
+inline bool SExpr::isDot ()
 {
-    return dotp            (value);
+    return dotp (value);
 }
 
-bool SExpr::isQuote        ()
+inline bool SExpr::isQuote ()
 {
-    return quotep          (value);
+    return quotep (value);
 }
 
-bool SExpr::isQq           ()
+inline bool SExpr::isQq ()
 {
-    return qqp             (value);
+    return qqp (value);
 }
 
-bool SExpr::isUnquote      ()
+inline bool SExpr::isUnquote ()
 {
-    return unquotep        (value);
+    return unquotep (value);
 }
 
-bool SExpr::isSplice       ()
+inline bool SExpr::isSplice ()
 {
-    return splicep         (value);
+    return splicep (value);
 }
 
-bool SExpr::isCons         ()
+inline bool SExpr::isCons ()
 {
-    return consp           (value);
+    return consp (value);
 }
 
-bool SExpr::isString       ()
+inline bool SExpr::isString ()
 {
-    return stringp         (value);
+    return stringp (value);
 }
 
-bool SExpr::isSymbol       ()
+inline bool SExpr::isSymbol ()
 {
-    return symbolp         (value);
+    return symbolp (value);
 }
 
-bool SExpr::isInteger      ()
+inline bool SExpr::isInteger ()
 {
-    return integerp        (value);
+    return integerp (value);
 }
 
-inline SExpr::operator     sexpr ()
+inline SExpr::operator sexpr ()
 {
     return value;
 }
 
-SExprSymbol::SExprSymbol   (const char *symbol)
+SExprSymbol::SExprSymbol (const char *symbol)
 {
-    value                = make_symbol (symbol);
+    value = make_symbol (symbol);
 }
 
-SExprString::SExprString   (const char *string)
+SExprString::SExprString (const char *string)
 {
-    value                = make_string (string);
+    value = make_string (string);
 }
 
 SExprInteger::SExprInteger (signed long integer)
 {
-    value                = make_integer (integer);
+    value = make_integer (integer);
 }
 
-SExprCons::SExprCons       (SExpr &car, SExpr &cdr)
+SExprCons::SExprCons (SExpr &car, SExpr &cdr)
 {
-    value                = cons (car, cdr);
+    value = cons (car, cdr);
 }
 
-SExprIO::SExprIO           ()
+SExprIO::SExprIO ()
 {
     context = (struct sexpr_io *)0;
 }
 
-SExprIO::SExprIO           (IO &in, IO &out)
+SExprIO::SExprIO (IO &in, IO &out)
 {
     context = ((in.context  == (struct io *)0) &&
                (out.context == (struct io *)0)) ?
@@ -168,38 +168,38 @@ SExprIO::SExprIO           (IO &in, IO &out)
               sx_open_io   (in.context, out.context);
 }
 
-SExprIO::~SExprIO          ()
+SExprIO::~SExprIO ()
 {
-    if (context         != (struct sexpr_io *)0)
+    if (context != (struct sexpr_io *)0)
     {
-        sx_close_io        (context);
+        sx_close_io (context);
     }
 }
 
-void SExprIO::write        (SExpr sx)
+void SExprIO::write (SExpr sx)
 {
-    if (context         != (struct sexpr_io *)0)
+    if (context != (struct sexpr_io *)0)
     {
-        sx_write           (context, sx);
+        sx_write (context, sx);
     }
 }
 
-SExpr SExprIO::read        ()
+SExpr SExprIO::read ()
 {
-    if (context         != (struct sexpr_io *)0)
+    if (context != (struct sexpr_io *)0)
     {
-        return SExpr       (sx_read (context));
+        return SExpr (sx_read (context));
     }
 
-    return SExpr           (sx_nonexistent);
+    return SExpr (sx_nonexistent);
 }
 
 SExprIOMultiplexer::SExprIOMultiplexer (SExprIO &io)
 {
-    multiplex_sexpr        ();
+    multiplex_sexpr ();
 
-    context              = io;
-    io.context           = (struct sexpr_io *)0;
+    context = io;
+    io.context = (struct sexpr_io *)0;
 
     if (context.context != (struct sexpr_io *)0)
     {
@@ -211,16 +211,16 @@ SExprIOMultiplexer::~SExprIOMultiplexer()
 {
     if (context.context != (struct sexpr_io *)0)
     {
-        sx_close_io        (context.context);
+        sx_close_io (context.context);
     }
 }
 
-void SExprIOMultiplexer::onRead        (SExpr sx)
+void SExprIOMultiplexer::onRead (SExpr sx)
 {
 }
 
 void SExprIOMultiplexer::onReadCallback(sexpr v, struct sexpr_io *io, void *aux)
 {
     SExprIOMultiplexer *m = (SExprIOMultiplexer *)aux;
-    m->onRead               (v);
+    m->onRead (v);
 }

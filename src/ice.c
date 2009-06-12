@@ -38,9 +38,11 @@
 #include <icemake/icemake.h>
 
 #define WIDTH 78
-static int items_total = 1;
-static int items_have = 0;
-static sexpr phase = sx_false;
+static int items_total  = 1;
+static int items_have   = 0;
+static int exitstatus   = -1;
+static int items_failed = 0;
+static sexpr phase      = sx_false;
 
 static void update_screen ()
 {
@@ -82,13 +84,26 @@ static void update_screen ()
 #endif
 }
 
-static void icemake_death(struct exec_context *context, void *aux)
+static void complete ()
 {
 #if defined(have_sys_write)
     sys_write (1, (char*)"\n", 1);
 #endif
+    cexit (exitstatus);
+}
 
-    cexit (context->exitstatus);
+static void icemake_death(struct exec_context *context, void *aux)
+{
+    if (exitstatus == -1)
+    {
+        exitstatus = context->exitstatus;
+    }
+    else
+    {
+        exitstatus = context->exitstatus;
+
+        complete();
+    }
 }
 
 static void icemake_read (sexpr sx, struct sexpr_io *io, void *aux)
@@ -124,10 +139,25 @@ static void icemake_read (sexpr sx, struct sexpr_io *io, void *aux)
             items_have++;
             if (items_have > items_total) items_have = items_total;
         }
-    }
+        else if (truep(equalp (c, sym_failed)))
+        {
+            items_have++;
+            items_failed++;
+            if (items_have > items_total) items_have = items_total;
+        }
 
-    update_screen();
-    sx_destroy (sx);
+        update_screen();
+        sx_destroy (sx);
+    } else if (eofp(sx)) {
+        if (exitstatus != -1)
+        {
+            complete ();
+        }
+        else
+        {
+            exitstatus = -2;
+        }
+    }
 }
 
 int cmain()
@@ -142,7 +172,7 @@ int cmain()
 
     argvsize = sizeof (char *) * (i + 1);
     argv = aalloc (argvsize);
-    
+
     for (i = 0; curie_argv[i] != (char *)0; i++)
     {
         argv[i] = curie_argv[i];
