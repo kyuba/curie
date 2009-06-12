@@ -62,7 +62,8 @@ namespace curiepp
             bool isSymbol ();
             bool isInteger();
 
-            operator sexpr(); // sexp? 
+            operator sexpr();
+            operator const char*();
 
         protected:
             sexpr value;
