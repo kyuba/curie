@@ -89,7 +89,7 @@ sexpr do_build_documentation           = sx_false;
 
 struct tree targets                    = TREE_INITIALISER;
 
-static char **xenviron;
+static char **xenviron                 = (char **)0;
 
 sexpr p_c_compiler                     = sx_false;
 sexpr p_cpp_compiler                   = sx_false;
@@ -1693,7 +1693,10 @@ int main (int argc, char **argv, char **environ)
     sexpr in_dynamic_libraries = sx_nil;
     struct stat st;
 
+#if defined(_WIN32)
+#else
     xenviron = environ;
+#endif
 
     set_resize_mem_recovery_function(rm_recover);
     set_get_mem_recovery_function(gm_recover);
@@ -1909,17 +1912,27 @@ int main (int argc, char **argv, char **environ)
         if (uname (&un) >= 0)
         {
             write_uname_element(un.sysname, uname_os,   UNAMELENGTH - 1);
-            write_uname_element(un.machine, uname_arch, UNAMELENGTH - 1);
+            if ((un.machine[0] == 'i') &&
+                ((un.machine[1] == '3') || (un.machine[1] == '4') ||
+                 (un.machine[1] == '5') || (un.machine[1] == '6')) &&
+                (un.machine[2] == '8') && (un.machine[3] == '6'))
+            {
+                write_uname_element("x86-32", uname_arch, UNAMELENGTH - 1);
+            }
+            else
+            {
+                write_uname_element(un.machine, uname_arch, UNAMELENGTH - 1);
+            }
         }
 
 #elif defined(_WIN32)
         write_uname_element ("windows", uname_os, UNAMELENGTH-1);
         write_uname_element ("microsoft", uname_vendor, UNAMELENGTH-1);
 
-#if defined(__ia64__) || defined(__ia64) || defined(_M_IA64)
+#if defined(__ia64__) || defined(__ia64) || defined(_M_IA64) || defined(_M_X64)
         write_uname_element ("x86-64", uname_arch, UNAMELENGTH-1);
 #elif defined(i386) || defined(__i386__) || defined(_X86_) || defined(_M_IX86) || defined(__INTEL__)
-        write_uname_element ("i386", uname_arch, UNAMELENGTH-1);
+        write_uname_element ("x86-32", uname_arch, UNAMELENGTH-1);
 #endif
 #endif
 
