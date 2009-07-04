@@ -125,8 +125,6 @@ static void icemake_read (sexpr sx, struct sexpr_io *io, void *aux)
         else if (truep(equalp (c, sym_phase)))
         {
             sexpr r = car (cdr(sx));
-            sx_xref (r);
-            sx_destroy (phase);
             phase = r;
         }
         else if (truep(equalp (c, sym_completed)))
@@ -142,7 +140,6 @@ static void icemake_read (sexpr sx, struct sexpr_io *io, void *aux)
         }
 
         update_screen();
-        sx_destroy (sx);
     } else if (eofp(sx)) {
         if (exitstatus != -1)
         {

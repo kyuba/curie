@@ -204,17 +204,12 @@ static sexpr sx_read_cons_finalise
         sexpr ncar = car (reverse);
         if (dotp (ncar)) {
             sexpr nresult = car(result);
-            sx_xref (nresult);
-            sx_destroy (result);
             result = nresult;
         } else {
-            sx_xref(ncar);
             result = cons(ncar, result);
         }
         reverse = cdr (reverse);
     }
-
-    sx_destroy(oreverse);
 
     return result;
 }
@@ -446,7 +441,7 @@ static void sx_write_string_or_symbol (struct io *io, struct sexpr_string_or_sym
     for (i = 0; sexpr->character_data[i] != (char)0; i++);
 
     if (i != 0) {
-        if (sexpr->header.type == sxt_string) {
+        if (sexpr->type == sxt_string) {
             (void)io_collect (io, "\"", 1);
             /* TODO: this is actually super-inefficient... but it works */
             for (j = 0; j < i; j++) {
@@ -458,7 +453,7 @@ static void sx_write_string_or_symbol (struct io *io, struct sexpr_string_or_sym
             (void)io_collect (io, "\"", 1);
         } else
             (void)io_collect (io, sexpr->character_data, i);
-    } else if (sexpr->header.type == sxt_string) {
+    } else if (sexpr->type == sxt_string) {
         (void)io_collect (io, "\"\"", 2);
     }
 }

@@ -45,11 +45,9 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr) {
         return sx_nonexistent;
     }
 
-    rv->header.type = sxt_cons;
-    rv->car = sx_car;
-    rv->cdr = sx_cdr;
-
-    rv->header.references = 1;
+    rv->type = sxt_cons;
+    rv->car  = sx_car;
+    rv->cdr  = sx_cdr;
 
     return (sexpr)rv;
 }
@@ -67,7 +65,6 @@ static sexpr make_string_or_symbol
         if ((s = (struct sexpr_string_or_symbol *)node_get_value (n))
              != (struct sexpr_string_or_symbol *)0)
         {
-            (s->header.references)++;
             return (sexpr)s;
         }
     }
@@ -85,8 +82,7 @@ static sexpr make_string_or_symbol
     }
     s->character_data[i] = (char)0;
 
-    s->header.references = 1;
-    s->header.type = (symbol == (char)1) ? sxt_symbol : sxt_string;
+    s->type = (symbol == (char)1) ? sxt_symbol : sxt_string;
 
     return (sexpr)s;
 }
@@ -107,71 +103,24 @@ void sx_destroy(sexpr sxx) {
         struct sexpr_string_or_symbol *sx
                 = (struct sexpr_string_or_symbol *)sx_pointer(sxx);
 
-        if (sx->header.references == (unsigned short int)(~0)) return;
+        unsigned long length = 0;
+        int_32 hash;
 
-        if (sx->header.references > 1)
-        {
-            (sx->header.references)--;
+        hash = str_hash (((struct sexpr_string_or_symbol *)sx)->character_data, &length);
+
+        if (sx->type == sxt_string) {
+            tree_remove_node(&sx_string_tree, (int_pointer)hash);
+        } else {
+            tree_remove_node(&sx_symbol_tree, (int_pointer)hash);
         }
-        else
-        {
-            unsigned long length = 0;
-            int_32 hash;
 
-            hash = str_hash (((struct sexpr_string_or_symbol *)sx)->character_data, &length);
-
-            if (sx->header.type == sxt_string) {
-                tree_remove_node(&sx_string_tree, (int_pointer)hash);
-            } else {
-                tree_remove_node(&sx_symbol_tree, (int_pointer)hash);
-            }
-
-            afree ((sizeof (struct sexpr_string_or_symbol) + length), sx);
-        }
+        afree ((sizeof (struct sexpr_string_or_symbol) + length), sx);
     }
     else if (consp(sxx))
     {
         struct sexpr_cons *sx
                 = (struct sexpr_cons *)sx_pointer(sxx);
 
-        if (sx->header.references == (unsigned short int)(~0)) return;
-
-        sx_destroy ((sexpr) car (sx));
-        sx_destroy ((sexpr) cdr (sx));
-
-        if (sx->header.references > 1)
-        {
-            (sx->header.references)--;
-        }
-        else
-        {
-            free_pool_mem (sx);
-        }
-    }
-}
-
-void sx_xref(sexpr sxx) {
-    if (!pointerp(sxx)) return;
-
-    if (stringp(sxx) || symbolp(sxx))
-    {
-        struct sexpr_string_or_symbol *sx
-                = (struct sexpr_string_or_symbol *)sx_pointer(sxx);
-
-        if (sx->header.references == (unsigned short int)(~0)) return;
-
-        (sx->header.references) += 1;
-    }
-    else if (consp(sxx))
-    {
-        struct sexpr_cons *sx
-                = (struct sexpr_cons *)sx_pointer(sxx);
-
-        sx_xref(car(sx));
-        sx_xref(cdr(sx));
-
-        if (sx->header.references == (unsigned short int)(~0)) return;
-
-        (sx->header.references) += 1;
+        free_pool_mem (sx);
     }
 }

@@ -150,11 +150,8 @@ sexpr read_directory    (const char *p)
 
                     nr = cons (sx_join (ca, str_slash, b), nr);
                 }
-
-                sx_destroy (n);
             }
 
-            sx_destroy (r);
             graph_destroy (g);
         }
         else
@@ -172,9 +169,6 @@ sexpr read_directory    (const char *p)
                     nr = cons (nf, nr);
                 }
             }
-
-            sx_destroy (b);
-            sx_destroy (r);
         }
 
         r = nr;

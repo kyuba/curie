@@ -44,34 +44,21 @@ int cmain(void) {
 
     sx_write (io, s);
 
-    sx_destroy(s);
-
     s = make_integer (SX_TEST_INTEGER);
 
     sx_write (io, s);
-
-    sx_destroy (s);
 
     s = make_integer (SX_TEST_INTEGER2);
 
     sx_write (io, s);
 
-    sx_destroy (s);
-
-    sx_xref (s1);
-    sx_xref (s2);
-
     list = cons(s1, s2);
 
     sx_write(io, list);
 
-    sx_destroy(list);
-
     list = cons(s1, cons(s2, sx_end_of_list));
 
     sx_write(io, list);
-
-    sx_destroy(list);
 
     sx_close_io (io);
 

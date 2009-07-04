@@ -68,14 +68,10 @@ sexpr ewhich (char **environment, sexpr programme)
                 b = make_string (buffer);
                 f = sx_join (b, str_slash, programme);
 
-                sx_destroy (b);
-
                 if (truep (linkp (f)))
                 {
                     return f;
                 }
-
-                sx_destroy (f);
             }
 
             if ((*x) == 0)

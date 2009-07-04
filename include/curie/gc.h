@@ -42,8 +42,10 @@
 #ifndef LIBCURIE_GC_H
 #define LIBCURIE_GC_H
 
-void gc_add_root    ();
-void gc_remove_root ();
+#include <curie/sexpr.h>
+
+void gc_add_root    (sexpr sx);
+void gc_remove_root (sexpr sx);
 void gc_invoke      ();
 
 #endif

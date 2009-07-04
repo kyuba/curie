@@ -1064,8 +1064,6 @@ static void process_definition (struct target *context, sexpr definition)
                 sx_o = make_string (oname);
 
                 ccur = cons (cons (sym_c, cons (clist, cons (generate_object_file_name (context->name, sx_o), sx_end_of_list))), ccur);
-
-                sx_destroy (sx_o);
             }
 
             context->code = ccur;
@@ -1327,7 +1325,6 @@ static void initialise_toolchain_gcc()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_diff, sx_end_of_list))));
-        sx_destroy (out);
     }
 }
 
@@ -1358,7 +1355,6 @@ static void initialise_toolchain_borland()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_diff, sx_end_of_list))));
-        sx_destroy (out);
     }
 }
 
@@ -1389,7 +1385,6 @@ static void initialise_toolchain_msvc()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_diff, sx_end_of_list))));
-        sx_destroy (out);
     }
 }
 
@@ -1403,7 +1398,6 @@ static void initialise_toolchain_tex()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_latex, sx_end_of_list))));
-        sx_destroy (out);
     }
 
     p_pdflatex = xwhich ("pdflatex");
@@ -1412,7 +1406,6 @@ static void initialise_toolchain_tex()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_pdflatex, sx_end_of_list))));
-        sx_destroy (out);
     }
 }
 
@@ -1426,7 +1419,6 @@ static void initialise_toolchain_doxygen()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_doxygen, sx_end_of_list))));
-        sx_destroy (out);
     }
 }
 

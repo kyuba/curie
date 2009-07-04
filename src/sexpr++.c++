@@ -42,7 +42,7 @@ SExpr::SExpr (sexpr sx)
 
 SExpr::~SExpr ()
 {
-    sx_destroy (value);
+/*    sx_destroy (value);*/
 }
 
 inline bool SExpr::isNil ()

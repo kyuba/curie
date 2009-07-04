@@ -82,38 +82,18 @@ enum sx_type {
     sxt_cons                    = 6,  /*!< Cons, i.e. (x . y) */
 };
 
-/*! \brief S-Expression Header
- *
- *  Type information structure; describes the type of data in s-expression
- *  pointer types.
- */
-struct sexpr_header
-{
-    /*! \brief S-Expression Type
-     *
-     *  This field defines the type of the symbolic expression. It's present in
-     *  all sexprs.
-     */
-    unsigned char type;
-
-    /*! \brief Reference Count
-     *
-     *  This keeps track of how often this particular expression is in use.
-     */
-    unsigned short int references;
-};
-
 /*! \brief Cons S-Expression
  *  \internal
  *
  *  This structure is used for conses.
  */
 struct sexpr_cons {
-    /*! \brief S-Expression Header
+    /*! \brief S-Expression Type
      *
-     *  Type information structure.
+     *  This field defines the type of the symbolic expression. It's present in
+     *  all sexprs.
      */
-    struct sexpr_header header;
+    enum sx_type type;
 
     /*! \brief First Cell
      *
@@ -135,11 +115,12 @@ struct sexpr_cons {
  *  represent strings and symbols.
  */
 struct sexpr_string_or_symbol {
-    /*! \brief S-Expression Header
+    /*! \brief S-Expression Type
      *
-     *  Type information structure.
+     *  This field defines the type of the symbolic expression. It's present in
+     *  all sexprs.
      */
-    struct sexpr_header header;
+    enum sx_type type;
 
     /*! \brief String
      *
@@ -288,8 +269,7 @@ sexpr cons
  *  define_symbol().
  */
 #define define_sosi(t,n,s) \
-    static const struct sexpr_string_or_symbol sexpr_payload_ ## n =\
-        { { t, (unsigned short int)(~0) }, s };\
+    static const struct sexpr_string_or_symbol sexpr_payload_ ## n = { t, s };\
     static const sexpr n = ((const sexpr)&(sexpr_payload_ ## n))
 
 /*! \brief Define String statically
@@ -346,17 +326,6 @@ sexpr make_symbol
  *  reference counter.
  */
 void sx_destroy
-        (sexpr sx);
-
-/*! \brief Add Reference
- *  \param[in] sx The s-expression to modify.
- *
- *  This function increases the reference counter of the given s-expression, so
- *  that a subsequent sx_destroy would not actually kill it immediately. Use
- *  this if you need independent references to an s-expression and you still
- *  want things to stay clean.
- */
-void sx_xref
         (sexpr sx);
 
 /*! \brief NIL (S-Expression)
@@ -634,7 +603,7 @@ sexpr equalp
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define consp(sx)    (pointerp(sx) && (((struct sexpr_cons *)sx_pointer(sx))->header.type == sxt_cons))
+#define consp(sx)    (pointerp(sx) && (((struct sexpr_cons *)sx_pointer(sx))->type == sxt_cons))
 
 /*! \brief Check if the S-Expression is a String
  *  \param[in] sx The s-expression to check.
@@ -643,7 +612,7 @@ sexpr equalp
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define stringp(sx)  (pointerp(sx) && (((struct sexpr_string_or_symbol *)sx_pointer(sx))->header.type == sxt_string))
+#define stringp(sx)  (pointerp(sx) && (((struct sexpr_string_or_symbol *)sx_pointer(sx))->type == sxt_string))
 
 /*! \brief Check if the S-Expression is a Symbol
  *  \param[in] sx The s-expression to check.
@@ -652,7 +621,7 @@ sexpr equalp
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define symbolp(sx)  (pointerp(sx) && (((struct sexpr_string_or_symbol *)sx_pointer(sx))->header.type == sxt_symbol))
+#define symbolp(sx)  (pointerp(sx) && (((struct sexpr_string_or_symbol *)sx_pointer(sx))->type == sxt_symbol))
 
 /*! \brief Check if the S-Expression is an Integer
  *  \param[in] sx The s-expression to check.
