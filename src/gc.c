@@ -29,24 +29,135 @@
 #include <curie/gc.h>
 #include <curie/stack.h>
 #include <curie/sexpr.h>
+#include <curie/memory.h>
+
+static sexpr *gc_tags,  *gc_tags_pointer,
+             *gc_calls, *gc_calls_pointer,
+             **gc_roots;
+static int_pointer gc_tag_size,
+                   gc_call_size,
+                   gc_roots_size = 0;
+
+void gc_add_root (sexpr *sx)
+{
+    sexpr **rootp, **roote;
+
+    if (gc_roots_size == 0)
+    {
+        gc_roots_size = LIBCURIE_PAGE_SIZE;
+        gc_roots      = get_mem (LIBCURIE_PAGE_SIZE);
+    }
+
+  retry:
+    for (rootp = gc_roots, roote = (sexpr**)((char *)rootp + gc_roots_size);
+         rootp < roote; rootp++)
+    {
+        if ((*rootp) == (sexpr *)0)
+        {
+            *rootp = sx;
+            return;
+        }
+    }
+
+    gc_roots = resize_mem (gc_roots_size, gc_roots,
+                           gc_roots_size + LIBCURIE_PAGE_SIZE);
+    gc_roots_size += LIBCURIE_PAGE_SIZE;
+
+    goto retry;
+}
+
+void gc_remove_root (sexpr *sx)
+{
+    sexpr **rootp, **roote;
+
+    for (rootp = gc_roots, roote = (sexpr**)((char *)rootp + gc_roots_size);
+         rootp < roote; rootp++)
+    {
+        if ((*rootp) == sx)
+        {
+            *rootp = (sexpr*)0;
+            return;
+        }
+    }
+}
+
+void gc_tag (sexpr sx)
+{
+    if ((sexpr *)((char *)gc_tags + gc_tag_size) > gc_tags_pointer)
+    {
+        tag:
+        *gc_tags_pointer = sx;
+        gc_tags_pointer++;
+        return;
+    }
+
+    gc_tags = resize_mem (gc_tag_size, gc_tags,
+                          gc_tag_size + LIBCURIE_PAGE_SIZE);
+    gc_tag_size += LIBCURIE_PAGE_SIZE;
+    goto tag;
+}
+
+void gc_call (sexpr sx)
+{
+    if ((sexpr *)((char *)gc_calls + gc_call_size) > gc_calls_pointer)
+    {
+        tag:
+        *gc_calls_pointer = sx;
+        gc_calls_pointer++;
+        return;
+    }
+
+    gc_calls = resize_mem (gc_call_size, gc_calls,
+                           gc_call_size + LIBCURIE_PAGE_SIZE);
+    gc_call_size += LIBCURIE_PAGE_SIZE;
+    goto tag;
+}
+
+static void gc_initialise_memory ()
+{
+    sexpr **rootp, **roote;
+
+    gc_tag_size      = LIBCURIE_PAGE_SIZE;
+    gc_call_size     = LIBCURIE_PAGE_SIZE;
+
+    gc_tags          = get_mem (LIBCURIE_PAGE_SIZE);
+    gc_calls         = get_mem (LIBCURIE_PAGE_SIZE);
+    gc_tags_pointer  = gc_tags;
+    gc_calls_pointer = gc_calls;
+
+    for (rootp = gc_roots, roote = (sexpr**)((char *)rootp + gc_roots_size);
+         rootp < roote; rootp++)
+    {
+        if ((*rootp) != (sexpr *)0)
+        {
+            gc_tag (**rootp);
+        }
+    }
+}
+
+static void gc_deinitialise_memory ()
+{
+    free_mem (gc_tag_size,  gc_tags);
+    free_mem (gc_call_size, gc_calls);
+}
 
 void gc_invoke ()
 {
     int step = (stack_growth == sg_down) ? -1 : 1;
     sexpr end = sx_end_of_list;
     sexpr *t, *l = &end;
-    struct sexpr_io *io = sx_open_stdout (); /* for test output */
-    sexpr have = sx_end_of_list;
+
+    gc_initialise_memory ();
 
     for (t = stack_start_address; t != l; t += step)
     {
         sexpr e = *t;
 
-        if (!pointerp (e)) /* this is just for playing with the bugger */
+        if (pointerp (e))
         {
-            have = cons (e, have);
+            gc_tag (e);
         }
     }
 
-    sx_write (io, have); /* not gonna be in later */
+    gc_deinitialise_memory ();
 }
