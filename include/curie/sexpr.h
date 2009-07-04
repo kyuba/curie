@@ -321,9 +321,9 @@ sexpr make_symbol
 /*! \brief Destroy S-Expression
  *  \param[in] sx The s-expression to destroy.
  *
- *  This function deallocates all storage associated with the s-expression, if
- *  its reference counter drops to zero. Otherwise it just decreases the
- *  reference counter.
+ *  This function deallocates all storage associated with the s-expression;
+ *  unlike previous versions, there's no reference counting involved, so this'll
+ *  deallovate the storage immediately (but not recursively).
  */
 void sx_destroy
         (sexpr sx);

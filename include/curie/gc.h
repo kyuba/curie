@@ -44,8 +44,8 @@
 
 #include <curie/sexpr.h>
 
-void gc_add_root    (sexpr sx);
-void gc_remove_root (sexpr sx);
+void gc_add_root    (sexpr *sx);
+void gc_remove_root (sexpr *sx);
 void gc_invoke      ();
 
 #endif
