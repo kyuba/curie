@@ -63,6 +63,8 @@ _start:
         addq    %rbx, %r11
         movq    %r11, curie_environment(%rip)
 
+        call    initialise_stack
+
         call    cmain
         movq    %rax, %rdi
 cexit:

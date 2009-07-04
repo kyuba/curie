@@ -28,6 +28,7 @@
 
 #include <curie/main.h>
 #include <curie/memory.h>
+#include <curie/stack.h>
 #include <windows.h>
 
 #include <stdlib.h>
@@ -42,6 +43,8 @@ int main (int argc, char **argv)
     char **envv;
     const char *env = GetEnvironmentStringsA();
 
+    initialise_stack ();
+
     for (i = 0; env[i] != (char)0; i++)
     {
         while (env[i] != (char)0)
@@ -51,7 +54,7 @@ int main (int argc, char **argv)
 
         indices++;
     }
-    
+
     envvsize = sizeof (char *) * (indices + 1);
     envv     = aalloc (envvsize);
 

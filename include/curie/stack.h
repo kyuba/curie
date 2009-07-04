@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,48 +26,27 @@
  * THE SOFTWARE.
 */
 
-.data
-.globl curie_argv
-    .type curie_argv, @object
-    .size curie_argv, 4
-curie_argv:
-        .long 0x0
+/*! \file
+ *  \brief Stack Information
+ *
+ *  Some generic information to help with certain stack majick thingamajiggies.
+ *  The GC needs this.
+ */
 
-.globl curie_environment
-    .type curie_environment, @object
-    .size curie_environment, 4
-curie_environment:
-        .long 0x0
+#ifndef LIBCURIE_STACK_H
+#define LIBCURIE_STACK_H
 
-.text
-    .align 8
+enum stack_growth
+{
+    sg_down,
+    sg_up
+};
 
-.globl _start
-    .type _start,             @function
-.globl cexit
-    .type cexit,              @function
+extern enum stack_growth  stack_growth;
+extern void              *stack_start_address;
 
-_start:
-        /* Fox! Clear the frame pointer! */
-        xorl    %ebp, %ebp
+void initialise_stack();
 
-        movl    %esp, %ecx
-        addl    $0x04, %ecx
-        movl    %ecx, $curie_argv
+#endif
 
-        movl    (%esp), %esi
-        incl    %esi
-        imull   $0x04, %esi, %esi
-        addl    %esi, %ecx
-        movl    %ecx, $curie_environment
-
-        call    initialise_stack
-        call    cmain
-
-        movl    %eax, %ebx
-
-cexit:
-        movl    $1, %eax /* sys_exit */
-        int     $0x80
-
-.section .note.GNU-stack,"",%progbits
+/*! @} */

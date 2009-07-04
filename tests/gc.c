@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,48 +26,12 @@
  * THE SOFTWARE.
 */
 
-.data
-.globl curie_argv
-    .type curie_argv, @object
-    .size curie_argv, 4
-curie_argv:
-        .long 0x0
+#include <curie/sexpr.h>
+#include <curie/gc.h>
 
-.globl curie_environment
-    .type curie_environment, @object
-    .size curie_environment, 4
-curie_environment:
-        .long 0x0
+int cmain (void) {
+    sexpr meow = make_integer (1337), eol = sx_end_of_list;
+    gc_invoke(); /* mostly just testing against sigsegvs here */
 
-.text
-    .align 8
-
-.globl _start
-    .type _start,             @function
-.globl cexit
-    .type cexit,              @function
-
-_start:
-        /* Fox! Clear the frame pointer! */
-        xorl    %ebp, %ebp
-
-        movl    %esp, %ecx
-        addl    $0x04, %ecx
-        movl    %ecx, $curie_argv
-
-        movl    (%esp), %esi
-        incl    %esi
-        imull   $0x04, %esi, %esi
-        addl    %esi, %ecx
-        movl    %ecx, $curie_environment
-
-        call    initialise_stack
-        call    cmain
-
-        movl    %eax, %ebx
-
-cexit:
-        movl    $1, %eax /* sys_exit */
-        int     $0x80
-
-.section .note.GNU-stack,"",%progbits
+    return 0;
+}

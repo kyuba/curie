@@ -27,6 +27,7 @@
 */
 
 #include <curie/main.h>
+#include <curie/stack.h>
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -43,6 +44,8 @@ void cexit (int status)
 int main (int argc, char **argv, char **env)
 {
     int rv;
+
+    initialise_stack ();
 
     curie_argv = argv;
     curie_environment = env;

@@ -32,6 +32,7 @@
 #include <curie/exec.h>
 #include <curie/signal.h>
 #include <curie/filesystem.h>
+#include <curie/stack.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -1692,6 +1693,8 @@ int main (int argc, char **argv, char **environ)
     sexpr buildtargets = sx_end_of_list;
     sexpr in_dynamic_libraries = sx_nil;
     struct stat st;
+
+    initialise_stack ();
 
 #if defined(_WIN32)
 #else

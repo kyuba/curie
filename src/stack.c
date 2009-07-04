@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,77 +26,33 @@
  * THE SOFTWARE.
 */
 
-.data
+#include <curie/stack.h>
+#include <curie/sexpr.h>
 
-.set STACKSIZE, 0x4000
+enum stack_growth  stack_growth;
+void              *stack_start_address;
 
-.globl __libc_stack_end
-.comm __libc_stack_end, STACKSIZE, 32
+static char *stack_helper()
+{
+    char  whee = 2;
+    char *rv   = &whee;
 
-.globl curie_argv
-.globl curie_environment
+    return rv;
+}
 
-curie_argv:
-        .long 0x0
+void initialise_stack()
+{
+    char  whee = 1;
+    char *t    = &whee;
 
-curie_environment:
-        .long 0x0
+    stack_growth = (stack_helper() > t) ? sg_up : sg_down;
 
-.globl _start
-.globl cexit
+    t = (char *)((int_pointer)t & (~(LIBCURIE_PAGE_SIZE-1)));
 
-.type _start,                    @function
-.type cexit,                     @function
+    if (stack_growth == sg_down)
+    {
+        t = t + LIBCURIE_PAGE_SIZE - sizeof (sexpr);
+    }
 
-.text
-
-_start:
-        cmpwi   3, 0
-        bne     _3
-
-        mr      3, 1
-
-        li      4, 0
-
-_1:
-        addi    1, 1, 4
-        addi    4, 4, 1
-        lwz     9, 0(1)
-        cmpwi   9, 0
-        bne     _1
-
-        li      5, 0
-
-_2:
-        addi    1, 1, 4
-        addi    5, 5, 1
-        lwz     9, 0(1)
-        cmpwi   9, 0
-        bne     _2
-
-        mr      1, 3
-        addi    1, 1, -16
-
-        bl      __do_startup
-        mr      1, 3
-        b       _4
-
-_3:
-        lis     16, curie_argv@ha
-        stw     4, curie_argv@l(16)
-        lis     16, curie_environment@ha
-        stw     5, curie_environment@l(16)
-
-_4:
-        lis     1, __libc_stack_end@ha
-        addi    1, 1, __libc_stack_end@l
-        addi    1, 1, STACKSIZE
-
-        bl      initialise_stack
-        bl      cmain
-
-cexit:
-        li      0, 1
-        sc
-
-.section .note.GNU-stack,"",%progbits
+    stack_start_address = t;
+}

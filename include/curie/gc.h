@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,48 +26,26 @@
  * THE SOFTWARE.
 */
 
-.data
-.globl curie_argv
-    .type curie_argv, @object
-    .size curie_argv, 4
-curie_argv:
-        .long 0x0
+/*! \file
+ *  \brief Garbage Collector
+ *
+ *  We're trying to implement a rather conservative GC here, all it does is walk
+ *  from the stack start address to the current end of it and mark available
+ *  objects based on the pointers it sees (assuming all pointers are aligned to
+ *  their size, which is a fair assumption).
+ *
+ *  Note that the gc is never invoked automatically, it needs to be run
+ *  manually. This should prevent most problems due to optimisations, and if for
+ *  some reason you know that the GC will screw things up, just don't call it.
+ */
 
-.globl curie_environment
-    .type curie_environment, @object
-    .size curie_environment, 4
-curie_environment:
-        .long 0x0
+#ifndef LIBCURIE_GC_H
+#define LIBCURIE_GC_H
 
-.text
-    .align 8
+void gc_add_root    ();
+void gc_remove_root ();
+void gc_invoke      ();
 
-.globl _start
-    .type _start,             @function
-.globl cexit
-    .type cexit,              @function
+#endif
 
-_start:
-        /* Fox! Clear the frame pointer! */
-        xorl    %ebp, %ebp
-
-        movl    %esp, %ecx
-        addl    $0x04, %ecx
-        movl    %ecx, $curie_argv
-
-        movl    (%esp), %esi
-        incl    %esi
-        imull   $0x04, %esi, %esi
-        addl    %esi, %ecx
-        movl    %ecx, $curie_environment
-
-        call    initialise_stack
-        call    cmain
-
-        movl    %eax, %ebx
-
-cexit:
-        movl    $1, %eax /* sys_exit */
-        int     $0x80
-
-.section .note.GNU-stack,"",%progbits
+/*! @} */

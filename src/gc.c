@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,48 +26,27 @@
  * THE SOFTWARE.
 */
 
-.data
-.globl curie_argv
-    .type curie_argv, @object
-    .size curie_argv, 4
-curie_argv:
-        .long 0x0
+#include <curie/gc.h>
+#include <curie/stack.h>
+#include <curie/sexpr.h>
 
-.globl curie_environment
-    .type curie_environment, @object
-    .size curie_environment, 4
-curie_environment:
-        .long 0x0
+void gc_invoke ()
+{
+    int step = (stack_growth == sg_down) ? -1 : 1;
+    sexpr end = sx_end_of_list;
+    sexpr *t, *l = &end;
+    struct sexpr_io *io = sx_open_stdout (); /* for test output */
+    sexpr have = sx_end_of_list;
 
-.text
-    .align 8
+    for (t = stack_start_address; t != l; t += step)
+    {
+        sexpr e = *t;
 
-.globl _start
-    .type _start,             @function
-.globl cexit
-    .type cexit,              @function
+        if (!pointerp (e)) /* this is just for playing with the bugger */
+        {
+            have = cons (e, have);
+        }
+    }
 
-_start:
-        /* Fox! Clear the frame pointer! */
-        xorl    %ebp, %ebp
-
-        movl    %esp, %ecx
-        addl    $0x04, %ecx
-        movl    %ecx, $curie_argv
-
-        movl    (%esp), %esi
-        incl    %esi
-        imull   $0x04, %esi, %esi
-        addl    %esi, %ecx
-        movl    %ecx, $curie_environment
-
-        call    initialise_stack
-        call    cmain
-
-        movl    %eax, %ebx
-
-cexit:
-        movl    $1, %eax /* sys_exit */
-        int     $0x80
-
-.section .note.GNU-stack,"",%progbits
+    sx_write (io, have); /* not gonna be in later */
+}
