@@ -19,7 +19,7 @@ GOTO MAIN
 SET OBJECTS=%2bj %OBJECTS%
 IF EXIST %2bj GOTO :EOF
 
-cl /c /TC %INCLUDESMSVC% /nologo %1 /Fo%2bj
+cl %CFLAGS% %CCFLAGS% /c /TC %INCLUDESMSVC% /nologo %1 /Fo%2bj
 GOTO :EOF
 
 :MSVC_LINK
@@ -32,7 +32,7 @@ GOTO :EOF
 SET OBJECTS=%2bj %OBJECTS%
 IF EXIST %2bj GOTO :EOF
 
-bcc32 -AT -q -w %INCLUDES% -o %2bj -c %1
+bcc32 %CFLAGS% %CCFLAGS% -AT -q -w %INCLUDES% -o %2bj -c %1
 GOTO :EOF
 
 :BORLAND_LINK
@@ -46,7 +46,7 @@ SET OBJECTS=%2 %OBJECTS%
 IF EXIST %2 GOTO :EOF
 
 @ECHO ON
-gcc -std=c99 -Wall -pedantic %INCLUDES% -c %1 -o %2
+gcc %CFLAGS% %CCFLAGS% -std=c99 -Wall -pedantic %INCLUDES% -c %1 -o %2
 @ECHO OFF
 GOTO :EOF
 
