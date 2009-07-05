@@ -202,6 +202,25 @@ int_32 bin_hash(const char *data, unsigned long len)
     int_32 hash = 0, tmp;
     unsigned long lent = 0;
 
+    if (((int_pointer)data % 4) != (int_pointer)0)
+    {
+        char *buffer = aalloc (len);
+        int_32 rv;
+        int i = 0;
+
+        while (data[i] < len)
+        {
+            buffer[i] = data[i];
+            i++;
+        }
+
+        rv = bin_hash (buffer, len);
+
+        afree (len, buffer);
+
+        return rv;
+    }
+
     // this unrolls to better optimized code on most compilers
     do {
         // Do the hash calculation
