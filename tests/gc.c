@@ -29,9 +29,26 @@
 #include <curie/sexpr.h>
 #include <curie/gc.h>
 
-int cmain (void) {
-    sexpr meow = make_integer (1337), eol = sx_end_of_list;
-    gc_invoke(); /* mostly just testing against sigsegvs here */
+static void dummy (int i)
+{
+    cons (make_string ("meow"), make_symbol ("whee"));
 
-    return 0;
+    if (i < 5)
+    {
+        dummy (i + 1);
+    }
+}
+
+int cmain (void) {
+    sexpr test = make_string ("keep");
+    unsigned long rv;
+
+    dummy (0);
+
+    /* it should clean *something*, but not all 4 allocated sexprs, so: */
+    rv = gc_invoke();
+
+    sx_write (sx_open_stdio(), test);
+
+    return !((rv > 0) && (rv < 4));
 }

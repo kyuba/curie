@@ -28,17 +28,33 @@
 
 #include <curie/memory.h>
 #include <curie/sexpr.h>
+#include <curie/sexpr-internal.h>
 #include <curie/string.h>
+#include <curie/gc.h>
 #include <curie/tree.h>
 
+static struct tree sx_cons_tree   = TREE_INITIALISER;
 static struct tree sx_string_tree = TREE_INITIALISER;
 static struct tree sx_symbol_tree = TREE_INITIALISER;
 
 sexpr cons(sexpr sx_car, sexpr sx_cdr) {
     static struct memory_pool pool =
             MEMORY_POOL_INITIALISER(sizeof (struct sexpr_cons));
+    sexpr t[2] = { sx_car, sx_cdr };
+    int_32 hash = bin_hash ((const char *)t, sizeof (t));
+    struct sexpr_cons *rv;
+    struct tree_node *n;
 
-    struct sexpr_cons *rv = get_pool_mem (&pool);
+    if ((n = tree_get_node (&sx_cons_tree, (int_pointer)hash)))
+    {
+        if ((rv = (struct sexpr_cons *)node_get_value (n))
+             != (struct sexpr_cons *)0)
+        {
+            return (sexpr)rv;
+        }
+    }
+
+    rv = get_pool_mem (&pool);
 
     if (rv == (struct sexpr_cons *)0)
     {
@@ -48,6 +64,8 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr) {
     rv->type = sxt_cons;
     rv->car  = sx_car;
     rv->cdr  = sx_cdr;
+
+    tree_add_node_value (&sx_cons_tree, (int_pointer)hash, rv);
 
     return (sexpr)rv;
 }
@@ -118,9 +136,44 @@ void sx_destroy(sexpr sxx) {
     }
     else if (consp(sxx))
     {
-        struct sexpr_cons *sx
-                = (struct sexpr_cons *)sx_pointer(sxx);
+        struct sexpr_cons *sx = (struct sexpr_cons *)sx_pointer(sxx);
+        sexpr t[2] = { sx->car, sx->cdr };
+        int_32 hash = bin_hash ((const char *)t, sizeof (t));
+
+        tree_remove_node(&sx_cons_tree, (int_pointer)hash);
 
         free_pool_mem (sx);
+    }
+}
+
+static void sx_map_call (struct tree_node *node, void *u)
+{
+    sexpr sx = (sexpr)node_get_value(node);
+
+    gc_call (sx);
+}
+
+void sx_call_all ()
+{
+    tree_map (&sx_cons_tree,   sx_map_call, (void *)0);
+    tree_map (&sx_string_tree, sx_map_call, (void *)0);
+    tree_map (&sx_symbol_tree, sx_map_call, (void *)0);
+}
+
+void sx_tag_sub (sexpr sx)
+{
+    if (consp (sx))
+    {
+        sexpr sxcar = car (sx), sxcdr = cdr (sx);
+
+        if (pointerp (sxcar))
+        {
+            gc_tag (sxcar);
+        }
+
+        if (pointerp (sxcdr))
+        {
+            gc_tag (sxcdr);
+        }
     }
 }

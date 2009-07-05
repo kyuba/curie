@@ -51,6 +51,9 @@ struct sexpr_io {
     struct io *out; /*!< \brief Output Structure */
 };
 
+void sx_call_all ();
+void sx_tag_sub  (sexpr sx);
+
 #ifdef __cplusplus
 }
 #endif

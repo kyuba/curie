@@ -128,7 +128,7 @@ int_32 str_hash(const char *data, unsigned long *len)
         rv = str_hash_realigned (buffer, clen);
 
         afree (clen, buffer);
-        
+
         return rv;
     }
 
@@ -196,3 +196,33 @@ int_32 str_hash(const char *data, unsigned long *len)
 }
 
 /**** end ******* markos' hashing function ************************************/
+
+int_32 bin_hash(const char *data, unsigned long len)
+{
+    int_32 hash = 0, tmp;
+    unsigned long lent = 0;
+
+    // this unrolls to better optimized code on most compilers
+    do {
+        // Do the hash calculation
+        hash += get16bits(data);
+        tmp   = (get16bits(data + 2) << 11) ^ hash;
+        hash  = (hash << 16) ^ tmp;
+        hash += hash >> 11;
+        data += 4;
+        // Increase len as well
+        lent += 4;
+    } while (lent < len);
+
+    /*
+    * Force "avalanching" of final 127 bits 
+    */
+    hash ^= hash << 3;
+    hash += hash >> 5;
+    hash ^= hash << 4;
+    hash += hash >> 17;
+    hash ^= hash << 25;
+    hash += hash >> 6;
+
+    return hash;
+}
