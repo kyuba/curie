@@ -98,7 +98,9 @@ static void gc_add_to_list
         map = resize_mem ((*len), (*index), (*len) + LIBCURIE_PAGE_SIZE);
         if (map == (sexpr *)0)
         {
+            free_mem ((*len), (*index));
             cancel = 1;
+            *index = (sexpr *)0;
             return;
         }
 
