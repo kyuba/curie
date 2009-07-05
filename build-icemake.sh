@@ -2,7 +2,7 @@
 # Build System Bootstrap
 # POSIX/sh Variant
 
-ICEMAKE_FILES="icemake icemake-build icemake-install icemake-link icemake-crosslink icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio stack gc"
+ICEMAKE_FILES="icemake icemake-build icemake-install icemake-link icemake-crosslink icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio"
 
 if [ ! -n "${CC}" ]; then CC='cc'; fi
 if [ ! -n "${LD}" ]; then LD='cc'; fi
@@ -10,7 +10,7 @@ if [ ! -n "${TOOLCHAINTYPE}" ]; then TOOLCHAINTYPE='gcc'; fi
 if [ ! -d build ]; then mkdir build/; fi
 
 gcc_buildfile() {
-    COMMAND="${CC} ${CFLAGS} ${CCFLAGS} -o build/${2}.o -c ${1} -DPOSIX -DGCC -Iinclude/ -Iinclude/generic/  -Iinclude/internal/ -Wall -pedantic --std=c99"
+    COMMAND="${CC} ${CFLAGS} ${CCFLAGS} -o build/${2}.o -c ${1} -DBOOTSTRAP -DPOSIX -DGCC -Iinclude/ -Iinclude/generic/  -Iinclude/internal/ -Wall -pedantic --std=c99"
 
     echo ${COMMAND}
 

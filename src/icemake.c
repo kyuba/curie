@@ -1721,8 +1721,11 @@ int main (int argc, char **argv, char **environ)
     sexpr in_dynamic_libraries = sx_nil;
     struct stat st;
 
+#if !defined(BOOTSTRAP)
     initialise_stack ();
     gc_add_root (&gc_elements);
+    terminate_on_allocation_errors();
+#endif
 
 #if defined(_WIN32)
 #else
@@ -2089,7 +2092,9 @@ int main (int argc, char **argv, char **environ)
 
     sx_close_io (io);
 
-    gc_invoke ();
+#if !defined(BOOTSTRAP)
+    gc_invoke();
+#endif
 
     if (!eolp (buildtargets))
     {
@@ -2097,30 +2102,44 @@ int main (int argc, char **argv, char **environ)
     }
 
     crosslink_objects ();
-    gc_invoke ();
+#if !defined(BOOTSTRAP)
+    gc_invoke();
+#endif
     build (buildtargets);
-    gc_invoke ();
+#if !defined(BOOTSTRAP)
+    gc_invoke();
+#endif
     ice_link (buildtargets);
-    gc_invoke ();
+#if !defined(BOOTSTRAP)
+    gc_invoke();
+#endif
     post_process (buildtargets);
-    gc_invoke ();
+#if !defined(BOOTSTRAP)
+    gc_invoke();
+#endif
 
     if (truep (do_build_documentation))
     {
         build_documentation (buildtargets);
-        gc_invoke ();
+#if !defined(BOOTSTRAP)
+        gc_invoke();
+#endif
     }
 
     if (truep (do_tests))
     {
         run_tests (buildtargets);
-        gc_invoke ();
+#if !defined(BOOTSTRAP)
+        gc_invoke();
+#endif
     }
 
     if (truep (do_install))
     {
         install (buildtargets);
-        gc_invoke ();
+#if !defined(BOOTSTRAP)
+        gc_invoke();
+#endif
     }
 
     if (!eolp (buildtargets))

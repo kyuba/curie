@@ -146,6 +146,7 @@ void sx_destroy(sexpr sxx) {
     }
 }
 
+#if !defined(BOOTSTRAP)
 static void sx_map_call (struct tree_node *node, void *u)
 {
     sexpr sx = (sexpr)node_get_value(node);
@@ -177,3 +178,4 @@ void sx_tag_sub (sexpr sx)
         }
     }
 }
+#endif
