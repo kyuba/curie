@@ -18,7 +18,7 @@ gcc_buildfile() {
 }
 
 gcc_linkbinary() {
-    COMMAND="${LD} -o build/${BINARY}"
+    COMMAND="${LD} ${LDFLAGS} -o build/${BINARY}"
     for i in $@; do
         COMMAND="${COMMAND} build/${i}.o";
     done

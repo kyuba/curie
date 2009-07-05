@@ -25,7 +25,7 @@ GOTO :EOF
 :MSVC_LINK
 IF EXIST build\b-icemake.exe GOTO :EOF
 
-cl /nologo /Febuild\b-icemake.exe %*
+cl %LDFLAGS% /nologo /Febuild\b-icemake.exe %*
 GOTO :EOF
 
 :BORLAND_BUILD
@@ -38,7 +38,7 @@ GOTO :EOF
 :BORLAND_LINK
 IF EXIST build\b-icemake.exe GOTO :EOF
 
-bcc32 -q -o build\b-icemake.exe %*
+bcc32 %LDFLAGS% -q -o build\b-icemake.exe %*
 GOTO :EOF
 
 :GCC_BUILD
@@ -54,7 +54,7 @@ GOTO :EOF
 IF EXIST build\b-icemake.exe GOTO :EOF
 
 @ECHO ON
-gcc %* -o build\b-icemake.exe
+gcc %LDFLAGS% %* -o build\b-icemake.exe
 @ECHO OFF
 GOTO :EOF
 
