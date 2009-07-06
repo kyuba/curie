@@ -27,11 +27,11 @@
 */
 
 #define _BSD_SOURCE
+#define _GNU_SOURCE /* needed for mremap()... grumble... */
 
 #include <curie/memory.h>
 
 #include <sys/mman.h>
-#include <linux/mman.h>
 #include <sys/types.h>
 #include <unistd.h>
 
