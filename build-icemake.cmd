@@ -4,7 +4,7 @@ REM Win32\cmd Variant
 
 SET INCLUDES=-Iinclude\windows -Iinclude\internal\windows -Iinclude -Iinclude\internal
 SET INCLUDESMSVC=/Iinclude\windows /Iinclude\internal\windows /Iinclude /Iinclude\internal
-SET ICEMAKE_FILES=icemake icemake-build icemake-install icemake-link icemake-crosslink icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio stack gc
+SET ICEMAKE_FILES=icemake icemake-build icemake-install icemake-link icemake-crosslink icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio
 SET OBJECTS=
 
 SET TOOLCHAINTYPE=
@@ -19,7 +19,7 @@ GOTO MAIN
 SET OBJECTS=%2bj %OBJECTS%
 IF EXIST %2bj GOTO :EOF
 
-cl %CFLAGS% %CCFLAGS% /c /TC %INCLUDESMSVC% /nologo %1 /Fo%2bj
+cl %CFLAGS% %CCFLAGS% /DBOOTSTRAP /c /TC %INCLUDESMSVC% /nologo %1 /Fo%2bj
 GOTO :EOF
 
 :MSVC_LINK
@@ -32,7 +32,7 @@ GOTO :EOF
 SET OBJECTS=%2bj %OBJECTS%
 IF EXIST %2bj GOTO :EOF
 
-bcc32 %CFLAGS% %CCFLAGS% -AT -q -w %INCLUDES% -o %2bj -c %1
+bcc32 %CFLAGS% %CCFLAGS% -DBOOTSTRAP -AT -q -w %INCLUDES% -o %2bj -c %1
 GOTO :EOF
 
 :BORLAND_LINK
@@ -46,7 +46,7 @@ SET OBJECTS=%2 %OBJECTS%
 IF EXIST %2 GOTO :EOF
 
 @ECHO ON
-gcc %CFLAGS% %CCFLAGS% -std=c99 -Wall -pedantic %INCLUDES% -c %1 -o %2
+gcc %CFLAGS% %CCFLAGS% -DBOOTSTRAP -std=c99 -Wall -pedantic %INCLUDES% -c %1 -o %2
 @ECHO OFF
 GOTO :EOF
 
