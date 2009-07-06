@@ -237,7 +237,10 @@ struct exec_context *execute(unsigned int options,
 
         afree (argvsize, argv);
         afree (nqsize,   nq);
-        afree (envvsize, envx);
+        if (environment != (char **)0)
+        {
+            afree (envvsize, envx);
+        }
     }
     
     return context;
