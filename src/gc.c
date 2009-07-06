@@ -35,7 +35,6 @@
 static sexpr *gc_calls, **gc_roots;
 static unsigned long gc_call_size, gc_roots_size = 0, gc_calls_i;
 static char cancel = 0;
-unsigned long gc_base_items = 0;
 
 void gc_add_root (sexpr *sx)
 {

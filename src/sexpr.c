@@ -36,6 +36,7 @@
 static struct tree sx_cons_tree   = TREE_INITIALISER;
 static struct tree sx_string_tree = TREE_INITIALISER;
 static struct tree sx_symbol_tree = TREE_INITIALISER;
+unsigned long gc_base_items       = 0;
 
 sexpr cons(sexpr sx_car, sexpr sx_cdr) {
     static struct memory_pool pool =
@@ -67,9 +68,7 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr) {
 
     tree_add_node_value (&sx_cons_tree, (int_pointer)hash, rv);
 
-#if !defined(BOOTSTRAP)
     gc_base_items++;
-#endif
 
     return (sexpr)rv;
 }
@@ -106,9 +105,7 @@ static sexpr make_string_or_symbol
 
     s->type = (symbol == (char)1) ? sxt_symbol : sxt_string;
 
-#if !defined(BOOTSTRAP)
     gc_base_items++;
-#endif
 
     return (sexpr)s;
 }
@@ -141,9 +138,7 @@ void sx_destroy(sexpr sxx) {
         }
 
         afree ((sizeof (struct sexpr_string_or_symbol) + length), sx);
-#if !defined(BOOTSTRAP)
         gc_base_items--;
-#endif
     }
     else if (consp(sxx))
     {
@@ -154,9 +149,7 @@ void sx_destroy(sexpr sxx) {
         tree_remove_node(&sx_cons_tree, (int_pointer)hash);
 
         free_pool_mem (sx);
-#if !defined(BOOTSTRAP)
         gc_base_items--;
-#endif
     }
 }
 
