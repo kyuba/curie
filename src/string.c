@@ -208,7 +208,7 @@ int_32 bin_hash(const char *data, unsigned long len)
         int_32 rv;
         int i = 0;
 
-        while (data[i] < len)
+        while (i < len)
         {
             buffer[i] = data[i];
             i++;
