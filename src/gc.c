@@ -79,24 +79,6 @@ void gc_remove_root (sexpr *sx)
     }
 }
 
-static void remove_dupes (sexpr *index, sexpr *cursor)
-{
-    sexpr *i, *j;
-
-    for (i = index; i < cursor; i++)
-    {
-        sexpr deref = *i;
-
-        for (j = i + 1; j < cursor; j++)
-        {
-            if (deref == (*j))
-            {
-                *j = (sexpr)0;
-            }
-        }
-    }
-}
-
 void gc_tag (sexpr sx)
 {
     unsigned int i, k;
@@ -158,8 +140,6 @@ static int gc_initialise_memory ()
         free_mem (gc_call_size, gc_calls);
         return 0;
     }
-
-    remove_dupes (gc_calls, gc_calls + gc_calls_i);
 
     if (gc_roots_size != 0)
     {
