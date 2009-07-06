@@ -50,6 +50,8 @@ void          gc_tag         (sexpr sx);
 void          gc_call        (sexpr sx);
 unsigned long gc_invoke      ();
 
+unsigned long gc_base_items;
+
 #endif
 
 /*! @} */

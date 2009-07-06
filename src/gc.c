@@ -32,9 +32,10 @@
 #include <curie/sexpr-internal.h>
 #include <curie/memory.h>
 
-static sexpr *gc_tags, *gc_calls, **gc_roots;
-static unsigned long gc_tag_size, gc_call_size, gc_roots_size = 0, gc_tags_i, gc_calls_i;
+static sexpr *gc_calls, **gc_roots;
+static unsigned long gc_call_size, gc_roots_size = 0, gc_calls_i;
 static char cancel = 0;
+unsigned long gc_base_items = 0;
 
 void gc_add_root (sexpr *sx)
 {
@@ -79,38 +80,6 @@ void gc_remove_root (sexpr *sx)
     }
 }
 
-static void gc_add_to_list
-        (sexpr sx, sexpr **index, unsigned long *cursor, unsigned long *len)
-{
-    if (!cancel)
-    {
-        sexpr *map = *index;
-        unsigned long i = *cursor;
-
-        if ((map + i) < (sexpr*)((char *)map + (*len)))
-        {
-          add:
-            map[i] = sx;
-            (*cursor)++;
-            return;
-        }
-
-        map = resize_mem ((*len), (*index), (*len) + LIBCURIE_PAGE_SIZE);
-        if (map == (sexpr *)0)
-        {
-            free_mem ((*len), (*index));
-            cancel = 1;
-            *index = (sexpr *)0;
-            return;
-        }
-
-        *index = map;
-        (*len) += LIBCURIE_PAGE_SIZE;
-
-        goto add;
-    }
-}
-
 static void remove_dupes (sexpr *index, sexpr *cursor)
 {
     sexpr *i, *j;
@@ -131,34 +100,67 @@ static void remove_dupes (sexpr *index, sexpr *cursor)
 
 void gc_tag (sexpr sx)
 {
-    gc_add_to_list (sx, &gc_tags, &gc_tags_i, &gc_tag_size);
+    unsigned int i, k;
+
+    for (i = 0, k = (gc_call_size / sizeof (sexpr)); i < k; i++)
+    {
+        if (gc_calls[i] == sx)
+        {
+            gc_calls[i] = (sexpr)0;
+            sx_tag_sub (sx);
+        }
+    }
 }
 
 void gc_call (sexpr sx)
 {
-    gc_add_to_list (sx, &gc_calls, &gc_calls_i, &gc_call_size);
+    if (cancel) return;
+    sexpr *map = gc_calls;
+
+    if ((map + gc_calls_i) < (sexpr*)((char *)map + gc_call_size))
+    {
+      add:
+        map[gc_calls_i] = sx;
+        gc_calls_i++;
+        return;
+    }
+
+    map = resize_mem (gc_call_size, gc_calls, gc_call_size + LIBCURIE_PAGE_SIZE);
+    if (map == (sexpr *)0)
+    {
+        free_mem (gc_call_size, gc_calls);
+        cancel = 1;
+        gc_calls = (sexpr *)0;
+        return;
+    }
+
+    gc_calls = map;
+    gc_call_size += LIBCURIE_PAGE_SIZE;
+
+    goto add;
 }
 
 static int gc_initialise_memory ()
 {
-    gc_tag_size  = LIBCURIE_PAGE_SIZE;
-    gc_tags      = get_mem (LIBCURIE_PAGE_SIZE);
-    gc_tags_i    = 0;
-
-    if (gc_tags == (sexpr *)0)
-    {
-        return 0;
-    }
-
-    gc_call_size = LIBCURIE_PAGE_SIZE;
-    gc_calls     = get_mem (LIBCURIE_PAGE_SIZE);
+    gc_call_size  = (gc_base_items & (~(LIBCURIE_PAGE_SIZE - 1)))
+                  + LIBCURIE_PAGE_SIZE;
+    gc_calls     = get_mem (gc_call_size);
     gc_calls_i   = 0;
 
     if (gc_calls == (sexpr *)0)
     {
-        free_mem (LIBCURIE_PAGE_SIZE, gc_tags);
         return 0;
     }
+
+    sx_call_all();
+
+    if (cancel)
+    {
+        free_mem (gc_call_size, gc_calls);
+        return 0;
+    }
+
+    remove_dupes (gc_calls, gc_calls + gc_calls_i);
 
     if (gc_roots_size != 0)
     {
@@ -181,10 +183,6 @@ static int gc_initialise_memory ()
 
 static void gc_deinitialise_memory ()
 {
-    if (gc_tags  != (sexpr *)0)
-    {
-        free_mem (gc_tag_size,  gc_tags);
-    }
     if (gc_calls != (sexpr *)0)
     {
         free_mem (gc_call_size, gc_calls);
@@ -196,15 +194,10 @@ unsigned long gc_invoke ()
     int step = (stack_growth == sg_down) ? -1 : 1;
     sexpr end = sx_end_of_list;
     sexpr *t, *l = &end;
-    unsigned int i, j, k, m;
+    unsigned int i, k;
     unsigned long rv = 0;
 
     if (!gc_initialise_memory ()) return 0;
-    sx_call_all();
-    if (cancel)
-    {
-        goto end;
-    }
 
     for (t = stack_start_address; t != l; t += step)
     {
@@ -213,82 +206,20 @@ unsigned long gc_invoke ()
         if (pointerp (e) && (e != (sexpr)0))
         {
             gc_tag (e);
-            if (cancel)
-            {
-                goto end;
-            }
         }
     }
 
-    for (j = 0, m = (gc_tag_size / sizeof (sexpr)),
-         k = (gc_call_size / sizeof (sexpr)); j < m; j++)
-    {
-        sexpr sx = gc_tags[j];
-
-        if (sx != (sexpr)0)
-        {
-            int sx_e = 0;
-
-            for (i = 0; i < k; i++)
-            {
-                if (gc_calls[i] == sx)
-                {
-                    sx_e = 1;
-                    break;
-                }
-            }
-
-            if (!sx_e)
-            {
-                gc_tags[j] = (sexpr)0;
-            }
-        }
-    }
-
-    for (j = 0; j < (gc_tag_size / sizeof (sexpr)); j++)
-    {
-        sexpr sx = gc_tags[j];
-
-        if (sx != (sexpr)0)
-        {
-            sx_tag_sub (sx);
-            if (cancel)
-            {
-                goto end;
-            }
-        }
-    }
-
-    remove_dupes (gc_tags,  gc_tags + gc_tags_i);
-    remove_dupes (gc_calls, gc_calls + gc_calls_i);
-
-    for (i = 0, k = (gc_call_size / sizeof (sexpr)),
-         m = (gc_tag_size / sizeof (sexpr)); i < k; i++)
+    for (i = 0, k = (gc_call_size / sizeof (sexpr)); i < k; i++)
     {
         sexpr sx = gc_calls[i];
 
         if (sx != (sexpr)0)
         {
-            char sx_e = 0;
-
-            for (j = 0; j < m; j++)
-            {
-                if (gc_tags[j] == sx)
-                {
-                    sx_e = 1;
-                    break;
-                }
-            }
-
-            if (!sx_e)
-            {
-                sx_destroy (sx);
-                rv++;
-            }
+            sx_destroy (sx);
+            rv++;
         }
     }
 
-  end:
     gc_deinitialise_memory ();
 
     return rv;
