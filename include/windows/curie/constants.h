@@ -63,7 +63,7 @@ extern "C" {
  *  Requested sizes bigger than this cutoff will be allocated directly as memory
  *  pages, sizes smaller than that will be allocated using a mempool.
  */
-#define CURIE_POOL_CUTOFF 1024
+#define CURIE_POOL_CUTOFF 0x4000
 
 /*! \brief pool_bitmap: Entity Type
  *
@@ -81,7 +81,7 @@ extern "C" {
  *
  *  This is the number of BITMAPENTITYTYPE elements in pool_bitmap.
  */
-#define BITMAPMAPSIZE (unsigned short)16
+#define BITMAPMAPSIZE (unsigned short)256
 
 /*! \brief pool_bitmap: Total Number of Bits
  *
