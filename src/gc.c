@@ -81,15 +81,18 @@ void gc_remove_root (sexpr *sx)
 
 void gc_tag (sexpr sx)
 {
-    unsigned int i, k;
+    sexpr *c = gc_calls;
+    sexpr *k = gc_calls + gc_calls_i;
 
-    for (i = 0, k = (gc_call_size / sizeof (sexpr)); i < k; i++)
+    while (c < k)
     {
-        if (gc_calls[i] == sx)
+        if ((*c) == sx)
         {
-            gc_calls[i] = (sexpr)0;
+            (*c) = (sexpr)0;
             sx_tag_sub (sx);
         }
+
+        c++;
     }
 }
 
