@@ -131,8 +131,9 @@ void gc_tag (sexpr sx)
 
 void gc_call (sexpr sx)
 {
+    sexpr *map;
     if (cancel) return;
-    sexpr *map = gc_calls;
+    map = gc_calls;
 
     if ((map + gc_calls_i) < (sexpr*)((char *)map + gc_call_size))
     {

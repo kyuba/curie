@@ -63,7 +63,7 @@ extern "C" {
  *  Requested sizes bigger than this cutoff will be allocated directly as memory
  *  pages, sizes smaller than that will be allocated using a mempool.
  */
-#define CURIE_POOL_CUTOFF 1024
+#define CURIE_POOL_CUTOFF 0x400
 
 /*! \brief pool_bitmap: Entity Type
  *

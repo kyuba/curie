@@ -1711,7 +1711,11 @@ void loop_processes_nokill()
     sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
 }
 
+#if defined(_WIN32)
+int main (int argc, char **argv)
+#else
 int main (int argc, char **argv, char **environ)
+#endif
 {
     struct sexpr_io *io;
     sexpr r;
