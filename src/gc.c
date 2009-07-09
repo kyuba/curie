@@ -32,6 +32,8 @@
 #include <curie/sexpr-internal.h>
 #include <curie/memory.h>
 
+#define GC_TAG_SORT_THRESHOLD 10
+
 static sexpr *gc_calls, **gc_roots;
 static unsigned long gc_call_size, gc_roots_size = 0, gc_calls_i;
 static char cancel = 0;
@@ -81,14 +83,48 @@ void gc_remove_root (sexpr *sx)
 
 void gc_tag (sexpr sx)
 {
-    unsigned int i, k;
+    unsigned int i;
+    static char level = 1;
+    static unsigned int sort_progress = 0;
 
-    for (i = 0, k = (gc_call_size / sizeof (sexpr)); i < k; i++)
+    for (i = 0; i < gc_calls_i; i++)
     {
         if (gc_calls[i] == sx)
         {
             gc_calls[i] = (sexpr)0;
+            level++;
             sx_tag_sub (sx);
+            level--;
+        }
+    }
+
+    if (level == 1)
+    {
+        if (sort_progress > GC_TAG_SORT_THRESHOLD)
+        {
+            int k;
+            for (i = 0, k = 0; k < gc_calls_i; i++, k++)
+            {
+                if (gc_calls[i] == (sexpr)0)
+                {
+                    while ((gc_calls[k] == (sexpr)0) && (k < gc_calls_i))
+                    {
+                        k++;
+                    }
+                    gc_calls[i] = gc_calls[k];
+                }
+            }
+
+            gc_calls_i -= k - i;
+            sort_progress = 0;
+        }
+        else
+        {
+            sort_progress++;
+            while ((gc_calls_i > 0) && (gc_calls[(gc_calls_i - 1)] == (sexpr)0))
+            {
+                gc_calls_i--;
+            }
         }
     }
 }
@@ -173,7 +209,7 @@ unsigned long gc_invoke ()
     int step = (stack_growth == sg_down) ? -1 : 1;
     sexpr end = sx_end_of_list;
     sexpr *t, *l = &end;
-    unsigned int i, k;
+    unsigned int i;
     unsigned long rv = 0;
 
     if (!gc_initialise_memory ()) return 0;
@@ -188,7 +224,7 @@ unsigned long gc_invoke ()
         }
     }
 
-    for (i = 0, k = (gc_call_size / sizeof (sexpr)); i < k; i++)
+    for (i = 0; i < gc_calls_i; i++)
     {
         sexpr sx = gc_calls[i];
 
