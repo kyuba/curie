@@ -449,8 +449,13 @@ static void link_programme_msvc_filename (sexpr ofile, sexpr name, sexpr code, s
     struct stat res, st;
     char havebin;
     sexpr cur;
-    sexpr sx = cons (str_slink, cons (str_sINCLUDEcmain, get_special_linker_options_msvc (sx_end_of_list)));
-    
+    int i;
+    sexpr sx = get_special_linker_options_msvc (sx_end_of_list);
+
+    for (i = 0; (i < 6) && (uname_arch[i] == "x86-64"[i]); i++);
+
+    sx = cons (str_slink, cons (((i == 6) ? str_sINCLUDEcmain : str_sINCLUDEcumain), sx));
+
     havebin = (stat (sx_string (ofile), &res) == 0);
 
     cur = t->libraries;

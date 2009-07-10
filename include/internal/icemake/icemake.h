@@ -522,7 +522,9 @@ define_string (str_slink,               "/link");
 /*! \brief Predefined String */
 define_string (str_sDLL,                "/DLL");
 /*! \brief Predefined String */
-define_string (str_sINCLUDEcmain,       "/INCLUDE:_main");
+define_string (str_sINCLUDEcumain,      "/INCLUDE:_main");
+/*! \brief Predefined String */
+define_string (str_sINCLUDEcmain,       "/INCLUDE:main");
 /*! \brief Predefined String */
 define_string (str_lib,                 "lib");
 /*! \brief Predefined String */

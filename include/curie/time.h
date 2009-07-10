@@ -27,32 +27,54 @@
 */
 
 /*! \file
- *  \brief S-expressions (internal)
- *  \internal
+ *  \brief Basic Date and Time Functions
+ *
+ *  This stuff should be easier to calculate in... and it should last a lot
+ *  longer with respect to date wrapping issues.
+ *
+ *  I'm just not sure yet how long an int_64 will suffice.
  */
 
-#ifndef LIBCURIE_SEXPR_INTERNAL_H
-#define LIBCURIE_SEXPR_INTERNAL_H
-
-#include <curie/io.h>
+#ifndef LIBCURIE_TIME_H
+#define LIBCURIE_TIME_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*! \brief S-Expression I/O Structure
- *
- *  Programmes don't need to know how this one looks on the inside. This is just
- *  a wrapper for an input and an output I/O structure for use with sx_read(),
- *  sx_write(), etc.
- */
-struct sexpr_io {
-    struct io *in;  /*!< \brief Input Structure */
-    struct io *out; /*!< \brief Output Structure */
+#include <curie/int.h>
+
+typedef int_64 int_time;
+
+struct date
+{
+    unsigned char alautun;    /*!< 20 k'inchiltun per alautun */
+    unsigned char kinchiltun; /*!< 20 kalabtun per k'inchiltun */
+    unsigned char kalabtun;   /*!< 20 piktun per kalabtun */
+    unsigned char piktun;     /*!< 20 b'ak'tun per piktun */
+    unsigned char baktun;     /*!< 20 k'atun per b'ak'tun */
+    unsigned char katun;      /*!< 20 tun per k'atun */
+    unsigned char tun;        /*!< 18 winal per tun */
+    unsigned char winal;      /*!< 20 k'in per winal */
+    unsigned char kin;        /*!< k'in, basic unit */
 };
 
-void sx_call_all ();
-void sx_tag_sub  (sexpr sx);
+struct dt
+{
+    int_time      date;
+    double        time;
+};
+
+int_time dt_get_kin   ();
+int_time dt_make_kin  (struct date *date);
+void     dt_split_kin (int_time kin, struct date *date);
+
+/*! \brief Get Current Time
+ *  \return How far into the day we are already, in % (UTC).
+ */
+double dt_get_time  ();
+
+void   dt_get (struct dt *dt);
 
 #ifdef __cplusplus
 }

@@ -50,6 +50,16 @@
  */
 int_32 str_hash(const char *data, unsigned long *len);
 
+/*! \brief Binary Hash
+ *  \param[in]  data The data.
+ *  \param[out] len  The length of the data (must be a multiple of 4).
+ *  \return 32-bit hash of the data.
+ *
+ *  This function is analoguous to str_hash(), except that it can be used on
+ *  any data, not just strings.
+ */
+int_32 bin_hash(const char *data, unsigned long len);
+
 #endif
 
 /*! @} */

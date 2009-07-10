@@ -52,8 +52,6 @@ int cmain()
     int rv = truep(equalp(sx_list_fold(l, rd_fold, make_integer(0)),
                    make_integer (3))) ? 0 : 1;
 
-    sx_destroy (l);
-
     optimise_static_memory_pools();
 
     return rv;

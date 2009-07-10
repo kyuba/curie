@@ -32,6 +32,8 @@
 #include <curie/exec.h>
 #include <curie/signal.h>
 #include <curie/filesystem.h>
+#include <curie/stack.h>
+#include <curie/gc.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -89,7 +91,7 @@ sexpr do_build_documentation           = sx_false;
 
 struct tree targets                    = TREE_INITIALISER;
 
-static char **xenviron;
+static char **xenviron                 = (char **)0;
 
 sexpr p_c_compiler                     = sx_false;
 sexpr p_cpp_compiler                   = sx_false;
@@ -101,6 +103,8 @@ sexpr p_diff                           = sx_false;
 sexpr p_latex                          = sx_false;
 sexpr p_pdflatex                       = sx_false;
 sexpr p_doxygen                        = sx_false;
+
+static sexpr gc_elements               = sx_end_of_list;
 
 struct sexpr_io *stdio;
 
@@ -1063,8 +1067,6 @@ static void process_definition (struct target *context, sexpr definition)
                 sx_o = make_string (oname);
 
                 ccur = cons (cons (sym_c, cons (clist, cons (generate_object_file_name (context->name, sx_o), sx_end_of_list))), ccur);
-
-                sx_destroy (sx_o);
             }
 
             context->code = ccur;
@@ -1115,6 +1117,29 @@ static void process_definition (struct target *context, sexpr definition)
     }
 }
 
+static void tag_target_for_gc (struct target *context)
+{
+    gc_elements = cons (context->name, gc_elements);
+    gc_elements = cons (context->library, gc_elements);
+    gc_elements = cons (context->programme, gc_elements);
+    gc_elements = cons (context->libraries, gc_elements);
+    gc_elements = cons (context->olibraries, gc_elements);
+    gc_elements = cons (context->hosted, gc_elements);
+    gc_elements = cons (context->use_curie, gc_elements);
+    gc_elements = cons (context->code, gc_elements);
+    gc_elements = cons (context->test_cases, gc_elements);
+    gc_elements = cons (context->test_reference, gc_elements);
+    gc_elements = cons (context->bootstrap, gc_elements);
+    gc_elements = cons (context->headers, gc_elements);
+    gc_elements = cons (context->use_objects, gc_elements);
+    gc_elements = cons (context->dname, gc_elements);
+    gc_elements = cons (context->description, gc_elements);
+    gc_elements = cons (context->dversion, gc_elements);
+    gc_elements = cons (context->durl, gc_elements);
+    gc_elements = cons (context->documentation, gc_elements);
+    gc_elements = cons (context->have_cpp, gc_elements);
+}
+
 static struct target *create_library (sexpr definition)
 {
     struct target *context = get_context();
@@ -1129,6 +1154,8 @@ static struct target *create_library (sexpr definition)
         context->libraries = cons (context->name, context->libraries);
     }
 
+    tag_target_for_gc (context);
+
     return context;
 }
 
@@ -1141,6 +1168,8 @@ static struct target *create_programme (sexpr definition)
 
     process_definition (context, cdr(definition));
 
+    tag_target_for_gc (context);
+
     return context;
 }
 
@@ -1151,6 +1180,8 @@ static struct target *create_documentation (sexpr definition)
     context->name = car(definition);
 
     process_definition (context, cdr(definition));
+
+    tag_target_for_gc (context);
 
     return context;
 }
@@ -1326,7 +1357,6 @@ static void initialise_toolchain_gcc()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_diff, sx_end_of_list))));
-        sx_destroy (out);
     }
 }
 
@@ -1357,7 +1387,6 @@ static void initialise_toolchain_borland()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_diff, sx_end_of_list))));
-        sx_destroy (out);
     }
 }
 
@@ -1388,7 +1417,6 @@ static void initialise_toolchain_msvc()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_diff, sx_end_of_list))));
-        sx_destroy (out);
     }
 }
 
@@ -1402,7 +1430,6 @@ static void initialise_toolchain_tex()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_latex, sx_end_of_list))));
-        sx_destroy (out);
     }
 
     p_pdflatex = xwhich ("pdflatex");
@@ -1411,7 +1438,6 @@ static void initialise_toolchain_tex()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_pdflatex, sx_end_of_list))));
-        sx_destroy (out);
     }
 }
 
@@ -1425,7 +1451,6 @@ static void initialise_toolchain_doxygen()
         sx_write (stdio,
                   (out = cons (sym_missing_programme,
                                cons (sym_doxygen, sx_end_of_list))));
-        sx_destroy (out);
     }
 }
 
@@ -1531,6 +1556,8 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
     context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex, xenviron);
     if (wdir != (const char *)0) { chdir (odir); }
 
+    sx = car (sx);
+
     switch (context->pid)
     {
         case -1: fprintf (stderr, "failed to spawn subprocess\n");
@@ -1538,6 +1565,7 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
         case 0:  fprintf (stderr, "failed to execute binary image\n");
                  exit (23);
         default: alive_processes++;
+                 gc_elements = cons (sx, gc_elements);
                  multiplex_add_process (context, f, (void *)sx);
                  afree (exsize, ex);
                  return;
@@ -1683,7 +1711,11 @@ void loop_processes_nokill()
     sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
 }
 
+#if defined(_WIN32)
+int main (int argc, char **argv)
+#else
 int main (int argc, char **argv, char **environ)
+#endif
 {
     struct sexpr_io *io;
     sexpr r;
@@ -1693,7 +1725,16 @@ int main (int argc, char **argv, char **environ)
     sexpr in_dynamic_libraries = sx_nil;
     struct stat st;
 
+#if !defined(BOOTSTRAP)
+    initialise_stack ();
+    gc_add_root (&gc_elements);
+    terminate_on_allocation_errors();
+#endif
+
+#if defined(_WIN32)
+#else
     xenviron = environ;
+#endif
 
     set_resize_mem_recovery_function(rm_recover);
     set_get_mem_recovery_function(gm_recover);
@@ -1909,17 +1950,27 @@ int main (int argc, char **argv, char **environ)
         if (uname (&un) >= 0)
         {
             write_uname_element(un.sysname, uname_os,   UNAMELENGTH - 1);
-            write_uname_element(un.machine, uname_arch, UNAMELENGTH - 1);
+            if ((un.machine[0] == 'i') &&
+                ((un.machine[1] == '3') || (un.machine[1] == '4') ||
+                 (un.machine[1] == '5') || (un.machine[1] == '6')) &&
+                (un.machine[2] == '8') && (un.machine[3] == '6'))
+            {
+                write_uname_element("x86-32", uname_arch, UNAMELENGTH - 1);
+            }
+            else
+            {
+                write_uname_element(un.machine, uname_arch, UNAMELENGTH - 1);
+            }
         }
 
 #elif defined(_WIN32)
         write_uname_element ("windows", uname_os, UNAMELENGTH-1);
         write_uname_element ("microsoft", uname_vendor, UNAMELENGTH-1);
 
-#if defined(__ia64__) || defined(__ia64) || defined(_M_IA64)
+#if defined(__ia64__) || defined(__ia64) || defined(_M_IA64) || defined(_M_X64)
         write_uname_element ("x86-64", uname_arch, UNAMELENGTH-1);
 #elif defined(i386) || defined(__i386__) || defined(_X86_) || defined(_M_IX86) || defined(__INTEL__)
-        write_uname_element ("i386", uname_arch, UNAMELENGTH-1);
+        write_uname_element ("x86-32", uname_arch, UNAMELENGTH-1);
 #endif
 #endif
 
@@ -1968,6 +2019,18 @@ int main (int argc, char **argv, char **environ)
         in_dynamic_libraries = sx_false;
     }
 
+    gc_elements = cons (p_c_compiler, gc_elements);
+    gc_elements = cons (p_cpp_compiler, gc_elements);
+    gc_elements = cons (p_assembler, gc_elements);
+    gc_elements = cons (p_linker, gc_elements);
+    gc_elements = cons (p_archiver, gc_elements);
+    gc_elements = cons (p_diff, gc_elements);
+    gc_elements = cons (p_latex, gc_elements);
+    gc_elements = cons (p_c_compiler, gc_elements);
+    gc_elements = cons (i_destdir, gc_elements);
+    gc_elements = cons (i_pname, gc_elements);
+    gc_elements = cons (i_destlibdir, gc_elements);
+
     multiplex_io();
 /*    multiplex_all_processes();*/
     multiplex_signal_primary();
@@ -2009,6 +2072,8 @@ int main (int argc, char **argv, char **environ)
         if (consp(r)) {
             sexpr sxcar = car (r);
 
+            gc_elements = cons (r, gc_elements);
+
             if (truep(equalp(sxcar, sym_library)))
             {
                 t = create_library (cdr (r));
@@ -2031,29 +2096,59 @@ int main (int argc, char **argv, char **environ)
 
     sx_close_io (io);
 
+#if !defined(BOOTSTRAP)
+    gc_invoke();
+#endif
+
     if (!eolp (buildtargets))
     {
         sx_write (stdio, cons (sym_targets, buildtargets));
     }
 
     crosslink_objects ();
+#if !defined(BOOTSTRAP)
+    gc_invoke();
+#endif
     build (buildtargets);
+#if !defined(BOOTSTRAP)
+    gc_invoke();
+#endif
     ice_link (buildtargets);
+#if !defined(BOOTSTRAP)
+    gc_invoke();
+#endif
     post_process (buildtargets);
+#if !defined(BOOTSTRAP)
+    gc_invoke();
+#endif
 
     if (truep (do_build_documentation))
     {
         build_documentation (buildtargets);
+#if !defined(BOOTSTRAP)
+        gc_invoke();
+#endif
     }
 
     if (truep (do_tests))
     {
         run_tests (buildtargets);
+#if !defined(BOOTSTRAP)
+        gc_invoke();
+#endif
     }
 
     if (truep (do_install))
     {
         install (buildtargets);
+#if !defined(BOOTSTRAP)
+        gc_invoke();
+#endif
+    }
+
+    if (!eolp (buildtargets))
+    {
+        sx_write (stdio, cons (sym_completed, cons (sym_targets, buildtargets)));
     }
 
     return failures;

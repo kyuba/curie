@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,62 +26,33 @@
  * THE SOFTWARE.
 */
 
-#define BUFFERSIZE 4096
-
+#include <curie/stack.h>
 #include <curie/sexpr.h>
-#include <curie/filesystem.h>
-#include <curie/shell.h>
 
-sexpr ewhich (char **environment, sexpr programme)
+enum stack_growth  stack_growth;
+void              *stack_start_address;
+
+static char *stack_helper()
 {
-    define_string (str_slash, "/");
-    char *x = (char *)0, *y, buffer[BUFFERSIZE];
+    char  whee = 2;
+    char *rv   = &whee;
 
-    for (int i = 0; environment[i]; i++)
+    return rv;
+}
+
+void initialise_stack()
+{
+    char  whee = 1;
+    char *t    = &whee;
+
+    stack_growth = (stack_helper() > t) ? sg_up : sg_down;
+
+    t = (char *)((int_pointer)t & (~(LIBCURIE_PAGE_SIZE-1)));
+
+    if (stack_growth == sg_down)
     {
-        y = environment[i];
-        if ((y[0] == 'P') && (y[1] == 'A') && (y[2] == 'T') && (y[3] == 'H') &&
-            (y[4] == '='))
-        {
-            x = y + 5;
-            break;
-        }
+        t = t + LIBCURIE_PAGE_SIZE - sizeof (sexpr);
     }
 
-    if (x == (char *)0) x = "/bin:/sbin";
-
-    y = buffer;
-
-    while (y < (buffer + BUFFERSIZE - 1))
-    {
-        if ((*x == ':') || ((*x) == 0))
-        {
-            if (y != buffer) /* have at least one character */
-            {
-                *y = 0;
-                y = buffer;
-                sexpr b = make_string (buffer);
-                sexpr f = sx_join (b, str_slash, programme);
-
-                if (truep (linkp (f)))
-                {
-                    return f;
-                }
-            }
-
-            if ((*x) == 0)
-            {
-                return sx_false;
-            }
-        }
-        else
-        {
-            *y = *x;
-            y++;
-        }
-
-        x++;
-    }
-
-    return sx_false;
+    stack_start_address = t;
 }

@@ -10,7 +10,7 @@ if [ ! -n "${TOOLCHAINTYPE}" ]; then TOOLCHAINTYPE='gcc'; fi
 if [ ! -d build ]; then mkdir build/; fi
 
 gcc_buildfile() {
-    COMMAND="${CC} -o build/${2}.o -c ${1} -DPOSIX -DGCC -Iinclude/ -Iinclude/generic/  -Iinclude/internal/ -Wall -pedantic --std=c99"
+    COMMAND="${CC} ${CFLAGS} ${CCFLAGS} -o build/${2}.o -c ${1} -DBOOTSTRAP -DPOSIX -DGCC -Iinclude/ -Iinclude/generic/  -Iinclude/internal/ -Wall -pedantic --std=c99"
 
     echo ${COMMAND}
 
@@ -18,7 +18,7 @@ gcc_buildfile() {
 }
 
 gcc_linkbinary() {
-    COMMAND="${LD} -o build/${BINARY}"
+    COMMAND="${LD} ${LDFLAGS} -o build/${BINARY}"
     for i in $@; do
         COMMAND="${COMMAND} build/${i}.o";
     done
@@ -79,4 +79,4 @@ linkbinary() {
 buildall ${ICEMAKE_FILES}
 BINARY=b-icemake linkbinary ${ICEMAKE_FILES}
 
-./build/b-icemake $@ curie syscall icemake ice
+./build/b-icemake $@ curie icemake ice

@@ -26,62 +26,22 @@
  * THE SOFTWARE.
 */
 
-#define BUFFERSIZE 4096
+/*! \file
+ *  \brief Specific-length Integers (C++)
+ */
 
-#include <curie/sexpr.h>
-#include <curie/filesystem.h>
-#include <curie/shell.h>
+#ifndef LIBCURIEPP_INT_H
+#define LIBCURIEPP_INT_H
 
-sexpr ewhich (char **environment, sexpr programme)
+namespace curiepp
 {
-    define_string (str_slash, "/");
-    char *x = (char *)0, *y, buffer[BUFFERSIZE];
+    /*! \brief Size of the Argument for the new Operator
+     *
+     *  Use this type when declaring a 'new'-Operator. Curie doesn't have
+     *  size_t, so this type should be used instead.
+     */
 
-    for (int i = 0; environment[i]; i++)
-    {
-        y = environment[i];
-        if ((y[0] == 'P') && (y[1] == 'A') && (y[2] == 'T') && (y[3] == 'H') &&
-            (y[4] == '='))
-        {
-            x = y + 5;
-            break;
-        }
-    }
-
-    if (x == (char *)0) x = "/bin:/sbin";
-
-    y = buffer;
-
-    while (y < (buffer + BUFFERSIZE - 1))
-    {
-        if ((*x == ':') || ((*x) == 0))
-        {
-            if (y != buffer) /* have at least one character */
-            {
-                *y = 0;
-                y = buffer;
-                sexpr b = make_string (buffer);
-                sexpr f = sx_join (b, str_slash, programme);
-
-                if (truep (linkp (f)))
-                {
-                    return f;
-                }
-            }
-
-            if ((*x) == 0)
-            {
-                return sx_false;
-            }
-        }
-        else
-        {
-            *y = *x;
-            y++;
-        }
-
-        x++;
-    }
-
-    return sx_false;
+    typedef unsigned long long op_new_size;
 }
+
+#endif

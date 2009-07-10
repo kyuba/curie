@@ -1,7 +1,11 @@
 #!/bin/sh
 # Build System Wrapper
-# Win32/cmd Variant
+# POSIX/sh Variant
 
-if ./build-icemake.sh -fLoid build/; then
-  PATH="./build/bin/:${PATH}" exec ice $@;
+if ! [ -f build/bin/ice ] || ! [ -f build/bin/icemake ]; then
+    if ./build-icemake.sh -foid build/; then
+        PATH="./build/bin/:${PATH}" exec ice $@;
+    fi
+else
+    PATH="./build/bin/:${PATH}" exec ice $@;
 fi

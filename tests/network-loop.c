@@ -61,8 +61,6 @@ int cmain(void) {
 
     rv |= (truep(equalp(t1, i)) ? 0 : 1) << 1;
 
-    sx_destroy (i);
-
     /* test transmission of a single string */
 
     while (io_commit (io->out) == io_incomplete);
@@ -71,8 +69,6 @@ int cmain(void) {
     } while (i == sx_nonexistent);
 
     rv |= (truep(equalp(i, t2)) ? 0 : 1) << 2;
-
-    sx_destroy (i);
 
     i = sx_read (io);
 
@@ -83,10 +79,6 @@ int cmain(void) {
     } else {
         sx_write (stdio, sym_success);
     }
-
-    sx_destroy (i);
-    sx_destroy (t1);
-    sx_destroy (t2);
 
     sx_close_io (io);
     sx_close_io (stdio);

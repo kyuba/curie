@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,41 +26,27 @@
  * THE SOFTWARE.
 */
 
-#include "curie/io.h"
-#include "curie/sexpr.h"
+/*! \file
+ *  \brief Stack Information
+ *
+ *  Some generic information to help with certain stack majick thingamajiggies.
+ *  The GC needs this.
+ */
 
-define_string(str_hello_world, "hello world!");
+#ifndef LIBCURIE_STACK_H
+#define LIBCURIE_STACK_H
 
-#define SX_TEST_INTEGER (signed long int)1337
-#define SX_TEST_INTEGER2 (signed long int)-23
+enum stack_growth
+{
+    sg_down,
+    sg_up
+};
 
-int cmain(void) {
-    struct io *out = io_open_write ("temporary-sexpr-write"), *in = io_open (0);
-    struct sexpr_io *io = sx_open_io (in, out);
-    sexpr s  = str_hello_world;
-    sexpr s1 = str_hello_world;
-    sexpr s2 = make_integer(SX_TEST_INTEGER);
-    sexpr list;
+extern enum stack_growth  stack_growth;
+extern void              *stack_start_address;
 
-    sx_write (io, s);
+void initialise_stack();
 
-    s = make_integer (SX_TEST_INTEGER);
+#endif
 
-    sx_write (io, s);
-
-    s = make_integer (SX_TEST_INTEGER2);
-
-    sx_write (io, s);
-
-    list = cons(s1, s2);
-
-    sx_write(io, list);
-
-    list = cons(s1, cons(s2, sx_end_of_list));
-
-    sx_write(io, list);
-
-    sx_close_io (io);
-
-    return 0;
-}
+/*! @} */

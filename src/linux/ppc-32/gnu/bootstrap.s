@@ -92,6 +92,7 @@ _4:
         addi    1, 1, __libc_stack_end@l
         addi    1, 1, STACKSIZE
 
+        bl      initialise_stack
         bl      cmain
 
 cexit:

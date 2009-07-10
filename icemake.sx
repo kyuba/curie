@@ -14,12 +14,12 @@
         "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
         "directory" "directory-common" "libc-compat" "utf-8" "shell"
-        "memory-error-handling" "sexpr-stdio" "stdio")
+        "memory-error-handling" "sexpr-stdio" "stdio" "stack" "gc")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
         "int" "io" "immutable" "constants" "graph" "filesystem" "regex"
-        "directory" "string" "utf-8" "shell")
+        "directory" "string" "utf-8" "shell" "time" "stack" "gc")
 
   (test-cases
         "bad-allocation" "bad-resize" "curie-main" "environment" "execute-fork"
@@ -29,7 +29,7 @@
         "multiplex-process" "multiplex-sexpr" "network-loop" "read-write"
         "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
         "tree-random" "tree-random-node-removal" "tree-value" "regex"
-        "directory" "io-special")
+        "directory" "io-special" "gc")
 
   (test-case-reference
         ("temporary-curie-test-data" . "tests/reference/curie-test-data")
@@ -86,7 +86,6 @@
 (programme "ice" libcurie
   (name "ice")
   (description "Pretty-printing tool for icemake")
-  (version "1")
-  (libraries "syscall")
+  (version "2")
 
   (code "ice"))

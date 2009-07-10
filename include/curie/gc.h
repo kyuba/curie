@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,41 +26,32 @@
  * THE SOFTWARE.
 */
 
-#include "curie/io.h"
-#include "curie/sexpr.h"
+/*! \file
+ *  \brief Garbage Collector
+ *
+ *  We're trying to implement a rather conservative GC here, all it does is walk
+ *  from the stack start address to the current end of it and mark available
+ *  objects based on the pointers it sees (assuming all pointers are aligned to
+ *  their size, which is a fair assumption).
+ *
+ *  Note that the gc is never invoked automatically, it needs to be run
+ *  manually. This should prevent most problems due to optimisations, and if for
+ *  some reason you know that the GC will screw things up, just don't call it.
+ */
 
-define_string(str_hello_world, "hello world!");
+#ifndef LIBCURIE_GC_H
+#define LIBCURIE_GC_H
 
-#define SX_TEST_INTEGER (signed long int)1337
-#define SX_TEST_INTEGER2 (signed long int)-23
+#include <curie/sexpr.h>
 
-int cmain(void) {
-    struct io *out = io_open_write ("temporary-sexpr-write"), *in = io_open (0);
-    struct sexpr_io *io = sx_open_io (in, out);
-    sexpr s  = str_hello_world;
-    sexpr s1 = str_hello_world;
-    sexpr s2 = make_integer(SX_TEST_INTEGER);
-    sexpr list;
+void          gc_add_root    (sexpr *sx);
+void          gc_remove_root (sexpr *sx);
+void          gc_tag         (sexpr sx);
+void          gc_call        (sexpr sx);
+unsigned long gc_invoke      ();
 
-    sx_write (io, s);
+unsigned long gc_base_items;
 
-    s = make_integer (SX_TEST_INTEGER);
+#endif
 
-    sx_write (io, s);
-
-    s = make_integer (SX_TEST_INTEGER2);
-
-    sx_write (io, s);
-
-    list = cons(s1, s2);
-
-    sx_write(io, list);
-
-    list = cons(s1, cons(s2, sx_end_of_list));
-
-    sx_write(io, list);
-
-    sx_close_io (io);
-
-    return 0;
-}
+/*! @} */

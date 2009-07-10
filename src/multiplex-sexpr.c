@@ -63,6 +63,8 @@ static void mx_on_close (struct io *r, void *d)
     struct io_element *element = (struct io_element *)d;
     struct sexpr_io *io = element->io;
 
+    element->on_read (sx_end_of_file, element->io, element->data);
+
     if (io->in != io->out)
     {
         multiplex_del_io (io->out);
@@ -75,6 +77,8 @@ static void mx_on_close_out (struct io *r, void *d)
 {
     struct io_element *element = (struct io_element *)d;
     struct sexpr_io *io = element->io;
+
+    element->on_read (sx_end_of_file, element->io, element->data);
 
     if (io->in != io->out)
     {

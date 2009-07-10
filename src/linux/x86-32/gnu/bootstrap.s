@@ -61,6 +61,7 @@ _start:
         addl    %esi, %ecx
         movl    %ecx, $curie_environment
 
+        call    initialise_stack
         call    cmain
 
         movl    %eax, %ebx

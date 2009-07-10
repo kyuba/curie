@@ -19,26 +19,26 @@ GOTO MAIN
 SET OBJECTS=%2bj %OBJECTS%
 IF EXIST %2bj GOTO :EOF
 
-cl /c /TC %INCLUDESMSVC% /nologo %1 /Fo%2bj
+cl %CFLAGS% %CCFLAGS% /DBOOTSTRAP /c /TC %INCLUDESMSVC% /nologo %1 /Fo%2bj
 GOTO :EOF
 
 :MSVC_LINK
 IF EXIST build\b-icemake.exe GOTO :EOF
 
-cl /nologo /Febuild\b-icemake.exe %*
+cl %LDFLAGS% /nologo /Febuild\b-icemake.exe %*
 GOTO :EOF
 
 :BORLAND_BUILD
 SET OBJECTS=%2bj %OBJECTS%
 IF EXIST %2bj GOTO :EOF
 
-bcc32 -AT -q -w %INCLUDES% -o %2bj -c %1
+bcc32 %CFLAGS% %CCFLAGS% -DBOOTSTRAP -AT -q -w %INCLUDES% -o %2bj -c %1
 GOTO :EOF
 
 :BORLAND_LINK
 IF EXIST build\b-icemake.exe GOTO :EOF
 
-bcc32 -q -o build\b-icemake.exe %*
+bcc32 %LDFLAGS% -q -o build\b-icemake.exe %*
 GOTO :EOF
 
 :GCC_BUILD
@@ -46,7 +46,7 @@ SET OBJECTS=%2 %OBJECTS%
 IF EXIST %2 GOTO :EOF
 
 @ECHO ON
-gcc -std=c99 -Wall -pedantic %INCLUDES% -c %1 -o %2
+gcc %CFLAGS% %CCFLAGS% -DBOOTSTRAP -std=c99 -Wall -pedantic %INCLUDES% -c %1 -o %2
 @ECHO OFF
 GOTO :EOF
 
@@ -54,7 +54,7 @@ GOTO :EOF
 IF EXIST build\b-icemake.exe GOTO :EOF
 
 @ECHO ON
-gcc %* -o build\b-icemake.exe
+gcc %LDFLAGS% %* -o build\b-icemake.exe
 @ECHO OFF
 GOTO :EOF
 
@@ -117,4 +117,4 @@ CALL :GETTOOLCHAIN
 CALL :BUILDALL %ICEMAKE_FILES%
 CALL :LINKALL %ICEMAKE_FILES%
 
-build\b-icemake.exe %* curie syscall icemake
+build\b-icemake.exe %* curie icemake

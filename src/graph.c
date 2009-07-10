@@ -153,8 +153,6 @@ sexpr graph_to_sexpr (struct graph *g)
             sexpr sxn = make_integer(i);
             unsigned int j;
 
-            sx_xref (sxx);
-
             nodes = cons (cons (sxn, sxx), nodes);
 
             for (j = 0; j < n->edge_count; j++)
@@ -211,7 +209,6 @@ struct graph *sexpr_to_graph (sexpr sx)
 
         if ((ns != (struct graph_node *)0) && (nt != (struct graph_node *)0))
         {
-            sx_xref(cxcddr);
             graph_node_add_edge (ns, nt, cxcddr);
         }
 
@@ -230,7 +227,6 @@ struct graph *sexpr_to_graph (sexpr sx)
 
         if (n != (struct graph_node *)0)
         {
-            sx_xref(cxcdr);
             n->label = cxcdr;
         }
 

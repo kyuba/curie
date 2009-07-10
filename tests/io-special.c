@@ -39,7 +39,6 @@ sexpr sxm1337 = make_integer (-1337);
 static void mx_sx_queue_read (sexpr sx, struct sexpr_io *io, void *aux)
 {
     if (truep (equalp (sx, sxm1337))) cexit (0);
-    sx_destroy (sx);
 }
 
 int cmain()
