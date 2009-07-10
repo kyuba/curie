@@ -46,6 +46,8 @@ extern "C" {
 #define LIBCURIE_DIRENT_BUFFER_SIZE 0x1000
 #define AUTOOPT_N 300
 #define POOLCOUNT (LIBCURIE_PAGE_SIZE / ENTITY_ALIGNMENT)
+#define GC_TAG_BUFFER 1
+#undef  GC_KILL_ZEROES
 
 #ifdef __cplusplus
 }

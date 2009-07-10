@@ -167,22 +167,4 @@ void sx_call_all ()
     tree_map (&sx_string_tree, sx_map_call, (void *)0);
     tree_map (&sx_symbol_tree, sx_map_call, (void *)0);
 }
-
-void sx_tag_sub (sexpr sx)
-{
-    if (consp (sx))
-    {
-        sexpr sxcar = car (sx), sxcdr = cdr (sx);
-
-        if (pointerp (sxcar))
-        {
-            gc_tag (sxcar);
-        }
-
-        if (pointerp (sxcdr))
-        {
-            gc_tag (sxcdr);
-        }
-    }
-}
 #endif

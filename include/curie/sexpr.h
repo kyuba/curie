@@ -461,6 +461,17 @@ void sx_destroy
 sexpr equalp
         (sexpr a, sexpr b);
 
+/*! \brief Check if the S-Expression is a Custom Expression
+ *  \param[in] sx The s-expression to check.
+ *  \return 1 if it is a custom expression, 0 otherwise.
+ *
+ *  \todo This is currently a stub.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ */
+#define customp(sx) 0
+
 /*! \brief Check if the S-Expression is a Special Expression
  *  \param[in] sx The s-expression to check.
  *  \return 1 if it is a special expression, 0 otherwise.

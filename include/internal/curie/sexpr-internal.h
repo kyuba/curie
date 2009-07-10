@@ -52,7 +52,6 @@ struct sexpr_io {
 };
 
 void sx_call_all ();
-void sx_tag_sub  (sexpr sx);
 
 #ifdef __cplusplus
 }
