@@ -80,45 +80,14 @@ void gc_remove_root (sexpr *sx)
     }
 }
 
-#if GC_TAG_BUFFER == 1
+#if 0
 void gc_tag (sexpr sx)
 {
     sexpr *c = gc_calls,
           *k = gc_pointer;
 
-#if defined(GC_KILL_ZEROES)
-    sexpr *d = gc_calls,
-           v;
-#endif
-
-#if defined(GC_KILL_ZEROES)
-    while (d < k)
-#else
     while (c < k)
-#endif
     {
-#if defined(GC_KILL_ZEROES)
-        if ((*c) == (sexpr)0)
-        {
-            while ((*d) == (sexpr)0)
-            {
-                d++;
-
-                if (d == k)
-                {
-                    goto end;
-                }
-            }
-
-            v    = (*d);
-
-            (*c) = v;
-            *d   = (sexpr)0;
-
-            continue;
-        }
-        else
-#endif
         if ((*c) == sx)
         {
             (*c) = (sexpr)0;
@@ -136,21 +105,15 @@ void gc_tag (sexpr sx)
                     }
 
                     sx = sxcar;
-#if defined(GC_KILL_ZEROES)
-                    c = d = gc_calls;
-#else
                     c = gc_calls;
-#endif
+
                     continue;
                 }
                 else if (pointerp (sxcdr))
                 {
                     sx = sxcdr;
-#if defined(GC_KILL_ZEROES)
-                    c = d = gc_calls;
-#else
                     c = gc_calls;
-#endif
+
                     continue;
                 }
             }
@@ -163,234 +126,121 @@ void gc_tag (sexpr sx)
         }
 
         c++;
-#if defined(GC_KILL_ZEROES)
-        d++;
-#endif
     }
 
-#if defined(GC_KILL_ZEROES)
-  end:
-#endif
     k--;
     while ((k > gc_calls) && ((*k) == (sexpr)0)) { k--; }
 
     gc_pointer = k + 1;
 }
 #else
-void gc_tag (sexpr sx)
+static void gc_tag_sub (sexpr sx, sexpr *left, sexpr *right)
 {
-    sexpr *c, *d, v,
-          *k = gc_pointer;
+    sexpr l, r, *p1, *p2;
+    int d = 0;
 
-    sexpr n[GC_TAG_BUFFER] = { sx };
-    int nc = 1, np = 0, nce/*, lc*/;
-
-/*    do
+    do
     {
-        lc = 0;*/
-        c = d = gc_calls;
-
-        while (d < k)
+        while ((r = *right) == 0)
         {
-          next:
-            v = *c;
+            right--;
 
-            if (v == (sexpr)0)
+            if (right < left) return;
+        }
+
+        while ((l = *left) == 0)
+        {
+            left++;
+
+            if (left > right) return;
+        }
+
+        if ((l > sx) || (r < sx))
+        {
+            return;
+        }
+
+        if ((l == sx) || (r == sx))
+        {
+            if (l == sx)
             {
-              sn:
-                while ((*d) == (sexpr)0)
-                {
-                    d++;
-
-                    if (d == k)
-                    {
-                        goto end;
-                    }
-                }
-
-                v    = (*d);
-                (*c) = v;
-                (*d) = (sexpr)0;
-
-                goto tk;
+                *left = (sexpr)0;
             }
             else
             {
-              tk:
-                np = 0;
-                do
-                {
-                    if (v == n[np])
-                    {
-                        sx = n[np];
-                        (*c) = (sexpr)0;
-/*                        lc++;*/
-
-                        nc--;
-                        while (np < nc)
-                        {
-                            n[np] = n[(np + 1)];
-                            np++;
-                        }
-
-                        nce = nc;
-
-                        if (consp (sx))
-                        {
-                            sexpr sxcar = car (sx), sxcdr = cdr (sx);
-
-                            if (nc > (GC_TAG_BUFFER - 2))
-                            {
-                                sx = (sexpr)0;
-
-                                if (pointerp (sxcar))
-                                {
-                                    if (pointerp (sxcdr))
-                                    {
-                                        gc_tag (sxcdr);
-                                        k = gc_pointer;
-                                    }
-
-                                    sx = sxcar;
-                                }
-                                else if (pointerp (sxcdr))
-                                {
-                                    sx = sxcdr;
-                                }
-
-                                if (sx != (sexpr)0)
-                                {
-                                    v = (sexpr)0;
-                                    for (np = 0; np < nc; np++)
-                                    {
-                                        if (n[np] > sx)
-                                        {
-                                            v = n[np];
-                                            n[np] = sx;
-                                            nc++;
-
-                                            while (np < nc)
-                                            {
-                                                sx = n[np];
-                                                n[np] = v;
-                                                v = sx;
-                                                np++;
-                                            }
-
-                                            v = (sexpr)1;
-
-                                            break;
-                                        }
-                                    }
-
-                                    if (v == (sexpr)0)
-                                    {
-                                        n[nc] = sx;
-                                        nc++;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (pointerp (sxcar))
-                                {
-                                    v = (sexpr)0;
-                                    for (np = 0; np < nc; np++)
-                                    {
-                                        if (n[np] > sxcar)
-                                        {
-                                            v = n[np];
-                                            n[np] = sxcar;
-                                            nc++;
-
-                                            while (np < nc)
-                                            {
-                                                sx = n[np];
-                                                n[np] = v;
-                                                v = sx;
-                                                np++;
-                                            }
-
-                                            v = (sexpr)1;
-
-                                            break;
-                                        }
-                                    }
-
-                                    if (v == (sexpr)0)
-                                    {
-                                        n[nc] = sxcar;
-                                        nc++;
-                                    }
-                                }
-
-                                if (pointerp (sxcdr))
-                                {
-                                    v = (sexpr)0;
-                                    for (np = 0; np < nc; np++)
-                                    {
-                                        if (n[np] > sxcdr)
-                                        {
-                                            v = n[np];
-                                            n[np] = sxcdr;
-                                            nc++;
-
-                                            while (np < nc)
-                                            {
-                                                sx = n[np];
-                                                n[np] = v;
-                                                v = sx;
-                                                np++;
-                                            }
-
-                                            v = (sexpr)1;
-
-                                            break;
-                                        }
-                                    }
-
-                                    if (v == (sexpr)0)
-                                    {
-                                        n[nc] = sxcdr;
-                                        nc++;
-                                    }
-                                }
-                            }
-                        }
-                        else if (customp (sx))
-                        {
-                            /* implement this once custom sexprs are in */
-                        }
-
-                        if (nc > nce)
-                        {
-                            c = d = gc_calls;
-                            goto next;
-                        }
-                        else if (nc == 0)
-                        {
-                            goto end;
-                        }
-                        else
-                        {
-                            goto sn;
-                        }
-                    }
-
-                    np++;
-                } while (np < nc);
+                *right = (sexpr)0;
             }
 
-            c++;
-            d++;
+            if (consp (sx))
+            {
+                l = car (sx);
+                r = cdr (sx);
+
+                if (pointerp (l))
+                {
+                    if (pointerp (r))
+                    {
+                        gc_tag (r);
+                    }
+
+                    sx = l;
+                    left = gc_calls;
+                    right = gc_pointer;
+                }
+                else if (pointerp (r))
+                {
+                    sx = r;
+                    left = gc_calls;
+                    right = gc_pointer;
+                }
+            }
+            else if (customp (sx))
+            {
+                /* implement this once custom sexprs are in */
+            }
         }
-/*    } while ((nc > 0) && (lc > 0));*/
 
-  end:
-    k--;
-    while ((k > gc_calls) && ((*k) == (sexpr)0)) { k--; }
+        if ((d = (right - left)) > 1)
+        {
+            p1 = left + (d / 2);
+            p2 = p1;
 
-    gc_pointer = k + 1;
+            while ((r = *p1) == 0)
+            {
+                p1--;
+
+                if (p1 < left) return;
+            }
+
+            while ((l = *p2) == 0)
+            {
+                p2++;
+
+                if (p2 > right) return;
+            }
+
+            if (sx >= l)
+            {
+                left = p2;
+            }
+            else if (sx <= r)
+            {
+                right = p1;
+            }
+            else
+            {
+                return;
+            }
+
+/*            gc_tag_sub (sx, left, p1);
+            left = p2;*/
+        }
+    } while (d > 1);
+}
+
+void gc_tag (sexpr sx)
+{
+    gc_tag_sub (sx, gc_calls, gc_pointer);
 }
 #endif
 
@@ -424,6 +274,51 @@ void gc_call (sexpr sx)
     goto add;
 }
 
+
+
+static int partition (int left, int right, int pivot)
+{
+    int index, i;
+    sexpr value = gc_calls[pivot], t;
+
+    gc_calls[pivot] = gc_calls[right];
+    gc_calls[right] = value;
+
+    index = left;
+
+    for (i = left; i < right; i++)
+    {
+        if (gc_calls[i] <= value)
+        {
+            t = gc_calls[i];
+            gc_calls[i] = gc_calls[index];
+            gc_calls[index] = t;
+
+            index++;
+        }
+    }
+
+    t = gc_calls[index];
+    gc_calls[index] = gc_calls[right];
+    gc_calls[right] = t;
+
+    return index;
+}
+
+static void sort_calls (int left, int right)
+{
+    int pivot;
+
+    if (right > left)
+    {
+        pivot = left;
+
+        pivot = partition (left, right, pivot);
+        sort_calls (left, pivot - 1);
+        sort_calls (pivot + 1, right);
+    }
+}
+
 static int gc_initialise_memory ()
 {
     gc_call_size  = (gc_base_items & (~(LIBCURIE_PAGE_SIZE - 1)))
@@ -443,6 +338,8 @@ static int gc_initialise_memory ()
         free_mem (gc_call_size, gc_calls);
         return 0;
     }
+
+    sort_calls (0, gc_pointer - gc_calls - 1);
 
     if (gc_roots_size != 0)
     {
