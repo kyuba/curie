@@ -31,47 +31,60 @@
 
 #include <curie++/int.h>
 #include <curie/int.h>
+#include <curie/tree.h>
 
 #define NULL ((void *) 0)
 namespace curiepp
 {
   class TreeNode;
 
-   class Tree {
+  class Tree {
 
- #define TREE_INITIALIZER ((TreeNode*) 0)
- #define removeNode(t, k) t->removeNodeSpecific (k, ((TreeNode *) 0))
- #define removeNodeString(t, k) t.removeNodeStringSpecific (k, ((TreeNode *) 0))
- #define getValue(n) ((TreeNode *) n)->value
-  private:
+#define TREE_INITIALIZER ((TreeNode*) 0)
+#define removeNode(t, k) t->removeNodeSpecific (k, ((TreeNode *) 0))
+#define removeNodeString(t, k) t.removeNodeStringSpecific (k, ((TreeNode *) 0))
+#define getValue(n) ((TreeNode *) n)->value
+      private:
 
-  public:
-    Tree();
-    ~Tree();
-    TreeNode *root;
+      protected:
+        struct tree *tree;
 
-    void addNode(TreeNode *);
-    TreeNode* getNode(int_pointer key);
-    void removeNodeSpecific(int_pointer key, TreeNode *node);
+      public:
+        Tree();
+        Tree(struct tree *tree);
+        ~Tree();
 
-    void addNodeString(char* key);
-    void addNodeStringValue(char* key, void* aux);
-    void getNodeString(char* key);
-    void removeNodeStringSpecific(char* key, TreeNode *node);
+        TreeNode *getRoot();
 
-    void map(void(*f)(TreeNode *, void *), void *aux);
+        void addNode(int_pointer key);
+        void addNodeValue(int_pointer key, void *aux);
+        TreeNode* getNode(int_pointer key);
+        void removeNodeSpecific(int_pointer key, TreeNode *node);
+
+        void addNodeString(char* key);
+        void addNodeStringValue(char* key, void* aux);
+        void getNodeString(char* key);
+        void removeNodeStringSpecific(char* key, TreeNode *node);
+
+        void map(void(*f)(TreeNode *, void *), void *aux);
 
   };
 
-   class TreeNode {
-   public:
-     TreeNode(int_pointer key, void *value, TreeNode *right, TreeNode *left);
-    ~TreeNode();
+  class TreeNode {
+      protected:
+        struct tree_node *node;
 
-    int_pointer key;
-    void* value;
-    TreeNode *right;
-    TreeNode *left;
+      public:
+        TreeNode(int_pointer key, void *value, TreeNode *right, TreeNode *left);
+        TreeNode(struct tree_node *node);
+        TreeNode(struct tree_node_pointer *node_);
+        ~TreeNode();
+
+        TreeNode *getLeft();
+        TreeNode *getRight();
+        int_pointer getKey();
+        void *value;
+
   };
 
  }

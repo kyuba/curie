@@ -27,75 +27,95 @@
 */
 #include <curie++/tree.h>
 #include <curie/memory.h>
-#include <curie/tree.h>
+
 using namespace curiepp;
 
 TreeNode::TreeNode(int_pointer key_, void *value_, TreeNode *right_, TreeNode *left_) {
-  key = key_;
+  node->key = key_;
+  node->right = right_->node;
+  node->left = left_->node;
   value = value_;
-  right = right_;
-  left = left_;
+}
+
+TreeNode::TreeNode(struct tree_node_pointer *node_) {
+  node->key = node_->key;
+  node->right = node_->right;
+  node->left = node_->left;
+  value = node_->value;
+}
+
+TreeNode::TreeNode(struct tree_node *node_) {
+  node = node_;
+  value = ((struct tree_node_pointer *) node_)->value;
 }
 
 TreeNode::~TreeNode() {
-  delete left;
-  delete right;
 
   if(value) free_pool_mem(value);
 }
 
+int_pointer TreeNode::getKey() {
+  return this->node->key;
+}
+
+TreeNode* TreeNode::getLeft() {
+  TreeNode* ret = (TreeNode *) 0;
+  if(this->node->left != (struct tree_node *) 0) {
+    ret =  new TreeNode(this->node->left);
+  }
+  return ret;
+}
+
+TreeNode* TreeNode::getRight() {
+  TreeNode* ret = (TreeNode *) 0;
+  if(this->node->right != (struct tree_node *) 0) {
+    ret =  new TreeNode(this->node->right);
+  }
+  return ret;
+}
 
 Tree::Tree() {
-  root = TREE_INITIALIZER;
+  tree = tree_create();
+}
+
+Tree::Tree(struct tree *tree_) {
+  tree = tree_;
 }
 
 Tree::~Tree() {
-  delete root;
+//   delete root;
 }
 
-void Tree::addNode(TreeNode *n) {
-  TreeNode *cur = root, *last = (TreeNode *) NULL;
 
-  if(root == NULL) {
-    root = n;
-    return;
-  }
-  for(;cur != NULL;) {
-    last = cur;
-    if(n->key < cur->key) {
-      cur = cur->left;
-    }
-    else {
-      cur = cur->right;
-    }
 
-    if(n->key < last->key) {
-      last->left = n;
-    }
-    else {
-      last->right = n;
-    }
+void Tree::addNode(int_pointer key) {
+  tree_add_node(tree, key);
+}
 
-  }
-
+void Tree::addNodeValue(int_pointer key, void *aux) {
+  tree_add_node_value(tree, key, aux);
 }
 
 TreeNode* Tree::getNode(int_pointer key)
 {
-  TreeNode *cur = this->root;
-
-  while(cur != (TreeNode*) NULL) {
-    if(cur->key == key) break;
-
-    if(key > cur->key)
-      cur = cur->right;
-    if(key < cur->key)
-      cur = cur->left;
+  struct tree_node *tn = tree_get_node(this->tree, key);
+  TreeNode *ret = (TreeNode *) 0;
+  if(tn != (struct tree_node *) 0) {
+    ret = new TreeNode(tn);
   }
-  return cur;
+  return ret;
 }
 
-void Tree::removeNodeSpecific(int_pointer key, TreeNode *node)
-{
-
+TreeNode* Tree::getRoot() {
+  struct tree_node *tn = tree->root;
+  TreeNode *ret = (TreeNode *)0;
+  if(tn != (struct tree_node *) 0) {
+    if(((struct tree_node_pointer *) tn)->value != (void*)0) {
+      ret = new TreeNode(((struct tree_node_pointer *) tn));
+    }
+    else {
+      ret = new TreeNode(tn);
+    }
+  }
+  return ret;
 }

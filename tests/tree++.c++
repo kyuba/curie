@@ -34,31 +34,42 @@ using namespace curiepp;
 int cxxmain() {
   Tree *t = new Tree();
 
-  t->addNode(new TreeNode(10, NULL, (TreeNode *)NULL, (TreeNode *)NULL));
+  t->addNode(10);
+
 
   if(t == NULL) return -2;
-  if(t->root == NULL) return -1;
+  if(t->getRoot() == (TreeNode *) NULL) return -1;
 
   if(t->getNode(10) == (TreeNode *)NULL) return 1;
 
-  t->addNode(new TreeNode(1, NULL, (TreeNode *)NULL, (TreeNode *)NULL));
+  t->addNode(1);
 
-  if(t->root->left == (TreeNode *)NULL) return 2;
+  if(t->getRoot()->getLeft() == (TreeNode *)NULL) return 2;
+  if(t->getRoot()->getRight() != (TreeNode *)NULL) return 3;
 
-  if(t->root->right != NULL) return 3;
+  t->addNode(23);
+
+
+  if(t->getRoot()->getRight() == (TreeNode *)NULL) return 4;
+  if(t->getRoot()->getRight()->getKey() != 23) return 5;
 //
-  TreeNode *tn23 = new TreeNode(23, NULL, (TreeNode *)NULL, (TreeNode *)NULL);
-  t->addNode(tn23);
-
-  if(t->root->right == (TreeNode *)NULL) return 4;
-  if(t->root->right->key != 23) return 5;
-
-   TreeNode *tn = t->getNode(23);
+  TreeNode *tn = t->getNode(23);
 
   if(tn == (TreeNode*) NULL) return 6;
-  if(tn->key != 23) return 7;
 
+  char *x;
+  x = "nyuu";
 
-   delete t;
+  t->addNodeValue(20, (void *)x);
+  TreeNode *tn2 = t->getNode(20);
+
+  if(tn2 == (TreeNode*) 0) return 7;
+
+  if(tn2->value == (void*)0) return 8;
+
+  if((char*) tn2->value == x) return 0;
+  else return 9;
+
+  delete t;
   return 0;
 }
