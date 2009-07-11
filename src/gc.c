@@ -80,60 +80,6 @@ void gc_remove_root (sexpr *sx)
     }
 }
 
-#if 0
-void gc_tag (sexpr sx)
-{
-    sexpr *c = gc_calls,
-          *k = gc_pointer;
-
-    while (c < k)
-    {
-        if ((*c) == sx)
-        {
-            (*c) = (sexpr)0;
-
-            if (consp (sx))
-            {
-                sexpr sxcar = car (sx), sxcdr = cdr (sx);
-
-                if (pointerp (sxcar))
-                {
-                    if (pointerp (sxcdr))
-                    {
-                        gc_tag (sxcdr);
-                        k = gc_pointer;
-                    }
-
-                    sx = sxcar;
-                    c = gc_calls;
-
-                    continue;
-                }
-                else if (pointerp (sxcdr))
-                {
-                    sx = sxcdr;
-                    c = gc_calls;
-
-                    continue;
-                }
-            }
-            else if (customp (sx))
-            {
-                /* implement this once custom sexprs are in */
-            }
-
-            break;
-        }
-
-        c++;
-    }
-
-    k--;
-    while ((k > gc_calls) && ((*k) == (sexpr)0)) { k--; }
-
-    gc_pointer = k + 1;
-}
-#else
 static void gc_tag_sub (sexpr sx, sexpr *left, sexpr *right)
 {
     sexpr l, r, *p1, *p2;
@@ -231,9 +177,6 @@ static void gc_tag_sub (sexpr sx, sexpr *left, sexpr *right)
             {
                 return;
             }
-
-/*            gc_tag_sub (sx, left, p1);
-            left = p2;*/
         }
     } while (d > 1);
 }
@@ -242,7 +185,6 @@ void gc_tag (sexpr sx)
 {
     gc_tag_sub (sx, gc_calls, gc_pointer);
 }
-#endif
 
 void gc_call (sexpr sx)
 {
@@ -309,13 +251,11 @@ static void sort_calls (int left, int right)
 {
     int pivot;
 
-    if (right > left)
+    while (right > left)
     {
-        pivot = left;
-
-        pivot = partition (left, right, pivot);
+        pivot = partition (left, right, left);
         sort_calls (left, pivot - 1);
-        sort_calls (pivot + 1, right);
+        left = pivot + 1;
     }
 }
 
@@ -345,7 +285,8 @@ static int gc_initialise_memory ()
     {
         sexpr **rootp, **roote;
 
-        for (rootp = gc_roots, roote = (sexpr**)((int_pointer)rootp + gc_roots_size);
+        for (rootp = gc_roots,
+             roote = (sexpr**)((int_pointer)rootp + gc_roots_size);
              rootp < roote; rootp++)
         {
             if ((*rootp) != (sexpr *)0)
@@ -400,6 +341,7 @@ unsigned long gc_invoke ()
     }
 
     gc_deinitialise_memory ();
+    optimise_static_memory_pools ();
 
     return rv;
 }

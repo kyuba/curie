@@ -154,15 +154,15 @@ static void node_rotate (struct tree_node **root, struct tree_node *old, struct 
     }
 }
 
-void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_node *node) {
+void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_node *node)
+{
     struct tree_node
             *cur = tree->root,
             *last = (struct tree_node *)0;
 
     while (cur != (struct tree_node *)0) {
         if ((cur->key == key) &&
-            ((node == (struct tree_node *)0) ||
-             (cur == node)))
+            ((node == (struct tree_node *)0) || (cur == node)))
         {
             /* perform tree rotations to make the node a leaf node */
             while ((cur->left != (struct tree_node *)0) ||
@@ -217,13 +217,26 @@ void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_
 }
 
 static void tree_map_worker(struct tree_node *node, void (*callback)(struct tree_node *, void *), void *sv) {
-    if (node != (struct tree_node *)0) {
-        if (node->left != (struct tree_node *)0)
-            tree_map_worker ((void *)node->left, callback, sv);
-        if (node->right != (struct tree_node *)0)
-            tree_map_worker ((void *)node->right, callback, sv);
+    struct tree_node *onode;
 
-        callback((void *)node, sv);
+    while (node != (struct tree_node *)0) {
+        onode = node;
+
+        if (node->right != (struct tree_node *)0)
+        {
+            if (node->left != (struct tree_node *)0)
+            {
+                tree_map_worker ((void *)node->left, callback, sv);
+            }
+
+            node = node->right;
+        }
+        else
+        {
+            node = node->left;
+        }
+
+        callback((void *)onode, sv);
     }
 }
 

@@ -32,7 +32,6 @@
 #include <curie/memory-internal.h>
 #include <curie/int.h>
 
-static unsigned int optimise_counter = AUTOOPT_N;
 static struct memory_pool *static_pools[POOLCOUNT];
 
 #define bitmap_set(m,b,c)\
@@ -141,10 +140,6 @@ void *get_pool_mem(struct memory_pool *pool)
 {
     switch (pool->type)
     {
-        case mpft_frame:
-            return get_pool_mem_inner((struct memory_pool_frame_header *)pool,
-                                      (struct memory_pool_frame_header *)pool);
-
         case mpft_static_header:
         {
             unsigned short r = (pool->entitysize / ENTITY_ALIGNMENT) - 1;
@@ -158,6 +153,10 @@ void *get_pool_mem(struct memory_pool *pool)
                     ((struct memory_pool_frame_header *)static_pools[r],
                      (struct memory_pool_frame_header *)static_pools[r]);
         }
+
+        case mpft_frame:
+            return get_pool_mem_inner((struct memory_pool_frame_header *)pool,
+                                      (struct memory_pool_frame_header *)pool);
     }
 
     return (void *)0;
@@ -178,12 +177,6 @@ void free_pool_mem(void *mem)
 
     bitmap_clear (pool->map, index, cell);
     pool->map[BITMAPMAPSIZE] |= ((BITMAPENTITYTYPE)(1 << cell));
-
-    optimise_counter--;
-    if (optimise_counter == 0)
-    {
-        optimise_static_memory_pools();
-    }
 }
 
 void optimise_memory_pool(struct memory_pool *pool)
@@ -218,7 +211,6 @@ void optimise_memory_pool(struct memory_pool *pool)
 void optimise_static_memory_pools()
 {
     unsigned int i;
-    optimise_counter = AUTOOPT_N;
 
     for (i = 0; i < POOLCOUNT; i++)
     {
