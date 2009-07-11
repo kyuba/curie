@@ -51,6 +51,16 @@ struct sexpr_io {
     struct io *out; /*!< \brief Output Structure */
 };
 
+struct sexpr_type_descriptor
+{
+    unsigned int   type;
+    sexpr        (*serialise)  (sexpr);
+    sexpr        (*unserialise)(sexpr);
+    void         (*tag)        (sexpr);
+    void         (*destroy)    (sexpr);
+    void         (*call)       ();
+};
+
 void sx_call_all ();
 
 #ifdef __cplusplus

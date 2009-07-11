@@ -426,6 +426,11 @@ void sx_destroy
  */
 #define sx_mask_no_pointer 0x1
 
+void sx_register_type
+        (unsigned int type,
+         sexpr (*serialise) (sexpr), sexpr (*unserialise) (sexpr),
+         void (*tag) (sexpr), void (*destroy) (sexpr), void (*call) ());
+
 /*! @} */
 
 /*! \defgroup sexprPredicates Predicates

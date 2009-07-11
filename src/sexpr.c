@@ -38,21 +38,21 @@ static struct tree sx_string_tree = TREE_INITIALISER;
 static struct tree sx_symbol_tree = TREE_INITIALISER;
 unsigned long gc_base_items       = 0;
 
-sexpr cons(sexpr sx_car, sexpr sx_cdr) {
+sexpr cons(sexpr sx_car, sexpr sx_cdr)
+{
     static struct memory_pool pool =
             MEMORY_POOL_INITIALISER(sizeof (struct sexpr_cons));
-    sexpr t[2] = { sx_car, sx_cdr };
-    int_32 hash = bin_hash ((const char *)t, sizeof (t));
     struct sexpr_cons *rv;
     struct tree_node *n;
+    struct tree *t2;
 
-    if ((n = tree_get_node (&sx_cons_tree, (int_pointer)hash)))
+    if ((n = tree_get_node (&sx_cons_tree, (int_pointer)sx_car)) &&
+         ((t2 = (struct tree *)node_get_value (n)) != (struct tree *)0) &&
+        (n = tree_get_node (t2, (int_pointer)sx_cdr)) &&
+         ((rv = (struct sexpr_cons *)node_get_value (n))
+             != (struct sexpr_cons *)0))
     {
-        if ((rv = (struct sexpr_cons *)node_get_value (n))
-             != (struct sexpr_cons *)0)
-        {
-            return (sexpr)rv;
-        }
+        return (sexpr)rv;
     }
 
     rv = get_pool_mem (&pool);
@@ -66,15 +66,22 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr) {
     rv->car  = sx_car;
     rv->cdr  = sx_cdr;
 
-    tree_add_node_value (&sx_cons_tree, (int_pointer)hash, rv);
+    if (!(n = tree_get_node (&sx_cons_tree, (int_pointer)sx_car)) ||
+        !((t2 = (struct tree *)node_get_value (n)) != (struct tree *)0))
+    {
+        t2 = tree_create ();
+
+        tree_add_node_value (&sx_cons_tree, (int_pointer)sx_car, t2);
+    }
+
+    tree_add_node_value (t2, (int_pointer)sx_cdr, rv);
 
     gc_base_items++;
 
     return (sexpr)rv;
 }
 
-static sexpr make_string_or_symbol
-        (const char *string, char symbol)
+static sexpr make_string_or_symbol (const char *string, char symbol)
 {
     struct sexpr_string_or_symbol *s;
     unsigned long len;
@@ -110,15 +117,18 @@ static sexpr make_string_or_symbol
     return (sexpr)s;
 }
 
-sexpr make_string(const char *string) {
+sexpr make_string(const char *string)
+{
     return make_string_or_symbol (string, (char)0);
 }
 
-sexpr make_symbol(const char *symbol) {
+sexpr make_symbol(const char *symbol)
+{
     return make_string_or_symbol (symbol, (char)1);
 }
 
-void sx_destroy(sexpr sxx) {
+void sx_destroy(sexpr sxx)
+{
     if (!pointerp(sxx)) return;
 
     if (stringp(sxx) || symbolp(sxx))
@@ -143,10 +153,19 @@ void sx_destroy(sexpr sxx) {
     else if (consp(sxx))
     {
         struct sexpr_cons *sx = (struct sexpr_cons *)sx_pointer(sxx);
-        sexpr t[2] = { sx->car, sx->cdr };
-        int_32 hash = bin_hash ((const char *)t, sizeof (t));
+        struct tree *t2;
+        struct tree_node *n;
 
-        tree_remove_node(&sx_cons_tree, (int_pointer)hash);
+        if ((n = tree_get_node (&sx_cons_tree, (int_pointer)(sx->car))) &&
+            ((t2 = (struct tree *)node_get_value (n)) != (struct tree *)0))
+        {
+            tree_remove_node (t2, (int_pointer)(sx->cdr));
+
+            if (t2->root == (struct tree_node *)0)
+            {
+                tree_remove_node (&sx_cons_tree, (int_pointer)(sx->car));
+            }
+        }
 
         free_pool_mem (sx);
         gc_base_items--;
@@ -160,9 +179,15 @@ static void sx_map_call (struct tree_node *node, void *u)
     gc_call (sx);
 }
 
+static void sx_map_call_sub (struct tree_node *node, void *u)
+{
+    struct tree *tree = (struct tree *)node_get_value (node);
+    tree_map ((struct tree *)tree, sx_map_call, (void *)0);
+}
+
 void sx_call_all ()
 {
-    tree_map (&sx_cons_tree,   sx_map_call, (void *)0);
-    tree_map (&sx_string_tree, sx_map_call, (void *)0);
-    tree_map (&sx_symbol_tree, sx_map_call, (void *)0);
+    tree_map (&sx_cons_tree,   sx_map_call_sub, (void *)0);
+    tree_map (&sx_string_tree, sx_map_call,     (void *)0);
+    tree_map (&sx_symbol_tree, sx_map_call,     (void *)0);
 }
