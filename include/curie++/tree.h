@@ -63,7 +63,7 @@ namespace curiepp
 
         void addNodeString(char* key);
         void addNodeStringValue(char* key, void* aux);
-        void getNodeString(char* key);
+        TreeNode* getNodeString(char* key);
         void removeNodeStringSpecific(char* key, TreeNode *node);
 
         void map(void(*f)(TreeNode *, void *), void *aux);
@@ -84,6 +84,7 @@ namespace curiepp
         TreeNode *getRight();
         int_pointer getKey();
         void *value;
+        struct tree_node * getStruct();
 
   };
 

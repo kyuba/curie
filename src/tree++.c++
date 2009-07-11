@@ -74,6 +74,11 @@ TreeNode* TreeNode::getRight() {
   return ret;
 }
 
+struct tree_node * TreeNode::getStruct() {
+  return this->node;
+}
+
+
 Tree::Tree() {
   tree = tree_create();
 }
@@ -118,4 +123,29 @@ TreeNode* Tree::getRoot() {
     }
   }
   return ret;
+}
+
+void Tree::removeNodeSpecific(int_pointer key, TreeNode *node) {
+    tree_remove_node_specific(tree, key, node->getStruct());
+}
+
+void Tree::addNodeString(char * key) {
+    tree_add_node_string(tree, key);
+}
+
+void Tree::addNodeStringValue(char * key, void * aux) {
+    tree_add_node_string_value(tree, key, aux);
+}
+
+TreeNode* Tree::getNodeString(char* key) {
+  struct tree_node *tn = tree_get_node_string(this->tree, key);
+  TreeNode *ret = (TreeNode *) 0;
+  if(tn != (struct tree_node *) 0) {
+    ret = new TreeNode(tn);
+  }
+  return ret;
+}
+
+void Tree::removeNodeStringSpecific(char* key, TreeNode *node) {
+  tree_remove_node_string_specific(tree, key, node->getStruct());
 }

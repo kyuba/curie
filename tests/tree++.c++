@@ -67,8 +67,9 @@ int cxxmain() {
 
   if(tn2->value == (void*)0) return 8;
 
-  if((char*) tn2->value == x) return 0;
-  else return 9;
+  if((char*) tn2->value != x) return 9;
+
+  if(tn->value != (void*)0) return 333;
 
   delete t;
   return 0;
