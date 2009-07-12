@@ -42,7 +42,7 @@ struct dirent64 {
     char            d_name[];
 };
 
-sexpr read_directory_rx (const char *base, struct graph *rx)
+sexpr read_directory_rx (const char *base, sexpr rx)
 {
     int fd = a_open_directory (base);
     sexpr r = sx_end_of_list;

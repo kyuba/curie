@@ -42,11 +42,33 @@
 extern "C" {
 #endif
 
+/*! \brief Type Identifier (Graphs)
+ *
+ *  S-Expression identifier for graphs. (The identifier is the unicode code of
+ *  the greek lower case letter gamma.)
+ */
+#define graph_type_identifier 0x03b3
+
+/*! \brief Check if the S-Expression is a Custom Expression
+ *  \param[in] sx The s-expression to check.
+ *  \param[in] sxtype The s-expression to check.
+ *  \return 1 if it is an expression of a certain custom type, 0 otherwise.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ *
+ *  The primary intention of this particular macro is to aid in writing
+ *  predicates for custom types.
+ */
+#define graphp(sx) sx_customp(sx,graph_type_identifier)
+
 /*! \brief Digraph Root
  *
  *  This structure represents a digraph with an arbitrary number of nodes.
  */
 struct graph {
+    unsigned int type;
+
     /*! \brief Node Count
      *
      *  The number of nodes currently in the graph.
@@ -105,22 +127,15 @@ struct graph_edge {
     struct graph_node *target;
 };
 
+void graph_initialise ();
+
 /*! \brief Create a new Graph
- *  \return The new graph, or (struct graph *)0 when there's no memory
+ *  \return The new graph, or (sexpr)0 when there's no memory
  *          available.
  *
  *  This function initialises a new graph without any nodes.
  */
-struct graph * graph_create ( void );
-
-/*! \brief Destroy a Graph
- *  \param[in] g The graph to destroy.
- *
- *  Deallocates any memory associated with the graph. After calling this
- *  function, any references to the given graph or any of its nodes, edges or
- *  labels may provoke a segmentation violation.
- */
-void graph_destroy (struct graph *g);
+sexpr graph_create ( void );
 
 /*! \brief Create Graph Node
  *  \param[in] g     The graph to add the node to.
@@ -130,7 +145,7 @@ void graph_destroy (struct graph *g);
  *  This creates a new graph node, adds it to the given graph and then assigns
  *  the given label to the node.
  */
-struct graph_node *graph_add_node (struct graph *g, sexpr label);
+struct graph_node *graph_add_node (sexpr g, sexpr label);
 
 /*! \brief Search for Graph Node
  *  \param[in] g     The graph to search in.
@@ -141,7 +156,7 @@ struct graph_node *graph_add_node (struct graph *g, sexpr label);
  *  This function searches for the given label in the graph, and returns a node
  *  with that label, if one is found.
  */
-struct graph_node *graph_search_node (struct graph *g, sexpr label);
+struct graph_node *graph_search_node (sexpr g, sexpr label);
 
 /*! \brief Create Graph Edge
  *  \param[in] node   The originating node for the edge.
@@ -166,23 +181,6 @@ struct graph_edge *graph_node_add_edge
  */
 struct graph_edge *graph_node_search_edge
         (struct graph_node *node, sexpr label);
-
-/*! \brief Turn Graph into an S-Expression
- *  \param[in] graph The graph to convert.
- *  \return S-expression representation of the graph.
- *
- *  This function turns a graph into an s-expression suitable for storage and
- *  later reconstruction. Should be useful for caching, exports and the like.
- */
-sexpr graph_to_sexpr (struct graph *graph);
-
-/*! \brief Reconstruct a Graph from its S-Expression Representation
- *  \param[in] graph The graph to convert.
- *  \return The reconstructed graph.
- *
- *  This is the inverse of graph_to_sexpr().
- */
-struct graph *sexpr_to_graph (sexpr graph);
 
 #ifdef __cplusplus
 }

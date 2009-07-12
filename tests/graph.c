@@ -32,7 +32,7 @@
 #define MAXLABEL 2048
 
 int cmain (void) {
-    struct graph *forest = graph_create();
+    sexpr forest = graph_create();
     sexpr s = make_integer(1);
     sexpr s2 = make_integer(2);
     struct graph_node *node1 = graph_add_node (forest, s);
@@ -49,6 +49,6 @@ int cmain (void) {
         return 2;
     }
 
-    graph_destroy (forest);
+    sx_destroy (forest);
     return 0;
 }

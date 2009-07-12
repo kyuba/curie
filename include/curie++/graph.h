@@ -74,7 +74,7 @@ namespace curiepp {
       Graph();
       Graph(SExpr *);
 
-      Graph(struct graph *g);
+      Graph(sexpr g);
       ~Graph();
 
       int_32 getNodeCount();

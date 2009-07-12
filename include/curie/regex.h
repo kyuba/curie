@@ -138,25 +138,23 @@ extern "C" {
 /*! \brief Compile a Regular Expression
  *  \param[in] rx The regular expression in string form, or an NFA graph in
  *                s-expression form.
- *  \return Generated NFA graph. Use graph_destroy() to deallocate the graph's
- *          memory once you're done with it.
+ *  \return Generated NFA graph.
  *
  *  This function is used to turn a regular expression into a finite-state
  *  machine for the rx_match() and rx_match_rx() functions. Syntax errors aren't
  *  really checked for and the usually result in an NFA that won't match
  *  anything.
  */
-struct graph *rx_compile_sx (sexpr rx);
+sexpr rx_compile_sx (sexpr rx);
 
 /*! \brief Compile a Regular Expression
  *  \param[in] rx The regular expression as a C string.
- *  \return Generated NFA graph. Use graph_destroy() to deallocate the graph's
- *          memory once you're done with it.
+ *  \return Generated NFA graph.
  *
  *  Same as rx_compile_sx, but its argument is a C string instead of an
  *  s-expression.
  */
-struct graph *rx_compile    (const char *rx);
+sexpr rx_compile    (const char *rx);
 
 /*! \brief Match String
  *  \param[in] rx The NFA graph to use for the matching.
@@ -166,7 +164,7 @@ struct graph *rx_compile    (const char *rx);
  *  This function simulates the NFA graph and applies it to the given string.
  *  If the NFA matches the string, sx_true is returned, otherwise it's sx_false.
  */
-sexpr rx_match_sx           (struct graph *rx, sexpr s);
+sexpr rx_match_sx           (sexpr rx, sexpr s);
 
 /*! \brief Match String
  *  \param[in] rx The NFA graph to use for the matching.
@@ -176,7 +174,7 @@ sexpr rx_match_sx           (struct graph *rx, sexpr s);
  *  Same as rx_match_sx, but the string is a C-style string instead of an
  *  s-expression.
  */
-sexpr rx_match              (struct graph *rx, const char *s);
+sexpr rx_match              (sexpr rx, const char *s);
 
 #ifdef __cplusplus
 }

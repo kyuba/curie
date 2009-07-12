@@ -41,13 +41,15 @@ Graph::~Graph()
 {
 }
 
-Graph::Graph(struct graph *g) {
+/*
+Graph::Graph(sexpr g) {
   nodes = new Node*[g->node_count];
   for(int i = 0; i < g->node_count; ++i) {
     struct graph_node *tmp = g->nodes[i];
     nodes[i] = new Node(tmp->label);
   }
 }
+*/
 
 Graph::Graph(SExpr *s) {
   //not yet implemented

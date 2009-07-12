@@ -26,51 +26,50 @@
  * THE SOFTWARE.
 */
 
-#include <curie/directory.h>
 #include <curie/memory.h>
-#include <sys/types.h>
+#include <curie/sexpr.h>
+#include <curie/sexpr-internal.h>
 
-#include <windows.h>
+static struct sexpr_type_descriptor *sxcd = (struct sexpr_type_descriptor *)0;
 
-sexpr read_directory_rx (const char *base, sexpr rx)
+void sx_register_type
+        (unsigned int type,
+         sexpr (*serialise) (sexpr), sexpr (*unserialise) (sexpr),
+         void (*tag) (sexpr), void (*destroy) (sexpr), void (*call) ())
 {
-    char *buffer;
-    int i, blength;
-    WIN32_FIND_DATA data;
-    HANDLE dir;
-    sexpr r = sx_end_of_list;
+    static struct memory_pool pool =
+            MEMORY_POOL_INITIALISER(sizeof (struct sexpr_type_descriptor));
+    struct sexpr_type_descriptor *d = get_pool_mem (&pool);
 
-    for (i = 0; base[i]; i++); blength = i + 2;
-
-    buffer = aalloc (blength);
-
-    for (i = 0; base[i]; i++)
+    if (d == (struct sexpr_type_descriptor *)0)
     {
-        buffer[i] = base[i];
+        return;
     }
 
-    buffer[i] = '\\';
-    buffer[i+1] = '*';
-    buffer[i+2] = 0;
+    d->type        = type;
+    d->serialise   = serialise;
+    d->unserialise = unserialise;
+    d->tag         = tag;
+    d->destroy     = destroy;
+    d->call        = call;
+    d->next        = sxcd;
 
-    dir = FindFirstFileA (buffer, &data);
+    sxcd = d;
+}
 
-    afree (blength, buffer);
+struct sexpr_type_descriptor *sx_get_descriptor (unsigned int type)
+{
+    struct sexpr_type_descriptor *d = sxcd;
 
-    if (dir != INVALID_HANDLE_VALUE)
+    while (d != (struct sexpr_type_descriptor *)0)
     {
-        do
+        if (d->type == type)
         {
-            char *s = data.cFileName;
+            return d;
+        }
 
-            if (truep (rx_match (rx, s)))
-            {
-                r = cons (make_string (s), r);
-            }
-        } while (FindNextFileA (dir, &data));
-
-        CloseHandle (dir);
+        d = d->next;
     }
 
-    return r;
+    return (struct sexpr_type_descriptor *)0;
 }

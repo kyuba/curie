@@ -30,7 +30,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 
-sexpr read_directory_rx (const char *base, struct graph *rx)
+sexpr read_directory_rx (const char *base, sexpr rx)
 {
     DIR *d = opendir (base);
     sexpr r = sx_end_of_list;

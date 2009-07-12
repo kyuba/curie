@@ -38,10 +38,8 @@ sexpr read_directory_sx (sexpr rx)
 {
     sexpr r = sx_end_of_list;
 
-    if (consp (rx)) {
-        struct graph *g = sexpr_to_graph (rx);
-        r = read_directory_rx (".", g);
-        graph_destroy (g);
+    if (graphp (rx)) {
+        r = read_directory_rx (".", rx);
     } else if (stringp (rx)) {
         r = read_directory (sx_string (rx));
     } else if (symbolp (rx)) {
@@ -135,7 +133,7 @@ sexpr read_directory    (const char *p)
 
         if (regex)
         {
-            struct graph *g = rx_compile (map[c]);
+            sexpr g = rx_compile (map[c]);
             sexpr c;
 
             for (c = r; consp(c); c = cdr(c))
@@ -152,7 +150,7 @@ sexpr read_directory    (const char *p)
                 }
             }
 
-            graph_destroy (g);
+            sx_destroy (g);
         }
         else
         {

@@ -14,7 +14,8 @@
         "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
         "directory" "directory-common" "libc-compat" "utf-8" "shell"
-        "memory-error-handling" "sexpr-stdio" "stdio" "stack" "gc")
+        "memory-error-handling" "sexpr-stdio" "stdio" "stack" "gc"
+        "sexpr-custom")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
@@ -29,7 +30,7 @@
         "multiplex-process" "multiplex-sexpr" "network-loop" "read-write"
         "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
         "tree-random" "tree-random-node-removal" "tree-value" "regex"
-        "directory" "io-special" "gc")
+        "directory" "io-special" "gc" "sexpr-custom")
 
   (test-case-reference
         ("temporary-curie-test-data" . "tests/reference/curie-test-data")
@@ -39,7 +40,8 @@
         ("temporary-multiplexer-test-data" .
          "tests/reference/multiplexer-test-data")
         ("temporary-sexpr-read" . "tests/reference/sexpr-read")
-        ("temporary-sexpr-write" . "tests/reference/sexpr-write"))
+        ("temporary-sexpr-write" . "tests/reference/sexpr-write")
+        ("temporary-sexpr-custom" . "tests/reference/sexpr-custom"))
 
   (documentation
         "description"))

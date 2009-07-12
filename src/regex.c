@@ -30,7 +30,7 @@
 #include <curie/memory.h>
 #include <curie/utf-8.h>
 
-static void rx_compile_add_nodes (struct graph *g, const unsigned char *s)
+static void rx_compile_add_nodes (sexpr g, const unsigned char *s)
 {
     unsigned int p = 0, np;
     char quote = 0, cclass = 0;
@@ -79,7 +79,7 @@ static void rx_compile_add_nodes (struct graph *g, const unsigned char *s)
 }
 
 static struct graph_node *rx_compile_recurse
-    (struct graph *g, struct graph_node *n, struct graph_node *e,
+    (sexpr g, struct graph_node *n, struct graph_node *e,
      const unsigned char *s, unsigned int *pp)
 {
     unsigned int p = *pp, np;
@@ -249,11 +249,11 @@ static struct graph_node *rx_compile_recurse
     return c;
 }
 
-struct graph *rx_compile_sx (sexpr sx)
+sexpr rx_compile_sx (sexpr sx)
 {
-    if (consp(sx))
+    if (graphp(sx))
     {
-        return sexpr_to_graph(sx);
+        return sx;
     }
     else if (stringp(sx))
     {
@@ -263,9 +263,9 @@ struct graph *rx_compile_sx (sexpr sx)
     return graph_create();
 }
 
-struct graph *rx_compile (const char *s)
+sexpr rx_compile (const char *s)
 {
-    struct graph *g = graph_create();
+    sexpr g = graph_create();
 
     unsigned int p = 0;
     struct graph_node *n = graph_add_node (g, sx_nil);
@@ -416,7 +416,7 @@ static sexpr rx_match_recurse
     return sx_false;
 }
 
-sexpr rx_match_sx (struct graph *g, sexpr sx)
+sexpr rx_match_sx (sexpr g, sexpr sx)
 {
     if (stringp(sx))
     {
@@ -426,7 +426,7 @@ sexpr rx_match_sx (struct graph *g, sexpr sx)
     return sx_false;
 }
 
-sexpr rx_match (struct graph *g, const char *s)
+sexpr rx_match (sexpr g, const char *s)
 {
     static struct memory_pool pool =
             MEMORY_POOL_INITIALISER (sizeof(struct nfa_state));

@@ -26,51 +26,35 @@
  * THE SOFTWARE.
 */
 
-#include <curie/directory.h>
-#include <curie/memory.h>
-#include <sys/types.h>
+#include "curie/io.h"
+#include "curie/graph.h"
+#include "curie/sexpr.h"
 
-#include <windows.h>
+define_string(str_hello_world, "hello world!");
 
-sexpr read_directory_rx (const char *base, sexpr rx)
-{
-    char *buffer;
-    int i, blength;
-    WIN32_FIND_DATA data;
-    HANDLE dir;
-    sexpr r = sx_end_of_list;
+int cmain(void) {
+    struct io *out = io_open_write ("temporary-sexpr-custom"), *in = io_open (0);
+    struct sexpr_io *io = sx_open_io (in, out);
+    sexpr forest = graph_create();
+    sexpr s = make_integer(1);
+    sexpr s2 = make_integer(2);
+    struct graph_node *node1 = graph_add_node (forest, s);
+    struct graph_node *node2 = graph_add_node (forest, s2);
+    struct graph_edge *edge1;
 
-    for (i = 0; base[i]; i++); blength = i + 2;
-
-    buffer = aalloc (blength);
-
-    for (i = 0; base[i]; i++)
-    {
-        buffer[i] = base[i];
+    if (graph_search_node(forest, s) != node1) {
+        return 1;
     }
 
-    buffer[i] = '\\';
-    buffer[i+1] = '*';
-    buffer[i+2] = 0;
+    edge1 = graph_node_add_edge(node1, node2, s2);
 
-    dir = FindFirstFileA (buffer, &data);
-
-    afree (blength, buffer);
-
-    if (dir != INVALID_HANDLE_VALUE)
-    {
-        do
-        {
-            char *s = data.cFileName;
-
-            if (truep (rx_match (rx, s)))
-            {
-                r = cons (make_string (s), r);
-            }
-        } while (FindNextFileA (dir, &data));
-
-        CloseHandle (dir);
+    if(graph_node_search_edge(node1, s2) != edge1) {
+        return 2;
     }
 
-    return r;
+    sx_write(io, forest);
+
+    sx_close_io (io);
+
+    return 0;
 }

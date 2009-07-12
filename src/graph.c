@@ -30,18 +30,42 @@
 #include <curie/memory.h>
 #include <curie/immutable.h>
 
-struct graph *graph_create()
+static void  graph_destroy  (sexpr);
+static sexpr graph_to_sexpr (sexpr);
+static sexpr sexpr_to_graph (sexpr);
+static char initialised = 0;
+
+void graph_initialise ()
+{
+    if (!initialised)
+    {
+        sx_register_type
+                (graph_type_identifier, graph_to_sexpr, sexpr_to_graph,
+                 (void *)0, graph_destroy, (void *)0);
+
+        initialised = 1;
+    }
+}
+
+sexpr graph_create()
 {
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph));
 
+    if (!initialised)
+    {
+        graph_initialise ();
+    }
+
     struct graph *gr = (struct graph *) get_pool_mem(&pool);
+    gr->type = graph_type_identifier;
     gr->nodes = (struct graph_node **)0;
     gr->node_count = 0;
-    return gr;
+    return (sexpr)gr;
 }
 
-struct graph_node *graph_add_node(struct graph *gr, sexpr label)
+struct graph_node *graph_add_node(sexpr sx, sexpr label)
 {
+    struct graph *gr = (struct graph *)sx_pointer(sx);
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_node));
     struct graph_node *node = (struct graph_node *) get_pool_mem(&pool);
 
@@ -60,8 +84,10 @@ struct graph_node *graph_add_node(struct graph *gr, sexpr label)
     return node;
 }
 
-void graph_destroy (struct graph *gr)
+static void graph_destroy (sexpr sx)
 {
+    struct graph *gr = (struct graph *)sx_pointer(sx);
+
     if (gr->node_count != 0)
     {
         unsigned int i;
@@ -93,8 +119,9 @@ void graph_destroy (struct graph *gr)
     free_pool_mem ((void *)gr);
 }
 
-struct graph_node *graph_search_node(struct graph *gr, sexpr label)
+struct graph_node *graph_search_node (sexpr sx, sexpr label)
 {
+    struct graph *gr = (struct graph *)sx_pointer(sx);
     int i;
 
     for(i = 0; i < gr->node_count; i++) {
@@ -105,7 +132,7 @@ struct graph_node *graph_search_node(struct graph *gr, sexpr label)
     return (struct graph_node *)0;
 }
 
-struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_node *target, sexpr label)
+struct graph_edge *graph_node_add_edge (struct graph_node *node, struct graph_node *target, sexpr label)
 {
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_edge));
     struct graph_edge *edge = (struct graph_edge *) get_pool_mem(&pool);
@@ -124,7 +151,7 @@ struct graph_edge *graph_node_add_edge(struct graph_node *node, struct graph_nod
     return edge;
 }
 
-struct graph_edge *graph_node_search_edge(struct graph_node *node, sexpr label)
+struct graph_edge *graph_node_search_edge (struct graph_node *node, sexpr label)
 {
     int i;
 
@@ -136,8 +163,9 @@ struct graph_edge *graph_node_search_edge(struct graph_node *node, sexpr label)
     return (struct graph_edge *)0;
 }
 
-sexpr graph_to_sexpr (struct graph *g)
+static sexpr graph_to_sexpr (sexpr gsx)
 {
+    struct graph *g = (struct graph *)sx_pointer(gsx);
     sexpr sx = sx_false;
 
     if (g != (struct graph *)0)
@@ -179,9 +207,9 @@ sexpr graph_to_sexpr (struct graph *g)
     return sx;
 }
 
-struct graph *sexpr_to_graph (sexpr sx)
+static sexpr sexpr_to_graph (sexpr sx)
 {
-    struct graph *g = graph_create ();
+    sexpr g = graph_create ();
     sexpr c = car(sx);
 
     while (consp(c))

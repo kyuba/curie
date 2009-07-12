@@ -129,6 +129,10 @@ struct sexpr_string_or_symbol {
     char character_data[];
 };
 
+struct sexpr_partial {
+    unsigned int type;
+};
+
 /*! @} */
 
 /*! \defgroup sexprIO In-/Output
@@ -468,14 +472,26 @@ sexpr equalp
 
 /*! \brief Check if the S-Expression is a Custom Expression
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is a custom expression, 0 otherwise.
- *
- *  \todo This is currently a stub.
+ *  \param[in] sx The s-expression to check.
+ *  \return 1 if it is an expression of any custom type, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define customp(sx) 0
+#define customp(sx) (pointerp(sx) && (((struct sexpr_partial *)sx_pointer(sx))->type > 32))
+
+/*! \brief Check if the S-Expression is a Custom Expression
+ *  \param[in] sx The s-expression to check.
+ *  \param[in] sxtype The s-expression to check.
+ *  \return 1 if it is an expression of a certain custom type, 0 otherwise.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ *
+ *  The primary intention of this particular macro is to aid in writing
+ *  predicates for custom types.
+ */
+#define sx_customp(sx,sxtype) (pointerp(sx) && (((struct sexpr_partial *)sx_pointer(sx))->type == sxtype))
 
 /*! \brief Check if the S-Expression is a Special Expression
  *  \param[in] sx The s-expression to check.
@@ -691,9 +707,9 @@ sexpr equalp
  *  \param[in] sx The integer.
  *  \return The integer value, or an unspecified value if sx is not an integer.
  *
- *  Since the -1 return value for non-integer objects is a valid integer itself,
- *  you should always make sure to check the type of sx yourself if it's
- *  actually important.
+ *  Remember to check for the actual type if it's important whether you're
+ *  examining an integer or not. This macro will also return the ID for special
+ *  s-expressions (true, false, eof, eol, custom type identifiers, etc...)
  */
 #define sx_integer(sx) ((int_pointer_s)(sx & (~0x7)) >> 3)
 
@@ -716,6 +732,9 @@ sexpr equalp
  *  if it's actually important.
  */
 #define sx_symbol(sx)  (const char *)(symbolp(sx) ? (((struct sexpr_string_or_symbol *)sx_pointer(sx))->character_data) : "#nonexistent")
+
+
+#define sx_type(sx) (customp(sx) ? (((struct sexpr_partial *)sx_pointer(sx))->type) : 0)
 
 /*! @} */
 
@@ -754,9 +773,7 @@ sexpr sx_list_fold
  *  for those arguments.
  */
 sexpr sx_join
-        (sexpr a,
-         sexpr b,
-         sexpr c);
+        (sexpr a, sexpr b, sexpr c);
 
 #ifdef __cplusplus
 }

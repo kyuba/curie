@@ -53,15 +53,17 @@ struct sexpr_io {
 
 struct sexpr_type_descriptor
 {
-    unsigned int   type;
-    sexpr        (*serialise)  (sexpr);
-    sexpr        (*unserialise)(sexpr);
-    void         (*tag)        (sexpr);
-    void         (*destroy)    (sexpr);
-    void         (*call)       ();
+    unsigned int                   type;
+    sexpr                        (*serialise)  (sexpr);
+    sexpr                        (*unserialise)(sexpr);
+    void                         (*tag)        (sexpr);
+    void                         (*destroy)    (sexpr);
+    void                         (*call)       ();
+    struct sexpr_type_descriptor  *next;
 };
 
 void sx_call_all ();
+struct sexpr_type_descriptor *sx_get_descriptor (unsigned int type);
 
 #ifdef __cplusplus
 }

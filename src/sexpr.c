@@ -170,6 +170,17 @@ void sx_destroy(sexpr sxx)
         free_pool_mem (sx);
         gc_base_items--;
     }
+    else if (customp(sxx))
+    {
+        int type = sx_type (sxx);
+        struct sexpr_type_descriptor *d = sx_get_descriptor (type);
+
+        if ((d != (struct sexpr_type_descriptor *)0) &&
+             (d->destroy != (void *)0))
+        {
+            d->destroy (sxx);
+        }
+    }
 }
 
 static void sx_map_call (struct tree_node *node, void *u)

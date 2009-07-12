@@ -54,7 +54,7 @@ extern "C" {
  *  Would return something like this list:
  *  ("bin" "lib" "dev" "sbin" "usr" "opt" "var" "etc" "root" "home")
  */
-sexpr read_directory_rx (const char *base, struct graph *rx);
+sexpr read_directory_rx (const char *base, sexpr rx);
 
 /*! \brief Read Directory, filtered with an S-expression
  *  \param[in] rx   The Pattern to use.

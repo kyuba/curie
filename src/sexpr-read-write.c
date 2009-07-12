@@ -31,6 +31,7 @@
 #include <curie/io.h>
 #include <curie/io-system.h>
 #include <curie/constants.h>
+#include <curie/utf-8.h>
 
 #include <curie/sexpr-internal.h>
 
@@ -177,6 +178,11 @@ static sexpr sx_read_symbol
                 *i = j;
                 newsymbol[k] = (char)0;
 
+                if (utf8_get_character ((int_8*)newsymbol, 0, &j) == k)
+                {
+                    return make_special (j);
+                }
+
                 /* return the newly created string */
                 return make_symbol (newsymbol);
             default:
@@ -209,6 +215,22 @@ static sexpr sx_read_cons_finalise
             result = cons(ncar, result);
         }
         reverse = cdr (reverse);
+    }
+
+    reverse = car (result);
+
+    if (specialp (reverse))
+    {
+        unsigned int i = sx_integer (reverse);
+        if (i > 32)
+        {
+            struct sexpr_type_descriptor *d = sx_get_descriptor (i);
+            if ((d != (struct sexpr_type_descriptor *)0) &&
+                ((d->unserialise) != (void *)0))
+            {
+                return d->unserialise (cdr (result));
+            }
+        }
     }
 
     return result;
@@ -590,6 +612,59 @@ static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx)
     {
         (void)io_collect (io->out, ",@", 2);
         return 0;
+    }
+    else if (customp(sx))
+    {
+        int type = sx_type (sx);
+        struct sexpr_type_descriptor *d = sx_get_descriptor (type);
+
+        if ((d != (struct sexpr_type_descriptor *)0) &&
+            (d->serialise != (void *)0))
+        {
+            sx_write_dispatch (io, cons (make_special (type),
+                                         d->serialise (sx)));
+        }
+
+        return 0;
+    }
+    else if (specialp(sx))
+    {
+        unsigned int i = sx_integer (sx);
+        char t[4];
+
+        if (i <= 0x7f)
+        {
+            t[0] = i;
+
+            i = 1;
+        }
+        else if (i <= 0x7ff)
+        {
+            t[0] = 0xc0 | ((i >> 6)  & 0x1f);
+            t[1] = 0x80 | ( i        & 0x3f);
+
+            i = 2;
+        }
+        else if (i <= 0xffff)
+        {
+            t[0] = 0xe0 | ((i >> 12) & 0xf );
+            t[1] = 0x80 | ((i >> 6)  & 0x3f);
+            t[2] = 0x80 | ( i        & 0x3f);
+
+            i = 3;
+        }
+        else /* if (i <= 0x10ffff) */
+        {
+            t[0] = 0xf0 | ((i >> 18) & 0x7 );
+            t[1] = 0x80 | ((i >> 12) & 0x3f);
+            t[2] = 0x80 | ((i >> 6)  & 0x3f);
+            t[3] = 0x80 | ( i        & 0x3f);
+
+            i = 4;
+        }
+
+        io_collect (io->out, t, i);
+        return 1;
     }
     else
     {
