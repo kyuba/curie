@@ -332,23 +332,15 @@ unsigned long gc_invoke ()
     unsigned int i, k;
     unsigned long rv = 0;
 
-    switch (stack_growth) /* sanity check, if either of these tests fail then
-                             either your stack is fucked, or your toolchain is
-                             useless. */
+    /* sanity check, if either of these tests fail then either your stack is
+       fucked, or your toolchain is useless. */
+    if (((stack_growth == sg_down) && (stack_start_address < (void *)l)) ||
+        ((stack_growth == sg_up)   && (stack_start_address > (void *)l)))
     {
-        case sg_down:
-            if (stack_start_address < (void *)l)
-            {
-                return 0;
-            }
-        case sg_up:
-            if (stack_start_address > (void *)l)
-            {
-                return 0;
-            }
+        return 0;
     }
     /* detect simple alignment errors: */
-    if (((int_pointer)l & (~ (sizeof(void *) - 1))) != (int_pointer)l) return 0;
+    if (((int_pointer)l & (~ (sizeof(sexpr) - 1))) != (int_pointer)l) return 0;
 
     if (!gc_initialise_memory ()) return 0;
 
@@ -362,7 +354,7 @@ unsigned long gc_invoke ()
         }
     }
 
-    for (i = 0, k = gc_calls - gc_pointer; i < k; i++)
+    for (i = 0, k = (gc_pointer - gc_calls); i < k; i++)
     {
         sexpr sx = gc_calls[i];
 
