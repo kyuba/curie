@@ -637,7 +637,7 @@ static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx)
                                d->serialise (sx)));
         }
 
-        return 0;
+        return 1;
     }
     else if (specialp(sx))
     {
