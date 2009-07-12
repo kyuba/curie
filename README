@@ -83,5 +83,22 @@ Testing:
   top. Afterwards, just send the output of the command to
   <magnus.deininger@student.uni-tuebingen.de>, or drop by on IRC
 
-CONTACT:
-  Best bet is IRC: freenode #kyuba
+###- TROUBLESHOOTING / KNOWN ISSUES -###########################################
+
+Stack protectors:
+  Compilation may crash or curie programmes may die/stall/eat all resources for
+  no apparent reason in the garbage collection phase if you have a gcc that has
+  been patched with SSP and SSP is enabled by default. If you experience any
+  funky issues and you have SSP enabled, add -fno-stack-protector to your CFLAGS
+  while compiling icemake and while compiling curie programmes with icemake.
+
+  Protip: if you're an application developer you should shun SSP at all costs
+  and instead just fix your (or others') code if it's broken. Do not confuse
+  fighting the symptoms with fixing the underlying issue, it's not the same, no
+  matter what your computer science teachers with a favour for java and no
+  concept nor understanding of pointers may have told you. SSP in all its forms
+  is one of the sad reasons why applications suck these days.
+
+###- CONTACT -##################################################################
+
+  Your best bet is IRC: freenode #kyuba
