@@ -97,7 +97,7 @@ static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
 
 static void build_documentation_doxygen ()
 {
-    if (stringp (p_doxygen) && truep (linkp (str_doxyfile)))
+    if (stringp (p_doxygen) && truep (filep (str_doxyfile)))
     {
         workstack = cons (cons (p_doxygen,
                                 sx_end_of_list),

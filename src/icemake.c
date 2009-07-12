@@ -2028,6 +2028,7 @@ int main (int argc, char **argv, char **environ)
     gc_elements = cons (i_destdir, gc_elements);
     gc_elements = cons (i_pname, gc_elements);
     gc_elements = cons (i_destlibdir, gc_elements);
+    gc_elements = cons (p_doxygen, gc_elements);
     gc_elements = cons (buildtargets, gc_elements);
 
     multiplex_io();

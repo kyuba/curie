@@ -164,13 +164,9 @@ programme and library files using these modified header files automatically. If
 you modify header files, it may be best to completely erase the build/ directory
 and to call icemake again.
 
-icemake is currently limited to the gcc toolchain. Other toolchains require
-additional code to be added to icemake.
-
-Building for non-unixy systems will, at the very least, get filenames wrong and
-will require the build.sh file to be rewritten as, for example, a windows
-command/batch script, or it will require a manually built version of icemake, or
-cross-compilation.
+icemake is currently limited to the gcc, msvc++ and borland toolchains. Other
+toolchains may require additional code to be added to icemake, unless they have
+some sort of compatibility mode for one of the former toolchains.
 
 Linking C++ programmes may result in minor havoc, due to the weird linking
 requirements for C++ programmes exposed by g++ and the utter lack of a proper
@@ -179,9 +175,11 @@ results in icemake always linking C++ programmes against the host C library,
 even if curie is properly standalone.
 
 Cross-compilation may or may not work, but in general this tool should at least
-be able to find the proper compiler binaries and use them, if the
+be able to find the proper compiler binaries and use them if the
 .B -t
-option is being used, and each target gets its own directory under build/*/.
+option is being used. Additionally, each target gets its own directory under
+build/, so the linking phase should work fine and not mix object files for
+different targets.
 .RE
 
 .I Testing

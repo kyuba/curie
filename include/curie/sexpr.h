@@ -430,6 +430,33 @@ void sx_destroy
  */
 #define sx_mask_no_pointer 0x1
 
+/*! \brief Register Custom S-Expression Type
+ *  \param[in]     type        Type ID to register.
+ *  \param[in,out] serialise   This callback is called when an S-expression of
+ *                             this type needs to be written with sx_write(), or
+ *                             someone felt like getting a serialised version of
+ *                             the expression.
+ *  \param[in,out] unserialise This callback is called when an S-expression
+ *                             encoded by serialise() is read in or otherwise
+ *                             needs to be restored.
+ *  \param[in,out] tag         Called when an S-expression of this type is
+ *                             tagged. Use this to tag sub-expressions.
+ *  \param[in,out] destroy     Called when sx_destroy() is invoked on an
+ *                             S-expression of this type.
+ *  \param[in,out] call        Called when the garbage collector runs, this
+ *                             function is expected to invoke gc_call() on all
+ *                             S-expressions of this type that may be eligible
+ *                             for garbage collection.
+ *  \param[in,out] equalp      Called when two S-exprssions of this type need
+ *                             to be compared for equality. Not providing this
+ *                             function means two S-expressions of this type are
+ *                             only equalp if they point to the same location.
+ *
+ *  The type ID you use should be greater than 32. Coincidentally the serialised
+ *  form of your S-expression will be of the form (type ...) with type being
+ *  represented as an UTF-8 character, so you should use the number of a fitting
+ *  UTF-8 glyph for your purposes.
+ */
 void sx_register_type
         (unsigned int type,
          sexpr (*serialise) (sexpr), sexpr (*unserialise) (sexpr),
