@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2009, Kyuba Project Members
+ * Copyright (c) 2008, 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,27 +26,30 @@
  * THE SOFTWARE.
 */
 
-/*! \file
- *  \brief Stack Information
- *
- *  Some generic information to help with certain stack majick thingamajiggies.
- *  The GC needs this.
- */
+.data
 
-#ifndef LIBCURIE_STACK_H
-#define LIBCURIE_STACK_H
+.globl stack_growth
+    .type stack_growth, @object
+    .size stack_growth, 4
+stack_growth:
+        .quad 0x0
 
-enum stack_growth
-{
-    sg_down = 0,
-    sg_up   = 1
-};
+.globl stack_start_address
+    .type stack_start_address, @object
+    .size stack_start_address, 8
+stack_start_address:
+        .quad 0x0
 
-extern enum stack_growth  stack_growth;
-extern void              *stack_start_address;
+.text
+    .align 8
 
-void initialise_stack();
+.globl initialise_stack
+    .type initialise_stack, @function
 
-#endif
 
-/*! @} */
+initialise_stack:
+        movq %rsp, stack_start_address@PLT
+
+        retq
+
+.section .note.GNU-stack,"",%progbits
