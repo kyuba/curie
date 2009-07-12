@@ -234,13 +234,6 @@ static sexpr sx_read_cons_finalise (sexpr oreverse)
             {
                 return d->unserialise (reverse);
             }
-            else /* re-encode the original symbol */
-            {
-                char b[5];
-                i = utf8_encode ((int_8*)b, i);
-                b[i] = 0;
-                return cons (make_symbol (b), reverse);
-            }
         }
     }
 
