@@ -772,8 +772,7 @@ sexpr equalp
  *
  *  This function applies the given function to each element of f.
  */
-void sx_list_map
-        (sexpr list, void (*f)(sexpr));
+void sx_list_map (sexpr list, void (*f)(sexpr));
 
 /*! \brief List Fold
  *  \param[in] list The list to fold.
@@ -785,8 +784,7 @@ void sx_list_map
  *  return value of f to the next function call and ultimately returning the
  *  return value of the last call to f().
  */
-sexpr sx_list_fold
-        (sexpr list, sexpr (*f)(sexpr, sexpr), sexpr seed);
+sexpr sx_list_fold (sexpr list, sexpr (*f)(sexpr, sexpr), sexpr seed);
 
 /*! \brief Join Strings/Symbols
  *  \param[in] a The first string or symbol.
@@ -800,8 +798,16 @@ sexpr sx_list_fold
  *  a symbol, which omits them in the generated string. sx_nil is recommended
  *  for those arguments.
  */
-sexpr sx_join
-        (sexpr a, sexpr b, sexpr c);
+sexpr sx_join (sexpr a, sexpr b, sexpr c);
+
+/*! \brief Reverse a List
+ *  \param[in] sx The list to reverse.
+ *  \return The reverse of sx.
+ *
+ *  This function is the same as (reverse ...) in lisps, it simply reorders the
+ *  elements of sx so that they're in reverse order.
+ */
+sexpr sx_reverse (sexpr sx);
 
 #ifdef __cplusplus
 }

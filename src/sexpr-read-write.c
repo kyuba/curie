@@ -37,7 +37,8 @@
 static sexpr sx_read_dispatch (unsigned int *i, char *buf, unsigned int length);
 static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx);
 
-struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
+struct sexpr_io *sx_open_io(struct io *in, struct io *out)
+{
     static struct memory_pool pool
             = MEMORY_POOL_INITIALISER(sizeof (struct sexpr_io));
     struct sexpr_io *rv = get_pool_mem (&pool);
@@ -69,7 +70,8 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
     return rv;
 }
 
-void sx_close_io (struct sexpr_io *io) {
+void sx_close_io (struct sexpr_io *io)
+{
     io_close (io->in);
     io_close (io->out);
 
@@ -201,24 +203,10 @@ static sexpr sx_read_symbol
     return sx_nonexistent;
 }
 
-static sexpr sx_read_cons_finalise
-        (sexpr oreverse)
+static sexpr sx_read_cons_finalise (sexpr oreverse)
 {
-    sexpr result = sx_end_of_list;
-    sexpr reverse = oreverse;
-
-    while (consp(reverse)) {
-        sexpr ncar = car (reverse);
-        if (dotp (ncar)) {
-            sexpr nresult = car(result);
-            result = nresult;
-        } else {
-            result = cons(ncar, result);
-        }
-        reverse = cdr (reverse);
-    }
-
-    reverse = car (result);
+    sexpr result = sx_reverse (oreverse);
+    sexpr reverse = car (result);
 
     if (specialp (reverse))
     {

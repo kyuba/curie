@@ -155,3 +155,22 @@ sexpr sx_join (sexpr a, sexpr b, sexpr c)
 
     return rv;
 }
+
+sexpr sx_reverse (sexpr sx)
+{
+    sexpr result = sx_end_of_list;
+    sexpr reverse = sx;
+
+    while (consp(reverse)) {
+        sexpr ncar = car (reverse);
+        if (dotp (ncar)) {
+            sexpr nresult = car(result);
+            result = nresult;
+        } else {
+            result = cons(ncar, result);
+        }
+        reverse = cdr (reverse);
+    }
+
+    return result;
+}
