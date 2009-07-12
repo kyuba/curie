@@ -63,7 +63,8 @@ struct sexpr_type_descriptor
     struct sexpr_type_descriptor  *next;
 };
 
-void sx_call_all ();
+void sx_call_all ( void );
+void sx_call_custom ( void );
 struct sexpr_type_descriptor *sx_get_descriptor (unsigned int type);
 
 #ifdef __cplusplus

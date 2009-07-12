@@ -196,7 +196,7 @@ static void sx_map_call_sub (struct tree_node *node, void *u)
     tree_map ((struct tree *)tree, sx_map_call, (void *)0);
 }
 
-void sx_call_all ()
+void sx_call_all ( void )
 {
     tree_map (&sx_cons_tree,   sx_map_call_sub, (void *)0);
     tree_map (&sx_string_tree, sx_map_call,     (void *)0);

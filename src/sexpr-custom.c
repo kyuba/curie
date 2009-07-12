@@ -75,3 +75,18 @@ struct sexpr_type_descriptor *sx_get_descriptor (unsigned int type)
 
     return (struct sexpr_type_descriptor *)0;
 }
+
+void sx_call_custom ( void )
+{
+    struct sexpr_type_descriptor *d = sxcd;
+
+    while (d != (struct sexpr_type_descriptor *)0)
+    {
+        if (d->call != (void *)0)
+        {
+            d->call ();
+        }
+
+        d = d->next;
+    }
+}

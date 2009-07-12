@@ -142,7 +142,21 @@ static void gc_tag_sub (sexpr sx, sexpr *left, sexpr *right)
             }
             else if (customp (sx))
             {
-                /* implement this once custom sexprs are in */
+                int type = sx_type (sx);
+
+                struct sexpr_type_descriptor *d = sx_get_descriptor (type);
+
+                if ((d != (struct sexpr_type_descriptor *)0) &&
+                    (d->tag != (void *)0))
+                {
+                    d->tag (sx);
+                }
+
+                return;
+            }
+            else
+            {
+                return;
             }
         }
 
@@ -272,6 +286,7 @@ static int gc_initialise_memory ()
     }
 
     sx_call_all();
+    sx_call_custom();
 
     if (cancel)
     {
