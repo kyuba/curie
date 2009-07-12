@@ -162,6 +162,6 @@ int strncmp(const unsigned char *s1, const unsigned char *s2, long count)
 
 /* fuck SSP. learn how to programme, bitches */
 
-void __stack_chk_fail ( void ) {}
-void __guard ( void ) {}
+unsigned long int __stack_chk_fail = 0;
+unsigned long int __guard = 0;
 void __stack_smash_handler ( void ) {}
