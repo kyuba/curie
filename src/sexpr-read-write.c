@@ -29,15 +29,13 @@
 #include <curie/memory.h>
 #include <curie/sexpr.h>
 #include <curie/io.h>
-#include <curie/io-system.h>
 #include <curie/constants.h>
 #include <curie/utf-8.h>
 
 #include <curie/sexpr-internal.h>
 
+static sexpr sx_read_dispatch (unsigned int *i, char *buf, unsigned int length);
 static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx);
-static sexpr sx_read_dispatch
-        (unsigned int *i, char *buf, unsigned int length);
 
 struct sexpr_io *sx_open_io(struct io *in, struct io *out) {
     static struct memory_pool pool
@@ -180,7 +178,10 @@ static sexpr sx_read_symbol
 
                 if (utf8_get_character ((int_8*)newsymbol, 0, &j) == k)
                 {
-                    return make_special (j);
+                    if (j > 32)
+                    {
+                        return make_special (j);
+                    }
                 }
 
                 /* return the newly created string */
@@ -222,13 +223,24 @@ static sexpr sx_read_cons_finalise
     if (specialp (reverse))
     {
         unsigned int i = sx_integer (reverse);
+        struct sexpr_type_descriptor *d;
+
+        reverse = cdr (result);
+
         if (i > 32)
         {
-            struct sexpr_type_descriptor *d = sx_get_descriptor (i);
-            if ((d != (struct sexpr_type_descriptor *)0) &&
+            if (((d = sx_get_descriptor (i))
+                  != (struct sexpr_type_descriptor *)0) &&
                 ((d->unserialise) != (void *)0))
             {
-                return d->unserialise (cdr (result));
+                return d->unserialise (reverse);
+            }
+            else /* re-encode the original symbol */
+            {
+                char b[5];
+                i = utf8_encode ((int_8*)b, i);
+                b[i] = 0;
+                return cons (make_symbol (b), reverse);
             }
         }
     }
@@ -487,7 +499,7 @@ static void sx_write_cons (struct sexpr_io *io, struct sexpr_cons *sx) {
 
     retry:
 
-    r = sx_write_dispatch (io, sx->car);
+            r = sx_write_dispatch (io, sx->car);
 
     if (consp(sx->cdr)) {
         if (r == 1)
@@ -619,10 +631,10 @@ static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx)
         struct sexpr_type_descriptor *d = sx_get_descriptor (type);
 
         if ((d != (struct sexpr_type_descriptor *)0) &&
-            (d->serialise != (void *)0))
+             (d->serialise != (void *)0))
         {
             sx_write_dispatch (io, cons (make_special (type),
-                                         d->serialise (sx)));
+                               d->serialise (sx)));
         }
 
         return 0;
@@ -632,36 +644,7 @@ static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx)
         unsigned int i = sx_integer (sx);
         char t[4];
 
-        if (i <= 0x7f)
-        {
-            t[0] = i;
-
-            i = 1;
-        }
-        else if (i <= 0x7ff)
-        {
-            t[0] = 0xc0 | ((i >> 6)  & 0x1f);
-            t[1] = 0x80 | ( i        & 0x3f);
-
-            i = 2;
-        }
-        else if (i <= 0xffff)
-        {
-            t[0] = 0xe0 | ((i >> 12) & 0xf );
-            t[1] = 0x80 | ((i >> 6)  & 0x3f);
-            t[2] = 0x80 | ( i        & 0x3f);
-
-            i = 3;
-        }
-        else /* if (i <= 0x10ffff) */
-        {
-            t[0] = 0xf0 | ((i >> 18) & 0x7 );
-            t[1] = 0x80 | ((i >> 12) & 0x3f);
-            t[2] = 0x80 | ((i >> 6)  & 0x3f);
-            t[3] = 0x80 | ( i        & 0x3f);
-
-            i = 4;
-        }
+        i = utf8_encode ((int_8*)t, i);
 
         io_collect (io->out, t, i);
         return 1;
@@ -673,7 +656,8 @@ static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx)
     }
 }
 
-void sx_write(struct sexpr_io *io, sexpr sx) {
+void sx_write(struct sexpr_io *io, sexpr sx)
+{
     if (sx_write_dispatch(io, sx) == 1)
     {
         (void)io_write (io->out, "\n", 1);

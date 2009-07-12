@@ -33,7 +33,7 @@
 define_string(str_hello_world, "hello world!");
 
 int cmain(void) {
-    struct io *out = io_open_write ("temporary-sexpr-custom"), *in = io_open (0);
+    struct io *out = io_open_write ("temporary-sexpr-custom"), *in = io_open_null;
     struct sexpr_io *io = sx_open_io (in, out);
     sexpr forest = graph_create();
     sexpr s = make_integer(1);
@@ -55,6 +55,42 @@ int cmain(void) {
     sx_write(io, forest);
 
     sx_close_io (io);
+    sx_destroy (forest);
 
-    return 0;
+    in = io_open_read ("temporary-sexpr-custom");
+    out = io_open_null;
+    io = sx_open_io (in, out);
+
+    while (!eofp(forest = sx_read (io)))
+    {
+        if (consp(forest))
+        {
+            return 4;
+        }
+        else if (graphp(forest))
+        {
+            if ((node1 = graph_search_node(forest, s))
+                 == (struct graph_node *)0)
+            {
+                return 5;
+            }
+
+            if ((edge1 = graph_node_search_edge(node1, s2))
+                 == (struct graph_edge *)0)
+            {
+                return 6;
+            }
+
+            sx_destroy (forest);
+
+            return 0;
+        }
+        else if (nexp(forest)) {}
+        else
+        {
+            return 5;
+        }
+    }
+
+    return 3;
 }

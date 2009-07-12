@@ -56,6 +56,17 @@ extern "C" {
  */
 unsigned int utf8_get_character (const int_8 *b, unsigned int p, int_32 *c);
 
+/*!\brief Encode Character in UTF-8
+ * \param[out] b A buffer to put the character into.
+ * \param[in]  c The character to encode.
+ * \return The number of bytes used in the buffer.
+ *
+ * As per RFC 3629, the buffer won't exceed 4 bytes in length. This means that,
+ * if c is larger than 0x10ffff, some data may be discarded if it would require
+ * a 5- or 6-byte encoding.
+ */
+unsigned int utf8_encode (int_8 *b, unsigned int c);
+
 /*!\brief Is the given byte an UTF-8 multibyte sequence start character?
  * \param[in] c Character to test
  * \return Something that evaluates to true if the condition holds, and false

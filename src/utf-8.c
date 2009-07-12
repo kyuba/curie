@@ -85,3 +85,37 @@ unsigned int utf8_get_character (const int_8 *b, unsigned int p, int_32 *c)
 
     return p;
 }
+
+unsigned int utf8_encode (int_8 *b, unsigned int c)
+{
+    if (c <= 0x7f)
+    {
+        b[0] = c;
+
+        return 1;
+    }
+    else if (c <= 0x7ff)
+    {
+        b[0] = 0xc0 | ((c >> 6)  & 0x1f);
+        b[1] = 0x80 | ( c        & 0x3f);
+
+        return 2;
+    }
+    else if (c <= 0xffff)
+    {
+        b[0] = 0xe0 | ((c >> 12) & 0xf );
+        b[1] = 0x80 | ((c >> 6)  & 0x3f);
+        b[2] = 0x80 | ( c        & 0x3f);
+
+        return 3;
+    }
+    else /* if (c <= 0x10ffff) */
+    {
+        b[0] = 0xf0 | ((c >> 18) & 0x7 );
+        b[1] = 0x80 | ((c >> 12) & 0x3f);
+        b[2] = 0x80 | ((c >> 6)  & 0x3f);
+        b[3] = 0x80 | ( c        & 0x3f);
+
+        return 4;
+    }
+}
