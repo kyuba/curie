@@ -433,7 +433,8 @@ void sx_destroy
 void sx_register_type
         (unsigned int type,
          sexpr (*serialise) (sexpr), sexpr (*unserialise) (sexpr),
-         void (*tag) (sexpr), void (*destroy) (sexpr), void (*call) ());
+         void (*tag) (sexpr), void (*destroy) (sexpr), void (*call) (),
+         sexpr (*equalp) (sexpr, sexpr));
 
 /*! @} */
 

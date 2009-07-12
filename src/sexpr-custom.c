@@ -35,7 +35,8 @@ static struct sexpr_type_descriptor *sxcd = (struct sexpr_type_descriptor *)0;
 void sx_register_type
         (unsigned int type,
          sexpr (*serialise) (sexpr), sexpr (*unserialise) (sexpr),
-         void (*tag) (sexpr), void (*destroy) (sexpr), void (*call) ())
+         void (*tag) (sexpr), void (*destroy) (sexpr), void (*call) (),
+         sexpr (*equalp) (sexpr, sexpr))
 {
     static struct memory_pool pool =
             MEMORY_POOL_INITIALISER(sizeof (struct sexpr_type_descriptor));
@@ -52,6 +53,7 @@ void sx_register_type
     d->tag         = tag;
     d->destroy     = destroy;
     d->call        = call;
+    d->equalp      = equalp;
     d->next        = sxcd;
 
     sxcd = d;

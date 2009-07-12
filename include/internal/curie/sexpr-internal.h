@@ -59,6 +59,7 @@ struct sexpr_type_descriptor
     void                         (*tag)        (sexpr);
     void                         (*destroy)    (sexpr);
     void                         (*call)       ();
+    sexpr                        (*equalp)     (sexpr, sexpr);
     struct sexpr_type_descriptor  *next;
 };
 

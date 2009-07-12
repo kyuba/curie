@@ -41,7 +41,7 @@ void graph_initialise ()
     {
         sx_register_type
                 (graph_type_identifier, graph_to_sexpr, sexpr_to_graph,
-                 (void *)0, graph_destroy, (void *)0);
+                 (void *)0, graph_destroy, (void *)0, (void *)0);
 
         initialised = 1;
     }

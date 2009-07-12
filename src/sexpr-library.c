@@ -27,6 +27,7 @@
 */
 
 #include <curie/sexpr.h>
+#include <curie/sexpr-internal.h>
 #include <curie/string.h>
 #include <curie/memory.h>
 
@@ -52,6 +53,21 @@ sexpr equalp (sexpr a, sexpr b)
         return ((truep(equalp(car(a), car(b))) &&
                  truep(equalp(cdr(a), cdr(b))))) ?
                 sx_true : sx_false;
+    }
+    else if (customp(a) && customp(b))
+    {
+        int type = sx_type (a);
+
+        if (type == sx_type (b))
+        {
+            struct sexpr_type_descriptor *d = sx_get_descriptor (type);
+
+            if ((d != (struct sexpr_type_descriptor *)0) &&
+                (d->equalp != (void *)0))
+            {
+                return d->equalp (a, b);
+            }
+        }
     }
 
     return sx_false;
