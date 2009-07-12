@@ -191,7 +191,7 @@ static sexpr sx_read_symbol
 
                 if (utf8_get_character ((int_8*)newsymbol, 0, &j) == k)
                 {
-                    if (j > 32)
+                    if (j > 127)
                     {
                         return make_special (j);
                     }
@@ -226,7 +226,7 @@ static sexpr sx_read_cons_finalise (sexpr oreverse)
 
         reverse = cdr (result);
 
-        if (i > 32)
+        if (i > 127)
         {
             if (((d = sx_get_descriptor (i))
                   != (struct sexpr_type_descriptor *)0) &&

@@ -506,7 +506,7 @@ sexpr equalp
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
-#define customp(sx) (pointerp(sx) && (((struct sexpr_partial *)sx_pointer(sx))->type > 32))
+#define customp(sx) (pointerp(sx) && (((struct sexpr_partial *)sx_pointer(sx))->type > 127))
 
 /*! \brief Check if the S-Expression is a Custom Expression
  *  \param[in] sx The s-expression to check.
