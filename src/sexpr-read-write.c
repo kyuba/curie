@@ -113,9 +113,11 @@ static sexpr sx_read_string
 static sexpr sx_read_number
         (unsigned int *i, char *buf, unsigned int length)
 {
+    define_symbol (sym_plus,  "+");
+    define_symbol (sym_minus, "-");
     unsigned int j = *i;
     signed long number = 0;
-    char number_is_negative = (char)0;
+    char number_is_negative = (char)0, hadnum = (char)0;
 
     switch (buf[j])
     {
@@ -141,15 +143,24 @@ static sexpr sx_read_number
             case '9':
                 /* append to the number */
                 number = (number * 10) + (long int)(buf[j] - '0');
+                hadnum = (char)1;
                 break;
             default:
                 /* end of number */
                 *i = j;
-                if (number_is_negative == (char)1) {
-                    number *= -1;
+                if (hadnum == (char)0)
+                {
+                    return ((number_is_negative == (char)1) ?
+                            sym_plus : sym_minus);
                 }
+                else
+                {
+                    if (number_is_negative == (char)1) {
+                        number *= -1;
+                    }
 
-                return make_integer (number);
+                    return make_integer (number);
+                }
         }
         j++;
     } while (j < length);
