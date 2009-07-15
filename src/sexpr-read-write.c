@@ -151,7 +151,7 @@ static sexpr sx_read_number
                 if (hadnum == (char)0)
                 {
                     return ((number_is_negative == (char)1) ?
-                            sym_plus : sym_minus);
+                            sym_minus : sym_plus);
                 }
                 else
                 {
