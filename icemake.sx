@@ -61,12 +61,12 @@
         "objects" "exceptions" "graph++" "tree++")
 
   (test-case-reference
-    ("temporary-graph" . "tests/reference/graph")))
+        ("temporary-graph" . "tests/reference/graph")))
 
 (programme "icemake" hosted libcurie
   (name "icemake")
   (description "simple build tool for curie, based on curie")
-  (version "9")
+  (version "10")
 
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
         "icemake-link" "icemake-crosslink" "icemake-post-process"
