@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,10 @@
  * THE SOFTWARE.
 */
 
-#include <syscall/syscall.h>
+#include <time.h>
+#include <curie/time-system.h>
 
-/* this is just a stub so that curie compiles on arch/os combinations where we
-   don't have any syscall code yet. */
+long long __a_time()
+{
+    return time ((void *)0);
+}

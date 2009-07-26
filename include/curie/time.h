@@ -48,33 +48,37 @@ typedef int_64 int_time;
 
 struct date
 {
-    unsigned char alautun;    /*!< 20 k'inchiltun per alautun */
-    unsigned char kinchiltun; /*!< 20 kalabtun per k'inchiltun */
-    unsigned char kalabtun;   /*!< 20 piktun per kalabtun */
-    unsigned char piktun;     /*!< 20 b'ak'tun per piktun */
-    unsigned char baktun;     /*!< 20 k'atun per b'ak'tun */
-    unsigned char katun;      /*!< 20 tun per k'atun */
-    unsigned char tun;        /*!< 18 winal per tun */
-    unsigned char winal;      /*!< 20 k'in per winal */
-    unsigned char kin;        /*!< k'in, basic unit */
+    unsigned int alautun    : 5; /*!< 20 k'inchiltun, 23040000000 k'in*/
+    unsigned int kinchiltun : 5; /*!< 20 kalabtun,    1152000000 k'in*/
+    unsigned int kalabtun   : 5; /*!< 20 piktun,      57600000 k'in */
+    unsigned int piktun     : 5; /*!< 20 b'ak'tun,    2880000 k'in */
+    unsigned int baktun     : 5; /*!< 20 k'atun,      144000 k'in */
+    unsigned int katun      : 5; /*!< 20 tun,         7200 k'in */
+    unsigned int tun        : 5; /*!< 18 winal,       360 k'in */
+    unsigned int winal      : 5; /*!< 20 k'in */
+    unsigned int kin        : 5; /*!< k'in, basic unit */
 };
 
-struct dt
+struct datetime
 {
     int_time      date;
-    double        time;
+    unsigned int  time;      /*!< 0-99999999, representing 00:00:00 - 23:59:59*/
 };
 
-int_time dt_get_kin   ();
-int_time dt_make_kin  (struct date *date);
-void     dt_split_kin (int_time kin, struct date *date);
+int_time     dt_get_kin   (void);
+int_time     dt_make_kin  (struct date *date);
+void         dt_split_kin (int_time kin, struct date *date);
 
 /*! \brief Get Current Time
  *  \return How far into the day we are already, in % (UTC).
  */
-double dt_get_time  ();
+unsigned int dt_get_time  (void);
+void         dt_get       (struct datetime *date);
 
-void   dt_get (struct dt *dt);
+/*
+sexpr    sx_from_dt   (int_time date);
+int_time dt_from_sx   (sexpr date);
+*/
 
 #ifdef __cplusplus
 }

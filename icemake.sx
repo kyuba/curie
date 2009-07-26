@@ -6,7 +6,7 @@
 
   (freestanding-if-assembly
         "io-system" "memory" "bootstrap" "network-system" "exec-system"
-        "multiplex-system" "signal-system" "directory")
+        "multiplex-system" "signal-system" "directory" "time-system")
 
   (code "sexpr" "io" "memory-pool" "tree" "exec" "multiplex" "string"
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
@@ -15,7 +15,7 @@
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
         "directory" "directory-common" "libc-compat" "utf-8" "shell"
         "memory-error-handling" "sexpr-stdio" "stdio" "stack" "gc"
-        "sexpr-custom")
+        "sexpr-custom" "time" "time-system")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
@@ -30,7 +30,7 @@
         "multiplex-process" "multiplex-sexpr" "network-loop" "read-write"
         "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
         "tree-random" "tree-random-node-removal" "tree-value" "regex"
-        "directory" "io-special" "gc" "sexpr-custom")
+        "directory" "io-special" "gc" "sexpr-custom" "time")
 
   (test-case-reference
         ("temporary-curie-test-data" . "tests/reference/curie-test-data")

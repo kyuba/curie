@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,33 @@
  * THE SOFTWARE.
 */
 
-#include <syscall/syscall.h>
+#include <curie/main.h>
+#include <curie/sexpr.h>
+#include <curie/time.h>
+#include <curie/time-system.h>
 
-/* this is just a stub so that curie compiles on arch/os combinations where we
-   don't have any syscall code yet. */
+int cmain()
+{
+    int_time date = dt_get_kin ();
+/*
+    unsigned int time = dt_get_time ();
+    struct sexpr_io *io = sx_open_stdio ();
+    struct date d;
+
+    dt_split_kin (date, &d);
+
+    sx_write (io, make_integer (date));
+    sx_write (io, cons (make_integer (d.alautun),
+                  cons (make_integer (d.kinchiltun),
+                  cons (make_integer (d.kalabtun),
+                  cons (make_integer (d.piktun),
+                  cons (make_integer (d.baktun),
+                  cons (make_integer (d.katun),
+                  cons (make_integer (d.tun),
+                  cons (make_integer (d.winal),
+                  cons (make_integer (d.kin), sx_end_of_list))))))))));
+    sx_write (io, make_integer((time / 100000)));
+*/
+
+    return date < UNIX_EPOCH;
+}

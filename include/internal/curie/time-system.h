@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,33 @@
  * THE SOFTWARE.
 */
 
-#include <syscall/syscall.h>
+/*! \internal
+ *
+ * @{
+ */
 
-/* this is just a stub so that curie compiles on arch/os combinations where we
-   don't have any syscall code yet. */
+/*! \file
+ *  \brief Glue Code Header for time.h
+ *
+ */
+
+#ifndef LIBCURIE_TIME_SYSTEM_H
+#define LIBCURIE_TIME_SYSTEM_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+long long __a_time();
+
+/* note: unix epoch is 12.17.16.7.5 */
+#define UNIX_EPOCH (12*144000 + 17*7200 + 16*360 + 7*20 + 5)
+#define SECONDS_PER_DAY (24 * 60 * 60)
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LIBCURIE_TIME_SYSTEM_H */
+
+/*! @} */

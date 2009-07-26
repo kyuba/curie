@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,18 @@
  * THE SOFTWARE.
 */
 
-#include <syscall/syscall.h>
+.text
+        .align 8
 
-/* this is just a stub so that curie compiles on arch/os combinations where we
-   don't have any syscall code yet. */
+.globl  __a_time
+
+.type __a_time,@function
+
+__a_time:
+        li      0, 13 /* sys_time */
+        li      3, 0
+
+        sc
+        blr
+
+.section .note.GNU-stack,"",%progbits
