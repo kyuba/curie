@@ -2020,11 +2020,6 @@ int main (int argc, char **argv, char **environ)
         in_dynamic_libraries = sx_false;
     }
 
-    if (eolp (buildtargets))
-    {
-        buildtargets = sx_reverse (all_targets);
-    }
-
     gc_elements = cons (p_c_compiler, gc_elements);
     gc_elements = cons (p_cpp_compiler, gc_elements);
     gc_elements = cons (p_assembler, gc_elements);
@@ -2103,6 +2098,12 @@ int main (int argc, char **argv, char **environ)
     }
 
     sx_close_io (io);
+
+    if (!consp(buildtargets))
+    {
+        buildtargets = sx_reverse (all_targets);
+        gc_elements = cons (buildtargets, gc_elements);
+    }
 
     gc_invoke();
 
