@@ -31,17 +31,7 @@
 #include <curie/network-system.h>
 #include <curie/io-system.h>
 
-#include <linux/socket.h>
 #include <linux/un.h>
-
-int __a_unix_socketpair (int [2]);
-int __a_accept (int);
-
-int __a_unix_socket ();
-int __a_bind (int, void *, int);
-
-int __a_listen (int);
-int __a_connect (int, void *, int);
 
 enum io_result a_open_loop(int result[]) {
     int r = __a_unix_socketpair(result);

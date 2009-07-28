@@ -41,6 +41,11 @@
 
 #include <curie/io.h>
 
+#define _ASM_POWERPC_SOCKET_H
+#define _LINUX_WAIT_H
+
+#include <linux/net.h>
+
 enum io_result a_open_loop (int result[]);
 enum io_result a_open_socket (int *result, const char *path);
 enum io_result a_open_listen_socket (int *result, const char *path);
@@ -49,6 +54,44 @@ enum io_result a_open_listen_ip4 (int *result, const char *host, int port);
 enum io_result a_open_ip6 (int *result, const char *host, int port);
 enum io_result a_open_listen_ip6 (int *result, const char *host, int port);
 enum io_result a_accept_socket (int *result, int fd);
+
+int __a_socketcall(int, unsigned long *);
+
+static inline int __a_unix_socketpair (int res[2]) {
+    unsigned long a[6]= { AF_UNIX, SOCK_STREAM, 0, (unsigned long)res, 0, 0 };
+
+    return __a_socketcall(SYS_SOCKETPAIR, a);
+}
+
+static inline int __a_accept (int fd) {
+    unsigned long a[6] = { fd, 0, 0, 0, 0, 0 };
+
+    return __a_socketcall(SYS_ACCEPT, a);
+}
+
+static inline int __a_unix_socket () {
+    unsigned long a[6] = { AF_UNIX, SOCK_STREAM, 0, 0, 0, 0 };
+
+    return __a_socketcall(SYS_SOCKET, a);
+}
+
+static inline int __a_bind (int fd, void *s, int size) {
+    unsigned long a[6] = { fd, (unsigned long)s, size, 0, 0, 0 };
+
+    return __a_socketcall(SYS_BIND, a);
+}
+
+static inline int __a_listen (int fd) {
+    unsigned long a[6] = { fd, 32, 0, 0, 0, 0 };
+
+    return __a_socketcall(SYS_LISTEN, a);
+}
+
+static inline int __a_connect (int fd, void *s, int size) {
+    unsigned long a[6] = { fd, (unsigned long)s, size, 0, 0, 0 };
+
+    return __a_socketcall(SYS_CONNECT, a);
+}
 
 #endif
 
