@@ -89,6 +89,7 @@ sexpr do_tests                         = sx_false;
 sexpr do_install                       = sx_false;
 sexpr do_build_documentation           = sx_false;
 
+static sexpr all_targets               = sx_end_of_list;
 struct tree targets                    = TREE_INITIALISER;
 
 static char **xenviron                 = (char **)0;
@@ -1115,6 +1116,8 @@ static void process_definition (struct target *context, sexpr definition)
             context->olibraries = cons (str_curie, context->olibraries);
         }
     }
+
+    all_targets = cons (context->name, all_targets);
 }
 
 static void tag_target_for_gc (struct target *context)
@@ -2017,6 +2020,11 @@ int main (int argc, char **argv, char **environ)
         in_dynamic_libraries = sx_false;
     }
 
+    if (eolp (buildtargets))
+    {
+        buildtargets = sx_reverse (all_targets);
+    }
+
     gc_elements = cons (p_c_compiler, gc_elements);
     gc_elements = cons (p_cpp_compiler, gc_elements);
     gc_elements = cons (p_assembler, gc_elements);
@@ -2098,10 +2106,7 @@ int main (int argc, char **argv, char **environ)
 
     gc_invoke();
 
-    if (!eolp (buildtargets))
-    {
-        sx_write (stdio, cons (sym_targets, buildtargets));
-    }
+    sx_write (stdio, cons (sym_targets, buildtargets));
 
     crosslink_objects ();
     gc_invoke();
