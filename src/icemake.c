@@ -2101,7 +2101,7 @@ int main (int argc, char **argv, char **environ)
 
     if (!consp(buildtargets))
     {
-        buildtargets = sx_reverse (all_targets);
+        buildtargets = all_targets;
         gc_elements = cons (buildtargets, gc_elements);
     }
 
