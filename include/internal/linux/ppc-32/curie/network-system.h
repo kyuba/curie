@@ -45,6 +45,7 @@
 #define _LINUX_WAIT_H
 
 #include <linux/net.h>
+#include <linux/un.h>
 
 enum io_result a_open_loop (int result[]);
 enum io_result a_open_socket (int *result, const char *path);
