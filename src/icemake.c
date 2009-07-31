@@ -2116,24 +2116,20 @@ int main (int argc, char **argv, char **environ)
     ice_link (buildtargets);
     gc_invoke();
     post_process (buildtargets);
-    gc_invoke();
 
     if (truep (do_build_documentation))
     {
         build_documentation (buildtargets);
-        gc_invoke();
     }
 
     if (truep (do_tests))
     {
         run_tests (buildtargets);
-        gc_invoke();
     }
 
     if (truep (do_install))
     {
         install (buildtargets);
-        gc_invoke();
     }
 
     if (!eolp (buildtargets))
