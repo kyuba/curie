@@ -2102,8 +2102,9 @@ int main (int argc, char **argv, char **environ)
     if (!consp(buildtargets))
     {
         buildtargets = all_targets;
-        gc_elements = cons (buildtargets, gc_elements);
     }
+
+    gc_elements = cons (buildtargets, gc_elements);
 
     gc_invoke();
 
