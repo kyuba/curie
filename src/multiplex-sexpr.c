@@ -121,3 +121,12 @@ void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(sexpr, struct sex
         multiplex_add_io_no_callback(io->out);
     }
 }
+
+void multiplex_del_sexpr (struct sexpr_io *io)
+{
+    io_close (io->in);
+    io_close (io->out);
+    io->in  = io_open_null;
+    io->out = io_open_null;
+}
+

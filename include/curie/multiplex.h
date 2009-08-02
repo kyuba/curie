@@ -149,6 +149,13 @@ void multiplex_add_io_no_callback (struct io *io);
  */
 void multiplex_del_io (struct io *io);
 
+/*! \brief Close an S-Expression I/O Structure
+ *  \param[in] io The structure to close.
+ *
+ *  Same as multiplex_del_io(), but for use with multiplex_add_sexpr().
+ */
+void multiplex_del_sexpr (struct sexpr_io *io);
+
 /*! \brief Register Callbacks for a Process
  *  \param[in] context  The process context to keep track of.
  *  \param[in] on_death Callback function when the process dies.
