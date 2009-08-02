@@ -252,7 +252,7 @@ void multiplex_add_socket_client_sx
  *  Same as multiplex_add_sexpr, but it connects to the given host on the given
  *  port.
  */
-void multiplex_add_socket_ip4_sx
+void multiplex_add_ip4_client_sx
         (const char *host, int port,
          void (*on_read)(sexpr, struct sexpr_io *, void *), void *aux);
 
@@ -265,7 +265,7 @@ void multiplex_add_socket_ip4_sx
  *  Same as multiplex_add_sexpr, but it connects to the given host on the given
  *  port.
  */
-void multiplex_add_socket_ip6_sx
+void multiplex_add_ip6_client_sx
         (const char *host, int port,
          void (*on_read)(sexpr, struct sexpr_io *, void *), void *aux);
 
