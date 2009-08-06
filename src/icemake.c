@@ -1254,15 +1254,15 @@ static sexpr cwhich (char *programme)
 
     if (x == (char *)0) return sx_false;
 
-    while ((*x != 0) && (y < (buffer + BUFFERSIZE - 1)))
+    while (y < (buffer + BUFFERSIZE - 1))
     {
-        if (
+        if ((*x == 0) ||
 #if !defined(_WIN32)
-        (*x == ':')
+            (*x == ':')
 #else
-        (*x == ';')
+            (*x == ';')
 #endif
-        ) {
+           ) {
             char subbuffer[BUFFERSIZE];
             struct stat st;
 
@@ -1282,6 +1282,11 @@ static sexpr cwhich (char *programme)
             {
                 return make_string (subbuffer);
             }
+
+	    if (*x == 0)
+	    {
+	        return sx_false;
+	    }
         }
         else
         {
