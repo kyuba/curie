@@ -493,9 +493,6 @@ static void build_object_gcc_c (const char *source, const char *target)
 {
     workstack
         = cons (cons (p_c_compiler,
-#if defined(POSIX)
-                  cons (str_dposix,
-#endif
                   cons (str_dgcc,
                   cons (str_stdc99,
                     cons (str_wall,
@@ -505,32 +502,20 @@ static void build_object_gcc_c (const char *source, const char *target)
                           cons (str_dc,
                             cons (make_string (source),
                               cons (str_do,
-                                cons (make_string(target), sx_end_of_list)))))))))))
-#if defined(POSIX)
-                  )
-#endif
-                  ,
+                                cons (make_string(target), sx_end_of_list))))))))))),
                 workstack);
 }
 
 static void build_object_gcc_c_combine (sexpr sources, const char *target)
 {
-    sexpr item =
-#if defined(POSIX)
-                 cons (str_dposix,
-#endif
-                   cons (str_dgcc,
+    sexpr item = cons (str_dgcc,
                    cons (str_stdc99,
                      cons (str_wall,
                        cons (str_pedantic,
                          prepend_cflags_gcc (
                          prepend_includes_gcc (
                            cons (str_do,
-                             cons (make_string (target), sx_end_of_list))))))))
-#if defined(POSIX)
-                 )
-#endif
-                 ;
+                             cons (make_string (target), sx_end_of_list))))))));
     sexpr cur;
 
     for (cur = sources; consp (cur); cur = cdr (cur))
@@ -547,20 +532,13 @@ static void build_object_gcc_cpp (const char *source, const char *target)
 {
     workstack
         = cons (cons (p_cpp_compiler,
-#if defined(POSIX)
-                  cons (str_dposix,
-#endif
                   cons (str_dgcc,
                     prepend_cxxflags_gcc (
                     prepend_includes_gcc (
                       cons (str_dc,
                         cons (make_string (source),
                           cons (str_do,
-                            cons (make_string(target), sx_end_of_list))))))))
-#if defined(POSIX)
-                  )
-#endif
-                  ,
+                            cons (make_string(target), sx_end_of_list)))))))),
                 workstack);
 }
 
@@ -595,9 +573,6 @@ static void build_object_gcc_c_pic (const char *source, const char *target)
     workstack
         = cons (cons (p_c_compiler,
                   cons (str_dfpic,
-#if defined(POSIX)
-                  cons (str_dposix,
-#endif
                   cons (str_dgcc,
                   cons (str_stdc99,
                     cons (str_wall,
@@ -607,32 +582,20 @@ static void build_object_gcc_c_pic (const char *source, const char *target)
                           cons (str_dc,
                             cons (make_string (source),
                               cons (str_do,
-                                cons (make_string(target), sx_end_of_list))))))))))))
-#if defined(POSIX)
-                  )
-#endif
-                  ,
+                                cons (make_string(target), sx_end_of_list)))))))))))),
                 workstack);
 }
 
 static void build_object_gcc_c_pic_combine (sexpr sources, const char *target)
 {
-    sexpr item = 
-#if defined(POSIX)
-                 cons (str_dposix,
-#endif
-                   cons (str_dgcc,
+    sexpr item = cons (str_dgcc,
                    cons (str_stdc99,
                      cons (str_wall,
                        cons (str_pedantic,
                          prepend_cflags_gcc (
                          prepend_includes_gcc (
                            cons (str_do,
-                             cons (make_string (target), sx_end_of_list))))))))
-#if defined(POSIX)
-                 )
-#endif
-                 ;
+                             cons (make_string (target), sx_end_of_list))))))));
     sexpr cur;
 
     for (cur = sources; consp (cur); cur = cdr (cur))
@@ -651,20 +614,13 @@ static void build_object_gcc_cpp_pic (const char *source, const char *target)
     workstack
         = cons (cons (p_cpp_compiler,
                   cons (str_dfpic,
-#if defined(POSIX)
-                  cons (str_dposix,
-#endif
                   cons (str_dgcc,
                     prepend_cxxflags_gcc (
                     prepend_includes_gcc (
                       cons (str_dc,
                         cons (make_string (source),
                           cons (str_do,
-                            cons (make_string(target), sx_end_of_list)))))))))
-#if defined(POSIX)
-                  )
-#endif
-                  ,
+                            cons (make_string(target), sx_end_of_list))))))))),
                 workstack);
 }
 

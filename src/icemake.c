@@ -39,13 +39,10 @@
 #include <stdlib.h>
 #if !defined(_WIN32)
 #include <unistd.h>
-#endif
-#include <stdio.h>
-
-#ifdef POSIX
 #include <sys/utsname.h>
 #include <fcntl.h>
 #endif
+#include <stdio.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -1956,7 +1953,7 @@ int main (int argc, char **argv, char **environ)
             uname_toolchain = tc_gcc;
         }
 
-#if defined(POSIX)
+#if !defined(_WIN32)
         struct utsname un;
 
         if (uname (&un) >= 0)
@@ -1975,7 +1972,7 @@ int main (int argc, char **argv, char **environ)
             }
         }
 
-#elif defined(_WIN32)
+#else
         write_uname_element ("windows", uname_os, UNAMELENGTH-1);
         write_uname_element ("microsoft", uname_vendor, UNAMELENGTH-1);
 
