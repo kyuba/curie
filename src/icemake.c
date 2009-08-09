@@ -128,8 +128,11 @@ static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
     switch (i_os)
     {
         case os_windows:
-            snprintf (buffer, BUFFERSIZE, "%s\\%s", sx_string(p), sx_string(f));
-            break;
+            if (uname_toolchain != tc_gcc)
+            {
+                snprintf (buffer, BUFFERSIZE, "%s\\%s", sx_string(p), sx_string(f));
+                break;
+            }
         default:
             snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), sx_string(f));
             break;
@@ -145,8 +148,11 @@ sexpr sx_string_dir_prefix_c (char *f, sexpr p)
     switch (i_os)
     {
         case os_windows:
-            snprintf (buffer, BUFFERSIZE, "%s\\%s", sx_string(p), f);
-            break;
+            if (uname_toolchain != tc_gcc)
+            {
+                snprintf (buffer, BUFFERSIZE, "%s\\%s", sx_string(p), f);
+                break;
+            }
         default:
             snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), f);
             break;
