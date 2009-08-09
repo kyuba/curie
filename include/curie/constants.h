@@ -105,7 +105,7 @@ extern "C" {
 
 /*! \brief Maximum Size for S-Expression Strings
  *
- *  Longer strings are silently truncated.
+ *  Longer strings are parsed differently and may take somewhat longer to parse.
  */
 #define SX_MAX_STRING_LENGTH 1025
 

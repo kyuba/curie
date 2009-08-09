@@ -78,6 +78,55 @@ void sx_close_io (struct sexpr_io *io)
     free_pool_mem (io);
 }
 
+static sexpr sx_read_string_long
+        (unsigned int *i, char *buf, unsigned int length)
+{
+    unsigned int j = *i, k = 0, m = *i;
+    char *newstring;
+
+    do {
+        if (buf[m] == '"') {
+            m -= j - 3;
+            goto allocate;
+        } else if (buf[m] == '\\') {
+            m++;
+        }
+
+        m++;
+    } while (m < length);
+
+    return sx_nonexistent;
+
+  allocate:
+    newstring = aalloc (m);
+    if (newstring == (char *)0)
+    {
+        return sx_nonexistent;
+    }
+
+    do {
+        if (buf[j] == '"') {
+            sexpr res;
+            j++;
+            *i = j;
+            newstring[k] = (char)0;
+
+            res = make_string (newstring);
+            afree (m, newstring);
+
+            return res;
+        } else if (buf[j] == '\\') {
+            j++;
+        }
+
+        newstring[k] = buf[j];
+        k++;
+        j++;
+    } while (j < length);
+
+    return sx_nonexistent;
+}
+
 static sexpr sx_read_string
         (unsigned int *i, char *buf, unsigned int length)
 {
@@ -104,6 +153,11 @@ static sexpr sx_read_string
             newstring[k] = buf[j];
             k++;
         }
+        else
+        {
+            return sx_read_string_long (i, buf, length);
+        }
+
         j++;
     } while (j < length);
 
