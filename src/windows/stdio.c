@@ -40,6 +40,8 @@ struct io *io_open_stdin ()
         return (struct io *)0;
     }
 
+    in->type = iot_read;
+
     return in;
 }
 
@@ -52,6 +54,8 @@ struct io *io_open_stdout ()
         return (struct io *)0;
     }
 
+    out->type = iot_write;
+
     return out;
 }
 
@@ -63,6 +67,8 @@ struct io *io_open_stderr ()
     {
         return (struct io *)0;
     }
+
+    out->type = iot_write;
 
     return out;
 }
