@@ -31,14 +31,22 @@
 #include <curie/network-system.h>
 #include <curie/io-system.h>
 
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <linux/un.h>
 
-enum io_result a_open_loop(int result[]) {
+enum io_result a_open_loop(int result[])
+{
     int r = __a_unix_socketpair(result);
 
-    if (r < 0) {
+    if (r < 0)
+    {
         return io_unrecoverable_error;
-    } else {
+    }
+    else
+    {
         a_make_nonblocking (result[0]);
         a_make_nonblocking (result[1]);
     }
@@ -46,23 +54,30 @@ enum io_result a_open_loop(int result[]) {
     return io_complete;
 }
 
-enum io_result a_open_socket(int *result, const char *path) {
+enum io_result a_open_socket(int *result, const char *path)
+{
     int fd, i;
     struct sockaddr_un addr_un;
     char *tc = (char *)&(addr_un);
 
-    if ((fd = __a_unix_socket()) < 0) {
+    if ((fd = __a_unix_socket()) < 0)
+    {
         return io_unrecoverable_error;
     }
 
-    for (i = 0; i < sizeof(struct sockaddr_un); i++) { tc[i] = (char)0; }
+    for (i = 0; i < sizeof(struct sockaddr_un); i++)
+    {
+        tc[i] = (char)0;
+    }
 
     addr_un.sun_family = AF_UNIX;
-    for (i = 0; (i < (sizeof(addr_un.sun_path)-1)) && (path[i] != (char)0); i++) {
+    for (i = 0; (i < (sizeof(addr_un.sun_path)-1)) && (path[i] != (char)0); i++)
+    {
         addr_un.sun_path[i] = path[i];
     }
 
-    if (__a_connect(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) < 0) {
+    if (__a_connect(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) < 0)
+    {
         a_close (fd);
         return io_unrecoverable_error;
     }
@@ -72,30 +87,38 @@ enum io_result a_open_socket(int *result, const char *path) {
     return io_complete;
 }
 
-enum io_result a_open_listen_socket(int *result, const char *path) {
+enum io_result a_open_listen_socket(int *result, const char *path)
+{
     int fd, i;
     struct sockaddr_un addr_un;
     char *tc = (char *)&(addr_un);
 
     a_unlink(path);
 
-    if ((fd = __a_unix_socket()) < 0) {
+    if ((fd = __a_unix_socket()) < 0)
+    {
         return io_unrecoverable_error;
     }
 
-    for (i = 0; i < sizeof(struct sockaddr_un); i++) { tc[i] = (char)0; }
+    for (i = 0; i < sizeof(struct sockaddr_un); i++)
+    {
+        tc[i] = (char)0;
+    }
 
     addr_un.sun_family = AF_UNIX;
-    for (i = 0; (i < (sizeof(addr_un.sun_path)-1)) && (path[i] != (char)0); i++) {
+    for (i = 0; (i < (sizeof(addr_un.sun_path)-1)) && (path[i] != (char)0); i++)
+    {
         addr_un.sun_path[i] = path[i];
     }
 
-    if (__a_bind(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) < 0) {
+    if (__a_bind(fd, (struct sockaddr *) &addr_un, sizeof(struct sockaddr_un)) < 0)
+    {
         a_close (fd);
         return io_unrecoverable_error;
     }
 
-    if (__a_listen(fd) == -1) {
+    if (__a_listen(fd) == -1)
+    {
         a_close (fd);
         return io_unrecoverable_error;
     }
@@ -105,8 +128,178 @@ enum io_result a_open_listen_socket(int *result, const char *path) {
     return io_complete;
 }
 
+enum io_result a_open_ip4 (int *result, int_32 addr, int_16 port)
+{
+    int fd;
+    struct sockaddr_in addr_in;
+    union { int_16 i; int_8 c[2]; } a;
+    union { int_32 i; int_8 c[4]; } b;
 
-enum io_result a_accept_socket(int *result, int fd) {
+    if ((fd = __a_ip4_socket()) < 0)
+    {
+        return io_unrecoverable_error;
+    }
+
+    a.c[0] = (port >> 8) & 0xff;
+    a.c[1] = (port)      & 0xff;
+
+    b.c[0] = (addr >> 24) & 0xff;
+    b.c[1] = (addr >> 16) & 0xff;
+    b.c[2] = (addr >> 8)  & 0xff;
+    b.c[3] = (addr)       & 0xff;
+
+    addr_in.sin_family      = AF_INET;
+    addr_in.sin_port        = a.i;
+    addr_in.sin_addr.s_addr = b.i;
+
+    if (__a_connect(fd, (struct sockaddr *) &addr_in, sizeof(struct sockaddr_in)) < 0)
+    {
+        a_close (fd);
+        return io_unrecoverable_error;
+    }
+
+    *result = fd;
+
+    return io_complete;
+}
+
+enum io_result a_open_listen_ip4 (int *result, int_32 addr, int_16 port)
+{
+    int fd;
+    struct sockaddr_in addr_in;
+    union { int_16 i; int_8 c[2]; } a;
+    union { int_32 i; int_8 c[4]; } b;
+
+    if ((fd = __a_ip4_socket()) < 0)
+    {
+        return io_unrecoverable_error;
+    }
+
+    a.c[0] = (port >> 8) & 0xff;
+    a.c[1] = (port)      & 0xff;
+
+    b.c[0] = (addr >> 24) & 0xff;
+    b.c[1] = (addr >> 16) & 0xff;
+    b.c[2] = (addr >> 8)  & 0xff;
+    b.c[3] = (addr)       & 0xff;
+
+    addr_in.sin_family      = AF_INET;
+    addr_in.sin_port        = a.i;
+    addr_in.sin_addr.s_addr = b.i;
+
+    if (__a_bind(fd, (struct sockaddr *) &addr_in, sizeof(struct sockaddr_in)) < 0)
+    {
+        a_close (fd);
+        return io_unrecoverable_error;
+    }
+
+    if (__a_listen(fd) == -1)
+    {
+        a_close (fd);
+        return io_unrecoverable_error;
+    }
+
+    *result = fd;
+
+    return io_complete;
+}
+
+enum io_result a_open_ip6 (int *result, int_8 addr[16], int_16 port)
+{
+    int fd;
+    struct sockaddr_in6 addr_in;
+    union { int_16 i; int_8 c[2]; } a;
+
+    if ((fd = __a_ip6_socket()) < 0)
+    {
+        return io_unrecoverable_error;
+    }
+
+    a.c[0] = (port >> 8) & 0xff;
+    a.c[1] = (port)      & 0xff;
+
+    addr_in.sin6_family           = AF_INET6;
+    addr_in.sin6_port             = a.i;
+    addr_in.sin6_addr.s6_addr[0]  = addr[0];
+    addr_in.sin6_addr.s6_addr[1]  = addr[1];
+    addr_in.sin6_addr.s6_addr[2]  = addr[2];
+    addr_in.sin6_addr.s6_addr[3]  = addr[3];
+    addr_in.sin6_addr.s6_addr[4]  = addr[4];
+    addr_in.sin6_addr.s6_addr[5]  = addr[5];
+    addr_in.sin6_addr.s6_addr[6]  = addr[6];
+    addr_in.sin6_addr.s6_addr[7]  = addr[7];
+    addr_in.sin6_addr.s6_addr[8]  = addr[8];
+    addr_in.sin6_addr.s6_addr[9]  = addr[9];
+    addr_in.sin6_addr.s6_addr[10] = addr[10];
+    addr_in.sin6_addr.s6_addr[11] = addr[11];
+    addr_in.sin6_addr.s6_addr[12] = addr[12];
+    addr_in.sin6_addr.s6_addr[13] = addr[13];
+    addr_in.sin6_addr.s6_addr[14] = addr[14];
+    addr_in.sin6_addr.s6_addr[15] = addr[15];
+
+    if (__a_connect(fd, (struct sockaddr *) &addr_in, sizeof(struct sockaddr_in6)) < 0)
+    {
+        a_close (fd);
+        return io_unrecoverable_error;
+    }
+
+    *result = fd;
+
+    return io_complete;
+}
+
+enum io_result a_open_listen_ip6 (int *result, int_8 addr[16], int_16 port)
+{
+    int fd;
+    struct sockaddr_in6 addr_in;
+    union { int_16 i; int_8 c[2]; } a;
+
+    if ((fd = __a_ip6_socket()) < 0)
+    {
+        return io_unrecoverable_error;
+    }
+
+    a.c[0] = (port >> 8) & 0xff;
+    a.c[1] = (port)      & 0xff;
+
+    addr_in.sin6_family           = AF_INET6;
+    addr_in.sin6_port             = a.i;
+    addr_in.sin6_addr.s6_addr[0]  = addr[0];
+    addr_in.sin6_addr.s6_addr[1]  = addr[1];
+    addr_in.sin6_addr.s6_addr[2]  = addr[2];
+    addr_in.sin6_addr.s6_addr[3]  = addr[3];
+    addr_in.sin6_addr.s6_addr[4]  = addr[4];
+    addr_in.sin6_addr.s6_addr[5]  = addr[5];
+    addr_in.sin6_addr.s6_addr[6]  = addr[6];
+    addr_in.sin6_addr.s6_addr[7]  = addr[7];
+    addr_in.sin6_addr.s6_addr[8]  = addr[8];
+    addr_in.sin6_addr.s6_addr[9]  = addr[9];
+    addr_in.sin6_addr.s6_addr[10] = addr[10];
+    addr_in.sin6_addr.s6_addr[11] = addr[11];
+    addr_in.sin6_addr.s6_addr[12] = addr[12];
+    addr_in.sin6_addr.s6_addr[13] = addr[13];
+    addr_in.sin6_addr.s6_addr[14] = addr[14];
+    addr_in.sin6_addr.s6_addr[15] = addr[15];
+
+    if (__a_bind(fd, (struct sockaddr *) &addr_in, sizeof(struct sockaddr_in6)) < 0)
+    {
+        a_close (fd);
+        return io_unrecoverable_error;
+    }
+
+    if (__a_listen(fd) == -1)
+    {
+        a_close (fd);
+        return io_unrecoverable_error;
+    }
+
+    *result = fd;
+
+    return io_complete;
+}
+
+enum io_result a_accept_socket(int *result, int fd)
+{
     int rfd = __a_accept (fd);
     if (rfd == -1) return io_unrecoverable_error;
     if (rfd == -2) return io_incomplete;

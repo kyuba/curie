@@ -67,7 +67,7 @@ void net_open_loop (struct io **in, struct io **out);
 void net_open_socket (const char *path, struct io **in, struct io **out);
 
 /*! \brief Connect via IPv4
- *  \param[in]  host The host to connect to.
+ *  \param[in]  addr The host to connect to.
  *  \param[in]  port The port to connect to.
  *  \param[out] in   I/O structure to read from.
  *  \param[out] out  I/O structure to write to.
@@ -77,10 +77,10 @@ void net_open_socket (const char *path, struct io **in, struct io **out);
  *  Both in and out may be (struct io *)0 if the connection could not be
  *  established.
  */
-void net_open_ip4 (const char *host, int port, struct io **in, struct io **out);
+void net_open_ip4 (int_32 addr, int_16 port, struct io **in, struct io **out);
 
 /*! \brief Connect via IPv6
- *  \param[in]  host The host to connect to.
+ *  \param[in]  addr The host to connect to.
  *  \param[in]  port The port to connect to.
  *  \param[out] in   I/O structure to read from.
  *  \param[out] out  I/O structure to write to.
@@ -90,7 +90,7 @@ void net_open_ip4 (const char *host, int port, struct io **in, struct io **out);
  *  Both in and out may be (struct io *)0 if the connection could not be
  *  established.
  */
-void net_open_ip6 (const char *host, int port, struct io **in, struct io **out);
+void net_open_ip6 (int_8 addr[16], int_16 port, struct io **in, struct io **out);
 
 /*! \brief Accept Connections on Network Sockets
  *
@@ -117,7 +117,7 @@ void multiplex_add_socket
          void *aux);
 
 /*! \brief Listen for IPv4 Connections
- *  \param[in] host       The host/ip address to bind to.
+ *  \param[in] addr       The host/ip address to bind to.
  *  \param[in] port       The port to listen on.
  *  \param[in] on_connect Called when a new connection is established.
  *  \param[in] aux        Passed to the callback function.
@@ -133,11 +133,11 @@ void multiplex_add_socket
  *        string. This would bind to all interfaces.
  */
 void multiplex_add_ip4
-        (const char *host, int port,
+        (int_32 addr, int_16 port,
          void (*on_connect)(struct io *, struct io *, void *), void *aux);
 
 /*! \brief Listen for IPv6 Connections
- *  \param[in] host       The host/ip address to bind to.
+ *  \param[in] addr       The host/ip address to bind to.
  *  \param[in] port       The port to listen on.
  *  \param[in] on_connect Called when a new connection is established.
  *  \param[in] aux        Passed to the callback function.
@@ -153,7 +153,7 @@ void multiplex_add_ip4
  *        string. This would bind to all interfaces.
  */
 void multiplex_add_ip6
-        (const char *host, int port,
+        (int_8 addr[16], int_16 port,
          void (*on_connect)(struct io *, struct io *, void *), void *aux);
 
 /*! \brief Listen on a Unix Socket with S-Expression I/O
@@ -172,7 +172,7 @@ void multiplex_add_socket_sx
          void *aux);
 
 /*! \brief Listen for IPv4 Connections for S-Expression I/O
- *  \param[in] host       The host/ip address to bind to.
+ *  \param[in] addr       The host/ip address to bind to.
  *  \param[in] port       The port to listen on.
  *  \param[in] on_connect Called when a new connection is established.
  *  \param[in] aux        Passed to the callback function.
@@ -184,11 +184,11 @@ void multiplex_add_socket_sx
  *        automatically, you'll have to do that yourself.
  */
 void multiplex_add_ip4_sx
-        (const char *host, int port,
+        (int_32 addr, int_16 port,
          void (*on_connect)(struct sexpr_io *, void *), void *aux);
 
 /*! \brief Listen for IPv Connections for S-Expression I/O
- *  \param[in] host       The host/ip address to bind to.
+ *  \param[in] addr       The host/ip address to bind to.
  *  \param[in] port       The port to listen on.
  *  \param[in] on_connect Called when a new connection is established.
  *  \param[in] aux        Passed to the callback function.
@@ -200,7 +200,7 @@ void multiplex_add_ip4_sx
  *        automatically, you'll have to do that yourself.
  */
 void multiplex_add_ip6_sx
-        (const char *host, int port,
+        (int_8 addr[16], int_16 port,
          void (*on_connect)(struct sexpr_io *, void *), void *aux);
 
 /*! \brief Connect to Socket with S-Expression I/O
@@ -213,24 +213,24 @@ struct sexpr_io *sx_open_socket
         (const char *path);
 
 /*! \brief Connect via IPv4 for S-Expression I/O
- *  \param[in] host The host to connect to.
+ *  \param[in] addr The host to connect to.
  *  \param[in] port The port to connect to.
  *  \return New sexpr_io structure, or (struct sexpr_io *)0 for errors.
  *
  *  Analoguous to net_open_ip4(), just for S-Expression I/O.
  */
 struct sexpr_io *sx_open_ip4
-        (const char *host, int port);
+        (int_32 addr, int_16 port);
 
 /*! \brief Connect via IPv6 for S-Expression I/O
- *  \param[in] host The host to connect to.
+ *  \param[in] addr The host to connect to.
  *  \param[in] port The port to connect to.
  *  \return New sexpr_io structure, or (struct sexpr_io *)0 for errors.
  *
  *  Analoguous to net_open_ip6(), just for S-Expression I/O.
  */
 struct sexpr_io *sx_open_ip6
-        (const char *host, int port);
+        (int_8 addr[16], int_16 port);
 
 /*! \brief Open Socket and register Callback for S-Expression I/O
  *  \param[in] path    The socket to connect to.
@@ -244,8 +244,8 @@ void multiplex_add_socket_client_sx
          void *aux);
 
 /*! \brief Open Connection via IPv4 and register Callback for S-Expression I/O
- *  \param[in] host    The host to connect to.
- *  \param[in] potz    The port to connect to.
+ *  \param[in] addr    The host to connect to.
+ *  \param[in] port    The port to connect to.
  *  \param[in] on_read Callback function when new data comes in.
  *  \param[in] aux     Arbitrary data, passed to the callback function.
  *
@@ -253,12 +253,12 @@ void multiplex_add_socket_client_sx
  *  port.
  */
 void multiplex_add_ip4_client_sx
-        (const char *host, int port,
+        (int_32 addr, int_16 port,
          void (*on_read)(sexpr, struct sexpr_io *, void *), void *aux);
 
 /*! \brief Open Connection via IPv6 and register Callback for S-Expression I/O
- *  \param[in] host    The host to connect to.
- *  \param[in] potz    The port to connect to.
+ *  \param[in] addr    The host to connect to.
+ *  \param[in] port    The port to connect to.
  *  \param[in] on_read Callback function when new data comes in.
  *  \param[in] aux     Arbitrary data, passed to the callback function.
  *
@@ -266,7 +266,7 @@ void multiplex_add_ip4_client_sx
  *  port.
  */
 void multiplex_add_ip6_client_sx
-        (const char *host, int port,
+        (int_8 addr[16], int_16 port,
          void (*on_read)(sexpr, struct sexpr_io *, void *), void *aux);
 
 #ifdef __cplusplus

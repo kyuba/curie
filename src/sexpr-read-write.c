@@ -237,7 +237,7 @@ static sexpr sx_read_symbol
             case ';': /* beginning a comment will also end the symbol */
             case 0:
             case ')': /* this is also a terminating character for a symbol */
-            case '(': /* starting a new cons is also end a symbol */
+            case '(': /* starting a new cons will also end a symbol */
                 /* end of symbol */
 
                 *i = j;

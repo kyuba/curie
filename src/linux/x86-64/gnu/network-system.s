@@ -29,6 +29,8 @@
 .globl __a_unix_socketpair
 .globl __a_accept
 .globl __a_unix_socket
+.globl __a_ip4_socket
+.globl __a_ip6_socket
 .globl __a_listen
 .globl __a_connect
 .globl __a_bind
@@ -36,6 +38,8 @@
 .type __a_unix_socketpair,         @function
 .type __a_accept,                  @function
 .type __a_unix_socket,             @function
+.type __a_ip4_socket,              @function
+.type __a_ip6_socket,              @function
 .type __a_listen,                  @function
 .type __a_connect,                 @function
 .type __a_bind,                    @function
@@ -68,6 +72,28 @@ __a_unix_socket:
 
         movq    $41, %rax /* sys_socket */
         movq    $1, %rdi /* AF_UNIX */
+        movq    $1, %rsi /* SOCK_STREAM */
+        movq    $0, %rdx
+
+        jmp syscall_check
+
+__a_ip4_socket:
+        pushq   %rbp
+        movq    %rsp, %rbp
+
+        movq    $41, %rax /* sys_socket */
+        movq    $2, %rdi /* PF_INET */
+        movq    $1, %rsi /* SOCK_STREAM */
+        movq    $0, %rdx
+
+        jmp syscall_check
+
+__a_ip6_socket:
+        pushq   %rbp
+        movq    %rsp, %rbp
+
+        movq    $41, %rax /* sys_socket */
+        movq    $10, %rdi /* PF_INET6 */
         movq    $1, %rsi /* SOCK_STREAM */
         movq    $0, %rdx
 

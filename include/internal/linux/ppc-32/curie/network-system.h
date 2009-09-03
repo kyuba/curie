@@ -50,10 +50,10 @@
 enum io_result a_open_loop (int result[]);
 enum io_result a_open_socket (int *result, const char *path);
 enum io_result a_open_listen_socket (int *result, const char *path);
-enum io_result a_open_ip4 (int *result, const char *host, int port);
-enum io_result a_open_listen_ip4 (int *result, const char *host, int port);
-enum io_result a_open_ip6 (int *result, const char *host, int port);
-enum io_result a_open_listen_ip6 (int *result, const char *host, int port);
+enum io_result a_open_ip4 (int *result, int_32 addr, int_16 port);
+enum io_result a_open_listen_ip4 (int *result, int_32 addr, int_16 port);
+enum io_result a_open_ip6 (int *result, int_8 addr[16], int_16 port);
+enum io_result a_open_listen_ip6 (int *result, int_8 addr[16], int_16 port);
 enum io_result a_accept_socket (int *result, int fd);
 
 int __a_socketcall(int, unsigned long *);
@@ -72,6 +72,18 @@ static inline int __a_accept (int fd) {
 
 static inline int __a_unix_socket () {
     unsigned long a[6] = { AF_UNIX, SOCK_STREAM, 0, 0, 0, 0 };
+
+    return __a_socketcall(SYS_SOCKET, a);
+}
+
+static inline int __a_ip4_socket () {
+    unsigned long a[6] = { PF_INET, SOCK_STREAM, 0, 0, 0, 0 };
+
+    return __a_socketcall(SYS_SOCKET, a);
+}
+
+static inline int __a_ip6_socket () {
+    unsigned long a[6] = { PF_INET6, SOCK_STREAM, 0, 0, 0, 0 };
 
     return __a_socketcall(SYS_SOCKET, a);
 }
