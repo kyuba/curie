@@ -251,7 +251,7 @@ struct io *io_open
  *          allocation errors.
  *
  *  This will create a regular i/o structurue pointing to the process's standard
- *  input.
+ *  input. The type of the structure is set to iot_read.
  */
 struct io *io_open_stdin ( void );
 
@@ -260,7 +260,7 @@ struct io *io_open_stdin ( void );
  *          allocation errors.
  *
  *  This will create a regular i/o structurue pointing to the process's standard
- *  output.
+ *  output. The type of the structure is set to iot_write.
  */
 struct io *io_open_stdout ( void );
 
@@ -269,7 +269,7 @@ struct io *io_open_stdout ( void );
  *          allocation errors.
  *
  *  This will create a regular i/o structurue pointing to the process's standard
- *  error output.
+ *  error output. The type of the structure is set to iot_write.
  */
 struct io *io_open_stderr ( void );
 
