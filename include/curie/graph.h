@@ -49,16 +49,12 @@ extern "C" {
  */
 #define graph_type_identifier 0x03b3
 
-/*! \brief Check if the S-Expression is a Custom Expression
+/*! \brief Check if the S-Expression is a Graph Expression
  *  \param[in] sx The s-expression to check.
- *  \param[in] sxtype The s-expression to check.
- *  \return 1 if it is an expression of a certain custom type, 0 otherwise.
+ *  \return 1 if it is an expression of a graph, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
- *
- *  The primary intention of this particular macro is to aid in writing
- *  predicates for custom types.
  */
 #define graphp(sx) sx_customp(sx,graph_type_identifier)
 
@@ -67,6 +63,11 @@ extern "C" {
  *  This structure represents a digraph with an arbitrary number of nodes.
  */
 struct graph {
+    /*! \brief S-Expression Type
+     *
+     *  This field defines the type of the symbolic expression. It's present in
+     *  all (pointer-style) sexprs.
+     */
     unsigned int type;
 
     /*! \brief Node Count
@@ -127,6 +128,12 @@ struct graph_edge {
     struct graph_node *target;
 };
 
+/*! \brief Initialise the Graph Type
+ *
+ *  Use this function before using the graph functions. Actually you might even
+ *  get away without using this function if you don't intend to read or write
+ *  any of the graphs you use, but it really would be better to just call this.
+ */
 void graph_initialise ();
 
 /*! \brief Create a new Graph

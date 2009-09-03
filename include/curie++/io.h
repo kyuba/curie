@@ -59,23 +59,100 @@ namespace curiepp
     class IO
     {
         public:
+            /*! \brief Constructor ("Special" I/O)
+             *
+             *  IO objects created with this constructor operate on a memory
+             *  buffer, see io_open_special().
+             */
             IO ();
+
+            /*! \brief Constructor
+             *  \param[in] io The io structure to wrap around.
+             *
+             *  Use this constructor to create an IO object from a regular curie
+             *  io structure.
+             */
             IO (struct io *io);
+
+            /*! \brief Destructor
+             *
+             *  The destructor will automatically close the internal io
+             *  structure.
+             */
             ~IO();
 
+            /*! \brief Read Data
+             *
+             *  This will call io_read() on the object's io structure.
+             */
             enum io_result read ();
+
+            /*! \brief Collect Data (write without flushing)
+             *  \param[in] data   The data to write.
+             *  \param[in] length Length of the data to write.
+             *
+             *  This will call io_collect() on the object's io structure.
+             */
             enum io_result collect (const char *data, int_pointer length);
+
+            /*! \brief Write Data (write and flush)
+             *  \param[in] data   The data to write.
+             *  \param[in] length Length of the data to write.
+             *
+             *  This will call io_write() on the object's io structure.
+             */
             enum io_result write (const char *data, int_pointer length);
+
+            /*! \brief Commit Pending Operations
+             *
+             *  This will call io_commit() on the object's io structure, thus
+             *  flushing any data that still needs to be written.
+             */
             enum io_result commit ();
+
+            /*! \brief Commit Pending Operations
+             *
+             *  This will call io_finish() on the object's io structure, thus
+             *  preventing any further io_read() and io_collect() calls from
+             *  modifying the buffer.
+             */
             enum io_result finish ();
 
+            /*! \brief Get Buffer and its Length
+             *  \param[out] length The length of the data buffer.
+             *  \return Pointer to the data buffer.
+             *
+             *  Use this method to get the data that was read earlier using the
+             *  multiplexer or the read() method. It may also be used to get
+             *  data that still needs to be committed for output structures.
+             */
             char *getBuffer (int &length);
 
+            /*! \brief Set Buffer Position
+             *  \param[out] position The new position in the output buffer.
+             *
+             *  Upon reading data, the position in the data buffer must be
+             *  adjusted manually. This way, the io structures allow for easier
+             *  semi-random access, which is also extremely useful when parsing
+             *  special message formats, like textual data.
+             *
+             *  Use this function to set the new position in the buffer after
+             *  processing some part of it. Data before this position may be
+             *  discarded on further operations.
+             */
             void setPosition (int_32 position);
 
         protected:
+            /*! \brief IO Structure
+             *
+             *  The raw io structure that this object operates on.
+             */
             struct io *context;
 
+            /* These friend-relationships are needed because both the
+               multiplexer and the s-expression io code need to get at the raw
+               io structures, but in general the structure should not be
+               accessed directly. */
             friend class IOMultiplexer;
             friend class SExprIO;
     };
@@ -88,7 +165,22 @@ namespace curiepp
     class IOReader : public IO
     {
         public:
+            /*! \brief Constructor
+             *  \param[in] filename The file to open, as a C-string.
+             *
+             *  The file pointed to by the file name is opened immediately. If
+             *  the file can't be opened for some reason, the constructor will
+             *  still work fine but the first read() call will fail.
+             */
             IOReader (const char *filename);
+
+            /*! \brief Constructor
+             *  \param[in] filename The file to open, as an s-expression string.
+             *
+             *  The file pointed to by the file name is opened immediately. If
+             *  the file can't be opened for some reason, the constructor will
+             *  still work fine but the first read() call will fail.
+             */
             IOReader (sexpr filename);
     };
 
@@ -100,9 +192,42 @@ namespace curiepp
     class IOWriter : public IO
     {
         public:
+            /*! \brief Constructor
+             *  \param[in] filename The file to open, as a C-string.
+             *
+             *  The file pointed to by the file name is opened immediately. If
+             *  the file can't be opened for some reason, the constructor will
+             *  still work fine but the first read() call will fail.
+             */
             IOWriter (const char *filename);
+
+            /*! \brief Constructor
+             *  \param[in] filename The file to open, as a C-string.
+             *  \param[in] mode     File access mode, if it needs to be created.
+             *
+             *  The file pointed to by the file name is opened immediately. If
+             *  the file can't be opened for some reason, the constructor will
+             *  still work fine but the first read() call will fail.
+             */
             IOWriter (const char *filename, int mode);
+
+            /*! \brief Constructor
+             *  \param[in] filename The file to open, as an s-expression string.
+             *
+             *  The file pointed to by the file name is opened immediately. If
+             *  the file can't be opened for some reason, the constructor will
+             *  still work fine but the first read() call will fail.
+             */
             IOWriter (sexpr filename);
+
+            /*! \brief Constructor
+             *  \param[in] filename The file to open, as an s-expression string.
+             *  \param[in] mode     File access mode, if it needs to be created.
+             *
+             *  The file pointed to by the file name is opened immediately. If
+             *  the file can't be opened for some reason, the constructor will
+             *  still work fine but the first read() call will fail.
+             */
             IOWriter (sexpr filename, int mode);
     };
 
@@ -113,6 +238,10 @@ namespace curiepp
     class IOStandardInput : public IO
     {
         public:
+            /*! \brief Constructor
+             *
+             *  This will really just use io_open_stdin().
+             */
             IOStandardInput ();
     };
 
@@ -123,6 +252,10 @@ namespace curiepp
     class IOStandardOutput : public IO
     {
         public:
+            /*! \brief Constructor
+             *
+             *  This will really just use io_open_stdout().
+             */
             IOStandardOutput ();
     };
 
@@ -133,6 +266,10 @@ namespace curiepp
     class IOStandardError : public IO
     {
         public:
+            /*! \brief Constructor
+             *
+             *  This will really just use io_open_stderr().
+             */
             IOStandardError ();
     };
 
@@ -143,6 +280,10 @@ namespace curiepp
     class IONull : public IO
     {
         public:
+            /*! \brief Constructor
+             *
+             *  This will really just use io_open_null.
+             */
             IONull ();
     };
 
@@ -153,17 +294,55 @@ namespace curiepp
     class IOMultiplexer: public Multiplexer
     {
         public:
+            /*! \brief Constructor
+             *  \param[in] io The object to use.
+             *
+             *  Hijack the given IO object by setting its context to
+             *  (struct io *)0 and setting up the multiplexer.
+             */
             IOMultiplexer  (IO &io);
+
+            /*! \brief Destructor
+             *
+             *  This will delete the multiplexer entry for the used IO object
+             *  (in the process, the io structure is also closed).
+             */
             ~IOMultiplexer ();
 
         protected:
+            /*! \brief Read Callback
+             *
+             *  This is called when new data comes in. Overwrite when you need
+             *  to use this event.
+             */
             virtual void onRead  ();
+
+            /*! \brief EOF/Error Callback
+             *
+             *  This is called when the end of file is reached, or an I/O error
+             *  occurs. Overwrite when you need to use this event.
+             */
             virtual void onClose ();
 
+            /*! \brief IO Structure
+             *
+             *  The IO object this multiplexer applies to.
+             */
             IO context;
 
         private:
+            /*! \brief Raw Read Callback
+             *
+             *  This function is passed to multiplex_add_io() as the on_read()
+             *  callback.
+             */
             static void onReadCallback  (struct io *i, void *aux);
+
+            /*! \brief Raw EOF/Error Callback
+             *
+             *  This function is passed to multiplex_add_io() as the
+             *  on_close() callback.
+             */
             static void onCloseCallback (struct io *i, void *aux);
     };
 }

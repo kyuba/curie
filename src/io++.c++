@@ -114,7 +114,7 @@ void IO::setPosition (int_32 position)
 {
     if (context != (struct io *)0)
     {
-        context->position = position;
+        context->position += position;
     }
 }
 

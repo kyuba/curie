@@ -40,11 +40,6 @@ SExpr::SExpr (sexpr sx)
     value = sx;
 }
 
-SExpr::~SExpr ()
-{
-/*    sx_destroy (value);*/
-}
-
 inline bool SExpr::isNil ()
 {
     return nilp (value);
@@ -135,22 +130,35 @@ inline SExpr::operator sexpr ()
     return value;
 }
 
-SExprSymbol::SExprSymbol (const char *symbol)
+inline SExpr::operator const char * ()
 {
-    value = make_symbol (symbol);
+    if (stringp (value))
+    {
+        return sx_string (value);
+    }
+    else
+    {
+        return sx_symbol (value);
+    }
 }
 
-SExprString::SExprString (const char *string)
+SExpr SExpr::createSymbol (const char *symbol)
+{
+    SExpr sx = SExpr (make_symbol (symbol));
+    return sx;
+}
+
+SExpr::SExpr (const char *string)
 {
     value = make_string (string);
 }
 
-SExprInteger::SExprInteger (signed long integer)
+SExpr::SExpr (signed long integer)
 {
     value = make_integer (integer);
 }
 
-SExprCons::SExprCons (SExpr &car, SExpr &cdr)
+SExpr::SExpr (SExpr &car, SExpr &cdr)
 {
     value = cons (car, cdr);
 }
@@ -166,6 +174,9 @@ SExprIO::SExprIO (IO &in, IO &out)
                (out.context == (struct io *)0)) ?
               (struct sexpr_io *)0 :
               sx_open_io   (in.context, out.context);
+
+    in.context = (struct io *)0;
+    out.context = (struct io *)0;
 }
 
 SExprIO::~SExprIO ()

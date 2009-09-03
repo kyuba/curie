@@ -44,8 +44,16 @@ extern "C" {
 
 #include <curie/int.h>
 
-typedef int_64 int_time;
+/*! \brief Date Type
+ *
+ *  This type is used to hold the day portion of dates.
+ */
+typedef int_64 int_date;
 
+/*! \brief Date Type (Split Dates)
+ *
+ *  This structure is used to hold split dates from dt_split_kin().
+ */
 struct date
 {
     unsigned int alautun    : 5; /*!< 20 k'inchiltun, 23040000000 k'in*/
@@ -59,26 +67,53 @@ struct date
     unsigned int kin        : 5; /*!< k'in, basic unit */
 };
 
+/*! \brief Date/Time Type
+ *
+ *  This structure is used to hold date and time values together.
+ */
 struct datetime
 {
-    int_time      date;
+    int_date      date;      /*!< Days since the epoch */
     unsigned int  time;      /*!< 0-99999999, representing 00:00:00 - 23:59:59*/
 };
 
-int_time     dt_get_kin   (void);
-int_time     dt_make_kin  (struct date *date);
-void         dt_split_kin (int_time kin, struct date *date);
+/*! \brief Get the current Date
+ *  \return Days since the epoch.
+ *
+ *  Queries the OS for the current date.
+ */
+int_date     dt_get_kin   (void);
+
+/*! \brief Convert a struct date to an int_date.
+ *  \param[in] date The date to join up.
+ *  \return Days since the epoch.
+ *
+ *  Creates an int_date using the data from the given struct date.
+ */
+int_date     dt_make_kin  (struct date *date);
+
+/*! \brief Split a Date
+ *  \param[in]  kin  Days since the epoch.
+ *  \param[out] date The date.
+ *
+ *  This function splits up dates (as represented by the days since the epoch)
+ *  into its components (for output to humans).
+ */
+void         dt_split_kin (int_date kin, struct date *date);
 
 /*! \brief Get Current Time
  *  \return How far into the day we are already, in % (UTC).
+ *
+ *  Queries the OS for the current time of day.
  */
 unsigned int dt_get_time  (void);
-void         dt_get       (struct datetime *date);
 
-/*
-sexpr    sx_from_dt   (int_time date);
-int_time dt_from_sx   (sexpr date);
-*/
+/*! \brief Get Current Date and Time
+ *  \param[out] date A struct datetime to hold the current date and time.
+ *
+ *  Queries the OS for the current date and time.
+ */
+void         dt_get       (struct datetime *date);
 
 #ifdef __cplusplus
 }

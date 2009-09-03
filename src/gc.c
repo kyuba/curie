@@ -230,8 +230,6 @@ void gc_call (sexpr sx)
     goto add;
 }
 
-
-
 static int partition (int left, int right, int pivot)
 {
     int index, i;

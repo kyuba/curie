@@ -29,12 +29,12 @@
 #include <curie/time.h>
 #include <curie/time-system.h>
 
-int_time dt_get_kin (void)
+int_date dt_get_kin (void)
 {
     return UNIX_EPOCH + (__a_time() / SECONDS_PER_DAY);
 }
 
-int_time dt_make_kin (struct date *date)
+int_date dt_make_kin (struct date *date)
 {
     return (date->alautun)    * 23040000000 + (date->kinchiltun) * 1152000000  +
            (date->kalabtun)   * 57600000    + (date->piktun)     * 2880000     +
@@ -43,7 +43,7 @@ int_time dt_make_kin (struct date *date)
            (date->kin);
 }
 
-void dt_split_kin (int_time kin, struct date *date)
+void dt_split_kin (int_date kin, struct date *date)
 {
     date->kin = kin % 20;        kin /= 20;
     date->winal = kin % 18;      kin /= 18;

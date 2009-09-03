@@ -44,12 +44,67 @@
 
 #include <curie/sexpr.h>
 
+/*! \brief Add Garbage Collector Root
+ *  \param[in] sx The root to add.
+ *
+ *  The garbage collector uses roots to allow programmers to designate
+ *  s-expressions that should not get killed by the garbage collector, even if
+ *  they're not on the stack anywhere.
+ */
 void          gc_add_root    (sexpr *sx);
+
+/*! \brief Remove Garbage Collector Root
+ *  \param[in] sx The root to remove.
+ *
+ *  Analoguous to gc_add_root(), but instead of adding a new root, it removes
+ *  an old one.
+ */
 void          gc_remove_root (sexpr *sx);
+
+/*! \brief "Tag" an S-Expression
+ *  \param[in] sx The root to tag.
+ *
+ *  "Tagging" with this garbage collector refers to marking areas as used. This
+ *  will also mark cars and cdrs for conses, and it will call the tag() function
+ *  for custom types.
+ *
+ *  \note This function is only meaningful if called in the context of a gc run,
+ *        which means you shouldn't call this function outside of a tag()
+ *        function of a custom type.
+ */
 void          gc_tag         (sexpr sx);
+
+/*! \brief "Call" an S-Expression
+ *  \param[in] sx The root to call.
+ *
+ *  "Calling" is used to give the gc an s-expression to check. The gc expects
+ *  s-expression code to call their s-expressions so that the garbage collector
+ *  can check if they're in use. This is done automatically for built-in types,
+ *  and by the call() function of custom types.
+ *
+ *  \note In your custom call() function, do not, ever, call the same
+ *        s-expression twice. This will upset the gc gravely and may lead to
+ *        data that is in use to be freed.
+ *
+ *  \note This function is only meaningful if called in the context of a gc run,
+ *        which means you shouldn't call this function outside of a call()
+ *        function of a custom type.
+ */
 void          gc_call        (sexpr sx);
+
+/*! \brief Invoke the Garbage Collector
+ *
+ *  As has been mentioned in the global notes for this header file, the garbage
+ *  collector needs to be called manually.
+ */
 unsigned long gc_invoke      ();
 
+/*! \brief Garbage Collector Item Count Hint
+ *
+ *  To make the garbage collector a bit more efficient, this variable is used to
+ *  hint the garbage collector to how many s-expressions are eligible for
+ *  garbage collection. This saves on some re-allocations.
+ */
 unsigned long gc_base_items;
 
 #endif

@@ -91,7 +91,7 @@ struct sexpr_cons {
     /*! \brief S-Expression Type
      *
      *  This field defines the type of the symbolic expression. It's present in
-     *  all sexprs.
+     *  all (pointer-style) sexprs.
      */
     enum sx_type type;
 
@@ -761,7 +761,14 @@ sexpr equalp
  */
 #define sx_symbol(sx)  (const char *)(symbolp(sx) ? (((struct sexpr_string_or_symbol *)sx_pointer(sx))->character_data) : "#nonexistent")
 
-
+/*! \brief Access the Type Value of a Custom S-Expression
+ *  \param[in] sx The s-expression.
+ *  \return The type identifier, or 0 for non-custom s-expressions.
+ *
+ *  Since the "0" return value is not a valid type identifier, this macro may
+ *  also be used to identify custom s-expressions... although that would make
+ *  little sense.
+ */
 #define sx_type(sx) (customp(sx) ? (((struct sexpr_partial *)sx_pointer(sx))->type) : 0)
 
 /*! @} */

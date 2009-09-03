@@ -33,7 +33,7 @@
 
 int cmain()
 {
-    int_time date = dt_get_kin ();
+    int_date date = dt_get_kin ();
 /*
     unsigned int time = dt_get_time ();
     struct sexpr_io *io = sx_open_stdio ();

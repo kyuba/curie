@@ -29,6 +29,7 @@
 #include <curie/graph.h>
 #include <curie/memory.h>
 #include <curie/immutable.h>
+#include <curie/gc.h>
 
 static void  graph_destroy  (sexpr);
 static sexpr graph_to_sexpr (sexpr);
@@ -60,6 +61,9 @@ sexpr graph_create()
     gr->type = graph_type_identifier;
     gr->nodes = (struct graph_node **)0;
     gr->node_count = 0;
+
+    gc_base_items++;
+
     return (sexpr)gr;
 }
 
@@ -117,6 +121,8 @@ static void graph_destroy (sexpr sx)
     }
 
     free_pool_mem ((void *)gr);
+
+    gc_base_items--;
 }
 
 struct graph_node *graph_search_node (sexpr sx, sexpr label)

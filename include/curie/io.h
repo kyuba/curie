@@ -375,7 +375,7 @@ enum io_result io_read
 void io_flush
         (struct io * io);
 
-/*! \brief Commit pending Oprations
+/*! \brief Commit pending Operations
  *  \param[in] io The I/O structure whose data to commit.
  *  \return io_unrecoverable_error for errors, io_undefined if the type of the
  *          io structure is iot_undefined, the return value of io_read() for

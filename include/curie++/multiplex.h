@@ -39,7 +39,8 @@ namespace curiepp
 {
     /*! \brief Multiplexer
      *
-     *  Multiplexers inherit from this class.
+     *  Multiplexers inherit from this class. More of a tag than anything else,
+     *  really.
      */
 
     class Multiplexer
