@@ -520,6 +520,8 @@ define_string (str_sTC,                 "/TC");
 /*! \brief Predefined String */
 define_string (str_sTP,                 "/TP");
 /*! \brief Predefined String */
+define_string (str_sEHsc,               "/EHsc");
+/*! \brief Predefined String */
 define_string (str_slink,               "/link");
 /*! \brief Predefined String */
 define_string (str_sdll,                "/dll");

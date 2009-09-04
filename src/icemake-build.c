@@ -757,10 +757,11 @@ static void build_object_msvc_cpp (const char *source, const char *target)
                       cons (str_sc,
                       cons (str_snologo,
                       cons (str_sTP,
+                      cons (str_sEHsc,
                         prepend_cxxflags_msvc (
                         prepend_includes_msvc (
                           cons (make_string (source),
-                              cons (make_string(buffer), sx_end_of_list)))))))),
+                              cons (make_string(buffer), sx_end_of_list))))))))),
                 workstack);
 }
 
