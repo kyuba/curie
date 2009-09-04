@@ -454,7 +454,7 @@ static void link_programme_msvc_filename (sexpr ofile, sexpr name, sexpr code, s
 
     for (i = 0; (i < 6) && (uname_arch[i] == "x86-64"[i]); i++);
 
-    sx = cons (str_slink, cons (((i == 6) ? str_sINCLUDEcmain : str_sINCLUDEcumain), sx));
+    sx = /*cons (str_slink,*/ cons (((i == 6) ? str_sINCLUDEcmain : str_sINCLUDEcumain), sx)/*)*/;
 
     havebin = (stat (sx_string (ofile), &res) == 0);
 
@@ -496,7 +496,7 @@ static void link_programme_msvc_filename (sexpr ofile, sexpr name, sexpr code, s
     }
 
     if (!havebin) {
-        snprintf (buffer, BUFFERSIZE, "/Fe%s", sx_string (ofile));
+        snprintf (buffer, BUFFERSIZE, "/out:%s", sx_string (ofile));
         sx = cons (str_snologo,
                    get_libc_linker_options_msvc (t,
                       cons (make_string (buffer),
@@ -1084,10 +1084,16 @@ static void link_library_msvc (sexpr name, sexpr code, struct target *t)
 
 static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
 {
-    char buffer[BUFFERSIZE];
+    char buffer[BUFFERSIZE], sbuffer[BUFFERSIZE], ibuffer[BUFFERSIZE];
     struct stat res, st;
     char havelib;
-    sexpr sx = sx_end_of_list;
+    sexpr sx = get_special_linker_options_msvc(sx_end_of_list), cur;
+
+    if (falsep (t->deffile))
+    {
+        link_library_msvc (name, code, t);
+        return;
+    }
 
     if (truep(equalp(name, str_curie)))
     {
@@ -1130,6 +1136,19 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
         code = cdr (code);
     }
 
+    cur = t->olibraries;
+
+    while (consp (cur))
+    {
+        sexpr libname = car (cur);
+
+        snprintf (buffer, BUFFERSIZE, "lib%s.lib", sx_string (libname));
+
+        sx = cons (make_string (buffer), sx);
+
+        cur = cdr (cur);
+    }
+
     if (!havelib) {
         sexpr sxx = sx_end_of_list;
 
@@ -1140,23 +1159,40 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
             sx = cdr (sx);
         }
 
-        snprintf (buffer, BUFFERSIZE, "/OUT:build\\%s\\%s\\lib%s.%s.dll", archprefix, sx_string(t->name), sx_string(name), sx_string (t->dversion));
+        snprintf (ibuffer, BUFFERSIZE, "/implib:build\\%s\\%s\\lib%s.lib", archprefix, sx_string(t->name), sx_string(name));
+        if (!falsep(t->deffile))
+        {
+            snprintf (sbuffer, BUFFERSIZE, "/def:%s", sx_string(t->deffile));
+        }
+
+        snprintf (buffer, BUFFERSIZE, "/out:build\\%s\\%s\\lib%s.%s.dll", archprefix, sx_string(t->name), sx_string(name), sx_string (t->dversion));
 
         workstack
-                = cons (cons (p_archiver,
+                = cons (cons (p_linker,
                               cons (str_snologo,
-                                cons (str_sDLL,
-                                  cons (make_string (buffer), sxx)))),
+                                cons (str_sdll,
+                                  cons (make_string (ibuffer),
+                                  cons (make_string (buffer),
+                                    ((falsep(t->deffile)) ? sxx : cons (make_string (sbuffer), sxx))))))),
                         workstack);
+    }
 
-        snprintf (buffer, BUFFERSIZE, "/OUT:build\\%s\\%s\\lib%s.dll", archprefix, sx_string(t->name), sx_string(name));
+    if (truep(do_tests))
+    {
+        sexpr s = t->test_cases;
 
-        workstack
-                = cons (cons (p_archiver,
-                              cons (str_snologo,
-                                cons (str_sDLL,
-                                  cons (make_string (buffer), sxx)))),
-                        workstack);
+        while (consp (s))
+        {
+            sexpr s1 = car(s);
+            sexpr s2 = cdr(cdr(s1));
+            sexpr s3 = car(s2);
+            sexpr s4 = car(cdr(s2));
+            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
+
+            link_programme_msvc_filename (s4, name, s5, t);
+
+            s = cdr (s);
+        }
     }
 }
 
@@ -1242,7 +1278,10 @@ static void do_link_target(struct target *t)
 {
     if (truep(t->library))
     {
-        link_library (t->name, t->code, t);
+        if ((uname_toolchain != tc_msvc) || falsep(i_dynamic_libraries))
+        {
+            link_library (t->name, t->code, t);
+        }
 
         if (truep(i_dynamic_libraries))
         {

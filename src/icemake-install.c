@@ -291,7 +291,7 @@ static sexpr get_so_library_install_path (sexpr name, sexpr version)
             switch (i_os)
             {
                 case os_windows:
-                    snprintf (buffer, BUFFERSIZE, "%s\\%s\\%s\\lib\\lib%s.%s.dll", sx_string(i_destdir), uname_os, uname_arch, sx_string(name), sx_string(version));
+                    snprintf (buffer, BUFFERSIZE, "%s\\%s\\%s\\bin\\lib%s.%s.dll", sx_string(i_destdir), uname_os, uname_arch, sx_string(name), sx_string(version));
                     if (uname_toolchain == tc_borland)
                     {
                         int i;

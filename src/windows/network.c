@@ -76,6 +76,14 @@ void net_open_socket
 {
 }
 
+void net_open_ip4 (int_32 addr, int_16 port, struct io **in, struct io **out)
+{
+}
+
+void net_open_ip6 (int_8 addr[16], int_16 port, struct io **in, struct io **out)
+{
+}
+
 void multiplex_network
         ()
 {
@@ -86,8 +94,32 @@ void multiplex_add_socket
 {
 }
 
+void multiplex_add_ip4
+        (int_32 addr, int_16 port,
+         void (*on_connect)(struct io *, struct io *, void *), void *aux)
+{
+}
+
+void multiplex_add_ip6
+        (int_8 addr[16], int_16 port,
+         void (*on_connect)(struct io *, struct io *, void *), void *aux)
+{
+}
+
 void multiplex_add_socket_sx
         (const char *path, void (*on_connect)(struct sexpr_io *, void *), void *data)
+{
+}
+
+void multiplex_add_ip4_sx
+        (int_32 addr, int_16 port,
+         void (*on_connect)(struct sexpr_io *, void *), void *aux)
+{
+}
+
+void multiplex_add_ip6_sx
+        (int_8 addr[16], int_16 port,
+         void (*on_connect)(struct sexpr_io *, void *), void *aux)
 {
 }
 
@@ -97,7 +129,29 @@ struct sexpr_io *sx_open_socket
     return (struct sexpr_io *)0;
 }
 
+struct sexpr_io *sx_open_ip4 (int_32 addr, int_16 port)
+{
+    return (struct sexpr_io *)0;
+}
+
+struct sexpr_io *sx_open_ip6 (int_8 addr[16], int_16 port)
+{
+    return (struct sexpr_io *)0;
+}
+
 void multiplex_add_socket_client_sx
         (const char *path, void (*on_read)(sexpr, struct sexpr_io *, void *), void *d)
+{
+}
+
+void multiplex_add_ip4_client_sx
+        (int_32 addr, int_16 port,
+         void (*on_read)(sexpr, struct sexpr_io *, void *), void *aux)
+{
+}
+
+void multiplex_add_ip6_client_sx
+        (int_8 addr[16], int_16 port,
+         void (*on_read)(sexpr, struct sexpr_io *, void *), void *aux)
 {
 }

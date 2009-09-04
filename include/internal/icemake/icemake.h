@@ -119,6 +119,8 @@ struct target {
     sexpr programme;
     /*!\brief The Libraries to link against */
     sexpr libraries;
+    /*!\brief The Libraries to link against */
+    sexpr deffile;
     /*!\brief The Libraries that the icemake.sx specifies to link against */
     sexpr olibraries;
     /*!\brief Boolean: Hosted Environment? */
@@ -520,7 +522,7 @@ define_string (str_sTP,                 "/TP");
 /*! \brief Predefined String */
 define_string (str_slink,               "/link");
 /*! \brief Predefined String */
-define_string (str_sDLL,                "/DLL");
+define_string (str_sdll,                "/dll");
 /*! \brief Predefined String */
 define_string (str_sINCLUDEcumain,      "/INCLUDE:_main");
 /*! \brief Predefined String */

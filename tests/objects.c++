@@ -26,8 +26,8 @@
  * THE SOFTWARE.
 */
 
-#include <curie/main.h>
 #include <curie/sexpr.h>
+#include <curie++/main.h>
 
 class X {
   public:

@@ -26,7 +26,7 @@
  * THE SOFTWARE.
 */
 
-#include <curie/main.h>
+#include <curie++/main.h>
 
 void emit_exception ()
 {

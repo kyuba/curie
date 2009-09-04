@@ -52,13 +52,13 @@
   (version "10")
   (url "http://kyuba.org/")
 
-  (code "memory++" "io++" "libc++-compat" "graph++" "tree++" "sexpr++")
+  (code "memory++" "io++" "sexpr++" "libc++-compat")
 
   (headers
-        "int" "io" "multiplex" "sexpr" "tree" "graph" "regex")
+        "int" "io" "multiplex" "sexpr" "main")
 
   (test-cases
-        "objects" "exceptions" "graph++" "tree++")
+        "objects" "exceptions")
 
   (test-case-reference
         ("temporary-graph" . "tests/reference/graph")))

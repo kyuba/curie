@@ -344,6 +344,11 @@ static sexpr find_code_pic_S (sexpr file)
     return (falsep(r) ? find_code_S (file) : r);
 }
 
+static sexpr find_code_def (sexpr file)
+{
+    return find_code_with_suffix (file, ".def");
+}
+
 static sexpr find_test_case_c (sexpr file)
 {
     return find_test_case_with_suffix (file, ".c");
@@ -810,6 +815,7 @@ static struct target *get_context()
     context->hosted         = sx_false;
     context->use_curie      = sx_false;
     context->libraries      = sx_end_of_list;
+    context->deffile        = sx_false;
     context->olibraries     = sx_end_of_list;
     context->code           = sx_end_of_list;
     context->test_cases     = sx_end_of_list;
@@ -1129,6 +1135,7 @@ static void tag_target_for_gc (struct target *context)
     gc_elements = cons (context->library, gc_elements);
     gc_elements = cons (context->programme, gc_elements);
     gc_elements = cons (context->libraries, gc_elements);
+    gc_elements = cons (context->deffile, gc_elements);
     gc_elements = cons (context->olibraries, gc_elements);
     gc_elements = cons (context->hosted, gc_elements);
     gc_elements = cons (context->use_curie, gc_elements);
@@ -1159,6 +1166,7 @@ static struct target *create_library (sexpr definition)
     {
         context->libraries = cons (context->name, context->libraries);
     }
+    context->deffile = find_code_def (context->name);
 
     tag_target_for_gc (context);
 
@@ -1410,7 +1418,13 @@ static void initialise_toolchain_msvc()
         exit (21);
     }
 
-    p_linker = p_c_compiler;
+    p_linker = xwhich ("link");
+    if (falsep(p_linker))
+    {
+        fprintf (stderr, "cannot find linker.\n");
+        exit (21);
+    }
+
     p_assembler = p_c_compiler;
     p_cpp_compiler = p_c_compiler;
 

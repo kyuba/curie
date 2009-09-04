@@ -26,10 +26,8 @@
  * THE SOFTWARE.
 */
 
-int cxxmain();
+#include <curie++/main.h>
 
-extern "C"
-{
 char **curie_argv = (char **)0;
 char **curie_environment = (char **)0;
 
@@ -39,5 +37,4 @@ int main (int argc, char **argv, char **env)
     curie_environment = env;
 
     return cxxmain ();
-}
 }

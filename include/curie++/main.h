@@ -26,71 +26,37 @@
  * THE SOFTWARE.
 */
 
-#ifndef LIBCURIEPP_GRAPH_H
-#define LIBCURIEPP_GRAPH_H
+#ifndef LIBCURIEPP_MAIN_H
+#define LIBCURIEPP_MAIN_H
 
-#include "curie++/sexpr.h"
-#include "curie/graph.h"
-#include "curie++/regex.h"
-
-namespace curiepp {
-
-  class Node;
-
-  class Edge {
-    private:
-
-    public:
-      Edge(sexpr l, Node *t);
-      ~Edge();
-      sexpr label;
-      Node *target;
-
-  };
-
-
-  class Node {
-    private:
-      int_32 edgeCount;
-      Edge** edges;
-
-    public:
-      Node(sexpr l);
-      ~Node();
-
-      int_32 getEdgeCount();
-      Edge *getEdge(int_32 i);
-      sexpr label;
-      void addEdge(Edge *e);
-      Edge *searchEdge(sexpr s);
-  };
-
-  class Graph {
-    private:
-      int_32 nodeCount;
-      Node** nodes;
-
-    public:
-      Graph();
-      Graph(SExpr *);
-
-      Graph(sexpr g);
-      ~Graph();
-
-      int_32 getNodeCount();
-      Node* getNode(int_32 i);
-
-      void addNode(sexpr label);
-      Node* searchNode(sexpr s);
-
-
-      //! converts a given graph to a S-expression
-      SExpr* operator= (Graph *g);
-
-   //   //! converts a graph to a regular expression
-   //   RegEx* operator= (Graph *g);
-  };
-
-}
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+/*! \brief Main Function
+ *  \return The status code to return to the calling process.
+ *
+ *  This is the main entry point for plain curie applications. Once this
+ *  function terminates, the process will also terminate.
+ */
+int cxxmain ( void );
+
+/*! \brief Command-line Arguments
+ *
+ *  This array contains the command-line arguments passed to the application, if
+ *  applicable.
+ */
+extern char **curie_argv;
+
+/*! \brief Process Environment
+ *
+ *  This array contains the process environment that the prgramme was run in, if
+ *  applicable.
+ */
+extern char **curie_environment;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LIBCURIE_MAIN_H */
