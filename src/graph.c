@@ -51,13 +51,14 @@ void graph_initialise ()
 sexpr graph_create()
 {
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph));
+    struct graph *gr;
 
     if (!initialised)
     {
         graph_initialise ();
     }
 
-    struct graph *gr = (struct graph *) get_pool_mem(&pool);
+    gr = (struct graph *) get_pool_mem(&pool);
     gr->type = graph_type_identifier;
     gr->nodes = (struct graph_node **)0;
     gr->node_count = 0;
