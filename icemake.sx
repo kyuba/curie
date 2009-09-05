@@ -58,10 +58,7 @@
         "int" "io" "multiplex" "sexpr" "main")
 
   (test-cases
-        "objects" "exceptions")
-
-  (test-case-reference
-        ("temporary-graph" . "tests/reference/graph")))
+        "objects" "exceptions"))
 
 (programme "icemake" hosted libcurie
   (name "icemake")
