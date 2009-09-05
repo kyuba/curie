@@ -1160,10 +1160,8 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
         }
 
         snprintf (ibuffer, BUFFERSIZE, "/implib:build\\%s\\%s\\lib%s.lib", archprefix, sx_string(t->name), sx_string(name));
-        if (!falsep(t->deffile))
-        {
-            snprintf (sbuffer, BUFFERSIZE, "/def:%s", sx_string(t->deffile));
-        }
+        snprintf (sbuffer, BUFFERSIZE, "/def:%s", sx_string(t->deffile));
+        sxx = cons (make_string (sbuffer), sxx);
 
         snprintf (buffer, BUFFERSIZE, "/out:build\\%s\\%s\\lib%s.%s.dll", archprefix, sx_string(t->name), sx_string(name), sx_string (t->dversion));
 
@@ -1172,8 +1170,7 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
                               cons (str_snologo,
                                 cons (str_sdll,
                                   cons (make_string (ibuffer),
-                                  cons (make_string (buffer),
-                                    ((falsep(t->deffile)) ? sxx : cons (make_string (sbuffer), sxx))))))),
+                                  cons (make_string (buffer), sxx))))),
                         workstack);
     }
 

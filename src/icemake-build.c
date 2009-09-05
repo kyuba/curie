@@ -628,7 +628,11 @@ static void build_object_gcc (sexpr type, sexpr source, sexpr target)
 {
     if (truep(equalp(type, sym_link))) return;
 
-    if (truep(equalp(type, sym_assembly)))
+    if (truep(equalp(type, sym_resource)))
+    {
+        /* STUB */
+    }
+    else if (truep(equalp(type, sym_assembly)))
     {
         build_object_gcc_assembly (sx_string(source), sx_string(target));
     }
@@ -718,7 +722,11 @@ static void build_object_borland (sexpr type, sexpr source, sexpr target)
 {
     if (truep(equalp(type, sym_link))) return;
 
-    if (truep(equalp(type, sym_cpp)))
+    if (truep(equalp(type, sym_resource)))
+    {
+        /* STUB */
+    }
+    else if (truep(equalp(type, sym_cpp)))
     {
         build_object_borland_cpp (sx_string(source), sx_string(target));
     }
@@ -765,11 +773,28 @@ static void build_object_msvc_cpp (const char *source, const char *target)
                 workstack);
 }
 
+static void build_object_msvc_resource (const char *source, const char *target)
+{
+    char buffer[BUFFERSIZE];
+
+    snprintf (buffer, BUFFERSIZE, "/fo%s", target);
+
+    workstack
+        = cons (cons (p_resource_compiler,
+                      cons (make_string (buffer),
+                            cons (make_string(source), sx_end_of_list))),
+                workstack);
+}
+
 static void build_object_msvc (sexpr type, sexpr source, sexpr target)
 {
     if (truep(equalp(type, sym_link))) return;
 
-    if (truep(equalp(type, sym_cpp)))
+    if (truep(equalp(type, sym_resource)))
+    {
+        build_object_msvc_resource (sx_string(source), sx_string(target));
+    }
+    else if (truep(equalp(type, sym_cpp)))
     {
         build_object_msvc_cpp (sx_string(source), sx_string(target));
     }

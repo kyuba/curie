@@ -93,6 +93,7 @@ static char **xenviron                 = (char **)0;
 
 sexpr p_c_compiler                     = sx_false;
 sexpr p_cpp_compiler                   = sx_false;
+sexpr p_resource_compiler              = sx_false;
 sexpr p_assembler                      = sx_false;
 sexpr p_linker                         = sx_false;
 sexpr p_archiver                       = sx_false;
@@ -349,6 +350,11 @@ static sexpr find_code_def (sexpr file)
     return find_code_with_suffix (file, ".def");
 }
 
+static sexpr find_code_rc (sexpr file)
+{
+    return find_code_with_suffix (file, ".rc");
+}
+
 static sexpr find_test_case_c (sexpr file)
 {
     return find_test_case_with_suffix (file, ".c");
@@ -400,6 +406,36 @@ static sexpr generate_object_file_name (sexpr name, sexpr file)
             break;
         case tc_gcc:
             snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.o", archprefix, sx_string(name), sx_string(file));
+            break;
+    }
+
+    return make_string(buffer);
+}
+
+static sexpr generate_resource_file_name (sexpr name)
+{
+    char buffer[BUFFERSIZE];
+
+    switch (uname_toolchain)
+    {
+        case tc_msvc:
+            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.res", archprefix, sx_string(name), sx_string(name));
+            break;
+        case tc_borland:
+            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.res", archprefix, sx_string(name), sx_string(name));
+            {
+                int i;
+                for (i = 0; buffer[i]; i++)
+                {
+                    if (buffer[i] == '+')
+                    {
+                        buffer[i] = 'x';
+                    }
+                }
+            }
+            break;
+        case tc_gcc:
+            snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.res", archprefix, sx_string(name), sx_string(name));
             break;
     }
 
@@ -874,8 +910,18 @@ static void process_definition (struct target *context, sexpr definition)
             while (consp (sxc))
             {
                 find_code (context, car (sxc));
-
+                
                 sxc = cdr (sxc);
+            }
+
+            if ((i_os == os_windows) && (uname_toolchain == tc_msvc))
+            {
+                sexpr r = find_code_rc (context->name);
+
+                if (stringp (r))
+                {
+                    context->code = cons (cons(sym_resource, cons (r, cons (generate_resource_file_name(context->name), sx_end_of_list))), context->code);
+                }                
             }
         }
         else if (truep(equalp(sxcaar, sym_libraries)))
@@ -1131,26 +1177,27 @@ static void process_definition (struct target *context, sexpr definition)
 
 static void tag_target_for_gc (struct target *context)
 {
-    gc_elements = cons (context->name, gc_elements);
-    gc_elements = cons (context->library, gc_elements);
-    gc_elements = cons (context->programme, gc_elements);
-    gc_elements = cons (context->libraries, gc_elements);
-    gc_elements = cons (context->deffile, gc_elements);
-    gc_elements = cons (context->olibraries, gc_elements);
-    gc_elements = cons (context->hosted, gc_elements);
-    gc_elements = cons (context->use_curie, gc_elements);
-    gc_elements = cons (context->code, gc_elements);
-    gc_elements = cons (context->test_cases, gc_elements);
-    gc_elements = cons (context->test_reference, gc_elements);
-    gc_elements = cons (context->bootstrap, gc_elements);
-    gc_elements = cons (context->headers, gc_elements);
-    gc_elements = cons (context->use_objects, gc_elements);
-    gc_elements = cons (context->dname, gc_elements);
-    gc_elements = cons (context->description, gc_elements);
-    gc_elements = cons (context->dversion, gc_elements);
-    gc_elements = cons (context->durl, gc_elements);
-    gc_elements = cons (context->documentation, gc_elements);
-    gc_elements = cons (context->have_cpp, gc_elements);
+    gc_elements = cons (context->name,              gc_elements);
+    gc_elements = cons (context->library,           gc_elements);
+    gc_elements = cons (context->programme,         gc_elements);
+    gc_elements = cons (context->libraries,         gc_elements);
+    gc_elements = cons (context->deffile,           gc_elements);
+    gc_elements = cons (context->olibraries,        gc_elements);
+    gc_elements = cons (context->hosted,            gc_elements);
+    gc_elements = cons (context->use_curie,         gc_elements);
+    gc_elements = cons (context->code,              gc_elements);
+    gc_elements = cons (context->test_cases,        gc_elements);
+    gc_elements = cons (context->test_reference,    gc_elements);
+    gc_elements = cons (context->bootstrap,         gc_elements);
+    gc_elements = cons (context->headers,           gc_elements);
+    gc_elements = cons (context->use_objects,       gc_elements);
+    gc_elements = cons (context->data,              gc_elements);
+    gc_elements = cons (context->dname,             gc_elements);
+    gc_elements = cons (context->description,       gc_elements);
+    gc_elements = cons (context->dversion,          gc_elements);
+    gc_elements = cons (context->durl,              gc_elements);
+    gc_elements = cons (context->documentation,     gc_elements);
+    gc_elements = cons (context->have_cpp,          gc_elements);
 }
 
 static struct target *create_library (sexpr definition)
@@ -1418,11 +1465,18 @@ static void initialise_toolchain_msvc()
         exit (21);
     }
 
+    p_resource_compiler = xwhich ("rc");
+    if (falsep(p_resource_compiler))
+    {
+        fprintf (stderr, "cannot find resource compiler.\n");
+        exit (22);
+    }
+
     p_linker = xwhich ("link");
     if (falsep(p_linker))
     {
         fprintf (stderr, "cannot find linker.\n");
-        exit (21);
+        exit (24);
     }
 
     p_assembler = p_c_compiler;
@@ -1857,8 +1911,7 @@ int main (int argc, char **argv, char **environ)
 
                             for (j = 0; s[j]; j++)
                             {
-                                max_processes = 10 * max_processes +
-                                                (s[j] - '0');
+                                max_processes = 10 * max_processes + (s[j]-'0');
                             }
 
                             xn++;
@@ -1953,6 +2006,9 @@ int main (int argc, char **argv, char **environ)
     {
         char *toolchain = "unknown";
         int j;
+#if !defined(_WIN32)
+        struct utsname un;
+#endif
 
         if (!falsep(cwhich("cl")))
         {
@@ -1968,8 +2024,6 @@ int main (int argc, char **argv, char **environ)
         }
 
 #if !defined(_WIN32)
-        struct utsname un;
-
         if (uname (&un) >= 0)
         {
             write_uname_element(un.sysname, uname_os,   UNAMELENGTH - 1);
@@ -1985,8 +2039,8 @@ int main (int argc, char **argv, char **environ)
                 write_uname_element(un.machine, uname_arch, UNAMELENGTH - 1);
             }
         }
-
 #else
+
         write_uname_element ("windows", uname_os, UNAMELENGTH-1);
         write_uname_element ("microsoft", uname_vendor, UNAMELENGTH-1);
 
@@ -2042,19 +2096,19 @@ int main (int argc, char **argv, char **environ)
         in_dynamic_libraries = sx_false;
     }
 
-    gc_elements = cons (p_c_compiler, gc_elements);
-    gc_elements = cons (p_cpp_compiler, gc_elements);
-    gc_elements = cons (p_assembler, gc_elements);
-    gc_elements = cons (p_linker, gc_elements);
-    gc_elements = cons (p_archiver, gc_elements);
-    gc_elements = cons (p_diff, gc_elements);
-    gc_elements = cons (p_latex, gc_elements);
-    gc_elements = cons (p_c_compiler, gc_elements);
-    gc_elements = cons (i_destdir, gc_elements);
-    gc_elements = cons (i_pname, gc_elements);
-    gc_elements = cons (i_destlibdir, gc_elements);
-    gc_elements = cons (p_doxygen, gc_elements);
-    gc_elements = cons (buildtargets, gc_elements);
+    gc_elements = cons (p_c_compiler,        gc_elements);
+    gc_elements = cons (p_cpp_compiler,      gc_elements);
+    gc_elements = cons (p_resource_compiler, gc_elements);
+    gc_elements = cons (p_assembler,         gc_elements);
+    gc_elements = cons (p_linker,            gc_elements);
+    gc_elements = cons (p_archiver,          gc_elements);
+    gc_elements = cons (p_diff,              gc_elements);
+    gc_elements = cons (p_latex,             gc_elements);
+    gc_elements = cons (p_pdflatex,          gc_elements);
+    gc_elements = cons (p_doxygen,           gc_elements);
+    gc_elements = cons (i_destdir,           gc_elements);
+    gc_elements = cons (i_pname,             gc_elements);
+    gc_elements = cons (i_destlibdir,        gc_elements);
 
     multiplex_io();
 /*    multiplex_all_processes();*/

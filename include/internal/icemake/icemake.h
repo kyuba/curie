@@ -293,6 +293,12 @@ extern sexpr p_c_compiler;
  */
 extern sexpr p_cpp_compiler;
 
+/*! \brief Resource Compiler Binary
+ *
+ *  Automatically searched in the PATH according to the toolchain type.
+ */
+extern sexpr p_resource_compiler;
+
 /*! \brief Assembler Binary
  *
  *  Automatically searched in the PATH according to the toolchain type.
@@ -362,6 +368,8 @@ define_symbol (sym_use_objects,         "use-objects");
 define_symbol (sym_assembly,            "assembly");
 /*! \brief Predefined Symbol */
 define_symbol (sym_preproc_assembly,    "preprocessed-assembly");
+/*! \brief Predefined Symbol */
+define_symbol (sym_resource,            "resource");
 /*! \brief Predefined Symbol */
 define_symbol (sym_cpp,                 "C++");
 /*! \brief Predefined Symbol */
