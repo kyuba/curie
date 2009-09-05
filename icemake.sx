@@ -1,7 +1,7 @@
 (library "curie" libcurie
   (name "Curie")
   (description "minimalistic, sexpr-based, non-posix(!), non-ansi(!) libc")
-  (version "10")
+  (version "11")
   (url "http://kyuba.org/")
 
   (freestanding-if-assembly
@@ -49,7 +49,7 @@
 (library "curie++" libcurie
   (name "Curie++")
   (description "C++ bindings for libcurie")
-  (version "10")
+  (version "11")
   (url "http://kyuba.org/")
 
   (code "memory++" "io++" "sexpr++" "libc++-compat")
@@ -63,7 +63,7 @@
 (programme "icemake" hosted libcurie
   (name "icemake")
   (description "simple build tool for curie, based on curie")
-  (version "10")
+  (version "11")
 
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
         "icemake-link" "icemake-crosslink" "icemake-post-process"
