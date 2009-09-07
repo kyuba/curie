@@ -26,50 +26,14 @@
  * THE SOFTWARE.
 */
 
-/*! \defgroup icemake icemake Internals
- *  \internal
- *
- * @{
- */
+#include <icemake/icemake.h>
 
-/*! \file
- *  \brief Global Definitions for the icemake Programme
- *
- */
-
-#ifndef ICEMAKE_ICEMAKE_H
-#define ICEMAKE_ICEMAKE_H
-
-#include <curie/sexpr.h>
-
-struct toolchain
+static sexpr get_os_search_paths ()
 {
-};
+    return sx_end_of_list;
+}
 
-struct os
+struct os os_generic =
 {
-    sexpr (*get_os_search_paths)();
-    sexpr (*mkdir)(sexpr);
+    get_os_search_paths
 };
-
-struct arch
-{
-    sexpr generic_name;
-    sexpr compatible_with;
-};
-
-void initialise_targets ();
-
-sexpr get_host_chost   ();
-sexpr get_target_chost (const char *chost);
-
-sexpr set_install_destination (sexpr destination);
-sexpr write_output (sexpr output);
-
-sexpr build_file (sexpr type, sexpr shortname, sexpr file, sexpr target);
-sexpr link_file (sexpr type, sexpr file, sexpr target);
-sexpr install_file (sexpr type, sexpr file);
-
-#endif
-
-/*! @} */

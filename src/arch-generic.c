@@ -26,20 +26,4 @@
  * THE SOFTWARE.
 */
 
-/*! \addgroup icemake
- *  \internal
- *
- * @{
- */
-
-/*! \file
- *  \brief System Specific Definitions for the icemake Programme
- *
- */
-
-#ifndef ICEMAKE_ICEMAKE_SYSTEN_H
-#define ICEMAKE_ICEMAKE_SYSTEM_H
-
-#endif
-
-/*! @} */
+#include <icemake/icemake.h>

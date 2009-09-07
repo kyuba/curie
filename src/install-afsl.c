@@ -26,25 +26,4 @@
  * THE SOFTWARE.
 */
 
-/*! \addgroup icemake
- *  \internal
- *
- * @{
- */
-
-/*! \file
- *  \brief System Specific Definitions for the icemake Programme
- *
- */
-
-#ifndef ICEMAKE_ICEMAKE_SYSTEN_H
-#define ICEMAKE_ICEMAKE_SYSTEM_H
-
-#define mkdir(p,n) mkdir (p)
-#if defined(_MSC_VER)
-#define snprintf(a,b,c,...) sprintf(a,c,__VA_ARGS__)
-#endif
-
-#endif
-
-/*! @} */
+#include <icemake/icemake.h>
