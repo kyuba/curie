@@ -65,8 +65,9 @@
   (description "simple build tool for curie, based on curie")
   (version "11")
 
-  (code "icemake" "arch-generic" "os-linux" "os-generic" "toolchain-gcc"
-        "install-afsl" "chost")
+  (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
+        "icemake-link" "icemake-crosslink" "icemake-post-process"
+        "icemake-documentation")
 
   (documentation
         "icemake" "ice" "icemake.sx"))
@@ -80,3 +81,10 @@
 
   (headers
         "syscall"))
+
+(programme "ice" libcurie
+  (name "ice")
+  (description "Pretty-printing tool for icemake")
+  (version "2")
+
+  (code "ice"))
