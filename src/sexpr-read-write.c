@@ -687,7 +687,7 @@ static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx)
     }
     else if (ninfp(sx))
     {
-        (void)io_collect (io->out, "+i", 2);
+        (void)io_collect (io->out, "-i", 2);
         return 1;
     }
     else if (customp(sx))
