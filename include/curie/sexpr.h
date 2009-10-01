@@ -423,6 +423,20 @@ void sx_destroy
  */
 #define sx_splice make_special(13)
 
+/*! \brief Positive Infinity (S-Expression)
+ *
+ *  There is always only one instance of this s-expression in a running Curie
+ *  programme, so it is kept as a constant.
+ */
+#define sx_positive_infinity make_special(14)
+
+/*! \brief Negative Infinity (S-Expression)
+ *
+ *  There is always only one instance of this s-expression in a running Curie
+ *  programme, so it is kept as a constant.
+ */
+#define sx_negative_infinity make_special(15)
+
 /*! \brief S-Expression Pointer Flag
  *
  *  This flag is not set in the memory encoding of an s-expression if it's a
@@ -622,7 +636,7 @@ sexpr equalp
 
 /*! \brief Check if the S-Expression is the Quote Operator
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is the dot operator, 0 otherwise.
+ *  \return 1 if it is the quote operator, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
@@ -631,7 +645,7 @@ sexpr equalp
 
 /*! \brief Check if the S-Expression is the Quasiquote Operator
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is the dot operator, 0 otherwise.
+ *  \return 1 if it is the quasiquote operator, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
@@ -640,7 +654,7 @@ sexpr equalp
 
 /*! \brief Check if the S-Expression is the Unquote Operator
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is the dot operator, 0 otherwise.
+ *  \return 1 if it is the unquote operator, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
@@ -649,12 +663,30 @@ sexpr equalp
 
 /*! \brief Check if the S-Expression is the Splice Operator
  *  \param[in] sx The s-expression to check.
- *  \return 1 if it is the dot operator, 0 otherwise.
+ *  \return 1 if it is the splice operator, 0 otherwise.
  *
  *  This macro determines the type of the given s-expression, and the result is
  *  usable as a C boolean.
  */
 #define splicep(sx)   ((sexpr)(sx) == sx_splice)
+
+/*! \brief Check if the S-Expression is the Positive Infinity
+ *  \param[in] sx The s-expression to check.
+ *  \return 1 if it is the positive infinity, 0 otherwise.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ */
+#define pinfp(sx)     ((sexpr)(sx) == sx_positive_infinity)
+
+/*! \brief Check if the S-Expression is the Negative Infinity
+ *  \param[in] sx The s-expression to check.
+ *  \return 1 if it is the negative infinity, 0 otherwise.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ */
+#define ninfp(sx)     ((sexpr)(sx) == sx_negative_infinity)
 
 /*! \brief Check if the S-Expression is a Cons
  *  \param[in] sx The s-expression to check.

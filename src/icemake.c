@@ -2183,16 +2183,16 @@ int main (int argc, char **argv, char **environ)
 
     gc_elements = cons (buildtargets, gc_elements);
 
-    gc_invoke();
+//    gc_invoke();
 
     sx_write (stdio, cons (sym_targets, buildtargets));
 
     crosslink_objects ();
-    gc_invoke();
+//    gc_invoke();
     build (buildtargets);
-    gc_invoke();
+//    gc_invoke();
     ice_link (buildtargets);
-    gc_invoke();
+//    gc_invoke();
     post_process (buildtargets);
 
     if (truep (do_build_documentation))

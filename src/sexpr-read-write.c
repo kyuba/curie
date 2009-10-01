@@ -171,7 +171,7 @@ static sexpr sx_read_number
     define_symbol (sym_minus, "-");
     unsigned int j = *i;
     signed long number = 0;
-    char number_is_negative = (char)0, hadnum = (char)0;
+    char number_is_negative = (char)0, hadnum = (char)0, is_infinity = (char)0;
 
     switch (buf[j])
     {
@@ -199,10 +199,19 @@ static sexpr sx_read_number
                 number = (number * 10) + (long int)(buf[j] - '0');
                 hadnum = (char)1;
                 break;
+            case 'i':
+                /* infinity marker */
+                is_infinity = (char)1;
+                break;
             default:
                 /* end of number */
                 *i = j;
-                if (hadnum == (char)0)
+                if (is_infinity == (char)1)
+                {
+                    return ((number_is_negative == (char)1) ?
+                            sx_negative_infinity : sx_positive_infinity);
+                }
+                else if (hadnum == (char)0)
                 {
                     return ((number_is_negative == (char)1) ?
                             sym_minus : sym_plus);
@@ -670,6 +679,16 @@ static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx)
     {
         (void)io_collect (io->out, ",@", 2);
         return 0;
+    }
+    else if (pinfp(sx))
+    {
+        (void)io_collect (io->out, "+i", 2);
+        return 1;
+    }
+    else if (ninfp(sx))
+    {
+        (void)io_collect (io->out, "+i", 2);
+        return 1;
     }
     else if (customp(sx))
     {
