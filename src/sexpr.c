@@ -42,18 +42,17 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr)
 {
     static struct memory_pool pool =
             MEMORY_POOL_INITIALISER(sizeof (struct sexpr_cons));
-    sexpr t[2] = { sx_car, sx_cdr };
-    int_32 hash = bin_hash ((const char *)t, sizeof (t));
     struct sexpr_cons *rv;
     struct tree_node *n;
+    struct tree *t2;
 
-    if ((n = tree_get_node (&sx_cons_tree, (int_pointer)hash)))
+    if ((n = tree_get_node (&sx_cons_tree, (int_pointer)sx_car)) &&
+         ((t2 = (struct tree *)node_get_value (n)) != (struct tree *)0) &&
+        (n = tree_get_node (t2, (int_pointer)sx_cdr)) &&
+         ((rv = (struct sexpr_cons *)node_get_value (n))
+             != (struct sexpr_cons *)0))
     {
-        if ((rv = (struct sexpr_cons *)node_get_value (n))
-             != (struct sexpr_cons *)0)
-        {
-            return (sexpr)rv;
-        }
+        return (sexpr)rv;
     }
 
     rv = get_pool_mem (&pool);
@@ -67,7 +66,15 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr)
     rv->car  = sx_car;
     rv->cdr  = sx_cdr;
 
-    tree_add_node_value (&sx_cons_tree, (int_pointer)hash, rv);
+    if (!(n = tree_get_node (&sx_cons_tree, (int_pointer)sx_car)) ||
+        !((t2 = (struct tree *)node_get_value (n)) != (struct tree *)0))
+    {
+        t2 = tree_create ();
+
+        tree_add_node_value (&sx_cons_tree, (int_pointer)sx_car, t2);
+    }
+
+    tree_add_node_value (t2, (int_pointer)sx_cdr, rv);
 
     gc_base_items++;
 
