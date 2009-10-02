@@ -146,19 +146,10 @@ void sx_destroy(sexpr sxx)
     else if (consp(sxx))
     {
         struct sexpr_cons *sx = (struct sexpr_cons *)sx_pointer(sxx);
-        struct tree *t2;
-        struct tree_node *n;
+        sexpr t[2] = { sx->car, sx->cdr };
+        int_32 hash = bin_hash ((const char *)t, sizeof (t));
 
-        if ((n = tree_get_node (&sx_cons_tree, (int_pointer)(sx->car))) &&
-            ((t2 = (struct tree *)node_get_value (n)) != (struct tree *)0))
-        {
-            tree_remove_node (t2, (int_pointer)(sx->cdr));
-
-            if (t2->root == (struct tree_node *)0)
-            {
-                tree_remove_node (&sx_cons_tree, (int_pointer)(sx->car));
-            }
-        }
+        tree_remove_node(&sx_cons_tree, (int_pointer)hash);
 
         free_pool_mem (sx);
         gc_base_items--;
