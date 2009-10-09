@@ -140,16 +140,22 @@ void sx_destroy(sexpr sxx)
 
         unsigned long length = 0;
         int_32 hash;
+        struct tree_node *n;
 
         hash = str_hash (((struct sexpr_string_or_symbol *)sx)->character_data,
                          &length);
 
-        tree_remove_node ((sx->type == sxt_string) ? &sx_string_tree
-                                                   : &sx_symbol_tree,
-                          (int_pointer)hash);
+        if ((n = tree_get_node ((sx->type == sxt_string) ? &sx_string_tree
+                                                         : &sx_symbol_tree,
+                                (int_pointer)hash)))
+        {
+            tree_remove_node ((sx->type == sxt_string) ? &sx_string_tree
+                                                       : &sx_symbol_tree,
+                              (int_pointer)hash);
 
-        afree ((sizeof (struct sexpr_string_or_symbol) + length + 1), sx);
-        gc_base_items--;
+            afree ((sizeof (struct sexpr_string_or_symbol) + length + 1), sx);
+            gc_base_items--;
+        }
     }
     else if (consp(sxx))
     {
