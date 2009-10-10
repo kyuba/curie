@@ -49,30 +49,14 @@ sexpr read_directory_sx (sexpr rx)
     return r;
 }
 
-sexpr read_directory    (const char *p)
+sexpr read_directory_w  (const char *p, char **map, char *mapd)
 {
     sexpr r = sx_end_of_list;
-    unsigned int l = 0, s = 0, c = 0, map_s, mapd_l;
-    char **map, *mapd;
-
-    while (p[l]) {
-        if (p[l] == '/') s++;
-
-        l++;
-    }
-
-    s++;
-    l++;
-    
-    map_s  = sizeof (char *) * s;
-    mapd_l = l;
-
-    map  = aalloc (map_s);
-    mapd = aalloc (mapd_l);
+    unsigned int l = 0, s = 0, c = 0;
 
     map[0] = mapd;
 
-    for (l = s = 0; p[l]; l++)
+    while (p[l])
     {
         if (p[l] == '/') {
             mapd[l] = 0;
@@ -82,6 +66,8 @@ sexpr read_directory    (const char *p)
         } else {
             mapd[l] = p[l];
         }
+
+        l++;
     }
 
     mapd[l] = 0;
@@ -170,8 +156,66 @@ sexpr read_directory    (const char *p)
         r = nr;
     }
 
-    afree (map_s,  map);
-    afree (mapd_l, mapd);
+    return r;
+}
+
+sexpr read_directory    (const char *p)
+{
+    sexpr r = sx_end_of_list;
+    unsigned int l = 0, s = 0, map_s, mapd_l;
+
+    while (p[l]) {
+        if (p[l] == '/') s++;
+
+        l++;
+    }
+
+    s++;
+    l++;
+
+    map_s  = sizeof (char *) * s;
+    mapd_l = l;
+
+    if (map_s < LIBCURIE_PAGE_SIZE)
+    {
+        char buf_map [LIBCURIE_PAGE_SIZE];
+
+        if (mapd_l < LIBCURIE_PAGE_SIZE)
+        {
+            char buf_mapd [LIBCURIE_PAGE_SIZE];
+
+            r = read_directory_w (p, (char **)buf_map, buf_mapd);
+        }
+        else
+        {
+            char *mapd = aalloc (mapd_l);
+
+            r = read_directory_w (p, (char **)buf_map, mapd);
+
+            afree (mapd_l, mapd);
+        }
+    }
+    else
+    {
+        char **map = aalloc (map_s);
+
+        if (mapd_l < LIBCURIE_PAGE_SIZE)
+        {
+            char buf_mapd [LIBCURIE_PAGE_SIZE];
+
+            r = read_directory_w (p, map, buf_mapd);
+        }
+        else
+        {
+            char *mapd = aalloc (mapd_l);
+
+            r = read_directory_w (p, map, mapd);
+
+            afree (mapd_l, mapd);
+        }
+
+        afree (map_s, map);
+    }
 
     return r;
 }
