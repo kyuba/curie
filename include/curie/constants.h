@@ -121,6 +121,31 @@ extern "C" {
  */
 #define SX_MAX_NUMBER_LENGTH 33
 
+/*! \brief Chunk Size for Graph Nodes
+ *
+ *  Space for graph nodes is allocated in chunks of this; needs to be a power of
+ *  2. Smaller values provide better memory efficiency for smaller graphs and
+ *  regexen, larger values usually provide better performance since
+ *  modifications require fewer reallocations, which are expensive.
+ *
+ *  This value also directly influences the minimum size requirements for graphs
+ *  as this number of nodes is always allocated along with the graph.
+ */
+#define GRAPH_NODE_CHUNK_SIZE 0x10
+
+/*! \brief Chunk Size for Graph Edges
+ *
+ *  Space for graph edges is allocated in chunks of this; needs to be a power of
+ *  2. Smaller values provide better memory efficiency for smaller graphs and
+ *  regexen, larger values usually provide better performance since
+ *  modifications require fewer reallocations, which are expensive.
+ *
+ *  This value also directly influences the minimum size requirements for graph
+ *  nodes as this number of edges is always allocated along with each graph
+ *  node.
+ */
+#define GRAPH_EDGE_CHUNK_SIZE 0x8
+
 #ifdef __cplusplus
 }
 #endif

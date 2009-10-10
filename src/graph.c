@@ -36,6 +36,14 @@ static sexpr graph_to_sexpr (sexpr);
 static sexpr sexpr_to_graph (sexpr);
 static char initialised = 0;
 
+#define get_chunked_node_size(n)\
+    ((((n) & ~(GRAPH_NODE_CHUNK_SIZE-1)) + 1)\
+        * GRAPH_NODE_CHUNK_SIZE * sizeof(struct graph_node *))
+
+#define get_chunked_edge_size(n)\
+    ((((n) & ~(GRAPH_EDGE_CHUNK_SIZE-1)) + 1)\
+        * GRAPH_EDGE_CHUNK_SIZE * sizeof(struct graph_edge *))
+
 void graph_initialise ()
 {
     if (!initialised)
@@ -60,8 +68,8 @@ sexpr graph_create()
 
     gr = (struct graph *) get_pool_mem(&pool);
     gr->type = graph_type_identifier;
-    gr->nodes = (struct graph_node **)0;
     gr->node_count = 0;
+    gr->nodes = (struct graph_node **)aalloc (get_chunked_node_size(0));
 
     gc_base_items++;
 
@@ -73,15 +81,18 @@ struct graph_node *graph_add_node(sexpr sx, sexpr label)
     struct graph *gr = (struct graph *)sx_pointer(sx);
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_node));
     struct graph_node *node = (struct graph_node *) get_pool_mem(&pool);
+    unsigned int size_before = get_chunked_node_size (gr->node_count),
+                 size_after  = get_chunked_node_size (gr->node_count + 1);
 
-    if (gr->node_count == 0) {
-        gr->nodes = (struct graph_node **)aalloc(sizeof(struct graph_node *));
-    } else {
-        gr->nodes = (struct graph_node **)arealloc(sizeof(struct graph_node *) * gr->node_count, gr->nodes, sizeof(struct graph_node *) * (gr->node_count + 1));
+
+    if (size_before != size_after)
+    {
+        gr->nodes = (struct graph_node **) arealloc
+                (size_before, gr->nodes, size_after);
     }
 
     node->edge_count = 0;
-    node->edges = (struct graph_edge **)0;
+    node->edges = (struct graph_edge **)aalloc (get_chunked_edge_size(0));
     node->label = label;
 
     gr->nodes[gr->node_count] = node;
@@ -111,15 +122,15 @@ static void graph_destroy (sexpr sx)
 
                     free_pool_mem ((void *)e);
                 }
-
-                afree (sizeof(struct graph_node *) * n->edge_count, n->edges);
             }
+
+            afree (get_chunked_edge_size(n->edge_count), n->edges);
 
             free_pool_mem ((void *)n);
         }
-
-        afree (sizeof(struct graph_node *) * gr->node_count, gr->nodes);
     }
+
+    afree (get_chunked_node_size(gr->node_count), gr->nodes);
 
     free_pool_mem ((void *)gr);
 
@@ -143,11 +154,13 @@ struct graph_edge *graph_node_add_edge (struct graph_node *node, struct graph_no
 {
     static struct memory_pool pool = MEMORY_POOL_INITIALISER(sizeof (struct graph_edge));
     struct graph_edge *edge = (struct graph_edge *) get_pool_mem(&pool);
+    unsigned int size_before = get_chunked_edge_size (node->edge_count),
+                 size_after  = get_chunked_edge_size (node->edge_count + 1);
 
-    if (node->edge_count == 0) {
-        node->edges = (struct graph_edge **)aalloc(sizeof(struct graph_edge *));
-    } else {
-        node->edges = (struct graph_edge **)arealloc(sizeof(struct graph_edge *) * node->edge_count, node->edges, sizeof(struct graph_edge *) * (node->edge_count + 1));
+    if (size_before != size_after)
+    {
+        node->edges = (struct graph_edge **) arealloc
+                (size_before, node->edges, size_after);
     }
 
     edge->target = target;
