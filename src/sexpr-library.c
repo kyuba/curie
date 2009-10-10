@@ -99,6 +99,7 @@ sexpr sx_join (sexpr a, sexpr b, sexpr c)
 {
     unsigned int i = 0, j = 0, k = 0;
     const char *s;
+    char buf[LIBCURIE_PAGE_SIZE];
     char *g;
     sexpr rv;
 
@@ -124,7 +125,14 @@ sexpr sx_join (sexpr a, sexpr b, sexpr c)
 
     k++;
 
-    g = aalloc (k);
+    if (k < LIBCURIE_PAGE_SIZE)
+    {
+        g = buf;
+    }
+    else
+    {
+        g = get_mem (k);
+    }
 
     i = 0;
     s = stringp (a) ? sx_string (a) : sx_symbol(a);
@@ -151,7 +159,11 @@ sexpr sx_join (sexpr a, sexpr b, sexpr c)
     g[i] = 0;
 
     rv = stringp(a) ? make_string (g) : make_symbol (g);
-    afree (k, g);
+
+    if (k >= LIBCURIE_PAGE_SIZE)
+    {
+        free_mem (k, g);
+    }
 
     return rv;
 }
