@@ -149,8 +149,6 @@ sexpr read_directory    (const char *p)
                     nr = cons (sx_join (ca, str_slash, b), nr);
                 }
             }
-
-            sx_destroy (g);
         }
         else
         {
