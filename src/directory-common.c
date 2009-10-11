@@ -176,13 +176,13 @@ sexpr read_directory    (const char *p)
     map_s  = sizeof (char *) * s;
     mapd_l = l;
 
-    if (map_s < LIBCURIE_PAGE_SIZE)
+    if (map_s < STACK_BUFFER_SIZE)
     {
-        char buf_map [LIBCURIE_PAGE_SIZE];
+        char buf_map [STACK_BUFFER_SIZE];
 
-        if (mapd_l < LIBCURIE_PAGE_SIZE)
+        if (mapd_l < STACK_BUFFER_SIZE)
         {
-            char buf_mapd [LIBCURIE_PAGE_SIZE];
+            char buf_mapd [STACK_BUFFER_SIZE];
 
             r = read_directory_w (p, (char **)buf_map, buf_mapd);
         }
@@ -199,9 +199,9 @@ sexpr read_directory    (const char *p)
     {
         char **map = aalloc (map_s);
 
-        if (mapd_l < LIBCURIE_PAGE_SIZE)
+        if (mapd_l < STACK_BUFFER_SIZE)
         {
-            char buf_mapd [LIBCURIE_PAGE_SIZE];
+            char buf_mapd [STACK_BUFFER_SIZE];
 
             r = read_directory_w (p, map, buf_mapd);
         }

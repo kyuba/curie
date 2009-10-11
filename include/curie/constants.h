@@ -49,6 +49,13 @@ extern "C" {
  */
 #define LIBCURIE_PAGE_SIZE 0x1000
 
+/*! \brief Stack Buffer Size
+ *
+ *  Temporary buffers up to this size are allocated on the stack instead of via
+ *  aalloc().
+ */
+#define STACK_BUFFER_SIZE 0x1000
+
 /*! \brief Allocator Alignment (in Bytes)
  *
  *  Memory allocated by the curie functions will always be aligned to this value

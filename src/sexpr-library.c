@@ -153,9 +153,9 @@ sexpr sx_join (sexpr a, sexpr b, sexpr c)
 
     k++;
 
-    if (k < LIBCURIE_PAGE_SIZE)
+    if (k < STACK_BUFFER_SIZE)
     {
-        char buf[LIBCURIE_PAGE_SIZE];
+        char buf[STACK_BUFFER_SIZE];
 
         return sx_join_work (a, b, c, buf);
     }
