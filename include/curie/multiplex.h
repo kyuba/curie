@@ -146,6 +146,9 @@ void multiplex_add_io_no_callback (struct io *io);
  *
  *  Calls io_close() on the io parameter, and stops tracking it with the I/O
  *  multiplexer code.
+ *
+ *  \note io_close() is only called when multiplex_add_io() has been called
+ *        on the io parameter (directly or indirectly).
  */
 void multiplex_del_io (struct io *io);
 
