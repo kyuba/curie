@@ -66,6 +66,9 @@
   (description "Math functionality for libcurie")
   (version "1")
   (url "http://kyuba.org/")
+
+  (code "functions")
+
   (headers
         "math" "trig" "constants" "matrix" "functions"))
 
