@@ -95,38 +95,11 @@ sexpr sx_list_fold (sexpr list, sexpr (*f)(sexpr, sexpr), sexpr seed)
     return seed;
 }
 
-sexpr sx_join (sexpr a, sexpr b, sexpr c)
+static sexpr sx_join_work (sexpr a, sexpr b, sexpr c, char *g)
 {
-    unsigned int i = 0, j = 0;
     const char *s;
-    char *g;
-    sexpr rv;
+    int i = 0, j = 0;
 
-    if (stringp (a) || symbolp(a))
-    {
-        s = stringp (a) ? sx_string (a) : sx_symbol(a);
-        for (j = 0; s[j]; j++) i++;
-    }
-    else
-    {
-        return sx_nil;
-    }
-    if (stringp (b) || symbolp(b))
-    {
-        s = stringp (b) ? sx_string (b) : sx_symbol(b);
-        for (j = 0; s[j]; j++) i++;
-    }
-    if (stringp (c) || symbolp(c))
-    {
-        s = stringp (c) ? sx_string (c) : sx_symbol(c);
-        for (j = 0; s[j]; j++) i++;
-    }
-
-    i++;
-
-    g = aalloc (i);
-
-    i = 0;
     s = stringp (a) ? sx_string (a) : sx_symbol(a);
     for (j = 0; s[j]; j++) {
         g[i] = s[j];
@@ -150,10 +123,53 @@ sexpr sx_join (sexpr a, sexpr b, sexpr c)
     }
     g[i] = 0;
 
-    rv = stringp(a) ? make_string (g) : make_symbol (g);
-    afree (i, g);
+    return stringp(a) ? make_string (g) : make_symbol (g);
+}
 
-    return rv;
+sexpr sx_join (sexpr a, sexpr b, sexpr c)
+{
+    unsigned int j = 0, k = 0;
+    const char *s;
+
+    if (stringp (a) || symbolp(a))
+    {
+        s = stringp (a) ? sx_string (a) : sx_symbol(a);
+        for (j = 0; s[j]; j++) k++;
+    }
+    else
+    {
+        return sx_nil;
+    }
+    if (stringp (b) || symbolp(b))
+    {
+        s = stringp (b) ? sx_string (b) : sx_symbol(b);
+        for (j = 0; s[j]; j++) k++;
+    }
+    if (stringp (c) || symbolp(c))
+    {
+        s = stringp (c) ? sx_string (c) : sx_symbol(c);
+        for (j = 0; s[j]; j++) k++;
+    }
+
+    k++;
+
+    if (k < STACK_BUFFER_SIZE)
+    {
+        char buf[STACK_BUFFER_SIZE];
+
+        return sx_join_work (a, b, c, buf);
+    }
+    else
+    {
+        char *g = get_mem (k);
+        sexpr rv;
+
+        rv = sx_join_work (a, b, c, g);
+
+        free_mem (k, g);
+
+        return rv;
+    }
 }
 
 sexpr sx_reverse (sexpr sx)

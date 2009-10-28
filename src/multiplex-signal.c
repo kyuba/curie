@@ -52,11 +52,11 @@ static void invoke (enum signal signal) {
             (h->handler (signal, h->data) == scr_ditch)) {
             if (hp == (struct handler *)0) {
                 signal_handlers = h->next;
-                afree (sizeof(struct handler), (void *)h);
+                free_pool_mem ((void *)h);
                 h = signal_handlers;
             } else {
                 hp->next = h->next;
-                afree (sizeof(struct handler), (void *)h);
+                free_pool_mem ((void *)h);
                 h = hp->next;
             }
             continue;
@@ -145,7 +145,9 @@ void multiplex_signal_primary () {
 }
 
 void multiplex_add_signal (enum signal signal, enum signal_callback_result (*handler)(enum signal, void *), void *data) {
-    struct handler *element = aalloc (sizeof(struct handler));
+    static struct memory_pool pool
+            = MEMORY_POOL_INITIALISER (sizeof(struct handler));
+    struct handler *element = get_pool_mem (&pool);
 
     if (element == (struct handler *)0) return;
 

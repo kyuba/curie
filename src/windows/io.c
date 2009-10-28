@@ -424,14 +424,23 @@ void io_close (struct io *io)
     if (io->status != io_finalising) (void)io_finish (io);
 
     if (io->type == iot_write) {
-        while (io_commit (io) == io_incomplete);
+        enum io_result r;
+
+        while (((r = io_commit (io)) == io_incomplete) || (r == io_no_change));
+
+        (void)io_finish (io);
     }
 
     if (io->handle != (void *)0)
+    {
         CloseHandle (io->handle);
+        io->handle = (void *)0;
+    }
 
     if ((io->buffersize > 0) && (io->buffer != (char *)0)) {
         free_mem(io->buffersize, io->buffer);
+        io->buffer = (char *)0;
+        io->buffersize = 0;
     }
 
     free_pool_mem ((void *)io);

@@ -30,7 +30,8 @@
 #include <curie/tree.h>
 #include <curie/immutable.h>
 
-struct tree * tree_create () {
+struct tree * tree_create ()
+{
     static struct memory_pool pool
             = MEMORY_POOL_INITIALISER(sizeof (struct tree));
     struct tree *tree = (struct tree *)get_pool_mem(&pool);
@@ -45,13 +46,15 @@ struct tree * tree_create () {
     return tree;
 }
 
-static void node_destroy(struct tree_node *node)
+static void node_destroy (struct tree_node *node)
 {
     if (node != (struct tree_node *)0) {
-        if (node->left != (struct tree_node *)0) {
+        if (node->left != (struct tree_node *)0)
+        {
             node_destroy (node->left);
         }
-        if (node->right != (struct tree_node *)0) {
+        if (node->right != (struct tree_node *)0)
+        {
             node_destroy (node->right);
         }
 
@@ -60,8 +63,10 @@ static void node_destroy(struct tree_node *node)
 }
 
 /*! \todo clean all nodes in 'ere */
-void tree_destroy (struct tree *tree) {
-    if (tree->root != (struct tree_node *)0) {
+void tree_destroy (struct tree *tree)
+{
+    if (tree->root != (struct tree_node *)0)
+    {
         node_destroy (tree->root);
     }
 
@@ -77,13 +82,15 @@ static void tree_add_node_to_tree
     node->left = (struct tree_node *)0;
     node->right = (struct tree_node *)0;
 
-    if (tree->root == (struct tree_node *)0) {
+    if (tree->root == (struct tree_node *)0)
+    {
         tree->root = node;
 
         return;
     }
 
-    for (; cur != (struct tree_node *)0; ) {
+    while (cur != (struct tree_node *)0)
+    {
         last = cur;
         if (key > cur->key) {
             cur = cur->right;
@@ -124,11 +131,12 @@ void tree_add_node_value (struct tree *tree, int_pointer key, void *value)
     tree_add_node_to_tree (tree, (struct tree_node *)node, key);
 }
 
-struct tree_node * tree_get_node (struct tree *tree, int_pointer key) {
+struct tree_node * tree_get_node (struct tree *tree, int_pointer key)
+{
     struct tree_node *cur = tree->root;
 
     while (cur != (struct tree_node *)0) {
-        if (cur->key == key) break;
+        if (cur->key == key) return cur;
 
         if (key > cur->key) {
             cur = cur->right;
@@ -137,10 +145,12 @@ struct tree_node * tree_get_node (struct tree *tree, int_pointer key) {
         }
     }
 
-    return cur;
+    return (struct tree_node *)0;
 }
 
-static void node_rotate (struct tree_node **root, struct tree_node *old, struct tree_node *new) {
+static void node_rotate
+        (struct tree_node **root, struct tree_node *old, struct tree_node *new)
+{
     if (old->left == new) {
         old->left = new->right;
         new->right = old;
@@ -154,7 +164,8 @@ static void node_rotate (struct tree_node **root, struct tree_node *old, struct 
     }
 }
 
-void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_node *node)
+void tree_remove_node_specific
+        (struct tree *tree, int_pointer key, struct tree_node *node)
 {
     struct tree_node
             *cur = tree->root,
@@ -166,8 +177,8 @@ void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_
         {
             /* perform tree rotations to make the node a leaf node */
             while ((cur->left != (struct tree_node *)0) ||
-                   (cur->right != (struct tree_node *)0)) {
-
+                   (cur->right != (struct tree_node *)0))
+            {
                 struct tree_node **update, *new_last;
 
                 if (last == (struct tree_node *)0) {
@@ -216,7 +227,10 @@ void tree_remove_node_specific (struct tree *tree, int_pointer key, struct tree_
     };
 }
 
-static void tree_map_worker(struct tree_node *node, void (*callback)(struct tree_node *, void *), void *sv) {
+static void tree_map_worker
+        (struct tree_node *node, void (*callback)(struct tree_node *, void *),
+         void *sv)
+{
     struct tree_node *onode;
 
     while (node != (struct tree_node *)0) {
@@ -240,7 +254,10 @@ static void tree_map_worker(struct tree_node *node, void (*callback)(struct tree
     }
 }
 
-void tree_map (struct tree *tree, void (*callback)(struct tree_node *, void *), void *sv) {
+void tree_map
+        (struct tree *tree, void (*callback)(struct tree_node *, void *),
+         void *sv)
+{
     if (tree->root != (struct tree_node *)0)
         tree_map_worker ((void *)tree->root, callback, sv);
 }
@@ -260,7 +277,8 @@ struct tree_node * tree_get_node_string (struct tree *t, char *k)
     return tree_get_node (t, (int_pointer)str_immutable_unaligned(k));
 }
 
-void tree_remove_node_string_specific (struct tree *t, char *k, struct tree_node *v)
+void tree_remove_node_string_specific
+        (struct tree *t, char *k, struct tree_node *v)
 {
     tree_remove_node_specific(t, (int_pointer)str_immutable_unaligned(k), v);
 }

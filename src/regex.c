@@ -289,12 +289,27 @@ static void rx_match_add_nfa_state
 {
     static struct memory_pool pool =
             MEMORY_POOL_INITIALISER (sizeof(struct nfa_state));
-    struct nfa_state *c, *ns;
+    struct nfa_state *c, *ns = (struct nfa_state *)0;
 
     /* don't add nfa states that are already in the list */
     for (c = *s; c != (struct nfa_state *)0; c = c->next)
     {
-        if ((c->n == n) && (c->p == p)) return;
+        if ((ns == (struct nfa_state *)0) && (c->n == (struct graph_node *)0))
+        {
+            ns = c;
+        }
+        else if ((c->n == n) && (c->p == p))
+        {
+            return;
+        }
+    }
+
+    /* try to reuse an old node */
+    if (ns != (struct nfa_state *)0)
+    {
+        ns->n = n;
+        ns->p = p;
+        return;
     }
 
     ns = get_pool_mem (&pool);
@@ -372,44 +387,30 @@ static sexpr rx_match_nfa_state_progress
 static sexpr rx_match_recurse
     (struct nfa_state **ns, const unsigned char *s)
 {
-    while ((*ns) != (struct nfa_state *)0)
+    char had_nodes = (char)1;
+    while (((*ns) != (struct nfa_state *)0) && (had_nodes == (char)1))
     {
         struct nfa_state *c = (*ns);
+        had_nodes = (char)0;
 
         while (c != (struct nfa_state *)0)
         {
-            sexpr sx = rx_match_nfa_state_progress (c, ns, s);
-
-            if (truep (sx))
+            if (c->n != (struct graph_node *)0)
             {
-                return sx_true;
-            }
-            else if (nexp (sx))
-            {
-                struct nfa_state *f = c;
-                struct nfa_state *y;
+                had_nodes = (char)1;
+                sexpr sx = rx_match_nfa_state_progress (c, ns, s);
 
-                c = c->next;
-
-                free_pool_mem (f);
-
-                if ((*ns) == f)
+                if (truep (sx))
                 {
-                    *ns = c;
+                    return sx_true;
                 }
-                else for (y = *ns; y != (struct nfa_state *)0; y = y->next)
+                else if (nexp (sx))
                 {
-                    if (y->next == f)
-                    {
-                        y->next = c;
-                        break;
-                    }
+                    c->n = (struct graph_node *)0;
                 }
             }
-            else
-            {
-                c = c->next;
-            }
+
+            c = c->next;
         }
     }
 

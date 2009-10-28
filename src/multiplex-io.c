@@ -293,6 +293,7 @@ void multiplex_add_io_no_callback (struct io *io)
 
 void multiplex_del_io (struct io *io) {
     struct io_list *l = list, **p;
+    char av = (char)0;
 
     while (l != (struct io_list *)0) {
         if (l->io == io)
@@ -319,6 +320,8 @@ void multiplex_del_io (struct io *io) {
             l = *p;
 
             free_pool_mem (t);
+
+            av = (char)1;
             continue;
         }
 
@@ -326,5 +329,8 @@ void multiplex_del_io (struct io *io) {
         l = l->next;
     }
 
-    io_close (io);
+    if (av == (char)1)
+    {
+        io_close (io);
+    }
 }
