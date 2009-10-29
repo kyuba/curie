@@ -41,4 +41,6 @@
   
   #define ERROR_UNDEFINED -1
   
+  #define EPSILON 0.0000000001
+  
 #endif

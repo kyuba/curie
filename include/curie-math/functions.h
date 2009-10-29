@@ -56,5 +56,5 @@
   
   double log10 (double x);
   
-  double log (double base, double x);
+  double logarithm (double base, double x);
 #endif

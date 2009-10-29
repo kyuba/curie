@@ -40,4 +40,5 @@
   #define NEGINFINITY -1e+37
   
   #define ERROR_UNDEFINED -1
+  
 #endif

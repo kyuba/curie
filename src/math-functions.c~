@@ -25,36 +25,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
 */
+  #include <curie-math/functions.h>
 
-#ifndef _LIBCURIE_MATH_FUNCTIONS_H
-  #define LIBCURIE_MATH_FUNCTIONS_H
-  
-  #include <curie-math/constants.h>
-  /*! \file 
-    \brief Elementary functions
-    
-    This file contains definitions of functions like powers of arbitrary base/exponent,
-    logarithms, roots etc.
-    
-    */
-  
-  /*! \brief base^exp */
-  double pow (double base, double exp);
-  
-  /*! \brief Square root of x       
-      \return The positive square root of x, if x is >= 0.
-      For negative x, ERROR_UNDEFINED will be returned.
-  */
-  double sqrt (double x); 
-  
 
-  double exp (double x);
+  double sqrt (double x)
+  {
+      ;
+  }
   
-  double ln (double x);
   
-  double log2 (double x);
-  
-  double log10 (double x);
-  
-  //double log (double base, double x);
-#endif
