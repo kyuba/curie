@@ -10,6 +10,8 @@ benchmark-*
 
 *.out.*
 
+*~
+
 .DS_Store
 
 *.xcodeproj
@@ -25,3 +27,4 @@ benchmarks/*
 documentation/doxygen
 
 a.out
+
