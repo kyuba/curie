@@ -81,61 +81,53 @@ int_32 hash_murmur2_32 ( const void * key, int len, unsigned int seed )
     return h;
 }
 
-/* since this is the "default" file, we'll assume a 32-bit platform. this
-   shouldn't blow up on 64-bit platforms either, it'll just be suboptimal. */
+/* since this is the the file to use on 64-bit platforms, we use the optimised
+   version of this hash for 64-bit platforms */
 
 int_64 hash_murmur2_64 ( const void * key, int len, unsigned int seed )
 {
-    const unsigned int m = 0x5bd1e995;
-    const int r = 24;
+    const int_64 m = 0xc6a4a7935bd1e995;
+    const int r = 47;
 
-    unsigned int h1 = seed ^ len;
-    unsigned int h2 = 0;
+    int_64 h = seed ^ (len * m);
 
-    const unsigned int * data = (const unsigned int *)key;
+    const int_64 * data = (const int_64 *)key;
+    const int_64 * end = data + (len/8);
 
-    while(len >= 8)
+    while(data != end)
     {
-        unsigned int k1 = *data++;
-        k1 *= m; k1 ^= k1 >> r; k1 *= m;
-        h1 *= m; h1 ^= k1;
-        len -= 4;
+        int_64 k = *data++;
 
-        unsigned int k2 = *data++;
-        k2 *= m; k2 ^= k2 >> r; k2 *= m;
-        h2 *= m; h2 ^= k2;
-        len -= 4;
+        k *= m;
+        k ^= k >> r;
+        k *= m;
+
+        h ^= k;
+        h *= m;
     }
 
-    if(len >= 4)
-    {
-        unsigned int k1 = *data++;
-        k1 *= m; k1 ^= k1 >> r; k1 *= m;
-        h1 *= m; h1 ^= k1;
-        len -= 4;
-    }
+    const unsigned char * data2 = (const unsigned char*)data;
 
-    switch(len)
+    switch(len & 7)
     {
-    case 3: h2 ^= ((unsigned char*)data)[2] << 16;
-    case 2: h2 ^= ((unsigned char*)data)[1] << 8;
-    case 1: h2 ^= ((unsigned char*)data)[0];
-            h2 *= m;
+    case 7: h ^= ((int_64)(data2[6])) << 48;
+    case 6: h ^= ((int_64)(data2[5])) << 40;
+    case 5: h ^= ((int_64)(data2[4])) << 32;
+    case 4: h ^= ((int_64)(data2[3])) << 24;
+    case 3: h ^= ((int_64)(data2[2])) << 16;
+    case 2: h ^= ((int_64)(data2[1])) << 8;
+    case 1: h ^= ((int_64)(data2[0]));
+            h *= m;
     };
 
-    h1 ^= h2 >> 18; h1 *= m;
-    h2 ^= h1 >> 22; h2 *= m;
-    h1 ^= h2 >> 17; h1 *= m;
-    h2 ^= h1 >> 19; h2 *= m;
-
-    int_64 h = h1;
-
-    h = (h << 32) | h2;
+    h ^= h >> r;
+    h *= m;
+    h ^= h >> r;
 
     return h;
 }
 
-/* see comment above for hash_murmur2_64()
+/* see comment above for hash_murmur2_64().
    note that this is a copy of the "corresponding" hash function, because the
    murmurhash2 is pretty small to begin with, so small that the overhead of
    indirecting the function call would probably be worse than just copying
@@ -144,51 +136,43 @@ int_64 hash_murmur2_64 ( const void * key, int len, unsigned int seed )
 
 int_pointer hash_murmur2_pt ( const void * key, int len, unsigned int seed )
 {
-    // 'm' and 'r' are mixing constants generated offline.
-    // They're not really 'magic', they just happen to work well.
+    const int_64 m = 0xc6a4a7935bd1e995;
+    const int r = 47;
 
-    const unsigned int m = 0x5bd1e995;
-    const int r = 24;
+    int_64 h = seed ^ (len * m);
 
-    // Initialize the hash to a 'random' value
+    const int_64 * data = (const int_64 *)key;
+    const int_64 * end = data + (len/8);
 
-    int_32 h = seed ^ len;
-
-    // Mix 4 bytes at a time into the hash
-
-    const unsigned char * data = (const unsigned char *)key;
-
-    while(len >= 4)
+    while(data != end)
     {
-        unsigned int k = *(unsigned int *)data;
+        int_64 k = *data++;
 
         k *= m;
         k ^= k >> r;
         k *= m;
 
-        h *= m;
         h ^= k;
-
-        data += 4;
-        len -= 4;
+        h *= m;
     }
 
-    // Handle the last few bytes of the input array
+    const unsigned char * data2 = (const unsigned char*)data;
 
-    switch(len)
+    switch(len & 7)
     {
-    case 3: h ^= data[2] << 16;
-    case 2: h ^= data[1] << 8;
-    case 1: h ^= data[0];
+    case 7: h ^= ((int_64)(data2[6])) << 48;
+    case 6: h ^= ((int_64)(data2[5])) << 40;
+    case 5: h ^= ((int_64)(data2[4])) << 32;
+    case 4: h ^= ((int_64)(data2[3])) << 24;
+    case 3: h ^= ((int_64)(data2[2])) << 16;
+    case 2: h ^= ((int_64)(data2[1])) << 8;
+    case 1: h ^= ((int_64)(data2[0]));
             h *= m;
     };
 
-    // Do a few final mixes of the hash to ensure the last few
-    // bytes are well-incorporated.
-
-    h ^= h >> 13;
+    h ^= h >> r;
     h *= m;
-    h ^= h >> 15;
+    h ^= h >> r;
 
     return h;
 }

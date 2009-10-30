@@ -85,16 +85,19 @@ int_64      hash_murmur2_64 ( const void * key, int len, unsigned int seed );
 int_pointer hash_murmur2_pt ( const void * key, int len, unsigned int seed );
 
 /*! \brief SuperFastHash
- *  \param[in] key  The data to hash.
+ *  \param[in] data The data to hash.
  *  \param[in] len  Length (in bytes) of key.
  *
  *  This is the SuperFastHash, written by Paul Hsieh. For more details, see
  *  http://www.azillionmonkeys.com/qed/hash.html -- this is the website where
  *  the hash is available in its original form.
  *
- *  This hash is always 32-bit.
+ *  This hash is always 32-bit. This version has been slightly modified to
+ *  accomodate for one of the curie rules: if the user passes a NULL pointer
+ *  or does other things that are meaningless, things oughta blow up. For this
+ *  reason, the original check for validity of data and len is skipped.
  */
-int_32      hash_superfast ( const void * key, int len );
+int_32      hash_superfast ( const int_8 * data, int len );
 
 #endif
 
