@@ -4,8 +4,17 @@
 
 == VALGRIND ==
  * file "src/valgrind/*.c" ONLY:
-   - this file have special extra code to instruct the excellent memory debug
+   - these files have special extra code to instruct the excellent memory debug
      suite 'valgrind' on how to detect bad pointer access, since we're not using
      the standard malloc/free allocation scheme.
      this code is /only/ used if the library was compiled for valgrind in some
      way.
+
+== HASH ALGORITHMS ==
+ * In various places, this library makes use of the MurmurHash2 and
+   SuperFashHash functions and derivatives by Austin Appleby and Paul Hsieh.
+   Both of these functions /appear/ to be either in the public domain, but it
+   still feels like a good idea to credit the authors. To get to the original
+   functions, see:
+     * http://murmurhash.googlepages.com/ (MurmurHash2)
+     * http://www.azillionmonkeys.com/qed/hash.html (SuperFastHash)

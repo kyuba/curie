@@ -15,12 +15,12 @@
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
         "directory" "directory-common" "libc-compat" "utf-8" "shell"
         "memory-error-handling" "sexpr-stdio" "stdio" "stack" "gc"
-        "sexpr-custom" "time" "time-system")
+        "sexpr-custom" "time" "time-system" "hash")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
         "int" "io" "immutable" "constants" "graph" "filesystem" "regex"
-        "directory" "string" "utf-8" "shell" "time" "stack" "gc")
+        "directory" "string" "utf-8" "shell" "time" "stack" "gc" "hash")
 
   (test-cases
         "bad-allocation" "bad-resize" "curie-main" "environment" "execute-fork"

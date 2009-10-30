@@ -4,7 +4,7 @@ REM Win32\cmd Variant
 
 SET INCLUDES=-Iinclude\windows -Iinclude\internal\windows -Iinclude -Iinclude\internal
 SET INCLUDESMSVC=/Iinclude\windows /Iinclude\internal\windows /Iinclude /Iinclude\internal
-SET ICEMAKE_FILES=icemake icemake-build icemake-install icemake-link icemake-crosslink icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio utf-8 sexpr-custom
+SET ICEMAKE_FILES=icemake icemake-build icemake-install icemake-link icemake-crosslink icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio utf-8 sexpr-custom hash
 SET OBJECTS=
 
 SET TOOLCHAINTYPE=
