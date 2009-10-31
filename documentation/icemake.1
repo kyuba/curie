@@ -8,7 +8,8 @@ icemake \- curie build and installation tool
 
 .BI "icemake [-cDfiLorRsSx] [-t " chost "] [-z " version "]"
 .BI "[-d " destdir "] [-b " name "] [-l "
-.IB libdir "] [-j " num "] [" targets "]"
+.IB libdir "] [-j " num "] [-a " selector
+.IB choice "] [" targets "]"
 
 .SH DESCRIPTION
 .B icemake
@@ -25,8 +26,7 @@ parameters that require an argument will always use the "next free" argument,
 quite similar to the
 .BR tar (1)
 utility. This may seem unusual when compared to other programmes. If you find it
-confusing, simply always separate arguments with parameters from arguments
-without.
+confusing, just separate arguments with parameters from arguments without.
 
 .IP "-h, --help"
 Print a short summary of the options, then exit.
@@ -113,6 +113,16 @@ compilation times, but it may also introduce unusual issues, so by default only
 one programme is launched concurrently. Installation is, however, always done
 in parallel, that is, all files are being read from and written to at more or
 less the same time.
+
+.IP "-a selector choice"
+Some icemake.sx files may specify several alternate implementations of some part
+of the code. An example would be a different algorithm to tackle the same
+problem, e.g. a splay tree as opposed to an avl tree or a bubble sort as opposed
+to a quicksort. Typically the defaults should to suffice, but for some
+applications it might prove to be a good idea to choose a different
+implementation due to atypical external constraints. The argument works by
+specifying the selector as the first parameter and the intended implementation
+as the second parameter, e.g. "-a tree tree-splay".
 
 .IP "targets"
 This is a list of targets to build. Obviously only targets defined in icemake.sx

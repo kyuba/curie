@@ -8,7 +8,8 @@
         "io-system" "memory" "bootstrap" "network-system" "exec-system"
         "multiplex-system" "signal-system" "directory" "time-system")
 
-  (code "sexpr" "io" "memory-pool" "tree-basic" "exec" "multiplex" "string"
+  (code "sexpr" "io" "memory-pool" (tree "tree-basic" "tree-splay") "exec"
+        "multiplex" "string"
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
         "immutable" "graph" "filesystem" "io-system" "memory" "network-system"

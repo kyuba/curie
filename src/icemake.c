@@ -104,6 +104,7 @@ sexpr p_pdflatex                       = sx_false;
 sexpr p_doxygen                        = sx_false;
 
 static sexpr gc_elements               = sx_end_of_list;
+static sexpr i_alternatives            = sx_end_of_list;
 
 struct sexpr_io *stdio;
 
@@ -567,11 +568,58 @@ static sexpr find_code_highlevel_pic (struct target *context, sexpr file)
 
 static void find_code (struct target *context, sexpr file)
 {
+    define_symbol (sym_invalid_choice,    "invalid-choice");
+    define_symbol (sym_missing_code_file, "missing-code-file");
+
     sexpr r;
     sexpr primus   = sx_false;
     sexpr secundus = sx_false;
     sexpr tertius  = sx_false;
     sexpr quartus  = sx_false;
+
+    if (consp (file))
+    {
+        sexpr ch = car (file), d = i_alternatives;
+
+        while (consp (d))
+        {
+            sexpr c = car (d);
+
+            if (truep (equalp (car (c), ch)))
+            {
+                sexpr co = cdr (file), e = cdr (c);
+
+                while (consp (co))
+                {
+                    if (truep (equalp (e, car (co))))
+                    {
+                        file = e;
+                        break;
+                    }
+
+                    co = cdr (co);
+                }
+
+                if (consp (file))
+                {
+                    sx_write (stdio, cons (sym_invalid_choice,
+                                           cons (ch,
+                                                 cons (e, sx_end_of_list))));
+
+                    exit (60);
+                }
+
+                break;
+            }
+
+            d = cdr (d);
+        }
+
+        if (consp (file))
+        {
+            file = car (cdr (file));
+        }
+    }
 
     if (falsep(equalp(str_bootstrap, file)) || truep (co_freestanding))
     {
@@ -679,7 +727,9 @@ static void find_code (struct target *context, sexpr file)
         }
         else
         {
-            fprintf (stderr, "missing code file: %s\n", sx_string(file));
+            sx_write (stdio, cons (sym_missing_code_file,
+                                   cons (file, sx_end_of_list)));
+
             exit(20);
         }
     }
@@ -1269,6 +1319,7 @@ static void print_help(char *binaryname)
         " -S           Enforce a static link (default).\n"
         " -R           Enforce a dynamic link.\n"
         " -j <num>     Spawn <num> processes simultaneously.\n"
+        " -a <1> <2>   Use implementation <2> for code part <1>.\n"
         " -D           Use debug code, if available.\n"
         " -x           Build documentation (if possible).\n"
         "\n"
@@ -1899,6 +1950,17 @@ int main (int argc, char **argv, char **environ)
                         {
                             i_destlibdir = make_string(argv[xn]);
                             xn++;
+                        }
+                        break;
+                    case 'a':
+                        if ((xn + 1) < argc)
+                        {
+                            i_alternatives
+                                    = cons (cons (make_symbol(argv[xn]),
+                                                  make_string(argv[(xn + 1)])),
+                                            i_alternatives);
+
+                            xn += 2;
                         }
                         break;
                     case 'j':
