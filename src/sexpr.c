@@ -32,6 +32,7 @@
 #include <curie/string.h>
 #include <curie/gc.h>
 #include <curie/tree.h>
+#include <curie/hash.h>
 
 static struct tree sx_cons_tree   = TREE_INITIALISER;
 static struct tree sx_string_tree = TREE_INITIALISER;
@@ -44,16 +45,12 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr)
             MEMORY_POOL_INITIALISER(sizeof (struct sexpr_cons));
     struct sexpr_cons *rv;
     struct tree_node *n;
-    struct tree *t2 = (struct tree *)0;
+    sexpr t[2] = { sx_car, sx_cdr };
+    int_pointer hash = hash_murmur2_pt (t, sizeof(t), 0);
 
-    if ((n = tree_get_node (&sx_cons_tree, (int_pointer)sx_car)))
+    if ((n = tree_get_node (&sx_cons_tree, (int_pointer)hash)))
     {
-        t2 = (struct tree *)node_get_value (n);
-
-        if ((n = tree_get_node (t2, (int_pointer)sx_cdr)))
-        {
-            return (sexpr)node_get_value (n);
-        }
+        return (sexpr)node_get_value (n);
     }
 
     rv = get_pool_mem (&pool);
@@ -67,14 +64,7 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr)
     rv->car  = sx_car;
     rv->cdr  = sx_cdr;
 
-    if (t2 == (struct tree *)0)
-    {
-        t2 = tree_create ();
-
-        tree_add_node_value (&sx_cons_tree, (int_pointer)sx_car, t2);
-    }
-
-    tree_add_node_value (t2, (int_pointer)sx_cdr, rv);
+    tree_add_node_value (&sx_cons_tree, hash, (void *)rv);
 
     gc_base_items++;
 
@@ -160,17 +150,10 @@ void sx_destroy(sexpr sxx)
     else if (consp(sxx))
     {
         struct sexpr_cons *sx = (struct sexpr_cons *)sx_pointer(sxx);
-        struct tree *t2;
-        struct tree_node *n = tree_get_node (&sx_cons_tree,
-                                             (int_pointer)(sx->car));
+        sexpr t[2] = { sx->car, sx->cdr };
+        int_pointer hash = hash_murmur2_pt (t, sizeof(t), 0);
 
-        t2 = (struct tree *)node_get_value (n);
-        tree_remove_node (t2, (int_pointer)(sx->cdr));
-
-        if (t2->root == (struct tree_node *)0)
-        {
-            tree_remove_node (&sx_cons_tree, (int_pointer)(sx->car));
-        }
+        tree_remove_node (&sx_cons_tree, hash);
 
         free_pool_mem (sx);
         gc_base_items--;
@@ -194,15 +177,9 @@ static void sx_map_call (struct tree_node *node, void *u)
     gc_call (sx);
 }
 
-static void sx_map_call_sub (struct tree_node *node, void *u)
-{
-    struct tree *tree = (struct tree *)node_get_value (node);
-    tree_map ((struct tree *)tree, sx_map_call, (void *)0);
-}
-
 void sx_call_all ( void )
 {
-    tree_map (&sx_cons_tree,   sx_map_call_sub, (void *)0);
-    tree_map (&sx_string_tree, sx_map_call,     (void *)0);
-    tree_map (&sx_symbol_tree, sx_map_call,     (void *)0);
+    tree_map (&sx_cons_tree,   sx_map_call, (void *)0);
+    tree_map (&sx_string_tree, sx_map_call, (void *)0);
+    tree_map (&sx_symbol_tree, sx_map_call, (void *)0);
 }
