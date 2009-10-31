@@ -15,7 +15,7 @@
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
         "directory" "directory-common" "libc-compat" "utf-8" "shell"
         "memory-error-handling" "sexpr-stdio" "stdio" "stack" "gc"
-        "sexpr-custom" "time" "time-system" "hash")
+        "sexpr-custom" "time" "time-system" "hash" "tree-string" "tree-library")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"

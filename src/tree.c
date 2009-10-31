@@ -28,7 +28,6 @@
 
 #include <curie/memory.h>
 #include <curie/tree.h>
-#include <curie/immutable.h>
 
 struct tree * tree_create ()
 {
@@ -225,60 +224,4 @@ void tree_remove_node_specific
             cur = cur->left;
         }
     };
-}
-
-static void tree_map_worker
-        (struct tree_node *node, void (*callback)(struct tree_node *, void *),
-         void *sv)
-{
-    struct tree_node *onode;
-
-    while (node != (struct tree_node *)0) {
-        onode = node;
-
-        if (node->right != (struct tree_node *)0)
-        {
-            if (node->left != (struct tree_node *)0)
-            {
-                tree_map_worker ((void *)node->left, callback, sv);
-            }
-
-            node = node->right;
-        }
-        else
-        {
-            node = node->left;
-        }
-
-        callback((void *)onode, sv);
-    }
-}
-
-void tree_map
-        (struct tree *tree, void (*callback)(struct tree_node *, void *),
-         void *sv)
-{
-    if (tree->root != (struct tree_node *)0)
-        tree_map_worker ((void *)tree->root, callback, sv);
-}
-
-void tree_add_node_string (struct tree *t, char *k)
-{
-    tree_add_node(t, (int_pointer)str_immutable_unaligned(k));
-}
-
-void tree_add_node_string_value (struct tree *t, char *k, void *v)
-{
-    tree_add_node_value(t, (int_pointer)str_immutable_unaligned(k), v);
-}
-
-struct tree_node * tree_get_node_string (struct tree *t, char *k)
-{
-    return tree_get_node (t, (int_pointer)str_immutable_unaligned(k));
-}
-
-void tree_remove_node_string_specific
-        (struct tree *t, char *k, struct tree_node *v)
-{
-    tree_remove_node_specific(t, (int_pointer)str_immutable_unaligned(k), v);
 }

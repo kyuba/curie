@@ -119,8 +119,6 @@ struct io *io_open_create (const char *path, int mode)
 
 static void relocate_buffer_contents (struct io *io)
 {
-    if (io->buffer == (char *)0) return;
-
     if (io->position >= io->length) {
         io->length = 0;
         io->position = 0;
@@ -139,14 +137,6 @@ static void relocate_buffer_contents (struct io *io)
 enum io_result io_collect(struct io *io, const char *data, unsigned int length)
 {
     unsigned int i, pos;
-
-    if (io->buffer == (char *)0)
-    {
-        io->buffersize = 0;
-        io->length = 0;
-        io->status = io_unrecoverable_error;
-        return io_unrecoverable_error;
-    }
 
     if ((io->status == io_finalising) ||
         (io->status == io_end_of_file) ||
@@ -216,14 +206,6 @@ void io_flush (struct io *io)
 {
     unsigned int newsize;
 
-    if (io->buffer == (char *)0)
-    {
-        io->buffersize = 0;
-        io->length = 0;
-        io->status = io_unrecoverable_error;
-        return;
-    }
-
     if ((io->status == io_finalising) ||
         (io->status == io_end_of_file) ||
         (io->status == io_unrecoverable_error))
@@ -256,14 +238,6 @@ void io_flush (struct io *io)
 enum io_result io_read(struct io *io)
 {
     unsigned long readrv;
-
-    if (io->buffer == (char *)0)
-    {
-        io->buffersize = 0;
-        io->length = 0;
-        io->status = io_unrecoverable_error;
-        return io_unrecoverable_error;
-    }
 
     if ((io->status == io_finalising) ||
         (io->status == io_end_of_file) ||
