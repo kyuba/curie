@@ -134,3 +134,7 @@ EXPORTS
     utf8_encode                         @132
     multiplex_add_ip6_client_sx         @133
     cexit                               @134
+    hash_murmur2_32                     @135
+    hash_murmur2_64                     @136
+    hash_murmur2_pt                     @137
+    hash_superfast                      @138
