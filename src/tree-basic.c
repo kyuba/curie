@@ -29,49 +29,6 @@
 #include <curie/memory.h>
 #include <curie/tree.h>
 
-struct tree * tree_create ()
-{
-    static struct memory_pool pool
-            = MEMORY_POOL_INITIALISER(sizeof (struct tree));
-    struct tree *tree = (struct tree *)get_pool_mem(&pool);
-
-    if (tree == (struct tree *)0)
-    {
-        return (struct tree *)0;
-    }
-
-    tree->root = (struct tree_node *)0;
-
-    return tree;
-}
-
-static void node_destroy (struct tree_node *node)
-{
-    if (node != (struct tree_node *)0) {
-        if (node->left != (struct tree_node *)0)
-        {
-            node_destroy (node->left);
-        }
-        if (node->right != (struct tree_node *)0)
-        {
-            node_destroy (node->right);
-        }
-
-        free_pool_mem((void *)node);
-    }
-}
-
-/*! \todo clean all nodes in 'ere */
-void tree_destroy (struct tree *tree)
-{
-    if (tree->root != (struct tree_node *)0)
-    {
-        node_destroy (tree->root);
-    }
-
-    free_pool_mem((void *)tree);
-}
-
 static void tree_add_node_to_tree
         (struct tree *tree, struct tree_node *node, int_pointer key)
 {

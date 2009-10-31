@@ -26,7 +26,81 @@
  * THE SOFTWARE.
 */
 
+#include <curie/memory.h>
 #include <curie/tree.h>
+
+struct tree * tree_create ()
+{
+    static struct memory_pool pool
+            = MEMORY_POOL_INITIALISER(sizeof (struct tree));
+    struct tree *tree = (struct tree *)get_pool_mem(&pool);
+
+    if (tree == (struct tree *)0)
+    {
+        return (struct tree *)0;
+    }
+
+    tree->root = (struct tree_node *)0;
+
+    return tree;
+}
+
+static void node_destroy (struct tree_node *node)
+{
+    if (node != (struct tree_node *)0) {
+        if (node->left != (struct tree_node *)0)
+        {
+            node_destroy (node->left);
+        }
+        if (node->right != (struct tree_node *)0)
+        {
+            node_destroy (node->right);
+        }
+
+        free_pool_mem((void *)node);
+    }
+}
+
+void tree_destroy (struct tree *tree)
+{
+    if (tree->root != (struct tree_node *)0)
+    {
+        node_destroy (tree->root);
+    }
+
+    free_pool_mem((void *)tree);
+}
+
+static void node_destroy_fnd
+        (struct tree_node *node, void (*fnd)(struct tree_node *, void *),
+         void *aux)
+{
+    fnd (node, aux);
+
+    if (node != (struct tree_node *)0) {
+        if (node->left != (struct tree_node *)0)
+        {
+            node_destroy_fnd (node->left, fnd, aux);
+        }
+        if (node->right != (struct tree_node *)0)
+        {
+            node_destroy_fnd (node->right, fnd, aux);
+        }
+
+        free_pool_mem((void *)node);
+    }
+}
+
+void tree_destroy_fnd
+        (struct tree *tree, void (*fnd)(struct tree_node *, void *), void *aux)
+{
+    if (tree->root != (struct tree_node *)0)
+    {
+        node_destroy_fnd (tree->root, fnd, aux);
+    }
+
+    free_pool_mem((void *)tree);
+}
 
 static void tree_map_worker
         (struct tree_node *node, void (*callback)(struct tree_node *, void *),

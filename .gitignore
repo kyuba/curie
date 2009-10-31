@@ -28,3 +28,4 @@ documentation/doxygen
 
 a.out
 
+*.gch

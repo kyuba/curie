@@ -131,9 +131,28 @@ struct tree * tree_create ( void );
  *  Destroy a tree and deallocate any memory associated with it. Using either
  *  tree's root pointer, or any of the nodes is a good way to get your app
  *  killed.
+ *
+ *  The tree parameter must not be 0.
  */
 void tree_destroy
         (struct tree *tree);
+
+/*! \brief Destroy a Tree and w/Node Callback
+ *  \param[in] tree The tree to destroy.
+ *  \param[in] fnd  Callback for each node to free the node's data.
+ *  \param[in] aux  Auxiliary data for fnd().
+ *
+ *  Destroy a tree and deallocate any memory associated with it. Using either
+ *  tree's root pointer, or any of the nodes is a good way to get your app
+ *  killed.
+ *
+ *  This is pretty much the same as tree_destroy(), except that this version
+ *  will call the provided fnd() function.
+ *
+ *  The tree and fnd parameters must not be 0.
+ */
+void tree_destroy_fnd
+        (struct tree *tree, void (*fnd)(struct tree_node *, void *), void *aux);
 
 /*! \brief Create Tree Node
  *  \param[in] tree The tree to add the node to.
