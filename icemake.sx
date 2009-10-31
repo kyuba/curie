@@ -9,10 +9,10 @@
         "multiplex-system" "signal-system" "directory" "time-system")
 
   (code "sexpr" "io" "memory-pool" (tree "tree-basic" "tree-splay") "exec"
-        "multiplex" "string"
+        "multiplex" "string" (memory "memory" "memory-valgrind")
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
-        "immutable" "graph" "filesystem" "io-system" "memory" "network-system"
+        "immutable" "graph" "filesystem" "io-system" "network-system"
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
         "directory" "directory-common" "libc-compat" "utf-8" "shell"
         "memory-error-handling" "sexpr-stdio" "stdio" "stack" "gc"

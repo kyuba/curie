@@ -3,12 +3,12 @@
    well as certain pieces of code and help with algorithmical issues.
 
 == VALGRIND ==
- * file "src/valgrind/*.c" ONLY:
+ * files "src/linux/*-valgrind.c" ONLY:
    - these files have special extra code to instruct the excellent memory debug
      suite 'valgrind' on how to detect bad pointer access, since we're not using
      the standard malloc/free allocation scheme.
-     this code is /only/ used if the library was compiled for valgrind in some
-     way.
+     this code is /only/ used if you use the -a option for icemake to make it
+     use those files.
 
 == HASH ALGORITHMS ==
  * In various places, this library makes use of the MurmurHash2 and

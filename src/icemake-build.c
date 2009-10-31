@@ -101,7 +101,6 @@ static sexpr permutate_paths (sexpr p)
     lis = permutate_paths_os (p, lis);
     lis = permutate_paths_os (sx_string_dir_prefix_c ("internal", p), lis);
     lis = permutate_paths_os (sx_string_dir_prefix_c ("debug", p), lis);
-    lis = permutate_paths_os (sx_string_dir_prefix_c ("valgrind", p), lis);
 
     return lis;
 }
