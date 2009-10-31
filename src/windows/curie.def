@@ -139,3 +139,4 @@ EXPORTS
     hash_murmur2_pt                     @137
     hash_superfast                      @138
     tree_destroy_fnd                    @139
+    node_get_value                      @140

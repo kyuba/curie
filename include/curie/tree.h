@@ -57,57 +57,18 @@ struct tree {
 
 /*! \brief BST Node
  *
- *  A single node in a binary search tree.
+ *  A single node in a binary search tree. The exact layout of this struct kinda
+ *  depends on the actual tree implementation that is used, so this is just a
+ *  stub definition; the actual implementations are doubtlessly going to need
+ *  more data for their tree nodes, but this bit should be available and in a
+ *  fixed position at all times.
  */
 struct tree_node {
-    /*! \brief Left Branch
-     *
-     *  This points to the next node to the left of the current node.
-     */
-    struct tree_node * left;
-
-    /*! \brief Right Branch
-     *
-     *  This points to the next node to the right of the current node.
-     */
-    struct tree_node * right;
-
     /*! \brief Node Key
      *
      *  This is the node's key, or its value.
      */
     int_pointer key;
-};
-
-/*! \brief BST Node with Value
- *  \internal
- *
- *  A single node in a binary search tree, with an extra value attached to it.
- */
-struct tree_node_pointer {
-    /*! \brief Left Branch
-     *
-     *  This points to the next node to the left of the current node.
-     */
-    struct tree_node * left;
-
-    /*! \brief Right Branch
-     *
-     *  This points to the next node to the right of the current node.
-     */
-    struct tree_node * right;
-
-    /*! \brief Node Key
-     *
-     *  This is the node's key, for lookups.
-     */
-    int_pointer key;
-
-    /*! \brief Node Value
-     *
-     *  The node's value, or payload.
-     */
-    void *value;
 };
 
 /*! \brief Static Tree Initialiser
@@ -123,7 +84,8 @@ struct tree_node_pointer {
  *
  *  Create and initialise a new tree without any nodes.
  */
-struct tree * tree_create ( void );
+struct tree * tree_create
+        ( void );
 
 /*! \brief Destroy a Tree
  *  \param[in] tree The tree to destroy.
@@ -173,9 +135,7 @@ void tree_add_node
  *  value.
  */
 void tree_add_node_value
-        (struct tree * tree,
-         int_pointer key,
-         void *aux);
+        (struct tree * tree, int_pointer key, void *aux);
 
 /*! \brief Search for a Tree Node
  *  \param[in] tree The tree to search in.
@@ -183,11 +143,10 @@ void tree_add_node_value
  *  \return The node with that key, or (struct tree_node *)0 if the node is not
  *          found.
  *
- *  Searches the given tree for a node with the given key. 
+ *  Searches the given tree for a node with the given key.
  */
 struct tree_node * tree_get_node
-        (struct tree *tree,
-         int_pointer key);
+        (struct tree *tree, int_pointer key);
 
 /*! \brief Remove a (specific) Tree Node
  *  \param[in] tree The tree to remove the node from.
@@ -221,7 +180,8 @@ void tree_remove_node_specific
  *  \note Don't use this with nodes you've added with tree_add_node(). It may
  *        get your app killed.
  */
-#define node_get_value(node) ((struct tree_node_pointer *)node)->value
+void *node_get_value
+        (struct tree_node *node);
 
 /*! \brief Map over a Tree
  *  \param[in] tree The tree to use.
