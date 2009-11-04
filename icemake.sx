@@ -8,7 +8,7 @@
         "io-system" "memory" "bootstrap" "network-system" "exec-system"
         "multiplex-system" "signal-system" "directory" "time-system")
 
-  (code (tree "tree-basic-balancing" "tree-basic")
+  (code (tree "tree-basic")
         (memory "memory" "memory-valgrind")
         "sexpr" "io" "memory-pool" "exec" "multiplex" "string"
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
