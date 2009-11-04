@@ -167,6 +167,11 @@ void multiplex_del_sexpr (struct sexpr_io *io);
  *  This function will watch for child termination signals, check if the given
  *  process is still running when a signal like that comes in and if not it'll
  *  reap the process and call the on_death callback.
+ *
+ *  Note that "context" may be 0, in which case the callback acts as a sort of
+ *  catch-all and is called regardless of which child process has died. This use
+ *  of the function is, however, only legitimate with multiplex_all_processes(),
+ *  and not with multiplex_process().
  */
 void multiplex_add_process
         (struct exec_context *context,

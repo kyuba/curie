@@ -73,7 +73,8 @@ static enum signal_callback_result sig_chld_combined_handler
 
         while (cx != (struct exec_cx *)0)
         {
-            if ((cx->context->pid == pid) &&
+            if ((cx->context != (struct exec_context *)0) &&
+                (cx->context->pid == pid) &&
                 (cx->context->status == ps_running))
             {
                 cx->context->exitstatus = q;
@@ -87,6 +88,22 @@ static enum signal_callback_result sig_chld_combined_handler
             }
 
             prev = &(cx->next);
+            cx = cx->next;
+        }
+
+        /* call catchall-callbacks: */
+        cx = elements;
+
+        while (cx != (struct exec_cx *)0)
+        {
+            if (cx->context == (struct exec_context *)0)
+            {
+                struct exec_context tcx;
+                tcx.exitstatus = q;
+                tcx.status = ps_terminated;
+                cx->on_death (&tcx, cx->data);
+            }
+
             cx = cx->next;
         }
     }

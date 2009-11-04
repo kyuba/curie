@@ -91,17 +91,26 @@ static void mx_f_augment(void **rs, int *r)
 
 static void mx_f_callback(void **rs, int r)
 {
-    struct exec_cx *l;
+    struct exec_cx *l, *q;
     struct exec_cx **p;
 
     for (l = elements; l != (struct exec_cx *)0; l = l->next)
     {
         struct exec_context *cx = l->context;
-        if (cx->status == ps_running)
+
+        if ((cx != (struct exec_context *)0) && (cx->status == ps_running))
         {
             check_exec_context (cx);
             if (cx->status == ps_terminated) {
                 l->on_death (cx, l->data);
+
+                for (q = elements; q != (struct exec_cx *)0; q = q->next)
+                {
+                    if (q->context == (struct exec_context *)0)
+                    {
+                        q->on_death (cx, q->data);
+                    }
+                }
                 continue;
             }
         }
