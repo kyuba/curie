@@ -99,6 +99,7 @@ static enum signal_callback_result sig_chld_combined_handler
             if (cx->context == (struct exec_context *)0)
             {
                 struct exec_context tcx;
+                tcx.pid = pid;
                 tcx.exitstatus = q;
                 tcx.status = ps_terminated;
                 cx->on_death (&tcx, cx->data);
