@@ -48,7 +48,8 @@ stack_start_address:
 
 
 initialise_stack:
-        movq %rsp, stack_start_address@PLT
+        movq stack_start_address@GOTPCREL(%rip), %rax
+        movq %rsp, (%rax)
 
         retq
 
