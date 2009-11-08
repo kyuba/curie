@@ -1730,7 +1730,7 @@ static sexpr initialise_libcurie_filename (char *filename)
 
     if (stat(filename, &st) != 0) return sx_false;
 
-    io = sx_open_io(io_open_read(filename), io_open_null);
+    io = sx_open_i (io_open_read(filename));
 
     while (!eofp(r = sx_read (io)))
     {
@@ -2204,7 +2204,7 @@ int main (int argc, char **argv, char **environ)
         i_dynamic_libraries = in_dynamic_libraries;
     }
 
-    io = sx_open_io (io_open_read("icemake.sx"), io_open_null);
+    io = sx_open_i (io_open_read("icemake.sx"));
 
     while (!eofp(r = sx_read (io)))
     {

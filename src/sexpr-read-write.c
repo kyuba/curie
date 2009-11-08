@@ -449,79 +449,86 @@ static sexpr sx_read_dispatch
 }
 
 sexpr sx_read(struct sexpr_io *io) {
-    enum io_result r;
-    char *buf;
-    unsigned int i, length;
-    sexpr result = sx_nonexistent;
-    char comment = (char)0;
-
-    do {
-        r = io_read (io->in);
-        i = io->in->position;
-        length = io->in->length;
-    } while ((r == io_changes) && (length < SX_MAX_READ_THRESHOLD));
-
-    if (length == 0) {
+    if (io->in == (struct io*)0)
+    {
         return sx_nonexistent;
     }
+    else
+    {
+        enum io_result r;
+        char *buf;
+        unsigned int i, length;
+        sexpr result = sx_nonexistent;
+        char comment = (char)0;
 
-    buf = io->in->buffer;
-    if (buf == (char *)0) return sx_nonexistent;
+        do {
+            r = io_read (io->in);
+            i = io->in->position;
+            length = io->in->length;
+        } while ((r == io_changes) && (length < SX_MAX_READ_THRESHOLD));
 
-    /* remove leading whitespace */
-    do {
-        if (comment == (char)1) {
-            if (buf[i] == '\n') {
-                comment = (char)0;
+        if (length == 0) {
+            return sx_nonexistent;
+        }
+
+        buf = io->in->buffer;
+        if (buf == (char *)0) return sx_nonexistent;
+
+        /* remove leading whitespace */
+        do {
+            if (comment == (char)1) {
+                if (buf[i] == '\n') {
+                    comment = (char)0;
+                }
+                i++;
+                continue;
+            }
+
+            switch (buf[i]) {
+                case '\n':
+                case '\t':
+                case '\v':
+                case ' ':
+                case 0:
+                    /* whitespace characters */
+                case ')': /* stray closing parentheses are also ignored, yarr */
+                    break;
+                case ';':
+                    comment = (char)1;
+                    break;
+                default:
+                    /* update current position, so the whitespace will be removed
+                    next time around. */
+                    io->in->position = i;
+                    goto done_skipping_whitespace;
             }
             i++;
-            continue;
+        } while (i < length);
+
+        done_skipping_whitespace:
+
+        /* check that there actually /is/ something to parse, bail if not */
+        if (i == length) {
+            io->in->length = 0;
+            io->in->position = 0;
+
+            switch (io->in->status) {
+                case io_end_of_file:
+                case io_unrecoverable_error:
+                    return sx_end_of_file;
+                default:
+                    return sx_nonexistent;
+            }
         }
 
-        switch (buf[i]) {
-            case '\n':
-            case '\t':
-            case '\v':
-            case ' ':
-            case 0:
-                /* whitespace characters */
-            case ')': /* stray closing parentheses are also ignored, yarr */
-                break;
-            case ';':
-                comment = (char)1;
-                break;
-            default:
-                /* update current position, so the whitespace will be removed
-                   next time around. */
-                io->in->position = i;
-                goto done_skipping_whitespace;
+        result = sx_read_dispatch (&i, buf, length);
+
+        if (result != sx_nonexistent) {
+            io->in->position = i;
         }
-        i++;
-    } while (i < length);
 
-    done_skipping_whitespace:
-
-    /* check that there actually /is/ something to parse, bail if not */
-    if (i == length) {
-        io->in->length = 0;
-        io->in->position = 0;
-
-        switch (io->in->status) {
-            case io_end_of_file:
-            case io_unrecoverable_error:
-                return sx_end_of_file;
-            default:
-                return sx_nonexistent;
-        }
+        return result;
     }
-
-    result = sx_read_dispatch (&i, buf, length);
-
-    if (result != sx_nonexistent) {
-        io->in->position = i;
-    }
-
-    return result;
 }
 
 static void sx_write_string_or_symbol (struct io *io, struct sexpr_string_or_symbol *sexpr) {
@@ -723,6 +730,11 @@ static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx)
 
 void sx_write(struct sexpr_io *io, sexpr sx)
 {
+    if (io->out == (struct io*)0)
+    {
+        return;
+    }
+
     if (sx_write_dispatch(io, sx) == 1)
     {
         (void)io_write (io->out, "\n", 1);

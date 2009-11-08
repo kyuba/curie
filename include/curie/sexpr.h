@@ -163,6 +163,28 @@ struct sexpr_io;
 struct sexpr_io *sx_open_io
         (struct io *in, struct io *out);
 
+/*! \brief Create Read-Only S-Expression I/O Context
+ *  \param[in] in  The io structure to use for input.
+ *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
+ *          allocated.
+ *
+ *  This macro creates a new I/O context to use with s-expression functions.
+ *
+ *  \note This macro may be turned into a function in a later release.
+ */
+#define sx_open_i(in)  (sx_open_io(in, (struct io*)0))
+
+/*! \brief Create Write-Only S-Expression I/O Context
+ *  \param[in] out The io structure to use for output.
+ *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
+ *          allocated.
+ *
+ *  This macro creates a new I/O context to use with s-expression functions.
+ *
+ *  \note This macro may be turned into a function in a later release.
+ */
+#define sx_open_o(out) (sx_open_io((struct io*)0, out))
+
 /*! \brief Create Standard I/O as S-Expression I/O Context
  *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
  *          allocated.

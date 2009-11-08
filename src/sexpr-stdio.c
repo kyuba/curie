@@ -57,7 +57,7 @@ struct sexpr_io *sx_open_stdin() {
         return (struct sexpr_io *)0;
     }
 
-    return sx_open_io (in, io_open_null);
+    return sx_open_i (in);
 }
 
 struct sexpr_io *sx_open_stdout() {
@@ -68,5 +68,5 @@ struct sexpr_io *sx_open_stdout() {
         return (struct sexpr_io *)0;
     }
 
-    return sx_open_io (io_open_null, out);
+    return sx_open_o (out);
 }

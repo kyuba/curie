@@ -65,7 +65,7 @@ static void mx_on_close (struct io *r, void *d)
 
     element->on_read (sx_end_of_file, element->io, element->data);
 
-    if (io->in != io->out)
+    if ((io->out != (struct io*)0) && (io->in != io->out))
     {
         multiplex_del_io (io->out);
     }
@@ -80,7 +80,7 @@ static void mx_on_close_out (struct io *r, void *d)
 
     element->on_read (sx_end_of_file, element->io, element->data);
 
-    if (io->in != io->out)
+    if ((io->in != (struct io*)0) && (io->in != io->out))
     {
         multiplex_del_io (io->in);
     }
@@ -89,7 +89,9 @@ static void mx_on_close_out (struct io *r, void *d)
     free_pool_mem (element);
 }
 
-void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(sexpr, struct sexpr_io *, void *), void *data)
+void multiplex_add_sexpr
+        (struct sexpr_io *io, void (*on_read)(sexpr, struct sexpr_io *, void *),
+         void *data)
 {
     static struct memory_pool pool
             = MEMORY_POOL_INITIALISER(sizeof (struct io_element));
@@ -101,32 +103,49 @@ void multiplex_add_sexpr (struct sexpr_io *io, void (*on_read)(sexpr, struct sex
     element->on_read = on_read;
     element->data = data;
 
+    if (io->in == (struct io *)0)
+    {
+        multiplex_add_io (io->out, (void *)0, mx_on_close_out, (void *)element);
+        return;
+    }
+    else if (io->out == (struct io *)0)
+    {
+        multiplex_add_io (io->in, mx_on_read, mx_on_close, (void *)element);
+        return;
+    }
+
 
 #if defined(_WIN32)
     if ((io->in->handle == (void *)0)
 #else
     if ((io->in->fd == -1)
 #endif
-        && (io->in->type != iot_special_read) && (io->in->type != iot_special_write))
+        && (io->in->type != iot_special_read)
+        && (io->in->type != iot_special_write))
     {
         multiplex_add_io (io->out, (void *)0, mx_on_close_out, (void *)element);
     }
     else
     {
         multiplex_add_io (io->in, mx_on_read, mx_on_close, (void *)element);
-    }
 
-    if (io->in != io->out)
-    {
-        multiplex_add_io_no_callback(io->out);
+        if (io->in != io->out)
+        {
+            multiplex_add_io_no_callback(io->out);
+        }
     }
 }
 
 void multiplex_del_sexpr (struct sexpr_io *io)
 {
-    io_close (io->in);
-    io_close (io->out);
-    io->in  = io_open_null;
-    io->out = io_open_null;
+    if (io->in != (struct io *)0)
+    {
+        io->in->status = io_end_of_file;
+    }
+
+    if (io->out != (struct io *)0)
+    {
+        io->out->status = io_end_of_file;
+    }
 }
 

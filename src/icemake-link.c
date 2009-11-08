@@ -562,7 +562,7 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 
         snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
 
-        io = sx_open_io(io_open_null, io_open_create(buffer, 0644));
+        io = sx_open_o(io_open_create(buffer, 0644));
 
         if (truep(co_freestanding))
         {
@@ -690,7 +690,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
         snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
 
-        io = sx_open_io(io_open_null, io_open_create(buffer, 0644));
+        io = sx_open_o(io_open_create(buffer, 0644));
 
         if (truep(co_freestanding))
         {
@@ -822,7 +822,7 @@ static void link_library_borland (sexpr name, sexpr code, struct target *t)
 
         snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
 
-        io = sx_open_io(io_open_null, io_open_create(buffer, 0644));
+        io = sx_open_o(io_open_create(buffer, 0644));
 
         if (truep(co_freestanding))
         {
@@ -912,7 +912,7 @@ static void link_library_borland_dynamic (sexpr name, sexpr code, struct target 
 
         snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
 
-        io = sx_open_io(io_open_null, io_open_create(buffer, 0644));
+        io = sx_open_o(io_open_create(buffer, 0644));
 
         if (truep(co_freestanding))
         {
@@ -1019,7 +1019,7 @@ static void link_library_msvc (sexpr name, sexpr code, struct target *t)
 
         snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
 
-        io = sx_open_io(io_open_null, io_open_create(buffer, 0644));
+        io = sx_open_o(io_open_create(buffer, 0644));
 
         if (truep(co_freestanding))
         {
@@ -1101,7 +1101,7 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
 
         snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.sx", archprefix, sx_string(t->name), sx_string(name));
 
-        io = sx_open_io(io_open_null, io_open_create(buffer, 0644));
+        io = sx_open_o(io_open_create(buffer, 0644));
 
         if (truep(co_freestanding))
         {
