@@ -166,11 +166,6 @@ IOStandardError::IOStandardError()
     context = io_open_stderr();
 }
 
-IONull::IONull()
-{
-    context = io_open_null;
-}
-
 IOMultiplexer::IOMultiplexer(IO &io)
 {
     multiplex_io ();

@@ -241,16 +241,6 @@ struct io {
 struct io *io_open
         (void *handle);
 
-/*! \brief Open Dummy File Desriptor
- *  \return A new struct io. (struct io *)0 is only returned for memory
- *          allocation errors.
- *
- *  This will open a dummy file descriptor for use with functions that require
- *  an in- as well as an output i/o port. The only reason for this function
- *  is that io_open(-1) only works on non-windows systems.
- */
-#define io_open_null io_open((void *)0)
-
 /*! \brief Open Standard Input File Desriptor
  *  \return A new struct io. (struct io *)0 is only returned for memory
  *          allocation errors.

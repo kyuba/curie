@@ -273,20 +273,6 @@ namespace curiepp
             IOStandardError ();
     };
 
-    /*! \brief Standard Error
-     *
-     *  Use this to get a dummy IO object in case you need one.
-     */
-    class IONull : public IO
-    {
-        public:
-            /*! \brief Constructor
-             *
-             *  This will really just use io_open_null.
-             */
-            IONull ();
-    };
-
     /*! \brief I/O Multiplexer
      *
      *  This is a base class to derive your own I/O multiplexers from.
