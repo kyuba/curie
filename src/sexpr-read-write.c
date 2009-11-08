@@ -45,22 +45,31 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out)
 
     if (rv == (struct sexpr_io *)0)
     {
-        io_close (in);
-        io_close (out);
+        if (in != (struct io *)0)
+        {
+            io_close (in);
+        }
+
+        if (out != (struct io *)0)
+        {
+            io_close (out);
+        }
         return (struct sexpr_io *)0;
     }
 
     rv->in = in;
     rv->out = out;
 
-    if ((in->type != iot_read) &&
+    if ((in != (struct io *)0) &&
+        (in->type != iot_read) &&
         (in->type != iot_special_read) &&
         (in->type != iot_special_write))
     {
         in->type = iot_read;
     }
 
-    if ((out->type != iot_write) &&
+    if ((out != (struct io *)0) &&
+        (out->type != iot_write) &&
         (out->type != iot_special_read) &&
         (out->type != iot_special_write))
     {
@@ -72,8 +81,15 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out)
 
 void sx_close_io (struct sexpr_io *io)
 {
-    io_close (io->in);
-    io_close (io->out);
+    if (io->in != (struct io *)0)
+    {
+        io_close (io->in);
+    }
+
+    if (io->out != (struct io *)0)
+    {
+        io_close (io->out);
+    }
 
     free_pool_mem (io);
 }
