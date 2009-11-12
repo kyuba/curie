@@ -1656,9 +1656,10 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
     }
     else
     {
-        char *tenv[3] = { (char *)sx_string (rsx),
-                          "PATH=/bin",
-                          (char *)0 };
+        char *tenv[3] =
+            { (char *)sx_string (rsx),
+              getenv ("PATH"),
+              (char *)0 };
 
         context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex, tenv);
     }
