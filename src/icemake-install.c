@@ -238,7 +238,7 @@ static sexpr get_library_install_path (sexpr name)
             }
             return make_string (buffer);
             break;
-        case fs_proper:
+        case fs_afsl:
             switch (uname_toolchain)
             {
                 case tc_msvc:
@@ -268,18 +268,7 @@ static sexpr get_so_library_install_path (sexpr name, sexpr version)
             {
                 case os_windows:
                     snprintf (buffer, BUFFERSIZE, "%s\\%s\\lib%s.%s.dll", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name), sx_string(version));
-                    if (uname_toolchain == tc_borland)
-                    {
-                        int i;
-
-                        for (i = 0; buffer[i]; i++)
-                        {
-                            if (buffer[i] == '+')
-                            {
-                                buffer[i] = 'x';
-                            }
-                        }
-                    }
+                    mangle_path_borland (buffer);
                     break;
                 default:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.so.%s", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name), sx_string(version));
@@ -287,23 +276,12 @@ static sexpr get_so_library_install_path (sexpr name, sexpr version)
             }
             return make_string (buffer);
             break;
-        case fs_proper:
+        case fs_afsl:
             switch (i_os)
             {
                 case os_windows:
                     snprintf (buffer, BUFFERSIZE, "%s\\%s\\%s\\bin\\lib%s.%s.dll", sx_string(i_destdir), uname_os, uname_arch, sx_string(name), sx_string(version));
-                    if (uname_toolchain == tc_borland)
-                    {
-                        int i;
-
-                        for (i = 0; buffer[i]; i++)
-                        {
-                            if (buffer[i] == '+')
-                            {
-                                buffer[i] = 'x';
-                            }
-                        }
-                    }
+                    mangle_path_borland (buffer);
                     break;
                 default:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.so.%s", sx_string(i_destdir), uname_os, uname_arch, sx_string(name), sx_string(version));
@@ -328,18 +306,7 @@ static sexpr get_so_library_symlink_path (sexpr name)
             {
                 case os_windows:
                     snprintf (buffer, BUFFERSIZE, "%s\\%s\\lib%s.dll", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
-                    if (uname_toolchain == tc_borland)
-                    {
-                        int i;
-
-                        for (i = 0; buffer[i]; i++)
-                        {
-                            if (buffer[i] == '+')
-                            {
-                                buffer[i] = 'x';
-                            }
-                        }
-                    }
+                    mangle_path_borland (buffer);
                     break;
                 default:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/lib%s.so", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(name));
@@ -347,23 +314,12 @@ static sexpr get_so_library_symlink_path (sexpr name)
             }
             return make_string (buffer);
             break;
-        case fs_proper:
+        case fs_afsl:
             switch (i_os)
             {
                 case os_windows:
                     snprintf (buffer, BUFFERSIZE, "%s\\%s\\%s\\lib\\lib%s.dll", sx_string(i_destdir), uname_os, uname_arch, sx_string(name));
-                    if (uname_toolchain == tc_borland)
-                    {
-                        int i;
-
-                        for (i = 0; buffer[i]; i++)
-                        {
-                            if (buffer[i] == '+')
-                            {
-                                buffer[i] = 'x';
-                            }
-                        }
-                    }
+                    mangle_path_borland (buffer);
                     break;
                 default:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.so", sx_string(i_destdir), uname_os, uname_arch, sx_string(name));
@@ -393,7 +349,7 @@ static sexpr get_programme_install_path (sexpr name)
                     snprintf (buffer, BUFFERSIZE, "%s\\%s\\%s\\bin\\%s.exe", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(i_pname), sx_string(name));
                     return make_string (buffer);
                     break;
-                case fs_proper:
+                case fs_afsl:
                     snprintf (buffer, BUFFERSIZE, "%s\\%s\\%s\\bin\\%s.exe",
                               sx_string(i_destdir), uname_os, uname_arch,
                                         sx_string(name));
@@ -412,7 +368,7 @@ static sexpr get_programme_install_path (sexpr name)
                     snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(i_pname), sx_string(name));
                     return make_string (buffer);
                     break;
-                case fs_proper:
+                case fs_afsl:
                     snprintf (buffer, BUFFERSIZE, "%s/%s/%s/bin/%s",
                               sx_string(i_destdir), uname_os, uname_arch,
                                         sx_string(name));
@@ -437,7 +393,7 @@ static sexpr get_documentation_install_path (sexpr name, sexpr file, sexpr versi
                       sx_string (file), suffix);
             return make_string (buffer);
             break;
-        case fs_proper:
+        case fs_afsl:
             snprintf (buffer, BUFFERSIZE, "%s/generic/doc/%s-%s/%s.%s",
                       sx_string(i_destdir), sx_string(name),
                       sx_string (version), sx_string (file), suffix);
@@ -461,7 +417,7 @@ static sexpr get_documentation_man_install_path (sexpr file, sexpr section)
                       sx_string(i_destdir), s, sx_string(file), s[3]);
             return make_string (buffer);
             break;
-        case fs_proper:
+        case fs_afsl:
             snprintf (buffer, BUFFERSIZE, "%s/generic/man/%s/%s.%c",
                       sx_string(i_destdir), s, sx_string(file), s[3]);
             return make_string (buffer);
@@ -482,7 +438,7 @@ static sexpr get_header_install_path (sexpr name, sexpr file)
             snprintf (buffer, BUFFERSIZE, "%s/include/%s/%s.h", sx_string(i_destdir), sx_string(name), sx_string (file));
             return make_string (buffer);
             break;
-        case fs_proper:
+        case fs_afsl:
             snprintf (buffer, BUFFERSIZE, "%s/%s/%s/include/%s/%s.h", sx_string(i_destdir), uname_os, uname_arch, sx_string(name), sx_string (file));
             return make_string (buffer);
             break;
@@ -502,7 +458,7 @@ static sexpr get_data_install_path (sexpr name, sexpr file)
             snprintf (buffer, BUFFERSIZE, "%s/etc/%s/%s", sx_string(i_destdir), sx_string(name), sx_string (file));
             return make_string (buffer);
             break;
-        case fs_proper:
+        case fs_afsl:
             snprintf (buffer, BUFFERSIZE, "%s/generic/configuration/%s/%s", sx_string(i_destdir), sx_string(name), sx_string (file));
             return make_string (buffer);
             break;
@@ -524,18 +480,7 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
         {
             case os_windows:
                 snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.%s.dll", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
-                if (uname_toolchain == tc_borland)
-                {
-                    int i;
-
-                    for (i = 0; buffer[i]; i++)
-                    {
-                        if (buffer[i] == '+')
-                        {
-                            buffer[i] = 'x';
-                        }
-                    }
-                }
+                mangle_path_borland (buffer);
                 break;
             default:
                 snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.so.%s", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
@@ -554,18 +499,8 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
             {
                 case os_windows:
                     snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.dll", archprefix, sx_string(t->name), sx_string(name));
-                    if (uname_toolchain == tc_borland)
-                    {
-                        int i;
+                    mangle_path_borland (buffer);
 
-                        for (i = 0; buffer[i]; i++)
-                        {
-                            if (buffer[i] == '+')
-                            {
-                                buffer[i] = 'x';
-                            }
-                        }
-                    }
                     workstack
                             = cons (cons (make_string (buffer), get_so_library_symlink_path(name)),
                                     workstack);
@@ -601,16 +536,7 @@ static void install_library_borland (sexpr name, struct target *t)
     char buffer[BUFFERSIZE];
 
     snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.lib", archprefix, sx_string(t->name), sx_string(name));
-    {
-        int i;
-        for (i = 0; buffer[i]; i++)
-        {
-            if (buffer[i] == '+')
-            {
-                buffer[i] = 'x';
-            }
-        }
-    }
+    mangle_path_borland (buffer);
 
     workstack
         = cons (cons (make_string (buffer),
@@ -719,7 +645,7 @@ static void install_support_files_common (sexpr name, struct target *t)
                 snprintf (buffer, BUFFERSIZE, "%s/%s/libcurie.sx", sx_string(i_destdir), sx_string (i_destlibdir));
                 target = make_string (buffer);
                 break;
-            case fs_proper:
+            case fs_afsl:
                 snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/libcurie.sx", sx_string(i_destdir), uname_os, uname_arch);
                 target = make_string (buffer);
                 break;
@@ -768,7 +694,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
                 snprintf (buffer, BUFFERSIZE, "%s/%s/pkgconfig/lib%s.pc", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(t->name));
                 target = make_string (buffer);
                 break;
-            case fs_proper:
+            case fs_afsl:
                 snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.pc", sx_string(i_destdir), uname_os, uname_arch, sx_string(t->name));
                 target = make_string (buffer);
                 break;
@@ -787,7 +713,7 @@ static void install_support_files_gcc (sexpr name, struct target *t)
                 snprintf (buffer, BUFFERSIZE, "%s/%s/pkgconfig/lib%s-hosted.pc", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(t->name));
                 target = make_string (buffer);
                 break;
-            case fs_proper:
+            case fs_afsl:
                 snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s-hosted.pc", sx_string(i_destdir), uname_os, uname_arch, sx_string(t->name));
                 target = make_string (buffer);
                 break;

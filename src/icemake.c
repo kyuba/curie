@@ -56,7 +56,7 @@ char uname_arch   [UNAMELENGTH]        = "generic";
 char uname_vendor [UNAMELENGTH]        = "unknown";
 
 enum toolchain uname_toolchain;
-enum fs_layout i_fsl                   = fs_proper;
+enum fs_layout i_fsl                   = fs_afsl;
 enum operating_system i_os             = os_unknown;
 enum instruction_set i_is              = is_generic;
 
@@ -108,39 +108,20 @@ static sexpr i_alternatives            = sx_end_of_list;
 
 struct sexpr_io *stdio;
 
-static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
+void mangle_path_borland (char *b)
 {
-    exit(22);
-    return (void *)0;
-}
+    int i;
 
-static void *gm_recover(unsigned long int s)
-{
-    exit(23);
-    return (void *)0;
-}
-
-static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
-{
-    char buffer[BUFFERSIZE];
-
-    switch (i_os)
+    for (i = 0; b[i]; i++)
     {
-        case os_windows:
-            if (uname_toolchain != tc_gcc)
-            {
-                snprintf (buffer, BUFFERSIZE, "%s\\%s", sx_string(p), sx_string(f));
-                break;
-            }
-        default:
-            snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), sx_string(f));
-            break;
+        if (b[i] == '+')
+        {
+            b[i] = 'x';
+        }
     }
-
-    return make_string(buffer);
 }
 
-sexpr sx_string_dir_prefix_c (char *f, sexpr p)
+sexpr sx_string_dir_prefix_c (const char *f, sexpr p)
 {
     char buffer[BUFFERSIZE];
 
@@ -158,6 +139,11 @@ sexpr sx_string_dir_prefix_c (char *f, sexpr p)
     }
 
     return make_string(buffer);
+}
+
+static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
+{
+    return sx_string_dir_prefix_c (sx_string(f), p);
 }
 
 static sexpr find_actual_file (sexpr p, sexpr file)
@@ -394,16 +380,7 @@ static sexpr generate_object_file_name (sexpr name, sexpr file)
             break;
         case tc_borland:
             snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.obj", archprefix, sx_string(name), sx_string(file));
-            {
-                int i;
-                for (i = 0; buffer[i]; i++)
-                {
-                    if (buffer[i] == '+')
-                    {
-                        buffer[i] = 'x';
-                    }
-                }
-            }
+            mangle_path_borland (buffer);
             break;
         case tc_gcc:
             snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.o", archprefix, sx_string(name), sx_string(file));
@@ -424,16 +401,7 @@ static sexpr generate_resource_file_name (sexpr name)
             break;
         case tc_borland:
             snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.res", archprefix, sx_string(name), sx_string(name));
-            {
-                int i;
-                for (i = 0; buffer[i]; i++)
-                {
-                    if (buffer[i] == '+')
-                    {
-                        buffer[i] = 'x';
-                    }
-                }
-            }
+            mangle_path_borland (buffer);
             break;
         case tc_gcc:
             snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.res", archprefix, sx_string(name), sx_string(name));
@@ -463,17 +431,7 @@ static sexpr generate_test_object_file_name (sexpr name, sexpr file)
             break;
         case tc_borland:
             snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.obj", archprefix, sx_string(name), sx_string(file));
-            {
-                int i;
-
-                for (i = 0; buffer[i]; i++)
-                {
-                    if (buffer[i] == '+')
-                    {
-                        buffer[i] = 'x';
-                    }
-                }
-            }
+            mangle_path_borland (buffer);
             break;
         case tc_gcc:
             snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s.o", archprefix, sx_string(name), sx_string(file));
@@ -497,17 +455,7 @@ static sexpr generate_test_executable_file_name (sexpr name, sexpr file)
                     break;
                 case tc_borland:
                     snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.exe", archprefix, sx_string(name), sx_string(file));
-                    {
-                        int i;
-
-                        for (i = 0; buffer[i]; i++)
-                        {
-                            if (buffer[i] == '+')
-                            {
-                                buffer[i] = 'x';
-                            }
-                        }
-                    }
+                    mangle_path_borland (buffer);
                     break;
                 case tc_gcc:
                     snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.exe", archprefix, sx_string(name), sx_string(file));
@@ -1108,30 +1056,16 @@ static void process_definition (struct target *context, sexpr definition)
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests", archprefix, sx_string(context->name));
 
     mkdir (buffer, 0755);
-    
+
     if (uname_toolchain == tc_borland)
     {
-        int i;
-
         snprintf (buffer, BUFFERSIZE, "build/%s/%s", archprefix, sx_string(context->name));
-        for (i = 0; buffer[i]; i++)
-        {
-            if (buffer[i] == '+')
-            {
-                buffer[i] = 'x';
-            }
-        }
+        mangle_path_borland (buffer);
 
         mkdir (buffer, 0755);
 
         snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests", archprefix, sx_string(context->name));
-        for (i = 0; buffer[i]; i++)
-        {
-            if (buffer[i] == '+')
-            {
-                buffer[i] = 'x';
-            }
-        }
+        mangle_path_borland (buffer);
 
         mkdir (buffer, 0755);
     }
@@ -1636,6 +1570,33 @@ static void process_on_death_nokill(struct exec_context *context, void *p)
     }
 }
 
+static void map_environ (struct tree_node *node, void *psx)
+{
+    sexpr *sx = (sexpr *)psx;
+    char buffer[BUFFERSIZE];
+    struct target *t = node_get_value (node);
+
+    if (falsep (*sx))
+    {
+        switch (i_os)
+        {
+            case os_darwin:
+                snprintf (buffer, BUFFERSIZE, "DYLIB_LIBRARY_PATH=build/%s/%s", archprefix, sx_string(t->name));
+            default:
+                snprintf (buffer, BUFFERSIZE, "LD_LIBRARY_PATH=build/%s/%s", archprefix, sx_string(t->name));
+                break;
+        }
+
+        *sx = make_string (buffer);
+    }
+    else
+    {
+        snprintf (buffer, BUFFERSIZE, ":build/%s/%s", archprefix, sx_string(t->name));
+
+        *sx = sx_join (*sx, make_string (buffer), sx_nil);
+    }
+}
+
 static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
 {
     sexpr cur = sx, cf = car (sx);
@@ -1644,6 +1605,9 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
     char odir[BUFFERSIZE];
     int c = 0, exsize;
     char **ex;
+    sexpr rsx = sx_false;
+
+    tree_map (&targets, map_environ, (void *)&rsx);
 
     sx_write (stdio, cons (sym_execute, cons (sx, sx_end_of_list)));
 
@@ -1682,9 +1646,26 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
     }
     ex[c] = (char *)0;
 
-    if (wdir != (const char *)0) { chdir (wdir); }
-    context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex, xenviron);
-    if (wdir != (const char *)0) { chdir (odir); }
+    if (wdir != (const char *)0)
+    {
+        chdir (wdir);
+    }
+    if (falsep (rsx))
+    {
+        context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex, xenviron);
+    }
+    else
+    {
+        char *tenv[3] = { (char *)sx_string (rsx),
+                          "PATH=/bin",
+                          (char *)0 };
+
+        context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex, tenv);
+    }
+    if (wdir != (const char *)0)
+    {
+        chdir (odir);
+    }
 
     sx = car (sx);
 
@@ -1771,7 +1752,7 @@ static void initialise_libcurie()
                 if (snprintf (buffer, BUFFERSIZE, "%s/%s/libcurie.sx", sx_string(i_destdir), sx_string (i_destlibdir)),
                     truep(initialise_libcurie_filename(buffer))) return;
                 break;
-            case fs_proper:
+            case fs_afsl:
                 if (snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/libcurie.sx", sx_string(i_destdir), uname_os, uname_arch),
                     truep(initialise_libcurie_filename(buffer))) return;
                 break;
@@ -1789,7 +1770,7 @@ static void initialise_libcurie()
                 truep(initialise_libcurie_filename(buffer))) return;
             if (snprintf (buffer, BUFFERSIZE, "/%s/libcurie.sx", sx_string (i_destlibdir)),
                 truep(initialise_libcurie_filename(buffer))) return;
-        case fs_proper:
+        case fs_afsl:
             if (snprintf (buffer, BUFFERSIZE, "/%s/%s/lib/libcurie.sx", uname_os, uname_arch), truep(initialise_libcurie_filename(buffer))) return;
             if (truep(initialise_libcurie_filename("/usr/lib/libcurie.sx"))) return;
             if (truep(initialise_libcurie_filename("/lib/libcurie.sx"))) return;
@@ -1864,9 +1845,6 @@ int main (int argc, char **argv, char **environ)
     xenviron = environ;
 #endif
 
-    set_resize_mem_recovery_function(rm_recover);
-    set_get_mem_recovery_function(gm_recover);
-
     if (stat ("icemake.sx", &st) != 0)
     {
         perror ("icemake.sx");
@@ -1936,7 +1914,7 @@ int main (int argc, char **argv, char **environ)
                         in_dynamic_libraries = sx_false;
                         break;
                     case 's':
-                        i_fsl = fs_proper;
+                        i_fsl = fs_afsl;
                         break;
                     case 'b':
                         i_fsl = fs_fhs_binlib;

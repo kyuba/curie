@@ -94,7 +94,7 @@ enum fs_layout
      *
      *  This uses the AFSL, see the papers on kyuba.org for details.
      */
-    fs_proper,
+    fs_afsl,
 
     /*! \brief FHS Layout, binaries to /lib
      *
@@ -567,7 +567,7 @@ define_string (str_doxyfile,            "doxyfile");
  *  \param[in] p The prefix to add.
  *  \return The prefixed directory.
  */
-sexpr sx_string_dir_prefix_c (char *f, sexpr p);
+sexpr sx_string_dir_prefix_c (const char *f, sexpr p);
 
 /*! \brief Build Targets
  *  \param[in] targets The targets to build.
@@ -628,6 +628,14 @@ void loop_processes_nokill ( void );
  *  stdio as "(items-total X)", if there's more than one item.
  */
 void count_print_items ( void );
+
+/*! \brief Path Name Mangling (Borland)
+ *
+ *  BCC and related tools can't handle some characters in path names... in
+ *  particular, they can't seem to handle the "+" character too well since it's
+ *  used for other things in some of the tools.
+ */
+void mangle_path_borland (char *b);
 
 #endif
 

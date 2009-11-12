@@ -120,7 +120,7 @@ static sexpr prepend_includes_common (sexpr x)
             case fs_fhs_binlib:
                 snprintf (buffer, BUFFERSIZE, "-I%s/include", sx_string(i_destdir));
                 break;
-            case fs_proper:
+            case fs_afsl:
                 snprintf (buffer, BUFFERSIZE, "-I%s/%s/%s/include", sx_string(i_destdir), uname_os, uname_arch);
                 break;
         }
@@ -357,7 +357,7 @@ static sexpr prepend_includes_msvc (sexpr x)
             case fs_fhs_binlib:
                 snprintf (buffer, BUFFERSIZE, "/I%s\\include", sx_string(i_destdir));
                 break;
-            case fs_proper:
+            case fs_afsl:
                 snprintf (buffer, BUFFERSIZE, "/I%s\\%s\\%s\\include", sx_string(i_destdir), uname_os, uname_arch);
                 break;
         }
