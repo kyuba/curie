@@ -50,10 +50,13 @@ void *malloc (unsigned long length)
 
 void free(void *ptr)
 {
-    struct tree_node *node = tree_get_node (&size_map, (int_pointer)ptr);
+    if (ptr != (void *)0)
+    {
+        struct tree_node *node = tree_get_node (&size_map, (int_pointer)ptr);
 
-    afree((unsigned long)node_get_value(node), ptr);
-    tree_remove_node (&size_map, (int_pointer)ptr);
+        afree((unsigned long)node_get_value(node), ptr);
+        tree_remove_node (&size_map, (int_pointer)ptr);
+    }
 }
 
 void *realloc (void *ptr, unsigned long length)
