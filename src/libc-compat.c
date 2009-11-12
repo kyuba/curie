@@ -54,8 +54,11 @@ void free(void *ptr)
     {
         struct tree_node *node = tree_get_node (&size_map, (int_pointer)ptr);
 
-        afree((unsigned long)node_get_value(node), ptr);
-        tree_remove_node (&size_map, (int_pointer)ptr);
+        if (node != (struct tree_node *)0)
+        {
+            afree((unsigned long)node_get_value(node), ptr);
+            tree_remove_node (&size_map, (int_pointer)ptr);
+        }
     }
 }
 
@@ -68,16 +71,20 @@ void *realloc (void *ptr, unsigned long length)
     else
     {
         struct tree_node *node = tree_get_node (&size_map, (int_pointer)ptr);
-        unsigned long len = (unsigned long)node_get_value(node);
 
-        if (len != length)
+        if (node != (struct tree_node *)0)
         {
-            void *r = arealloc (len, ptr, length);
+            unsigned long len = (unsigned long)node_get_value(node);
 
-            tree_remove_node (&size_map, (int_pointer)ptr);
-            tree_add_node_value (&size_map, (int_pointer)r, (void *)(int_pointer)length);
+            if (len != length)
+            {
+                void *r = arealloc (len, ptr, length);
 
-            ptr = r;
+                tree_remove_node (&size_map, (int_pointer)ptr);
+                tree_add_node_value (&size_map, (int_pointer)r, (void *)(int_pointer)length);
+
+                ptr = r;
+            }
         }
 
         return ptr;
