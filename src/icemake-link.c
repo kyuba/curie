@@ -583,6 +583,10 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
         }
         sx = get_special_linker_options (cons (str_dstart_group, sx));
     }
+    else
+    {
+        sx = get_special_linker_options (sx);
+    }
 
     switch (i_os)
     {
@@ -611,8 +615,6 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
         cur = cdr (cur);
     }
-
-    tree_map (&targets, map_includes, (void *)&sx);
 
     if (i_os == os_linux)
     {
@@ -738,6 +740,8 @@ static void link_library_borland_dynamic (sexpr name, sexpr code, struct target 
         cur = cdr (cur);
     }
 
+    sx = get_special_linker_options (sx);
+
     snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.%s.dll", archprefix, sx_string(t->name), sx_string(name), sx_string(t->dversion));
     mangle_path_borland (buffer);
 
@@ -843,6 +847,8 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
 
         cur = cdr (cur);
     }
+
+    sx = get_special_linker_options (sx);
 
     if (!havelib) {
         sexpr sxx = sx_end_of_list;

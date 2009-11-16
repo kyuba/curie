@@ -175,7 +175,7 @@ int cmain()
 
     multiplex_io();
     multiplex_sexpr();
-    multiplex_process();
+    multiplex_all_processes();
 
     icemake = which (str_icemake);
 
