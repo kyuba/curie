@@ -31,6 +31,10 @@
 #include <curie/immutable.h>
 #include <curie/gc.h>
 
+/* TODO: the sexpr graph type needs to get turned into a proper, immutable
+ *       type, so that creating the same graph multiple times  has the
+ *       usual benefits w.r.t. storage requirements. */
+
 static void  graph_destroy  (sexpr);
 static sexpr graph_to_sexpr (sexpr);
 static sexpr sexpr_to_graph (sexpr);
