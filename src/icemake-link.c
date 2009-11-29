@@ -123,15 +123,15 @@ static sexpr get_special_linker_options_common (sexpr sx)
 
 static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
 {
-    define_string (str_u,              "-u");
-    define_string (str_e,              "-e");
-    define_string (str_start,          "_start");
-    define_string (str_Wlx,            "-Wl,-x");
-    define_string (str_Wls,            "-Wl,-s");
-    define_string (str_Wlznoexecstack, "-Wl,-z,noexecstack");
-    define_string (str_Wlznorelro,     "-Wl,-z,norelro");
-    define_string (str_Wlgcsections,   "-Wl,--gc-sections");
-    define_string (str_Wlsortcommon,   "-Wl,--sort-common");
+    define_string (str_u,                "-u");
+    define_string (str_e,                "-e");
+    define_string (str_start,            "_start");
+    define_string (str_Wlx,              "-Wl,-x");
+    define_string (str_Wls,              "-Wl,-s");
+    define_string (str_Wlznoexecstack,   "-Wl,-z,noexecstack");
+    define_string (str_Wlznorelro,       "-Wl,-z,norelro");
+    define_string (str_Wlgcsections,     "-Wl,--gc-sections");
+    define_string (str_Wlsortcommon,     "-Wl,--sort-common");
 
     if (truep(i_optimise_linking))
     {
@@ -208,6 +208,9 @@ static void map_includes (struct tree_node *node, void *psx)
 
 static sexpr get_special_linker_options (sexpr sx)
 {
+    define_string (str_multiply_defined, "-multiply_defined");
+    define_string (str_warning,          "warning");
+        
     if (stringp (i_destdir))
     {
         char buffer[BUFFERSIZE];
@@ -248,6 +251,11 @@ static sexpr get_special_linker_options (sexpr sx)
     }
 
     tree_map (&targets, map_includes, (void *)&sx);
+
+    if (i_os == os_darwin)
+    {
+        sx = cons (str_multiply_defined, cons (str_warning, sx));
+    }
 
     return get_special_linker_options_common (sx);
 }

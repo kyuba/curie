@@ -33,9 +33,21 @@
 
 static struct tree size_map = TREE_INITIALISER;
 
-/* weak stubs for some of the bootstrap things */
+/* weak stubs for stuff in this file, so that when linked with a libc things
+   from the libc are used */
 
 #pragma weak cexit
+#pragma weak abort
+#pragma weak free
+#pragma weak malloc
+#pragma weak realloc
+#pragma weak strcat
+#pragma weak strcpy
+#pragma weak strlen
+#pragma weak strncmp
+#pragma weak memset
+#pragma weak memcpy
+#pragma weak memcmp
 
 void cexit (int status) {}
 
@@ -91,7 +103,7 @@ void *realloc (void *ptr, unsigned long length)
     }
 }
 
-void abort ()
+void abort ( void )
 {
     cexit (-1);
 }
