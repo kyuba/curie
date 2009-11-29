@@ -80,6 +80,7 @@ enum sx_type {
     sxt_string                  = 4,  /*!< String, i.e. "string" */
     sxt_symbol                  = 5,  /*!< Symbol, i.e. symbol */
     sxt_cons                    = 6,  /*!< Cons, i.e. (x . y) */
+    sxt_rational                = 20, /*!< Rational number, i.e. 5/6 */
 };
 
 /*! \brief Cons S-Expression
@@ -129,7 +130,52 @@ struct sexpr_string_or_symbol {
     char character_data[];
 };
 
+/*! \brief Rational Number (S-Expression)
+ *
+ *  Basic type to represent rational numbers.
+ *
+ *  Note that the types were chosen to maximise the range of the numbers, at a
+ *  slight disadvantage in resolution for the sub-integer portions, thus the
+ *  sign is only used in the denominator, even though it would appear to be more
+ *  natural to stick it in the numerator.
+ */
+struct sexpr_rational
+{
+    /*! \brief S-Expression Type
+     *
+     * This field defines the type of the symbolic expression. It's present in
+     * all sexprs.
+     */
+    enum sx_type type;
+
+    /*! \brief Nominator
+     *
+     *  Nominator of the rational number, i.e. the left/upper part of the
+     *  fraction.
+     */
+    int_64   numerator;
+
+    /*! \brief Denominator
+     *
+     *  Denominator of the rational number, i.e. the lower/right part of the
+     *  fraction.
+     */
+    int_64_s denominator;
+};
+
+
+/*! \brief Basic Sexpr Layout
+ *
+ *  Just a reminder for custom sexpr types. The only thing that is in a fixed
+ *  location is the sexpr type tag.
+ */
 struct sexpr_partial {
+    /*! \brief S-expression Type Tag
+     *
+     *  Used to identify pointer-based s-expression types, thus it needs to be
+     *  present in all s-expressions and it needs to be in the same location
+     *  since different types may well be of different size.
+     */
     unsigned int type;
 };
 

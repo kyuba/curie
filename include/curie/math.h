@@ -52,10 +52,26 @@ extern "C" {
 /*! \brief Rational Number
  *
  *  Basic type to represent rational numbers.
+ *
+ *  Note that the types were chosen to maximise the range of the numbers, at a
+ *  slight disadvantage in resolution for the sub-integer portions, thus the
+ *  sign is only used in the denominator, even though it would appear to be more
+ *  natural to stick it in the numerator.
  */
 struct rational
 {
+    /*! \brief Nominator
+     *
+     *  Nominator of the rational number, i.e. the left/upper part of the
+     *  fraction.
+     */
     int_64   numerator;
+
+    /*! \brief Denominator
+     *
+     *  Denominator of the rational number, i.e. the lower/right part of the
+     *  fraction.
+     */
     int_64_s denominator;
 };
 
