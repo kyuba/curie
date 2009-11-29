@@ -55,7 +55,7 @@ extern "C" {
  */
 struct rational
 {
-    int_64   nominator;
+    int_64   numerator;
     int_64_s denominator;
 };
 
