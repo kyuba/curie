@@ -22,7 +22,7 @@
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
         "int" "io" "immutable" "constants" "graph" "filesystem" "regex"
-        "directory" "string" "utf-8" "shell" "time" "stack" "gc" "hash")
+        "directory" "string" "utf-8" "shell" "time" "stack" "gc" "hash" "math")
 
   (test-cases
         "bad-allocation" "bad-resize" "curie-main" "environment" "execute-fork"
