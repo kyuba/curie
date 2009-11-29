@@ -153,14 +153,14 @@ struct sexpr_rational
      *  Nominator of the rational number, i.e. the left/upper part of the
      *  fraction.
      */
-    int_64   numerator;
+    int_pointer   numerator;
 
     /*! \brief Denominator
      *
      *  Denominator of the rational number, i.e. the lower/right part of the
      *  fraction.
      */
-    int_64_s denominator;
+    int_pointer_s denominator;
 };
 
 
@@ -389,6 +389,18 @@ sexpr make_string
  */
 sexpr make_symbol
         (const char *symbol);
+
+/*! \brief Create a new Rational Number
+ *  \param[in] p The numerator.
+ *  \param[in] q The denominator.
+ *  \return The new s-expression, or sx_nonexistent if there's not enough
+ *          memory.
+ *
+ *  This function takes two integers and creates a new rational-type
+ *  s-expression with p/q as its value.
+ */
+sexpr make_rational
+        (int_pointer p, int_pointer_s q);
 
 /*! \brief Destroy S-Expression
  *  \param[in] sx The s-expression to destroy.
@@ -764,6 +776,15 @@ sexpr equalp
  *  usable as a C boolean.
  */
 #define consp(sx)    (pointerp(sx) && (((struct sexpr_cons *)sx_pointer(sx))->type == sxt_cons))
+
+/*! \brief Check if the S-Expression is a Rational Number
+ *  \param[in] sx The s-expression to check.
+ *  \return 1 if it is a cons, 0 otherwise.
+ *
+ *  This macro determines the type of the given s-expression, and the result is
+ *  usable as a C boolean.
+ */
+#define rationalp(sx) (pointerp(sx) && (((struct sexpr_rational *)sx_pointer(sx))->type == sxt_rational))
 
 /*! \brief Check if the S-Expression is a String
  *  \param[in] sx The s-expression to check.

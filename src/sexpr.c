@@ -33,11 +33,13 @@
 #include <curie/gc.h>
 #include <curie/tree.h>
 #include <curie/hash.h>
+#include <curie/math.h>
 
-static struct tree sx_cons_tree   = TREE_INITIALISER;
-static struct tree sx_string_tree = TREE_INITIALISER;
-static struct tree sx_symbol_tree = TREE_INITIALISER;
-unsigned long gc_base_items       = 0;
+static struct tree sx_cons_tree     = TREE_INITIALISER;
+static struct tree sx_string_tree   = TREE_INITIALISER;
+static struct tree sx_symbol_tree   = TREE_INITIALISER;
+static struct tree sx_rational_tree = TREE_INITIALISER;
+unsigned long gc_base_items         = 0;
 
 sexpr cons(sexpr sx_car, sexpr sx_cdr)
 {
@@ -65,6 +67,45 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr)
     rv->cdr  = sx_cdr;
 
     tree_add_node_value (&sx_cons_tree, hash, (void *)rv);
+
+    gc_base_items++;
+
+    return (sexpr)rv;
+}
+
+sexpr make_rational(int_pointer p, int_pointer_s q)
+{
+    static struct memory_pool pool =
+            MEMORY_POOL_INITIALISER(sizeof (struct sexpr_rational));
+    struct sexpr_rational *rv;
+    struct tree_node *n;
+    int_64 g = gcd (p, q < 0 ? q : (q * -1));
+    int_pointer t[2], hash;
+
+    p /= g;
+    q /= g;
+
+    t[0] = p;
+    t[1] = q;
+    hash = hash_murmur2_pt (t, sizeof(t), 0);
+
+    if ((n = tree_get_node (&sx_rational_tree, (int_pointer)hash)))
+    {
+        return (sexpr)node_get_value (n);
+    }
+
+    rv = get_pool_mem (&pool);
+
+    if (rv == (struct sexpr_rational *)0)
+    {
+        return sx_nonexistent;
+    }
+
+    rv->type        = sxt_rational;
+    rv->numerator   = p;
+    rv->denominator = q;
+
+    tree_add_node_value (&sx_rational_tree, hash, (void *)rv);
 
     gc_base_items++;
 
@@ -158,6 +199,17 @@ void sx_destroy(sexpr sxx)
         free_pool_mem (sx);
         gc_base_items--;
     }
+    else if (rationalp(sxx))
+    {
+        struct sexpr_rational *sx = (struct sexpr_rational *)sx_pointer(sxx);
+        int_pointer t[2] = { sx->numerator, sx->denominator };
+        int_pointer hash = hash_murmur2_pt (t, sizeof(t), 0);
+
+        tree_remove_node (&sx_rational_tree, hash);
+
+        free_pool_mem (sx);
+        gc_base_items--;
+    }
     else if (customp(sxx))
     {
         int type = sx_type (sxx);
@@ -179,7 +231,8 @@ static void sx_map_call (struct tree_node *node, void *u)
 
 void sx_call_all ( void )
 {
-    tree_map (&sx_cons_tree,   sx_map_call, (void *)0);
-    tree_map (&sx_string_tree, sx_map_call, (void *)0);
-    tree_map (&sx_symbol_tree, sx_map_call, (void *)0);
+    tree_map (&sx_cons_tree,     sx_map_call, (void *)0);
+    tree_map (&sx_string_tree,   sx_map_call, (void *)0);
+    tree_map (&sx_symbol_tree,   sx_map_call, (void *)0);
+    tree_map (&sx_rational_tree, sx_map_call, (void *)0);
 }

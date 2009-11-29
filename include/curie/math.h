@@ -65,14 +65,14 @@ struct rational
      *  Nominator of the rational number, i.e. the left/upper part of the
      *  fraction.
      */
-    int_64   numerator;
+    int_pointer   numerator;
 
     /*! \brief Denominator
      *
      *  Denominator of the rational number, i.e. the lower/right part of the
      *  fraction.
      */
-    int_64_s denominator;
+    int_pointer_s denominator;
 };
 
 /*! \brief Calculate the Greatest Common Denominator
