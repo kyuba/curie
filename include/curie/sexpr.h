@@ -842,7 +842,8 @@ sexpr equalp
  *  generic sexpr structure doesn't actually include the car, so some type
  *  juggling is in order to get this working.
  */
-#define car(sx)        (consp(sx) ? (((struct sexpr_cons *)sx_pointer(sx))->car) : sx_nonexistent)
+#define car(sx) (consp(sx) ? (((struct sexpr_cons *)sx_pointer(sx))->car)\
+                           : sx_nonexistent)
 
 /*! \brief Access the cdr of a Cons
  *  \param[in] sx The cons.
@@ -850,7 +851,8 @@ sexpr equalp
  *
  *  Analoguous to car(), but it returns the cdr.
  */
-#define cdr(sx)        (consp(sx) ? (((struct sexpr_cons *)sx_pointer(sx))->cdr) : sx_nonexistent)
+#define cdr(sx) (consp(sx) ? (((struct sexpr_cons *)sx_pointer(sx))->cdr)\
+                           : sx_nonexistent)
 
 /*! \brief Access the Integer Value of an Integer
  *  \param[in] sx The integer.
@@ -862,6 +864,28 @@ sexpr equalp
  */
 #define sx_integer(sx) ((int_pointer_s)(sx & (~0x7)) >> 3)
 
+/*! \brief Access the Numerator Portion of a Rational Number
+ *  \param[in] sx The rational number.
+ *  \return The numerator of sx, or sx_integer(sx) if sx is not a rational
+ *           number.
+ *
+ *  You should check the type of sx before you try to access its value. The
+ *  sx_integer() fallback makes sense since regular integers are just rationals
+ *  with "1" as their denominator.
+ */
+#define sx_numerator(sx) ((rationalp(sx)) ?\
+    ((struct sexpr_rational *)sx)->numerator : sx_integer(sx))
+
+/*! \brief Access the Denominator Portion of a Rational Number
+ *  \param[in] sx The rational number.
+ *  \return The denominator of sx, or 0 if sx is not a rational number.
+ *
+ *  Since 0 is not a valid denominator, you could also use this as a type test.
+ *  Sort of. The other code might still work with 0 denominators.
+ */
+#define sx_denominator(sx) ((rationalp(sx)) ?\
+    ((struct sexpr_rational *)sx)->denominator : 0)
+
 /*! \brief Access the String Value of a String
  *  \param[in] sx The string.
  *  \return The string value, or "#nonexistent" if sx is not a string.
@@ -870,17 +894,21 @@ sexpr equalp
  *  string itself, you should always make sure to check the type of sx yourself
  *  if it's actually important.
  */
-#define sx_string(sx)  (const char *)(stringp(sx) ? (((struct sexpr_string_or_symbol *)sx_pointer(sx))->character_data) : "#nonexistent")
+#define sx_string(sx) (const char *)(stringp(sx) ?\
+        (((struct sexpr_string_or_symbol *)sx_pointer(sx))->character_data)\
+      : "#nonexistent")
 
 /*! \brief Access the String Value of a Symbol
  *  \param[in] sx The symbol.
  *  \return The string value, or "#nonexistent" if sx is not a symbol.
  *
  *  Since the "#nonexistent" return value for non-symbol objects is a valid C
- *  string itself, you should always make sure to check the type of sx yourself
+ *  symbol itself, you should always make sure to check the type of sx yourself
  *  if it's actually important.
  */
-#define sx_symbol(sx)  (const char *)(symbolp(sx) ? (((struct sexpr_string_or_symbol *)sx_pointer(sx))->character_data) : "#nonexistent")
+#define sx_symbol(sx) (const char *)(symbolp(sx) ?\
+        (((struct sexpr_string_or_symbol *)sx_pointer(sx))->character_data)\
+      : "#nonexistent")
 
 /*! \brief Access the Type Value of a Custom S-Expression
  *  \param[in] sx The s-expression.
@@ -890,7 +918,8 @@ sexpr equalp
  *  also be used to identify custom s-expressions... although that would make
  *  little sense.
  */
-#define sx_type(sx) (customp(sx) ? (((struct sexpr_partial *)sx_pointer(sx))->type) : 0)
+#define sx_type(sx) (customp(sx) ?\
+        (((struct sexpr_partial *)sx_pointer(sx))->type) : 0)
 
 /*! @} */
 

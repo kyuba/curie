@@ -219,6 +219,8 @@ static sexpr sx_read_number
                 /* infinity marker */
                 is_infinity = (char)1;
                 break;
+            case '/':
+                /* rational number */
             default:
                 /* end of number */
                 *i = j;
@@ -234,6 +236,62 @@ static sexpr sx_read_number
                 }
                 else
                 {
+                    if (buf[j] == '/')
+                    {
+                        if ((j + 1) >= length)
+                        {
+                            return sx_nonexistent;
+                        }
+                        else
+                        {
+                            sexpr r;
+                        
+                            (*i)++;
+                            r = sx_read_number (i, buf, length);
+
+                            if (nexp (r))
+                            {
+                                return sx_nonexistent;
+                            }
+                            else if (pinfp(r) || ninfp(r))
+                            {
+                                return r;
+                            }
+                            else if (integerp(r))
+                            {
+                                int_pointer_s rval = sx_integer (r);
+
+                                if (number_is_negative == (char)1)
+                                {
+                                    rval *= -1;
+                                }
+
+                                return make_rational (number, rval);
+                            }
+                            else if (rationalp (r))
+                            {
+                                struct sexpr_rational *rval =
+                                    (struct sexpr_rational *)r;
+                                int_pointer_s denom = rval->numerator;
+
+                                if (number_is_negative == (char)1)
+                                {
+                                    denom *= -1;
+                                }
+
+                                if (rval->denominator < 0)
+                                {
+                                    return make_rational
+                                        (number * (rval->denominator * -1),
+                                         denom);
+                                }
+
+                                return make_rational
+                                    (number * rval->denominator, denom);
+                            }
+                        }
+                    }
+
                     if (number_is_negative == (char)1) {
                         number *= -1;
                     }
@@ -641,6 +699,13 @@ static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx)
     else if (integerp(sx))
     {
         sx_write_integer (io->out, sx_integer(sx));
+        return 1;
+    }
+    else if (rationalp(sx))
+    {
+        sx_write_integer (io->out, sx_numerator(sx));
+        (void)io_collect (io->out, "/", 1);
+        sx_write_integer (io->out, sx_denominator(sx));
         return 1;
     }
     else if (nilp(sx))

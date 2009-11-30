@@ -85,6 +85,15 @@ sexpr make_rational(int_pointer p, int_pointer_s q)
     p /= g;
     q /= g;
 
+    if (q == 1)
+    {
+        return make_integer (p);
+    }
+    else if (q == -1)
+    {
+        return make_integer (p * -1);
+    }
+
     t[0] = p;
     t[1] = q;
     hash = hash_murmur2_pt (t, sizeof(t), 0);
