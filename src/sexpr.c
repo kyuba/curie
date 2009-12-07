@@ -79,7 +79,7 @@ sexpr make_rational(int_pointer p, int_pointer_s q)
             MEMORY_POOL_INITIALISER(sizeof (struct sexpr_rational));
     struct sexpr_rational *rv;
     struct tree_node *n;
-    int_64 g = gcd (p, q < 0 ? q : (q * -1));
+    int_64 g = gcd (p, q >= 0 ? q : (q * -1));
     int_pointer t[2], hash;
 
     p /= g;
