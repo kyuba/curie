@@ -70,6 +70,21 @@ struct graph {
      */
     unsigned int type;
 
+    /*! \brief Callback on Graph Destruction
+     *
+     *  This callback is invoked whenever the graph's memory is about to be
+     *  deallocated. Since graphs are pretty much the only mutable data type we
+     *  have here, this does make sense since such a callback allows for
+     *  caching the graph based on the data it contains.
+     */
+    void (*on_free) (struct graph *);
+
+    /*! \brief Auxiliary Data
+     *
+     *  Useful for the on_free() callback.
+     */
+    void *aux;
+
     /*! \brief Node Count
      *
      *  The number of nodes currently in the graph.

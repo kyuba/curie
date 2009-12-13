@@ -74,6 +74,7 @@ sexpr graph_create()
     gr->type = graph_type_identifier;
     gr->node_count = 0;
     gr->nodes = (struct graph_node **)aalloc (get_chunked_node_size(0));
+    gr->on_free = (void*)0;
 
     gc_base_items++;
 
@@ -107,6 +108,11 @@ struct graph_node *graph_add_node(sexpr sx, sexpr label)
 static void graph_destroy (sexpr sx)
 {
     struct graph *gr = (struct graph *)sx_pointer(sx);
+
+    if (gr->on_free != (void *)0)
+    {
+        gr->on_free (gr);
+    }
 
     if (gr->node_count != 0)
     {

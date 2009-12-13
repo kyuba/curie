@@ -29,6 +29,11 @@
 #include <curie/regex.h>
 #include <curie/memory.h>
 #include <curie/utf-8.h>
+#include <curie/tree.h>
+#include <curie/hash.h>
+#include <curie/string.h>
+
+static struct tree regex_cache = TREE_INITIALISER;
 
 static void rx_compile_add_nodes (sexpr g, const unsigned char *s)
 {
@@ -260,21 +265,40 @@ sexpr rx_compile_sx (sexpr sx)
         return rx_compile (sx_string (sx));
     }
 
-    return graph_create();
+    return sx_nonexistent;
+}
+
+static void on_regex_graph_free (struct graph *g)
+{
+    tree_remove_node (&regex_cache, (int_pointer)(g->aux));
 }
 
 sexpr rx_compile (const char *s)
 {
-    sexpr g = graph_create();
+    unsigned long len;
+    int_32 hash = str_hash (s, &len);
+    struct tree_node *n = tree_get_node (&regex_cache, hash);
 
-    unsigned int p = 0;
-    struct graph_node *n = graph_add_node (g, sx_nil);
-    struct graph_node *e = graph_add_node (g, sx_true);
+    if (n == (struct tree_node *)0)
+    {
+        sexpr g = graph_create();
 
-    rx_compile_add_nodes(g, (const unsigned char *)s);
-    (void)rx_compile_recurse(g, n, e, (const unsigned char *)s, &p);
+        unsigned int p = 0;
+        struct graph_node *n = graph_add_node (g, sx_nil);
+        struct graph_node *e = graph_add_node (g, sx_true);
 
-    return g;
+        rx_compile_add_nodes(g, (const unsigned char *)s);
+        (void)rx_compile_recurse(g, n, e, (const unsigned char *)s, &p);
+
+        ((struct graph *)g)->on_free = on_regex_graph_free;
+        ((struct graph *)g)->aux = (void *)(int_pointer)hash;
+
+        tree_add_node_value (&regex_cache, hash, (void *)g);
+
+        return g;
+    }
+
+    return (sexpr)node_get_value (n);
 }
 
 struct nfa_state
@@ -430,37 +454,42 @@ sexpr rx_match_sx (sexpr g, sexpr sx)
 
 sexpr rx_match (sexpr g, const char *s)
 {
-    static struct memory_pool pool =
-            MEMORY_POOL_INITIALISER (sizeof(struct nfa_state));
-
-    sexpr rv = sx_false;
-
-    struct graph_node *n = graph_search_node (g, sx_nil);
-    struct nfa_state *ns = get_pool_mem (&pool);
-
-    if (n == (struct graph_node *)0) 
+    if (graphp (g))
     {
-        return sx_false;
+        static struct memory_pool pool =
+                MEMORY_POOL_INITIALISER (sizeof(struct nfa_state));
+
+        sexpr rv = sx_false;
+
+        struct graph_node *n = graph_search_node (g, sx_nil);
+        struct nfa_state *ns = get_pool_mem (&pool);
+
+        if (n == (struct graph_node *)0) 
+        {
+            return sx_false;
+        }
+
+        if (truep(n->label))
+        {
+            return sx_true;
+        }
+
+        ns->next = (struct nfa_state *)0;
+        ns->n = n;
+        ns->p = 0;
+
+        rv = rx_match_recurse (&ns, (const unsigned char *)s);
+
+        while (ns != (struct nfa_state *)0)
+        {
+            struct nfa_state *f = ns;
+            ns = ns->next;
+
+            free_pool_mem (f);
+        }
+
+        return rv;
     }
 
-    if (truep(n->label))
-    {
-        return sx_true;
-    }
-
-    ns->next = (struct nfa_state *)0;
-    ns->n = n;
-    ns->p = 0;
-
-    rv = rx_match_recurse (&ns, (const unsigned char *)s);
-
-    while (ns != (struct nfa_state *)0)
-    {
-        struct nfa_state *f = ns;
-        ns = ns->next;
-
-        free_pool_mem (f);
-    }
-
-    return rv;
+    return sx_false;
 }
