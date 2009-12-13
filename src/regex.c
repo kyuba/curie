@@ -397,8 +397,9 @@ static sexpr rx_match_recurse
         {
             if (c->n != (struct graph_node *)0)
             {
-                had_nodes = (char)1;
                 sexpr sx = rx_match_nfa_state_progress (c, ns, s);
+
+                had_nodes = (char)1;
 
                 if (truep (sx))
                 {

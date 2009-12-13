@@ -90,18 +90,20 @@ int_64 hash_murmur2_64 ( const void * key, int len, unsigned int seed )
     const int r = 24;
 
     unsigned int h1 = seed ^ len;
-    unsigned int h2 = 0;
+    unsigned int h2 = 0, k1, k2;
 
     const unsigned int * data = (const unsigned int *)key;
+    
+    int_64 h;
 
     while(len >= 8)
     {
-        unsigned int k1 = *data++;
+        k1 = *data++;
         k1 *= m; k1 ^= k1 >> r; k1 *= m;
         h1 *= m; h1 ^= k1;
         len -= 4;
 
-        unsigned int k2 = *data++;
+        k2 = *data++;
         k2 *= m; k2 ^= k2 >> r; k2 *= m;
         h2 *= m; h2 ^= k2;
         len -= 4;
@@ -109,7 +111,7 @@ int_64 hash_murmur2_64 ( const void * key, int len, unsigned int seed )
 
     if(len >= 4)
     {
-        unsigned int k1 = *data++;
+        k1 = *data++;
         k1 *= m; k1 ^= k1 >> r; k1 *= m;
         h1 *= m; h1 ^= k1;
         len -= 4;
@@ -128,7 +130,7 @@ int_64 hash_murmur2_64 ( const void * key, int len, unsigned int seed )
     h1 ^= h2 >> 17; h1 *= m;
     h2 ^= h1 >> 19; h2 *= m;
 
-    int_64 h = h1;
+    h = h1;
 
     h = (h << 32) | h2;
 

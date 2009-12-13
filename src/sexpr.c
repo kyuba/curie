@@ -47,8 +47,13 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr)
             MEMORY_POOL_INITIALISER(sizeof (struct sexpr_cons));
     struct sexpr_cons *rv;
     struct tree_node *n;
-    sexpr t[2] = { sx_car, sx_cdr };
-    int_pointer hash = hash_murmur2_pt (t, sizeof(t), 0);
+    sexpr t[2];
+    int_pointer hash;
+
+    t[0] = sx_car;
+    t[1] = sx_cdr;
+
+    hash = hash_murmur2_pt (t, sizeof(t), 0);
 
     if ((n = tree_get_node (&sx_cons_tree, (int_pointer)hash)))
     {
@@ -200,9 +205,14 @@ void sx_destroy(sexpr sxx)
     else if (consp(sxx))
     {
         struct sexpr_cons *sx = (struct sexpr_cons *)sx_pointer(sxx);
-        sexpr t[2] = { sx->car, sx->cdr };
-        int_pointer hash = hash_murmur2_pt (t, sizeof(t), 0);
+        sexpr t[2];
+        int_pointer hash;
 
+        t[0] = sx->car;
+        t[1] = sx->cdr;
+        
+        hash = hash_murmur2_pt (t, sizeof(t), 0);
+        
         tree_remove_node (&sx_cons_tree, hash);
 
         free_pool_mem (sx);
@@ -211,8 +221,13 @@ void sx_destroy(sexpr sxx)
     else if (rationalp(sxx))
     {
         struct sexpr_rational *sx = (struct sexpr_rational *)sx_pointer(sxx);
-        int_pointer t[2] = { sx->numerator, sx->denominator };
-        int_pointer hash = hash_murmur2_pt (t, sizeof(t), 0);
+        int_pointer t[2];
+        int_pointer hash;
+
+        t[0] = sx->numerator;
+        t[1] = sx->denominator;
+
+        hash = hash_murmur2_pt (t, sizeof(t), 0);
 
         tree_remove_node (&sx_rational_tree, hash);
 

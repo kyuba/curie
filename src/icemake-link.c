@@ -683,7 +683,6 @@ static void link_library_borland (sexpr name, sexpr code, struct target *t)
     write_curie_sx (name, t);
 
     snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.lib", archprefix, sx_string(t->name), sx_string(name));
-
     mangle_path_borland (buffer);
 
     havelib = (stat (buffer, &res) == 0);
@@ -767,7 +766,7 @@ static void link_library_borland_dynamic (sexpr name, sexpr code, struct target 
                         workstack);
 
         snprintf (lbuffer, BUFFERSIZE, "build\\%s\\%s\\lib%s.dll", archprefix, sx_string(t->name), sx_string(name));
-        mangle_path_borland (buffer);
+        mangle_path_borland (lbuffer);
 
         workstack
                 = cons (cons (p_linker,
