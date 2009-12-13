@@ -274,7 +274,8 @@ static sexpr collect_code
         if (truep(equalp(ttype, sym_assembly)) ||
             truep(equalp(ttype, sym_preproc_assembly)) ||
             truep(equalp(ttype, sym_c)) ||
-            truep(equalp(ttype, sym_cpp)))
+            truep(equalp(ttype, sym_cpp)) ||
+            truep(equalp(ttype, sym_resource)))
         {
             sx = cons (objectfile, sx);
 

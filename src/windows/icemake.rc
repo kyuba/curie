@@ -10,19 +10,20 @@
 {
     BLOCK "StringFileInfo"
     {
-        BLOCK "0"
+        BLOCK "080904B0"
         {
+            VALUE "CompanyName", "kyuba.org"
             VALUE "FileDescription", "Icemake - Curie Build Tool"
-            VALUE "FileVersion", "11, 0, 0, 1"
+            VALUE "FileVersion", "11"
             VALUE "InternalName", "icemake"
-            VALUE "LegalCopyright", "Copyright (C) 2009"
+            VALUE "LegalCopyright", "Copyright (C) 2009, Kyuba Project Members"
             VALUE "OriginalFilename", "icemake.exe"
             VALUE "ProductName", "Icemake"
-            VALUE "ProductVersion", "11, 0, 0, 1"
+            VALUE "ProductVersion", "11"
         }
     }
     BLOCK "VarFileInfo"
     {
-        VALUE "Translation", 0x809, 1200
+        VALUE "Translation", 0x0809 0x04B0
     }
 }

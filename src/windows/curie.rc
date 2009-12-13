@@ -1,27 +1,30 @@
+#include <windows.h>
+
 1 VERSIONINFO
  FILEVERSION 11,0,0,1
  PRODUCTVERSION 11,0,0,1
- FILEFLAGSMASK 0x17L
- FILEFLAGS 0x0L
- FILEOS 0x4L
- FILETYPE 0x2L
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+ FILEFLAGS VS_FF_PRERELEASE
+ FILEOS VOS__WINDOWS32
+ FILETYPE VFT_DLL
  FILESUBTYPE 0x0L
 {
     BLOCK "StringFileInfo"
     {
-        BLOCK "0"
+        BLOCK "080904B0"
         {
-            VALUE "FileDescription", "Curie Library"
-            VALUE "FileVersion", "11, 0, 0, 1"
+            VALUE "CompanyName", "kyuba.org"
+            VALUE "FileDescription", "Curie Core Library - Minimalistic Cross-Platform Programming Library"
+            VALUE "FileVersion", "11"
             VALUE "InternalName", "libcurie"
-            VALUE "LegalCopyright", "Copyright (C) 2009"
+            VALUE "LegalCopyright", "Copyright (C) 2009, Kyuba Project Members"
             VALUE "OriginalFilename", "libcurie.11.dll"
-            VALUE "ProductName", "Curie Library"
-            VALUE "ProductVersion", "11, 0, 0, 1"
+            VALUE "ProductName", "Curie Core Library"
+            VALUE "ProductVersion", "11"
         }
     }
     BLOCK "VarFileInfo"
     {
-        VALUE "Translation", 0x809, 1200
+        VALUE "Translation", 0x0809 0x04B0
     }
 }
