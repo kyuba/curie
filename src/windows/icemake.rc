@@ -1,8 +1,8 @@
 #include <windows.h>
 
 1 VERSIONINFO
- FILEVERSION 10,0,0,1
- PRODUCTVERSION 10,0,0,1
+ FILEVERSION 11,0,0,1
+ PRODUCTVERSION 11,0,0,1
  FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
  FILEFLAGS VS_FF_PRERELEASE
  FILEOS VOS__WINDOWS32
@@ -13,12 +13,12 @@
         BLOCK "0"
         {
             VALUE "FileDescription", "Icemake - Curie Build Tool"
-            VALUE "FileVersion", "10, 0, 0, 1"
+            VALUE "FileVersion", "11, 0, 0, 1"
             VALUE "InternalName", "icemake"
             VALUE "LegalCopyright", "Copyright (C) 2009"
             VALUE "OriginalFilename", "icemake.exe"
             VALUE "ProductName", "Icemake"
-            VALUE "ProductVersion", "10, 0, 0, 1"
+            VALUE "ProductVersion", "11, 0, 0, 1"
         }
     }
     BLOCK "VarFileInfo"

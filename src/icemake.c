@@ -1650,7 +1650,8 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
     {
         chdir (wdir);
     }
-    if (falsep (rsx))
+    if ((i_os == os_windows) || /* dynamic linker overrides are useless on win32 */
+        falsep (rsx))
     {
         context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex, xenviron);
     }

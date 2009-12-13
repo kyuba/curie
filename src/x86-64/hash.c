@@ -93,6 +93,8 @@ int_64 hash_murmur2_64 ( const void * key, int len, unsigned int seed )
 
     const int_64 * data = (const int_64 *)key;
     const int_64 * end = data + (len/8);
+    
+    const unsigned char * data2;
 
     while(data != end)
     {
@@ -106,7 +108,7 @@ int_64 hash_murmur2_64 ( const void * key, int len, unsigned int seed )
         h *= m;
     }
 
-    const unsigned char * data2 = (const unsigned char*)data;
+    data2 = (const unsigned char*)data;
 
     switch(len & 7)
     {
@@ -144,6 +146,8 @@ int_pointer hash_murmur2_pt ( const void * key, int len, unsigned int seed )
     const int_64 * data = (const int_64 *)key;
     const int_64 * end = data + (len/8);
 
+    const unsigned char * data2;
+
     while(data != end)
     {
         int_64 k = *data++;
@@ -156,7 +160,7 @@ int_pointer hash_murmur2_pt ( const void * key, int len, unsigned int seed )
         h *= m;
     }
 
-    const unsigned char * data2 = (const unsigned char*)data;
+    data2 = (const unsigned char*)data;
 
     switch(len & 7)
     {

@@ -1,4 +1,4 @@
-LIBRARY    libcurie.10.dll
+LIBRARY    libcurie.11.dll
 EXPORTS
     read_directory_rx                   @1
     read_directory_sx                   @2
@@ -140,3 +140,5 @@ EXPORTS
     hash_superfast                      @138
     tree_destroy_fnd                    @139
     node_get_value                      @140
+    make_rational                       @141
+    gcd                                 @142

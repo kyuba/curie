@@ -1,6 +1,6 @@
 1 VERSIONINFO
- FILEVERSION 10,0,0,1
- PRODUCTVERSION 10,0,0,1
+ FILEVERSION 11,0,0,1
+ PRODUCTVERSION 11,0,0,1
  FILEFLAGSMASK 0x17L
  FILEFLAGS 0x0L
  FILEOS 0x4L
@@ -12,12 +12,12 @@
         BLOCK "0"
         {
             VALUE "FileDescription", "Curie Library"
-            VALUE "FileVersion", "10, 0, 0, 1"
+            VALUE "FileVersion", "11, 0, 0, 1"
             VALUE "InternalName", "libcurie"
             VALUE "LegalCopyright", "Copyright (C) 2009"
-            VALUE "OriginalFilename", "libcurie.10.dll"
+            VALUE "OriginalFilename", "libcurie.11.dll"
             VALUE "ProductName", "Curie Library"
-            VALUE "ProductVersion", "10, 0, 0, 1"
+            VALUE "ProductVersion", "11, 0, 0, 1"
         }
     }
     BLOCK "VarFileInfo"
