@@ -103,7 +103,6 @@ sexpr p_latex                          = sx_false;
 sexpr p_pdflatex                       = sx_false;
 sexpr p_doxygen                        = sx_false;
 
-static sexpr gc_elements               = sx_end_of_list;
 static sexpr i_alternatives            = sx_end_of_list;
 
 struct sexpr_io *stdio;
@@ -844,26 +843,27 @@ static struct target *get_context()
     static struct memory_pool pool = MEMORY_POOL_INITIALISER (sizeof(struct target));
     struct target *context = get_pool_mem (&pool);
 
-    context->library        = sx_false;
-    context->programme      = sx_false;
-    context->hosted         = sx_false;
-    context->use_curie      = sx_false;
-    context->libraries      = sx_end_of_list;
-    context->deffile        = sx_false;
-    context->olibraries     = sx_end_of_list;
-    context->code           = sx_end_of_list;
-    context->test_cases     = sx_end_of_list;
-    context->test_reference = sx_end_of_list;
-    context->bootstrap      = sx_end_of_list;
-    context->headers        = sx_end_of_list;
-    context->use_objects    = sx_end_of_list;
-    context->data           = sx_end_of_list;
-    context->dname          = sx_false;
-    context->description    = sx_false;
-    context->dversion       = sx_false;
-    context->durl           = sx_false;
-    context->documentation  = sx_end_of_list;
-    context->have_cpp       = sx_false;
+    context->library          = sx_false;
+    context->programme        = sx_false;
+    context->hosted           = sx_false;
+    context->use_curie        = sx_false;
+    context->libraries        = sx_end_of_list;
+    context->deffile          = sx_false;
+    context->olibraries       = sx_end_of_list;
+    context->code             = sx_end_of_list;
+    context->test_cases       = sx_end_of_list;
+    context->test_reference   = sx_end_of_list;
+    context->bootstrap        = sx_end_of_list;
+    context->headers          = sx_end_of_list;
+    context->use_objects      = sx_end_of_list;
+    context->data             = sx_end_of_list;
+    context->dname            = sx_false;
+    context->description      = sx_false;
+    context->dversion         = sx_false;
+    context->durl             = sx_false;
+    context->documentation    = sx_end_of_list;
+    context->have_cpp         = sx_false;
+    context->allow_exceptions = sx_true;
 
     return context;
 }
@@ -877,7 +877,11 @@ static void process_definition (struct target *context, sexpr definition)
         sexpr sxcar = car (definition);
         sexpr sxcaar = car (sxcar);
 
-        if (truep(equalp(sxcar, sym_hosted)))
+        if (truep(equalp(sxcar, sym_no_exceptions)))
+        {
+            context->allow_exceptions = sx_false;
+        }
+        else if (truep(equalp(sxcar, sym_hosted)))
         {
             context->hosted = sx_true;
         }
@@ -1112,7 +1116,8 @@ static void process_definition (struct target *context, sexpr definition)
             context->code = ccur;
         }
 
-        if (truep (context->have_cpp))
+        if (truep (context->have_cpp) &&
+            (truep (context->allow_exceptions) || truep (context->hosted)))
         {
             context->libraries = cons (str_supcpp, context->libraries);
             if (i_os == os_darwin)
@@ -1122,22 +1127,21 @@ static void process_definition (struct target *context, sexpr definition)
         {
             context->libraries = cons (str_gcc, context->libraries);
         }
-    }
 
-    if (truep(context->hosted) && falsep (context->have_cpp) &&
-        (uname_toolchain == tc_gcc))
-    {
-        switch (i_os)
+        if (truep(context->hosted) && falsep (context->have_cpp))
         {
-            case os_windows:
-                context->libraries = cons (str_kernel32, context->libraries);
-                context->libraries = cons (str_mingw32, context->libraries);
-                context->libraries = cons (str_coldname, context->libraries);
-                context->libraries = cons (str_mingwex, context->libraries);
-                context->libraries = cons (str_msvcrt, context->libraries);
-                break;
-            default:
-                context->libraries = cons (str_lc, context->libraries);
+            switch (i_os)
+            {
+                case os_windows:
+                    context->libraries = cons (str_kernel32, context->libraries);
+                    context->libraries = cons (str_mingw32, context->libraries);
+                    context->libraries = cons (str_coldname, context->libraries);
+                    context->libraries = cons (str_mingwex, context->libraries);
+                    context->libraries = cons (str_msvcrt, context->libraries);
+                    break;
+                default:
+                    context->libraries = cons (str_lc, context->libraries);
+            }
         }
     }
 
@@ -1159,31 +1163,6 @@ static void process_definition (struct target *context, sexpr definition)
     all_targets = cons (context->name, all_targets);
 }
 
-static void tag_target_for_gc (struct target *context)
-{
-    gc_elements = cons (context->name,              gc_elements);
-    gc_elements = cons (context->library,           gc_elements);
-    gc_elements = cons (context->programme,         gc_elements);
-    gc_elements = cons (context->libraries,         gc_elements);
-    gc_elements = cons (context->deffile,           gc_elements);
-    gc_elements = cons (context->olibraries,        gc_elements);
-    gc_elements = cons (context->hosted,            gc_elements);
-    gc_elements = cons (context->use_curie,         gc_elements);
-    gc_elements = cons (context->code,              gc_elements);
-    gc_elements = cons (context->test_cases,        gc_elements);
-    gc_elements = cons (context->test_reference,    gc_elements);
-    gc_elements = cons (context->bootstrap,         gc_elements);
-    gc_elements = cons (context->headers,           gc_elements);
-    gc_elements = cons (context->use_objects,       gc_elements);
-    gc_elements = cons (context->data,              gc_elements);
-    gc_elements = cons (context->dname,             gc_elements);
-    gc_elements = cons (context->description,       gc_elements);
-    gc_elements = cons (context->dversion,          gc_elements);
-    gc_elements = cons (context->durl,              gc_elements);
-    gc_elements = cons (context->documentation,     gc_elements);
-    gc_elements = cons (context->have_cpp,          gc_elements);
-}
-
 static struct target *create_library (sexpr definition)
 {
     struct target *context = get_context();
@@ -1199,8 +1178,6 @@ static struct target *create_library (sexpr definition)
     }
     context->deffile = find_code_def (context->name);
 
-    tag_target_for_gc (context);
-
     return context;
 }
 
@@ -1213,8 +1190,6 @@ static struct target *create_programme (sexpr definition)
 
     process_definition (context, cdr(definition));
 
-    tag_target_for_gc (context);
-
     return context;
 }
 
@@ -1225,8 +1200,6 @@ static struct target *create_documentation (sexpr definition)
     context->name = car(definition);
 
     process_definition (context, cdr(definition));
-
-    tag_target_for_gc (context);
 
     return context;
 }
@@ -1682,7 +1655,6 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
         case 0:  fprintf (stderr, "failed to execute binary image\n");
                  exit (23);
         default: alive_processes++;
-                 gc_elements = cons (sx, gc_elements);
                  multiplex_add_process (context, f, (void *)sx);
                  afree (exsize, ex);
                  return;
@@ -1843,7 +1815,6 @@ int main (int argc, char **argv, char **environ)
     struct stat st;
 
     initialise_stack ();
-    gc_add_root (&gc_elements);
     terminate_on_allocation_errors();
 
 #if defined(_WIN32)
@@ -2142,21 +2113,6 @@ int main (int argc, char **argv, char **environ)
         in_dynamic_libraries = sx_false;
     }
 
-    gc_elements = cons (p_c_compiler,        gc_elements);
-    gc_elements = cons (p_cpp_compiler,      gc_elements);
-    gc_elements = cons (p_resource_compiler, gc_elements);
-    gc_elements = cons (p_assembler,         gc_elements);
-    gc_elements = cons (p_linker,            gc_elements);
-    gc_elements = cons (p_archiver,          gc_elements);
-    gc_elements = cons (p_diff,              gc_elements);
-    gc_elements = cons (p_latex,             gc_elements);
-    gc_elements = cons (p_pdflatex,          gc_elements);
-    gc_elements = cons (p_doxygen,           gc_elements);
-    gc_elements = cons (i_destdir,           gc_elements);
-    gc_elements = cons (i_pname,             gc_elements);
-    gc_elements = cons (i_destlibdir,        gc_elements);
-    gc_elements = cons (buildtargets,        gc_elements);
-
     multiplex_io();
 /*    multiplex_all_processes();*/
     multiplex_signal_primary();
@@ -2198,8 +2154,6 @@ int main (int argc, char **argv, char **environ)
         if (consp(r)) {
             sexpr sxcar = car (r);
 
-            gc_elements = cons (r, gc_elements);
-
             if (truep(equalp(sxcar, sym_library)))
             {
                 t = create_library (cdr (r));
@@ -2227,18 +2181,11 @@ int main (int argc, char **argv, char **environ)
         buildtargets = all_targets;
     }
 
-    gc_elements = cons (buildtargets, gc_elements);
-
-//    gc_invoke();
-
     sx_write (stdio, cons (sym_targets, buildtargets));
 
     crosslink_objects ();
-//    gc_invoke();
     build (buildtargets);
-//    gc_invoke();
     ice_link (buildtargets);
-//    gc_invoke();
     post_process (buildtargets);
 
     if (truep (do_build_documentation))

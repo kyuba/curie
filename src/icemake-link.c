@@ -516,6 +516,27 @@ static void write_curie_sx (sexpr name, struct target *t)
     }
 }
 
+static void link_test_cases_gcc (sexpr name, sexpr code, struct target *t)
+{
+    if (truep(do_tests))
+    {
+        sexpr s = t->test_cases;
+
+        while (consp (s))
+        {
+            sexpr s1 = car(s);
+            sexpr s2 = cdr(cdr(s1));
+            sexpr s3 = car(s2);
+            sexpr s4 = car(cdr(s2));
+            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
+
+            link_programme_gcc_filename (s4, name, s5, t);
+
+            s = cdr (s);
+        }
+    }
+}
+
 static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE];
@@ -541,24 +562,6 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
                                           cons (make_string (buffer),
                                                 sx))))),
                 workstack);
-    }
-
-    if (truep(do_tests))
-    {
-        sexpr s = t->test_cases;
-
-        while (consp (s))
-        {
-            sexpr s1 = car(s);
-            sexpr s2 = cdr(cdr(s1));
-            sexpr s3 = car(s2);
-            sexpr s4 = car(cdr(s2));
-            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
-
-            link_programme_gcc_filename (s4, name, s5, t);
-
-            s = cdr (s);
-        }
     }
 }
 
@@ -674,6 +677,27 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
     }
 }
 
+static void link_test_cases_borland (sexpr name, sexpr code, struct target *t)
+{
+    if (truep(do_tests))
+    {
+        sexpr s = t->test_cases;
+
+        while (consp (s))
+        {
+            sexpr s1 = car(s);
+            sexpr s2 = cdr(cdr(s1));
+            sexpr s3 = car(s2);
+            sexpr s4 = car(cdr(s2));
+            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
+
+            link_programme_borland_filename (s4, name, s5, t);
+
+            s = cdr (s);
+        }
+    }
+}
+
 static void link_library_borland (sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE];
@@ -702,24 +726,6 @@ static void link_library_borland (sexpr name, sexpr code, struct target *t)
         workstack
                 = cons (cons (p_archiver, cons (make_string (buffer), sxx)),
                         workstack);
-    }
-
-    if (truep(do_tests))
-    {
-        sexpr s = t->test_cases;
-
-        while (consp (s))
-        {
-            sexpr s1 = car(s);
-            sexpr s2 = cdr(cdr(s1));
-            sexpr s3 = car(s2);
-            sexpr s4 = car(cdr(s2));
-            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
-
-            link_programme_borland_filename (s4, name, s5, t);
-
-            s = cdr (s);
-        }
     }
 }
 
@@ -778,6 +784,27 @@ static void link_library_borland_dynamic (sexpr name, sexpr code, struct target 
     }
 }
 
+static void link_test_cases_msvc (sexpr name, sexpr code, struct target *t)
+{
+    if (truep(do_tests))
+    {
+        sexpr s = t->test_cases;
+
+        while (consp (s))
+        {
+            sexpr s1 = car(s);
+            sexpr s2 = cdr(cdr(s1));
+            sexpr s3 = car(s2);
+            sexpr s4 = car(cdr(s2));
+            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
+
+            link_programme_msvc_filename (s4, name, s5, t);
+
+            s = cdr (s);
+        }
+    }
+}
+
 static void link_library_msvc (sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE], lbuffer[BUFFERSIZE];
@@ -800,24 +827,6 @@ static void link_library_msvc (sexpr name, sexpr code, struct target *t)
                               cons (str_snologo,
                                 cons (make_string (buffer), sx))),
                         workstack);
-    }
-
-    if (truep(do_tests))
-    {
-        sexpr s = t->test_cases;
-
-        while (consp (s))
-        {
-            sexpr s1 = car(s);
-            sexpr s2 = cdr(cdr(s1));
-            sexpr s3 = car(s2);
-            sexpr s4 = car(cdr(s2));
-            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
-
-            link_programme_msvc_filename (s4, name, s5, t);
-
-            s = cdr (s);
-        }
     }
 }
 
@@ -983,6 +992,16 @@ static void do_link_target(struct target *t)
                 link_programme_msvc_filename
                         (make_string (buffer), t->name, t->code, t); break;
         }
+    }
+
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            link_test_cases_gcc (t->name, t->code, t); break;
+        case tc_borland:
+            link_test_cases_borland (t->name, t->code, t); break;
+        case tc_msvc:
+            link_test_cases_msvc (t->name, t->code, t); break;
     }
 }
 

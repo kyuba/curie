@@ -26,26 +26,12 @@
  * THE SOFTWARE.
 */
 
-#include <curie/main.h>
 #include <curie++/main.h>
 
-#pragma weak cmain
-#pragma weak main
-#pragma weak curie_argv
-#pragma weak curie_environment
+/* this test case is more of a stub, its purpose is merely to point out how much
+ * smaller c++ binaries can get if you omit exceptions. at least in gcc. go
+ * build all the test cases and check the binary size yourself. */
 
-char **curie_argv = (char **)0;
-char **curie_environment = (char **)0;
-
-int main (int argc, char **argv, char **env)
-{
-    curie_argv = argv;
-    curie_environment = env;
-
-    return cxxmain ();
-}
-
-int cmain ()
-{
-    return cxxmain ();
+int cxxmain() {
+    return 0;
 }

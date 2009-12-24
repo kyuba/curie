@@ -153,6 +153,8 @@ struct target {
     sexpr documentation;
     /*!\brief Boolean: Using any C++ Files? */
     sexpr have_cpp;
+    /*!\brief Boolean: Allow Exceptions in C++? */
+    sexpr allow_exceptions;
 };
 
 /*! \brief Effective Operating System Name
@@ -446,6 +448,8 @@ define_symbol (sym_post_process,        "post-process");
 define_symbol (sym_execute,             "execute");
 /*! \brief Predefined Symbol */
 define_symbol (sym_targets,             "targets");
+/*! \brief Predefined Symbol */
+define_symbol (sym_no_exceptions,       "no-exceptions");
 
 /*! \brief Predefined String */
 define_string (str_bootstrap,           "bootstrap");

@@ -212,8 +212,10 @@ static sexpr prepend_cflags_gcc (sexpr x)
     return prepend_ccflags_gcc(x);
 }
 
-static sexpr prepend_cxxflags_gcc (sexpr x)
+static sexpr prepend_cxxflags_gcc (struct target *t, sexpr x)
 {
+    define_string (str_dfno_exceptions, "-fno-exceptions");
+    define_string (str_dfno_rtti,       "-fno-rtti");
     char *f = getenv ("CXXFLAGS");
 
     if (f != (char *)0)
@@ -247,6 +249,11 @@ static sexpr prepend_cxxflags_gcc (sexpr x)
         }
 
         while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
+    }
+
+    if (falsep (t->allow_exceptions))
+    {
+        x = cons (str_dfno_rtti, cons (str_dfno_exceptions, x));
     }
 
     return prepend_ccflags_gcc(x);
@@ -527,12 +534,13 @@ static void build_object_gcc_c_combine (sexpr sources, const char *target)
     workstack = cons (item, workstack);
 }
 
-static void build_object_gcc_cpp (const char *source, const char *target)
+static void build_object_gcc_cpp
+    (const char *source, const char *target, struct target *t)
 {
     workstack
         = cons (cons (p_cpp_compiler,
                   cons (str_dgcc,
-                    prepend_cxxflags_gcc (
+                    prepend_cxxflags_gcc (t,
                     prepend_includes_gcc (
                       cons (str_dc,
                         cons (make_string (source),
@@ -608,13 +616,14 @@ static void build_object_gcc_c_pic_combine (sexpr sources, const char *target)
     workstack = cons (item, workstack);
 }
 
-static void build_object_gcc_cpp_pic (const char *source, const char *target)
+static void build_object_gcc_cpp_pic
+    (const char *source, const char *target, struct target *t)
 {
     workstack
         = cons (cons (p_cpp_compiler,
                   cons (str_dfpic,
                   cons (str_dgcc,
-                    prepend_cxxflags_gcc (
+                    prepend_cxxflags_gcc (t,
                     prepend_includes_gcc (
                       cons (str_dc,
                         cons (make_string (source),
@@ -623,7 +632,8 @@ static void build_object_gcc_cpp_pic (const char *source, const char *target)
                 workstack);
 }
 
-static void build_object_gcc (sexpr type, sexpr source, sexpr target)
+static void build_object_gcc
+    (sexpr type, sexpr source, sexpr target, struct target *t)
 {
     if (truep(equalp(type, sym_link))) return;
 
@@ -652,7 +662,7 @@ static void build_object_gcc (sexpr type, sexpr source, sexpr target)
     }
     else if (truep(equalp(type, sym_cpp)))
     {
-        build_object_gcc_cpp (sx_string(source), sx_string(target));
+        build_object_gcc_cpp (sx_string(source), sx_string(target), t);
     }
     else if (truep(equalp(type, sym_assembly_pic)))
     {
@@ -675,7 +685,7 @@ static void build_object_gcc (sexpr type, sexpr source, sexpr target)
     }
     else if (truep(equalp(type, sym_cpp_pic)))
     {
-        build_object_gcc_cpp_pic (sx_string(source), sx_string(target));
+        build_object_gcc_cpp_pic (sx_string(source), sx_string(target), t);
     }
     else
     {
@@ -803,7 +813,7 @@ static void build_object_msvc (sexpr type, sexpr source, sexpr target)
     }
 }
 
-static void build_object(sexpr desc)
+static void build_object(sexpr desc, struct target *t)
 {
     sexpr type = car(desc);
     sexpr source = car(cdr(desc));
@@ -817,11 +827,11 @@ static void build_object(sexpr desc)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            build_object_gcc     (type, source, target); break;
+            build_object_gcc     (type, source, target, t); break;
         case tc_borland:
-            build_object_borland (type, source, target); break;
+            build_object_borland (type, source, target);    break;
         case tc_msvc:
-            build_object_msvc    (type, source, target); break;
+            build_object_msvc    (type, source, target);    break;
     }
 }
 
@@ -831,7 +841,7 @@ static void do_build_target(struct target *t)
 
     while (consp (c))
     {
-        build_object(car(c));
+        build_object(car(c), t);
 
         c = cdr (c);
     }
@@ -840,7 +850,7 @@ static void do_build_target(struct target *t)
 
     while (consp (c))
     {
-        build_object(car(c));
+        build_object(car(c), t);
 
         c = cdr (c);
     }
@@ -851,7 +861,7 @@ static void do_build_target(struct target *t)
 
         while (consp (c))
         {
-            build_object(car(c));
+            build_object(car(c), t);
 
             c = cdr (c);
         }

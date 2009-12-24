@@ -1,3 +1,7 @@
+;;
+; vim:ft=lisp
+;;
+
 (library "curie" libcurie
   (name "Curie")
   (description "minimalistic, sexpr-based, non-posix(!), non-ansi(!) libc")
@@ -63,6 +67,16 @@
   (test-cases
         "objects" "exceptions"))
 
+(library "curie++-se" libcurie no-exceptions
+  (name "Curie++ SE")
+  (description "C++ bindings for libcurie (Sans Exceptions)")
+  (version "11")
+  (url "http://kyuba.org")
+
+  (code "memory++" "io++" "sexpr++" "libc++-compat")
+
+  (test-cases
+        "objects"))
 
 (library "curie-math" libcurie
   (name "Curie-math")
@@ -101,3 +115,11 @@
   (version "2")
 
   (code "ice"))
+
+(documentation "examples" libcurie no-exceptions
+  (description "Curie code examples")
+  (version "1")
+  (libraries "curie++-se")
+  
+  (test-cases "cpp-without-exceptions"))
+
