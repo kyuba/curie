@@ -86,7 +86,8 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
             }
 
         }
-        else if (truep(co_freestanding) && falsep(t->have_cpp))
+        else if (truep(co_freestanding) &&
+                 (falsep(t->have_cpp) || falsep (t->allow_exceptions)))
         {
             if (truep(i_static))
                 sx = cons (str_static, sx);

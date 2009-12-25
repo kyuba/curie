@@ -1187,7 +1187,8 @@ static void process_definition (struct target *context, sexpr definition)
 
     if (truep(context->use_curie))
     {
-        if (falsep (context->hosted) && falsep (context->have_cpp))
+        if (falsep (context->hosted) &&
+            (falsep (context->have_cpp) || falsep(context->allow_exceptions)))
         {
             context->libraries = cons (str_curie_bootstrap, context->libraries);
         }
