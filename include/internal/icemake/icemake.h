@@ -229,9 +229,6 @@ extern sexpr i_optimise_linking;
 /*! \brief Boolean: Combine C Code Files (for Optimisations) */
 extern sexpr i_combine;
 
-/*! \brief Boolean: Use Debug Code (Files in a debug/ Directory) */
-extern sexpr i_debug;
-
 /*! \brief Boolean: Create Shared Objects for Libraries */
 extern sexpr i_dynamic_libraries;
 

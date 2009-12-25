@@ -74,7 +74,6 @@ sexpr co_freestanding                  = sx_false;
 sexpr i_optimise_linking               = sx_false;
 sexpr i_combine                        = sx_false;
 sexpr i_static                         = sx_true;
-sexpr i_debug                          = sx_false;
 sexpr i_destdir                        = sx_false;
 sexpr i_pname                          = sx_false;
 sexpr i_destlibdir                     = sx_false;
@@ -296,11 +295,6 @@ static sexpr find_in_permutations (sexpr p, sexpr file)
 {
     sexpr r;
 
-    if (truep(i_debug) && ((r = find_in_permutations_os (sx_string_dir_prefix_c ("debug", p), file)), stringp(r)))
-    {
-        return r;
-    }
-    else
     if ((r = find_in_permutations_os (sx_string_dir_prefix_c ("internal", p), file)), stringp(r))
     {
         return r;
@@ -1268,7 +1262,6 @@ static void print_help(char *binaryname)
         " -R           Enforce a dynamic link.\n"
         " -j <num>     Spawn <num> processes simultaneously.\n"
         " -a <1> <2>   Use implementation <2> for code part <1>.\n"
-        " -D           Use debug code, if available.\n"
         " -x           Build documentation (if possible).\n"
         "\n"
         "The [targets] specify a list of things to build, according to the\n"
@@ -1918,9 +1911,6 @@ int main (int argc, char **argv, char **environ)
                         break;
                     case 'R':
                         i_static = sx_false;
-                        break;
-                    case 'D':
-                        i_debug = sx_true;
                         break;
                     case 'x':
                         do_build_documentation = sx_true;
