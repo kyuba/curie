@@ -566,6 +566,19 @@ define_string (str_nostartfiles,        "-nostartfiles");
 /*! \brief Predefined String */
 define_string (str_doxyfile,            "doxyfile");
 
+/*! \brief Prefix List with Elements from an Environment Variable
+ *  \param[in] x   The original list.
+ *  \param[in] var The name of the environment variable.
+ *  \return x with elements of var prefixed.
+ *
+ *  This is used (e.g.) when constructing compiler command lines to add the
+ *  contents of CFLAGS (and other variables) to the command line. The
+ *  environment variable is looked up in the current process environment and
+ *  its contents are split by spaces to delimit individual options to the
+ *  compiler.
+ */
+sexpr prepend_flags_from_environment (sexpr x, const char *var);
+
 /*! \brief Prefix with a C String
  *  \param[in] f The C string to add a prefix to.
  *  \param[in] p The prefix to add.

@@ -169,40 +169,7 @@ static sexpr prepend_cflags_gcc (sexpr x)
 {
     define_string (str_ffreestanding, "-ffreestanding");
 
-    char *f = getenv ("CFLAGS");
-
-    if (f != (char *)0)
-    {
-        char buffer[BUFFERSIZE];
-        int j = 0, i;
-        sexpr t = sx_end_of_list;
-
-        for (i = 0; f[i] != 0; i++)
-        {
-            if (f[i] == ' ')
-            {
-                buffer[j] = 0;
-
-                t = cons (make_string (buffer), t);
-
-                j = 0;
-            }
-            else
-            {
-                buffer[j] = f[i];
-                j++;
-            }
-        }
-
-        if (j != 0)
-        {
-            buffer[j] = 0;
-
-            t = cons (make_string (buffer), t);
-        }
-
-        while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
-    }
+    x = prepend_flags_from_environment (x, "CFLAGS");
 
     if (truep (co_freestanding))
     {
@@ -216,40 +183,8 @@ static sexpr prepend_cxxflags_gcc (struct target *t, sexpr x)
 {
     define_string (str_dfno_exceptions, "-fno-exceptions");
     define_string (str_dfno_rtti,       "-fno-rtti");
-    char *f = getenv ("CXXFLAGS");
 
-    if (f != (char *)0)
-    {
-        char buffer[BUFFERSIZE];
-        int j = 0, i;
-        sexpr t = sx_end_of_list;
-
-        for (i = 0; f[i] != 0; i++)
-        {
-            if (f[i] == ' ')
-            {
-                buffer[j] = 0;
-
-                t = cons (make_string (buffer), t);
-
-                j = 0;
-            }
-            else
-            {
-                buffer[j] = f[i];
-                j++;
-            }
-        }
-
-        if (j != 0)
-        {
-            buffer[j] = 0;
-
-            t = cons (make_string (buffer), t);
-        }
-
-        while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
-    }
+    x = prepend_flags_from_environment (x, "CXXFLAGS");
 
     if (falsep (t->allow_exceptions))
     {
@@ -264,89 +199,14 @@ static sexpr prepend_includes_borland (sexpr x)
     return prepend_includes_common (x);
 }
 
-static sexpr prepend_ccflags_borland (sexpr x)
-{
-    return x;
-}
-
 static sexpr prepend_cflags_borland (sexpr x)
 {
-    char *f = getenv ("CFLAGS");
-
-    if (f != (char *)0)
-    {
-        char buffer[BUFFERSIZE];
-        int j = 0, i;
-        sexpr t = sx_end_of_list;
-
-        for (i = 0; f[i] != 0; i++)
-        {
-            if (f[i] == ' ')
-            {
-                buffer[j] = 0;
-
-                t = cons (make_string (buffer), t);
-
-                j = 0;
-            }
-            else
-            {
-                buffer[j] = f[i];
-                j++;
-            }
-        }
-
-        if (j != 0)
-        {
-            buffer[j] = 0;
-
-            t = cons (make_string (buffer), t);
-        }
-
-        while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
-    }
-
-    return prepend_ccflags_borland(x);
+    return prepend_flags_from_environment (x, "CFLAGS");
 }
 
 static sexpr prepend_cxxflags_borland (sexpr x)
 {
-    char *f = getenv ("CXXFLAGS");
-
-    if (f != (char *)0)
-    {
-        char buffer[BUFFERSIZE];
-        int j = 0, i;
-        sexpr t = sx_end_of_list;
-
-        for (i = 0; f[i] != 0; i++)
-        {
-            if (f[i] == ' ')
-            {
-                buffer[j] = 0;
-
-                t = cons (make_string (buffer), t);
-
-                j = 0;
-            }
-            else
-            {
-                buffer[j] = f[i];
-                j++;
-            }
-        }
-
-        if (j != 0)
-        {
-            buffer[j] = 0;
-
-            t = cons (make_string (buffer), t);
-        }
-
-        while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
-    }
-
-    return prepend_ccflags_borland(x);
+    return prepend_flags_from_environment (x, "CXXFLAGS");
 }
 
 static sexpr prepend_includes_msvc (sexpr x)
@@ -387,89 +247,14 @@ static sexpr prepend_includes_msvc (sexpr x)
     return x;
 }
 
-static sexpr prepend_ccflags_msvc (sexpr x)
-{
-    return x;
-}
-
 static sexpr prepend_cflags_msvc (sexpr x)
 {
-    char *f = getenv ("CFLAGS");
-
-    if (f != (char *)0)
-    {
-        char buffer[BUFFERSIZE];
-        int j = 0, i;
-        sexpr t = sx_end_of_list;
-
-        for (i = 0; f[i] != 0; i++)
-        {
-            if (f[i] == ' ')
-            {
-                buffer[j] = 0;
-
-                t = cons (make_string (buffer), t);
-
-                j = 0;
-            }
-            else
-            {
-                buffer[j] = f[i];
-                j++;
-            }
-        }
-
-        if (j != 0)
-        {
-            buffer[j] = 0;
-
-            t = cons (make_string (buffer), t);
-        }
-
-        while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
-    }
-
-    return prepend_ccflags_msvc(x);
+    return prepend_flags_from_environment (x, "CFLAGS");
 }
 
 static sexpr prepend_cxxflags_msvc (sexpr x)
 {
-    char *f = getenv ("CXXFLAGS");
-
-    if (f != (char *)0)
-    {
-        char buffer[BUFFERSIZE];
-        int j = 0, i;
-        sexpr t = sx_end_of_list;
-
-        for (i = 0; f[i] != 0; i++)
-        {
-            if (f[i] == ' ')
-            {
-                buffer[j] = 0;
-
-                t = cons (make_string (buffer), t);
-
-                j = 0;
-            }
-            else
-            {
-                buffer[j] = f[i];
-                j++;
-            }
-        }
-
-        if (j != 0)
-        {
-            buffer[j] = 0;
-
-            t = cons (make_string (buffer), t);
-        }
-
-        while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
-    }
-
-    return prepend_ccflags_msvc(x);
+    return prepend_flags_from_environment (x, "CXXFLAGS");
 }
 
 static void build_object_gcc_assembly (const char *source, const char *target)

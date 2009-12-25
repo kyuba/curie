@@ -107,6 +107,46 @@ static sexpr i_alternatives            = sx_end_of_list;
 
 struct sexpr_io *stdio;
 
+sexpr prepend_flags_from_environment (sexpr x, const char *var)
+{
+    char *f = getenv (var);
+
+    if (f != (char *)0)
+    {
+        char buffer[BUFFERSIZE];
+        int j = 0, i;
+        sexpr t = sx_end_of_list;
+
+        for (i = 0; f[i] != 0; i++)
+        {
+            if (f[i] == ' ')
+            {
+                buffer[j] = 0;
+
+                t = cons (make_string (buffer), t);
+
+                j = 0;
+            }
+            else
+            {
+                buffer[j] = f[i];
+                j++;
+            }
+        }
+
+        if (j != 0)
+        {
+            buffer[j] = 0;
+
+            t = cons (make_string (buffer), t);
+        }
+
+        while (consp (t)) { x = cons (car(t), x); t = cdr (t); }
+    }
+
+    return x;
+}
+
 void mangle_path_borland (char *b)
 {
     int i;

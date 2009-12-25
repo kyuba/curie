@@ -81,46 +81,6 @@ static void write_curie_linker_flags_gcc (struct io *o, struct target *t)
     }
 }
 
-static sexpr get_special_linker_options_common (sexpr sx)
-{
-    char *f = getenv ("LDFLAGS");
-
-    if (f != (char *)0)
-    {
-        char buffer[BUFFERSIZE];
-        int j = 0, i;
-        sexpr t = sx_end_of_list;
-
-        for (i = 0; f[i] != 0; i++)
-        {
-            if (f[i] == ' ')
-            {
-                buffer[j] = 0;
-
-                t = cons (make_string (buffer), t);
-
-                j = 0;
-            }
-            else
-            {
-                buffer[j] = f[i];
-                j++;
-            }
-        }
-
-        if (j != 0)
-        {
-            buffer[j] = 0;
-
-            t = cons (make_string (buffer), t);
-        }
-
-        while (consp (t)) { sx = cons (car(t), sx); t = cdr (t); }
-    }
-
-    return sx;
-}
-
 static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
 {
     define_string (str_u,                "-u");
@@ -257,7 +217,7 @@ static sexpr get_special_linker_options (sexpr sx)
         sx = cons (str_multiply_defined, cons (str_warning, sx));
     }
 
-    return get_special_linker_options_common (sx);
+    return prepend_flags_from_environment (sx, "LDFLAGS");
 }
 
 static sexpr collect_code
