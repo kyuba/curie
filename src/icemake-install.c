@@ -625,7 +625,7 @@ static void install_headers_msvc (sexpr name, struct target *t)
     install_headers_common (name, t);
 }
 
-static void install_support_files_common (sexpr name, struct target *t)
+static void install_support_files (sexpr name, struct target *t)
 {
     sexpr cur = t->data, dname;
 
@@ -672,65 +672,6 @@ static void install_support_files_common (sexpr name, struct target *t)
 
         cur = cdr (cur);
     }
-}
-
-static void install_support_files_gcc (sexpr name, struct target *t)
-{
-    install_support_files_common (name, t);
-
-    if (truep(t->library))
-    {
-        char buffer[BUFFERSIZE];
-        sexpr source = sx_false, target = sx_false;
-
-        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.pc", archprefix, sx_string(t->name), sx_string(t->name));
-
-        source = make_string (buffer);
-
-        switch (i_fsl)
-        {
-            case fs_fhs:
-            case fs_fhs_binlib:
-                snprintf (buffer, BUFFERSIZE, "%s/%s/pkgconfig/lib%s.pc", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(t->name));
-                target = make_string (buffer);
-                break;
-            case fs_afsl:
-                snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s.pc", sx_string(i_destdir), uname_os, uname_arch, sx_string(t->name));
-                target = make_string (buffer);
-                break;
-        }
-
-        workstack = cons (cons (source, target), workstack);
-
-        snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s-hosted.pc", archprefix, sx_string(t->name), sx_string(t->name));
-
-        source = make_string (buffer);
-
-        switch (i_fsl)
-        {
-            case fs_fhs:
-            case fs_fhs_binlib:
-                snprintf (buffer, BUFFERSIZE, "%s/%s/pkgconfig/lib%s-hosted.pc", sx_string(i_destdir), sx_string (i_destlibdir), sx_string(t->name));
-                target = make_string (buffer);
-                break;
-            case fs_afsl:
-                snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/lib%s-hosted.pc", sx_string(i_destdir), uname_os, uname_arch, sx_string(t->name));
-                target = make_string (buffer);
-                break;
-        }
-
-        workstack = cons (cons (source, target), workstack);
-    }
-}
-
-static void install_support_files_borland (sexpr name, struct target *t)
-{
-    install_support_files_common (name, t);
-}
-
-static void install_support_files_msvc    (sexpr name, struct target *t)
-{
-    install_support_files_common (name, t);
 }
 
 static void install_library (sexpr name, struct target *t)
@@ -813,19 +754,6 @@ static void install_documentation (sexpr name, struct target *t)
             install_documentation_with_suffix (name, t, c4, "html");
         }
         c = cdr (c);
-    }
-}
-
-static void install_support_files (sexpr name, struct target *t)
-{
-    switch (uname_toolchain)
-    {
-        case tc_gcc:
-            install_support_files_gcc     (name, t); break;
-        case tc_borland:
-            install_support_files_borland (name, t); break;
-        case tc_msvc:
-            install_support_files_msvc    (name, t); break;
     }
 }
 

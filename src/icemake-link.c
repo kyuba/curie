@@ -46,41 +46,6 @@
 #include <unistd.h>
 #endif
 
-static void write_curie_linker_flags_gcc (struct io *o, struct target *t)
-{
-    if (truep(t->use_curie))
-    {
-        if (truep(t->hosted))
-        {
-            switch (i_os)
-            {
-                case os_darwin:
-                    break;
-                default:
-                    io_collect (o, " -nodefaultlibs -lc", 19);
-                    break;
-            }
-        }
-        else
-        {
-            if (truep(co_freestanding) && falsep(t->have_cpp))
-            {
-                io_collect (o, " -nodefaultlibs -nostartfiles -nostdlib", 47);
-
-                switch (i_os)
-                {
-                    case os_darwin:
-                        io_collect (o, " -e _start -lcurie-bootstrap", 28);
-                        break;
-                    default:
-                        io_collect (o, " -u _start -lcurie-bootstrap", 28);
-                        break;
-                }
-            }
-        }
-    }
-}
-
 static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
 {
     define_string (str_u,                "-u");
@@ -402,55 +367,6 @@ static void link_programme_msvc_filename (sexpr ofile, sexpr name, sexpr code, s
     }
 }
 
-static void write_pc_file_gcc (sexpr name, struct target *t)
-{
-    char buffer[BUFFERSIZE];
-    sexpr cur;
-    struct io *pcfile, *pcfile_hosted;
-
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.pc", archprefix, sx_string(t->name), sx_string(name));
-
-    multiplex_add_io_no_callback (pcfile = io_open_create (buffer, 0644));
-
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s-hosted.pc", archprefix, sx_string(t->name), sx_string(name));
-
-    multiplex_add_io_no_callback (pcfile_hosted = io_open_create (buffer, 0644));
-
-    snprintf (buffer, BUFFERSIZE, "Name: %s\nDescription: %s\nVersion: %s\nURL: %s\nRequires:", sx_string (t->dname), sx_string (t->description), sx_string (t->dversion), sx_string (t->durl));
-
-    io_collect (pcfile, buffer, strlen(buffer));
-    io_collect (pcfile_hosted, buffer, strlen(buffer));
-
-    cur = t->olibraries;
-    while (consp (cur))
-    {
-        sexpr ca = car (cur);
-
-        snprintf (buffer, BUFFERSIZE, " lib%s", sx_string (ca));
-        io_collect (pcfile, buffer, strlen(buffer));
-
-        snprintf (buffer, BUFFERSIZE, " lib%s-hosted", sx_string (ca));
-        io_collect (pcfile_hosted, buffer, strlen(buffer));
-
-        cur = cdr (cur);
-    }
-
-    snprintf (buffer, BUFFERSIZE, "\nConflicts:\nLibs:");
-
-    io_collect (pcfile, buffer, strlen(buffer));
-    if (truep(equalp(name, str_curie)))
-    {
-        write_curie_linker_flags_gcc (pcfile, t);
-    }
-
-    io_collect (pcfile_hosted, buffer, strlen(buffer));
-
-    snprintf (buffer, BUFFERSIZE, " -l%s\nCflags: -ffreestanding\n", sx_string(t->name));
-
-    io_collect (pcfile, buffer, strlen(buffer));
-    io_collect (pcfile_hosted, buffer, strlen(buffer));
-}
-
 static void write_curie_sx (sexpr name, struct target *t)
 {
     char buffer[BUFFERSIZE];
@@ -476,7 +392,9 @@ static void write_curie_sx (sexpr name, struct target *t)
     }
 }
 
-static void link_test_cases_gcc (sexpr name, sexpr code, struct target *t)
+static void link_test_cases
+    (sexpr name, sexpr code, struct target *t,
+     void (*f) (sexpr, sexpr, sexpr, struct target *))
 {
     if (truep(do_tests))
     {
@@ -490,7 +408,7 @@ static void link_test_cases_gcc (sexpr name, sexpr code, struct target *t)
             sexpr s4 = car(cdr(s2));
             sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
 
-            link_programme_gcc_filename (s4, name, s5, t);
+            f (s4, name, s5, t);
 
             s = cdr (s);
         }
@@ -504,7 +422,6 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
     char havelib;
     sexpr sx = sx_end_of_list;
 
-    write_pc_file_gcc (name, t);
     write_curie_sx (name, t);
 
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/lib%s.a", archprefix, sx_string(t->name), sx_string(name));
@@ -532,7 +449,6 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
     char havelib;
     sexpr sx = sx_end_of_list, cur;
 
-    write_pc_file_gcc (name, t);
     write_curie_sx (name, t);
 
     if (i_os == os_windows)
@@ -637,27 +553,6 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
     }
 }
 
-static void link_test_cases_borland (sexpr name, sexpr code, struct target *t)
-{
-    if (truep(do_tests))
-    {
-        sexpr s = t->test_cases;
-
-        while (consp (s))
-        {
-            sexpr s1 = car(s);
-            sexpr s2 = cdr(cdr(s1));
-            sexpr s3 = car(s2);
-            sexpr s4 = car(cdr(s2));
-            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
-
-            link_programme_borland_filename (s4, name, s5, t);
-
-            s = cdr (s);
-        }
-    }
-}
-
 static void link_library_borland (sexpr name, sexpr code, struct target *t)
 {
     char buffer[BUFFERSIZE];
@@ -741,27 +636,6 @@ static void link_library_borland_dynamic (sexpr name, sexpr code, struct target 
                                     get_special_linker_options (
                                         cons (str_do, cons (make_string (lbuffer), sx)))))),
                         workstack);
-    }
-}
-
-static void link_test_cases_msvc (sexpr name, sexpr code, struct target *t)
-{
-    if (truep(do_tests))
-    {
-        sexpr s = t->test_cases;
-
-        while (consp (s))
-        {
-            sexpr s1 = car(s);
-            sexpr s2 = cdr(cdr(s1));
-            sexpr s3 = car(s2);
-            sexpr s4 = car(cdr(s2));
-            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
-
-            link_programme_msvc_filename (s4, name, s5, t);
-
-            s = cdr (s);
-        }
     }
 }
 
@@ -957,11 +831,14 @@ static void do_link_target(struct target *t)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            link_test_cases_gcc (t->name, t->code, t); break;
+            link_test_cases (t->name, t->code, t,
+                             link_programme_gcc_filename);     break;
         case tc_borland:
-            link_test_cases_borland (t->name, t->code, t); break;
+            link_test_cases (t->name, t->code, t,
+                             link_programme_borland_filename); break;
         case tc_msvc:
-            link_test_cases_msvc (t->name, t->code, t); break;
+            link_test_cases (t->name, t->code, t,
+                             link_programme_msvc_filename);    break;
     }
 }
 
