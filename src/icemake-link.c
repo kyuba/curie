@@ -748,6 +748,19 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
 
 static void do_link_target(struct target *t)
 {
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            link_test_cases (t->name, t->code, t,
+                             link_programme_gcc_filename);     break;
+        case tc_borland:
+            link_test_cases (t->name, t->code, t,
+                             link_programme_borland_filename); break;
+        case tc_msvc:
+            link_test_cases (t->name, t->code, t,
+                             link_programme_msvc_filename);    break;
+    }
+
     if (truep(t->library))
     {
         if ((uname_toolchain != tc_msvc) || falsep(i_dynamic_libraries))
@@ -827,19 +840,6 @@ static void do_link_target(struct target *t)
                 link_programme_msvc_filename
                         (make_string (buffer), t->name, t->code, t); break;
         }
-    }
-
-    switch (uname_toolchain)
-    {
-        case tc_gcc:
-            link_test_cases (t->name, t->code, t,
-                             link_programme_gcc_filename);     break;
-        case tc_borland:
-            link_test_cases (t->name, t->code, t,
-                             link_programme_borland_filename); break;
-        case tc_msvc:
-            link_test_cases (t->name, t->code, t,
-                             link_programme_msvc_filename);    break;
     }
 }
 
