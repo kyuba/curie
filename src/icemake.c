@@ -78,6 +78,7 @@ sexpr i_destdir                        = sx_false;
 sexpr i_pname                          = sx_false;
 sexpr i_destlibdir                     = sx_false;
 sexpr i_dynamic_libraries              = sx_true;
+static sexpr in_dynamic_libraries      = sx_nil;
 
 sexpr workstack                        = sx_end_of_list;
 
@@ -1078,6 +1079,11 @@ static void process_definition (struct target *context, sexpr definition)
                     break;
                 }
             }
+
+            if (nilp (in_dynamic_libraries) && truep(co_freestanding))
+            {
+                i_dynamic_libraries = sx_true;
+            }
         }
 
         definition = cdr (definition);
@@ -1845,7 +1851,6 @@ int main (int argc, char **argv, char **environ)
     int i = 1, q;
     char *target_architecture = (char *)getenv("CHOST");
     sexpr buildtargets = sx_end_of_list;
-    sexpr in_dynamic_libraries = sx_nil;
     struct stat st;
 
     initialise_stack ();
