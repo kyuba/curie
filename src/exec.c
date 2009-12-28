@@ -48,11 +48,6 @@ struct exec_context *execute(unsigned int options,
     struct io *proc_stdout_in, *proc_stdout_out,
               *proc_stdin_in,  *proc_stdin_out;
 
-    if (context == (struct exec_context *)0)
-    {
-        return (struct exec_context *)0;
-    }
-
     context->in = (struct io *)0;
     context->out = (struct io *)0;
 

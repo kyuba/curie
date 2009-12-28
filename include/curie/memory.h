@@ -63,39 +63,28 @@ extern "C" {
  *  @{
  */
 
-/*! \brief Define get_mem() Recovery Function
- *  \param[in] handler Pointer to the recovery function.
+/*! \brief get_mem() Recovery Function
  *
  *  This function is called when get_mem() can't allocate any memory, and its
  *  result is returned instead of the (void *)0 that get_mem() would return.
+ *
+ *  By default this is set to cexit(), so that memory allocation errors result
+ *  in immediate programme termination.
  */
-void set_get_mem_recovery_function
-        (void *(*handler)(unsigned long int));
+extern void *(*get_mem_recovery)
+    (unsigned long int);
 
-/*! \brief Define resize_mem() Recovery Function
- *  \param[in] handler Pointer to the recovery function.
+/*! \brief resize_mem() Recovery Function
  *
  *  This function is called when resize_mem() can't allocate any memory, and
  *  its result is returned instead of the (void *)0 that resize_mem() would
  *  return.
- */
-void set_resize_mem_recovery_function
-        (void *(*handler)(unsigned long int, void *, unsigned long int));
-
-/*! \brief Terminate Programme when Allocation Fails
  *
- *  This sets the get_mem() and resize_mem() recovery functions to a default
- *  function that will simply terminate the programme. Use this in cases where
- *  it's extremely unlikely that the functions would fail (like... well...
- *  all the time) but you still want to be certain that a defined state is
- *  going to be present all the time.
- *
- *  \note Remember that if you write a library function, you MUST always check
- *        whether allocation worked and, if not, deallocate all previously
- *        allocated resources and return a proper, defined indication of the
- *        issue.
+ *  By default this is set to cexit(), so that memory allocation errors result
+ *  in immediate programme termination.
  */
-void terminate_on_allocation_errors();
+extern void *(*resize_mem_recovery)
+    (unsigned long int, void *, unsigned long int);
 
 /*! @} */
 
@@ -118,13 +107,17 @@ void terminate_on_allocation_errors();
 
 /*! \brief Allocate Memory
  *  \param[in] size The number of bytes to allocate.
- *  \return Pointer to the newly allocated chunk of memory, or (void*)0 if the
- *          memory could not be allocated.
+ *  \return Pointer to the newly allocated chunk of memory.
  *
  *  This function allocates memory and returns a pointer to the newly allocated
  *  chunk. The memory is allocated in multiples of the pagesize, so if you only
  *  need small amounts of memory, using this function wastes memory. On the
  *  other hand, this function is usually very fast to allocate the memory.
+ *
+ *  \note If there is not enough memory to allocate what is needed, this
+ *        function will call get_mem_recovery() and return its result instead.
+ *        By default this function is set to use cexit(), however, but then
+ *        again the condition is extremely rare, so...
  */
 void *get_mem
         (unsigned long int size);
@@ -133,13 +126,17 @@ void *get_mem
  *  \param[in] size    Current size of the block, in chunks.
  *  \param[in] block   The block to resize.
  *  \param[in] newsize The new size of the block.
- *  \return Pointer to the resized chunk of memory, or (void*)0 if new memory to
- *          hold the data could not be allocated.
+ *  \return Pointer to the resized chunk of memory.
  *
  *  This function takes a previously allocated block of memory and resizes it to
  *  a new size. The contents of the block are kept in tact, unless the new size
  *  is smaller than the current size, in which case the block's contents will be
  *  truncated.
+ *
+ *  \note If there is not enough memory for the resize operation, this function
+ *        calls resize_mem_recovery() and returns its result instead; however
+ *        the default for that function is to cexit(). It's also extremely rare
+ *        that this would happen, so it's probably not a big issue.
  */
 void *resize_mem
         (unsigned long int size, void *block, unsigned long int newsize);
@@ -182,8 +179,7 @@ void mark_mem_rw (unsigned long int size, void *block);
 void mark_mem_rx (unsigned long int size, void *block);
 
 /*! \brief Allocate a Chunk of Memory
- *  \return Pointer to the newly allocated chunk of memory, or (void*)0 if the
- *          memory could not be allocated.
+ *  \return Pointer to the newly allocated chunk of memory.
  *
  *  Same as get_mem(), but it always allocates LIBCURIE_PAGE_SIZE bytes of
  *  memory.
@@ -289,11 +285,13 @@ void free_memory_pool (struct memory_pool *pool);
 
 /*! \brief Get Memory from Pool
  *  \param[in] pool The pool to allocate from.
- *  \return Pointer to the new entity, or (void *)0 if no entities were
- *          available and get_mem() failed to allocate memory for a new frame.
+ *  \return Pointer to the new entity.
  *
  *  This allocates an entity of pool's entitiy size from the given pool. It is
  *  up to the caller to remember how big entities in the pool are.
+ *
+ *  \note Because this function is using get_mem(), failed allocations will
+ *        only be noticeable with the get_mem_recovery() function.
  */
 void *get_pool_mem
         (struct memory_pool *pool);
@@ -341,11 +339,14 @@ void optimise_static_memory_pools();
 
 /*! \brief Allocate Memory
  *  \param[in] size The number of bytes to allocate.
- *  \return The allocated block, or (void *)0 if no memory is available.
+ *  \return The allocated block.
  *
  *  Allocate the requested number of bytes. This function uses either get_mem()
  *  or a memory pool, depending on the size to allocate. If you're thinking
  *  malloc(), and you don't know how big your memory is going to be, use this.
+ *  
+ *  \note Because this function is using get_mem(), failed allocations will
+ *        only be noticeable with the get_mem_recovery() function.
  */
 void *aalloc
         (unsigned long size);
@@ -354,10 +355,13 @@ void *aalloc
  *  \param[in] size    The current size of the block.
  *  \param[in] block   The block to resize.
  *  \param[in] newsize The new size.
- *  \return The resized block, or (void *)0 if no memory was available.
+ *  \return The resized block.
  *
  *  This resizes the given block of memory from size to newsize. Only use this
  *  function for memory you've gotten from aalloc().
+ *
+ *  \note As with the other memory functions, a failure is only indicated via
+ *        the resize_mem_recovery() function.
  */
 void *arealloc
         (unsigned long size, void *block, unsigned long newsize);

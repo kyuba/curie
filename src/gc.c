@@ -214,13 +214,6 @@ void gc_call (sexpr sx)
     }
 
     map = resize_mem (gc_call_size, gc_calls, gc_call_size + LIBCURIE_PAGE_SIZE);
-    if (map == (sexpr *)0)
-    {
-        free_mem (gc_call_size, gc_calls);
-        cancel = 1;
-        gc_calls = (sexpr *)0;
-        return;
-    }
 
     gc_pointer = (sexpr *)((int_pointer)map +
                    ((int_pointer)gc_pointer - (int_pointer)gc_calls));
@@ -277,11 +270,6 @@ static int gc_initialise_memory ()
                   + LIBCURIE_PAGE_SIZE;
     gc_calls     = get_mem (gc_call_size);
     gc_pointer   = gc_calls;
-
-    if (gc_calls == (sexpr *)0)
-    {
-        return 0;
-    }
 
     sx_call_all();
     sx_call_custom();

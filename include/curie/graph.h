@@ -152,8 +152,7 @@ struct graph_edge {
 void graph_initialise ();
 
 /*! \brief Create a new Graph
- *  \return The new graph, or (sexpr)0 when there's no memory
- *          available.
+ *  \return The new graph.
  *
  *  This function initialises a new graph without any nodes.
  */
@@ -162,7 +161,7 @@ sexpr graph_create ( void );
 /*! \brief Create Graph Node
  *  \param[in] g     The graph to add the node to.
  *  \param[in] label The label to give the new node.
- *  \return The new node, or (struct graph_node *)0 when no memory is available.
+ *  \return The new node.
  *
  *  This creates a new graph node, adds it to the given graph and then assigns
  *  the given label to the node.
@@ -184,7 +183,7 @@ struct graph_node *graph_search_node (sexpr g, sexpr label);
  *  \param[in] node   The originating node for the edge.
  *  \param[in] target The target node for the edge.
  *  \param[in] label  The label for the edge.
- *  \return The new edge, or (struct graph_edge *)0 when no memory is available.
+ *  \return The new edge.
  *
  *  Analoguous to graph_add_node, but for edges: Creates a new graph edge from
  *  node to target with the given label.

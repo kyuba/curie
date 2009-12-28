@@ -261,8 +261,6 @@ void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void
 
     struct io_list *list_element = get_pool_mem (&pool);
 
-    if (list_element == (struct io_list *)0) return;
-
     list_element->next = (void *)0;
     list_element->io = io;
     list_element->on_read = on_read;

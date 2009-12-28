@@ -33,40 +33,13 @@
 #include <curie/sexpr-internal.h>
 
 struct sexpr_io *sx_open_stdio() {
-    struct io *in, *out;
-
-    if ((in = io_open_stdin()) == (struct io *)0)
-    {
-        return (struct sexpr_io *)0;
-    }
-
-    if ((out = io_open_stdout()) == (struct io *)0)
-    {
-        io_close (in);
-        return (struct sexpr_io *)0;
-    }
-
-    return sx_open_io (in, out);
+    return sx_open_io (io_open_stdin(), io_open_stdout());
 }
 
 struct sexpr_io *sx_open_stdin() {
-    struct io *in;
-
-    if ((in = io_open_stdin()) == (struct io *)0)
-    {
-        return (struct sexpr_io *)0;
-    }
-
-    return sx_open_i (in);
+    return sx_open_i (io_open_stdin());
 }
 
 struct sexpr_io *sx_open_stdout() {
-    struct io *out;
-
-    if ((out = io_open_stdout()) == (struct io *)0)
-    {
-        return (struct sexpr_io *)0;
-    }
-
-    return sx_open_o (out);
+    return sx_open_o (io_open_stdout());
 }

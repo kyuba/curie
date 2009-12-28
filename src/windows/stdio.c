@@ -33,12 +33,7 @@
 
 struct io *io_open_stdin ()
 {
-    struct io *in;
-
-    if ((in = io_open (GetStdHandle(STD_INPUT_HANDLE))) == (struct io *)0)
-    {
-        return (struct io *)0;
-    }
+    struct io *in = io_open (GetStdHandle(STD_INPUT_HANDLE));
 
     in->type = iot_read;
 
@@ -47,12 +42,7 @@ struct io *io_open_stdin ()
 
 struct io *io_open_stdout ()
 {
-    struct io *out;
-
-    if ((out = io_open (GetStdHandle(STD_OUTPUT_HANDLE))) == (struct io *)0)
-    {
-        return (struct io *)0;
-    }
+    struct io *out = io_open (GetStdHandle(STD_OUTPUT_HANDLE));
 
     out->type = iot_write;
 
@@ -61,12 +51,7 @@ struct io *io_open_stdout ()
 
 struct io *io_open_stderr ()
 {
-    struct io *out;
-
-    if ((out = io_open (GetStdHandle(STD_ERROR_HANDLE))) == (struct io *)0)
-    {
-        return (struct io *)0;
-    }
+    struct io *out = io_open (GetStdHandle(STD_ERROR_HANDLE));
 
     out->type = iot_write;
 

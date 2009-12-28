@@ -37,14 +37,7 @@ static struct io *io_create ()
 
     io = get_pool_mem(&io_pool);
 
-    if (io == (struct io *)0) return (struct io *)0;
-
     io->buffer = get_mem (IO_CHUNKSIZE);
-
-    if (io->buffer == (char *)0) {
-        free_pool_mem ((void *)io);
-        return (struct io *)0;
-    }
 
     io->status = io_undefined;
     io->length = 0;
@@ -57,8 +50,6 @@ static struct io *io_create ()
 struct io *io_open_special ()
 {
     struct io *io = io_create();
-
-    if (io == (struct io *)0) return (struct io *)0;
 
     io->fd = -1;
     io->status = io_undefined;
@@ -86,8 +77,6 @@ struct io *io_open_read (const char *path)
     int fd = a_open_read (path);
     struct io *io = io_open(fd);
 
-    if (io == (struct io *)0) return (struct io *)0;
-
     io->type = iot_read;
 
     return io;
@@ -97,8 +86,6 @@ struct io *io_open_write (const char *path)
 {
     int fd = a_open_write (path);
     struct io *io = io_open(fd);
-
-    if (io == (struct io *)0) return (struct io *)0;
 
     io->type = iot_write;
 
@@ -114,8 +101,6 @@ struct io *io_open_create (const char *path, int mode)
 
     fd = a_create (path, mode);
     io = io_open(fd);
-
-    if (io == (struct io *)0) return (struct io *)0;
 
     io->type = iot_write;
 
@@ -175,14 +160,6 @@ enum io_result io_collect(struct io *io, const char *data, unsigned int length)
 
         io->buffer = resize_mem (io->buffersize, io->buffer, newsize);
 
-        if (io->buffer == (char *)0)
-        {
-            io->buffersize = 0;
-            io->length = 0;
-            io->status = io_unrecoverable_error;
-            return io_unrecoverable_error;
-        }
-
         io->buffersize = newsize;
     }
 
@@ -223,14 +200,6 @@ void io_flush (struct io *io)
 
     if (newsize != io->buffersize) {
         io->buffer = resize_mem (io->buffersize, io->buffer, newsize);
-
-        if (io->buffer == (char *)0)
-        {
-            io->buffersize = 0;
-            io->length = 0;
-            io->status = io_unrecoverable_error;
-            return;
-        }
 
         io->buffersize = newsize;
     }
@@ -286,14 +255,6 @@ enum io_result io_read(struct io *io)
         }
 
         io->buffer = resize_mem (io->buffersize, io->buffer, newsize);
-
-        if (io->buffer == (char *)0)
-        {
-            io->buffersize = 0;
-            io->length = 0;
-            io->status = io_unrecoverable_error;
-            return io_unrecoverable_error;
-        }
 
         io->buffersize = newsize;
     }

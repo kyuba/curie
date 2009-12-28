@@ -47,7 +47,7 @@ int cmain(void) {
 
     if (y == (void *)0) return 1;
 
-    set_resize_mem_recovery_function(rm_recover);
+    resize_mem_recovery = rm_recover;
     z = resize_mem (1, y, ~0); /* rm_recover (hopefully) */
 
     if (z != (void *)1) return 2; /* value from rm_recover */

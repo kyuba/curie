@@ -35,8 +35,6 @@
 .globl mark_mem_rw
 .globl mark_mem_rx
 .globl get_mem_chunk
-.globl set_get_mem_recovery_function
-.globl set_resize_mem_recovery_function
 
 .type get_mem,                 @function
 .type free_mem,                @function
@@ -45,30 +43,9 @@
 .type mark_mem_rw,             @function
 .type mark_mem_rx,             @function
 .type get_mem_chunk,           @function
-.type set_get_mem_recovery_function, @function
-.type set_resize_mem_recovery_function, @function
-
-.data
-get_mem_recovery:
-        .long 0x0
-
-resize_mem_recovery:
-        .long 0x0
 
 .text
         .align 8
-
-set_get_mem_recovery_function:
-        lis     5, get_mem_recovery@ha
-        addi    5, 5, get_mem_recovery@l
-        stw     3, 0(5)
-        blr
-
-set_resize_mem_recovery_function:
-        lis     5, resize_mem_recovery@ha
-        addi    5, 5, resize_mem_recovery@l
-        stw     3, 0(5)
-        blr
 
 cmopsass:
         mr      9, 4

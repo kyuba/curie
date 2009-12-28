@@ -62,11 +62,6 @@ sexpr cons(sexpr sx_car, sexpr sx_cdr)
 
     rv = get_pool_mem (&pool);
 
-    if (rv == (struct sexpr_cons *)0)
-    {
-        return sx_nonexistent;
-    }
-
     rv->type = sxt_cons;
     rv->car  = sx_car;
     rv->cdr  = sx_cdr;
@@ -110,11 +105,6 @@ sexpr make_rational(int_pointer p, int_pointer_s q)
 
     rv = get_pool_mem (&pool);
 
-    if (rv == (struct sexpr_rational *)0)
-    {
-        return sx_nonexistent;
-    }
-
     rv->type        = sxt_rational;
     rv->numerator   = p;
     rv->denominator = q;
@@ -141,11 +131,7 @@ static sexpr make_string_or_symbol (const char *string, char symbol)
         return (sexpr)node_get_value (n);
     }
 
-    if ((s = aalloc (sizeof (struct sexpr_string_or_symbol) + len + 1))
-         == (struct sexpr_string_or_symbol *)0)
-    {
-        return sx_nonexistent;
-    }
+    s = aalloc (sizeof (struct sexpr_string_or_symbol) + len + 1);
 
     tree_add_node_value ((symbol == (char)1) ? &sx_symbol_tree
                                              : &sx_string_tree,

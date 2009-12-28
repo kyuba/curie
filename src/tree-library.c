@@ -35,11 +35,6 @@ struct tree * tree_create ()
             = MEMORY_POOL_INITIALISER(sizeof (struct tree));
     struct tree *tree = (struct tree *)get_pool_mem(&pool);
 
-    if (tree == (struct tree *)0)
-    {
-        return (struct tree *)0;
-    }
-
     tree->root = (struct tree_node *)0;
 
     return tree;

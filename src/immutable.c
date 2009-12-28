@@ -57,11 +57,8 @@ const char *str_immutable_unaligned (const char * string) {
         char *r;
         unsigned int i;
 
-        if ((r = get_mem (length)) == (char *)0)
+        r = get_mem (length);
         /* the return value of this is always suitable for our purposes. */
-        {
-            return (void *)0;
-        }
 
         for (i = 0; string[i] != (char)0; i++) r[i] = string[i];
         do {
@@ -100,10 +97,7 @@ const char *str_immutable (const char * string) {
         return (const char *)node_get_value (n);
     }
 
-    if ((rv = immutable (string, stringlength)) == (char *)0)
-    {
-        return (char *)0;
-    }
+    rv = immutable (string, stringlength);
 
     tree_add_node (&immutable_strings, (int_pointer)rv);
 
@@ -131,10 +125,7 @@ const void *immutable ( const void * data, unsigned long length ) {
             lock_immutable_pages();
         }
 
-        if ((immutable_data = get_mem(new_size)) == (void *)0)
-        {
-            return (char *)0;
-        }
+        immutable_data = get_mem(new_size);
 
         immutable_data_space_left = new_size;
         immutable_cursor = immutable_data;

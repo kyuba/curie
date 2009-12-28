@@ -201,8 +201,7 @@ struct sexpr_io;
 /*! \brief Create S-Expression I/O Context
  *  \param[in] in  The io structure to use for input.
  *  \param[in] out The io structure to use for output.
- *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
- *          allocated.
+ *  \return The new I/O context.
  *
  *  This function creates a new I/O context to use with s-expression functions.
  */
@@ -211,8 +210,7 @@ struct sexpr_io *sx_open_io
 
 /*! \brief Create Read-Only S-Expression I/O Context
  *  \param[in] in  The io structure to use for input.
- *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
- *          allocated.
+ *  \return The new I/O context.
  *
  *  This macro creates a new I/O context to use with s-expression functions.
  *
@@ -222,8 +220,7 @@ struct sexpr_io *sx_open_io
 
 /*! \brief Create Write-Only S-Expression I/O Context
  *  \param[in] out The io structure to use for output.
- *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
- *          allocated.
+ *  \return The new I/O context.
  *
  *  This macro creates a new I/O context to use with s-expression functions.
  *
@@ -232,8 +229,7 @@ struct sexpr_io *sx_open_io
 #define sx_open_o(out) (sx_open_io((struct io*)0, out))
 
 /*! \brief Create Standard I/O as S-Expression I/O Context
- *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
- *          allocated.
+ *  \return The new I/O context.
  *
  *  Analoguous to sx_open_io(), but it uses the standard file descriptors '0'
  *  and '1'.
@@ -241,16 +237,14 @@ struct sexpr_io *sx_open_io
 struct sexpr_io *sx_open_stdio ( void );
 
 /*! \brief Create Standard I/O as S-Expression I/O Context
- *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
- *          allocated.
+ *  \return The new I/O context.
  *
  *  Same as sx_open_stdio(), but only opens stdout.
  */
 struct sexpr_io *sx_open_stdout ( void );
 
 /*! \brief Create Standard I/O as S-Expression I/O Context
- *  \return The new I/O context, or (struct sexpr_io *)0 if no memory could be
- *          allocated.
+ *  \return The new I/O context.
  *
  *  Same as sx_open_stdio(), but only opens stdin.
  */

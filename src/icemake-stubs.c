@@ -33,6 +33,3 @@ void post_process (sexpr a) {}
 void run_tests (sexpr a) {}
 void gc_call (sexpr sx) {}
 void initialise_stack () {}
-void gc_add_root (sexpr *sx) {}
-void terminate_on_allocation_errors() {}
-void gc_invoke() {}

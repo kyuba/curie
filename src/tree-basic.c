@@ -206,8 +206,6 @@ void tree_add_node (struct tree *tree, int_pointer key)
     struct tree_node_basic *node
             = (struct tree_node_basic *)get_pool_mem(&pool);
 
-    if (node == (struct tree_node_basic *)0) return;
-
     tree_add_node_to_tree (tree, node, key);
 }
 
@@ -217,8 +215,6 @@ void tree_add_node_value (struct tree *tree, int_pointer key, void *value)
             = MEMORY_POOL_INITIALISER(sizeof (struct tree_node_basic_pointer));
     struct tree_node_basic_pointer * node
             = (struct tree_node_basic_pointer *)get_pool_mem(&pool);
-
-    if (node == (struct tree_node_basic_pointer *)0) return;
 
     node->value = value;
 

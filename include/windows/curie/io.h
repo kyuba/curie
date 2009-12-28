@@ -226,8 +226,7 @@ struct io {
 
 /*! \brief Open File Desriptor
  *  \param[in] handle The file handle to use.
- *  \return A new struct io. (struct io *)0 is only returned for memory
- *          allocation errors.
+ *  \return A new struct io.
  *
  *  This will open the given handle, after putting it in non-blocking mode. The
  *  handle itself should not be used afterwards.
@@ -242,36 +241,32 @@ struct io *io_open
         (void *handle);
 
 /*! \brief Open Standard Input File Desriptor
- *  \return A new struct io. (struct io *)0 is only returned for memory
- *          allocation errors.
+ *  \return A new struct io.
  *
  *  This will create a regular i/o structurue pointing to the process's standard
- *  input.
+ *  input. The type of the structure is set to iot_read.
  */
 struct io *io_open_stdin ( void );
 
 /*! \brief Open Standard Output File Desriptor
- *  \return A new struct io. (struct io *)0 is only returned for memory
- *          allocation errors.
+ *  \return A new struct io.
  *
  *  This will create a regular i/o structurue pointing to the process's standard
- *  output.
+ *  output. The type of the structure is set to iot_write.
  */
 struct io *io_open_stdout ( void );
 
 /*! \brief Open Standard Error Output File Desriptor
- *  \return A new struct io. (struct io *)0 is only returned for memory
- *          allocation errors.
+ *  \return A new struct io.
  *
  *  This will create a regular i/o structurue pointing to the process's standard
- *  error output.
+ *  error output. The type of the structure is set to iot_write.
  */
 struct io *io_open_stderr ( void );
 
 /*! \brief Open File for reading
  *  \param[in] filename The file to open for reading.
- *  \return A new struct io. (struct io *)0 is only returned for memory
- *          allocation errors.
+ *  \return A new struct io.
  *
  *  The given filename is opened for reading. If the file does not exist, or
  *  cannot be read from, a struct io is returned anyway, but it will have an
@@ -282,8 +277,7 @@ struct io *io_open_read
 
 /*! \brief Open File for writing
  *  \param[in] filename The file to open for writing.
- *  \return A new struct io. (struct io *)0 is only returned for memory
- *          allocation errors.
+ *  \return A new struct io.
  *
  *  The given filename is opened for writing. If the file does not exist, or
  *  cannot be written to, a struct io is returned anyway, but it will have an
@@ -295,8 +289,7 @@ struct io *io_open_write
 /*! \brief Open File for writing
  *  \param[in] filename The file to open for writing.
  *  \param[in] mode     The mode for the new file.
- *  \return A new struct io. (struct io *)0 is only returned for memory
- *          allocation errors.
+ *  \return A new struct io.
  *
  *  The given filename is opened for writing. The file is created with the
  *  given mode. As usual, a struct io is always created even if the file could
@@ -306,8 +299,7 @@ struct io *io_open_create
         (const char *filename, int mode);
 
 /*! \brief Create Special I/O Structure
- *  \return A new struct io. (struct io *)0 is only returned for memory
- *          allocation errors.
+ *  \return A new struct io.
  *
  *  The returned I/O structure is suitable for special in-memory processing. It
  *  isn't backed by any actual file (not from Curie's point of view, anyway),
@@ -370,7 +362,7 @@ enum io_result io_read
 void io_flush
         (struct io * io);
 
-/*! \brief Commit pending Oprations
+/*! \brief Commit pending Operations
  *  \param[in] io The I/O structure whose data to commit.
  *  \return io_unrecoverable_error for errors, io_undefined if the type of the
  *          io structure is iot_undefined, the return value of io_read() for

@@ -132,8 +132,6 @@ void multiplex_add_process (struct exec_context *context, void (*on_death)(struc
             = MEMORY_POOL_INITIALISER(sizeof (struct exec_cx));
     struct exec_cx *element = get_pool_mem (&pool);
 
-    if (element == (struct exec_cx *)0) return;
-
     element->context = context;
     element->on_death = on_death;
     element->data = data;

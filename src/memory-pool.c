@@ -45,10 +45,6 @@ struct memory_pool *create_memory_pool (unsigned long int entitysize)
     struct memory_pool_frame_header *pool = get_mem_chunk();
     unsigned int i;
 
-    if (pool == (struct memory_pool_frame_header *)0) {
-        return (struct memory_pool *)0;
-    }
-
     pool->entitysize = calculate_aligned_memory_size(entitysize);
 
     pool->maxentities = (unsigned short)((LIBCURIE_PAGE_SIZE - sizeof(struct memory_pool_frame_header)) / pool->entitysize);

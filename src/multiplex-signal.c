@@ -149,8 +149,6 @@ void multiplex_add_signal (enum signal signal, enum signal_callback_result (*han
             = MEMORY_POOL_INITIALISER (sizeof(struct handler));
     struct handler *element = get_pool_mem (&pool);
 
-    if (element == (struct handler *)0) return;
-
     element->signal = signal;
     element->data = data;
     element->handler = handler;

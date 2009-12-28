@@ -1853,9 +1853,6 @@ int main (int argc, char **argv, char **environ)
     sexpr buildtargets = sx_end_of_list;
     struct stat st;
 
-    initialise_stack ();
-    terminate_on_allocation_errors();
-
 #if defined(_WIN32)
 #else
     xenviron = environ;

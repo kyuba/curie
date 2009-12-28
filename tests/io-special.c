@@ -43,8 +43,6 @@ static void mx_sx_queue_read (sexpr sx, struct sexpr_io *io, void *aux)
 
 int cmain()
 {
-    terminate_on_allocation_errors();
-
     queue_io = io_open_special();
 
     queue    = sx_open_io    (queue_io, queue_io);

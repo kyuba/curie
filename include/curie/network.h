@@ -49,8 +49,6 @@ extern "C" {
  *  to the out parameter, it shows up on the in paramter. You know, like pipe()
  *  or socketpair(). Usually socketpair is used, since pipe() is naughty and may
  *  generate SIGPIPEs.
- *
- *  Both in and out may be (struct io *)0 if the loop couldn't be opened.
  */
 void net_open_loop (struct io **in, struct io **out);
 
@@ -60,9 +58,6 @@ void net_open_loop (struct io **in, struct io **out);
  *  \param[out] out  I/O structure to write to.
  *
  *  Connet to a Unix socket and return proper in/out I/O structures.
- *
- *  Both in and out may be (struct io *)0 if the connection could not be
- *  established.
  */
 void net_open_socket (const char *path, struct io **in, struct io **out);
 
@@ -73,9 +68,6 @@ void net_open_socket (const char *path, struct io **in, struct io **out);
  *  \param[out] out  I/O structure to write to.
  *
  *  Connet to a (possibly remote) host and return proper in/out I/O structures.
- *
- *  Both in and out may be (struct io *)0 if the connection could not be
- *  established.
  */
 void net_open_ip4 (int_32 addr, int_16 port, struct io **in, struct io **out);
 
@@ -86,9 +78,6 @@ void net_open_ip4 (int_32 addr, int_16 port, struct io **in, struct io **out);
  *  \param[out] out  I/O structure to write to.
  *
  *  Connet to a (possibly remote) host and return proper in/out I/O structures.
- *
- *  Both in and out may be (struct io *)0 if the connection could not be
- *  established.
  */
 void net_open_ip6 (int_8 addr[16], int_16 port, struct io **in, struct io **out);
 

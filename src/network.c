@@ -129,12 +129,7 @@ static void mx_f_callback(int *rs, int r, int *ws, int w)
                             struct io *in, *out;
 
                             in = io_open (fdr);
-                            if (in == (struct io *)0) continue;
                             out = io_open (fdw);
-                            if (out == (struct io *)0) {
-                                io_close (in);
-                                continue;
-                            }
 
                             in->type = iot_read;
                             out->type = iot_write;
@@ -192,21 +187,7 @@ void net_open_loop (struct io **in, struct io **out)
     }
 
     iin = io_open (fds[0]);
-    if (iin == (struct io *)0)
-    {
-        (*in) = (struct io *)0;
-        (*out) = (struct io *)0;
-        return;
-    }
-
     iout = io_open (fds[1]);
-    if (iout == (struct io *)0)
-    {
-        io_close (iin);
-        (*in) = (struct io *)0;
-        (*out) = (struct io *)0;
-        return;
-    }
 
     iin->type = iot_read;
     iout->type = iot_write;
@@ -228,21 +209,7 @@ static void net_open_tail (int fdr, struct io **in, struct io **out)
     }
 
     iin = io_open (fdr);
-    if (iin == (struct io *)0)
-    {
-        (*in) = (struct io *)0;
-        (*out) = (struct io *)0;
-        return;
-    }
-
     iout = io_open (fdw);
-    if (iout == (struct io *)0)
-    {
-        io_close (iin);
-        (*in) = (struct io *)0;
-        (*out) = (struct io *)0;
-        return;
-    }
 
     iin->type = iot_read;
     iout->type = iot_write;
@@ -303,11 +270,6 @@ static void multiplex_add_tail
     static struct memory_pool pool
             = MEMORY_POOL_INITIALISER(sizeof (struct net_socket_listener));
     struct net_socket_listener *l = get_pool_mem (&pool);
-
-    if (l == (struct net_socket_listener *)0)
-    {
-        return;
-    }
 
     l->socket = fd;
     l->on_connect = on_connect;
@@ -419,14 +381,6 @@ void multiplex_add_ip6_sx
 
 static struct sexpr_io *sx_open_tail (struct io *in, struct io *out)
 {
-    if ((in == (struct io *)0) || (out == (struct io *)0))
-    {
-        if (in != (struct io *)0) io_close (in);
-        if (out != (struct io *)0) io_close (out);
-
-        return (struct sexpr_io *)0;
-    }
-
     return sx_open_io (in, out);
 }
 

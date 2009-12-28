@@ -34,22 +34,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-typedef void *(*get_mem_recovery_t)(unsigned long int);
-typedef void *(*resize_mem_recovery_t)(unsigned long int, void *, unsigned long int);
-
-static get_mem_recovery_t get_mem_recovery = (void *)0;
-static resize_mem_recovery_t resize_mem_recovery = (void *)0;
-
-void set_get_mem_recovery_function (void *(*handler)(unsigned long int))
-{
-    get_mem_recovery = handler;
-}
-
-void set_resize_mem_recovery_function (void *(*handler)(unsigned long int, void *, unsigned long int))
-{
-    resize_mem_recovery = handler;
-}
-
 static size_t get_multiple_of_pagesize(unsigned long int s)
 {
     if ((s % LIBCURIE_PAGE_SIZE) == 0)
@@ -66,12 +50,7 @@ void *get_mem(unsigned long int size) {
               -1, 0);
 
     if ((rv == (void *)-1) || (rv == (void *)0)) {
-        if (get_mem_recovery != (void *)0)
-        {
-            return get_mem_recovery(size);
-        }
-
-        return (void *)0;
+        return get_mem_recovery(size);
     }
 
     return rv;
@@ -97,12 +76,7 @@ void *resize_mem(unsigned long int size, void *location, unsigned long int new_s
 
         if (new_location == (int *)0)
         {
-            if (resize_mem_recovery != (void *)0)
-            {
-                return resize_mem_recovery(size, location, new_size);
-            }
-
-            return (void *)0;
+            return resize_mem_recovery(size, location, new_size);
         } else {
             int *old_location = (int *)location;
             int i = 0,

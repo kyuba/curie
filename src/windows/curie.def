@@ -39,9 +39,6 @@ EXPORTS
     io_commit                           @37
     io_finish                           @38
     io_close                            @39
-    set_get_mem_recovery_function       @40
-    set_resize_mem_recovery_function    @41
-    terminate_on_allocation_errors      @42
     get_mem                             @43
     resize_mem                          @44
     free_mem                            @45
@@ -142,3 +139,5 @@ EXPORTS
     node_get_value                      @140
     make_rational                       @141
     gcd                                 @142
+    get_mem_recovery                    @143
+    resize_mem_recovery                 @144

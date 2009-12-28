@@ -43,12 +43,9 @@ static void *gm_recover(unsigned long int s)
 }
 
 int cmain(void) {
-    void *y = get_mem (~0); /* try to allocate more memory than possible. */
+    void *y;
 
-    if (y != (void *)0) /* if this succeeded, something's wrong... */
-        return 1;
-
-    set_get_mem_recovery_function(gm_recover);
+    get_mem_recovery = gm_recover;
     y = get_mem (~0); /* this function should jump to gm_recover() now... */
 
     if (y != (void *)1) return 2; /* value from gm_recover */

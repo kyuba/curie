@@ -97,8 +97,6 @@ void multiplex_add_sexpr
             = MEMORY_POOL_INITIALISER(sizeof (struct io_element));
     struct io_element *element = get_pool_mem (&pool);
 
-    if (element == (struct io_element *)0) return;
-
     element->io = io;
     element->on_read = on_read;
     element->data = data;
@@ -114,11 +112,11 @@ void multiplex_add_sexpr
         return;
     }
 
-
+    if (
 #if defined(_WIN32)
-    if ((io->in->handle == (void *)0)
+        (io->in->handle == (void *)0)
 #else
-    if ((io->in->fd == -1)
+        (io->in->fd == -1)
 #endif
         && (io->in->type != iot_special_read)
         && (io->in->type != iot_special_write))

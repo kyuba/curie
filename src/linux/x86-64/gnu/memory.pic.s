@@ -79,6 +79,7 @@ negative_result:
         popq %rsi
         popq %rdi
 
+        movq (%r11), %r11
         call *%r11
 
         leave
@@ -96,7 +97,7 @@ get_mem_innards:
         pushq   %rdi
         pushq   $0
         pushq   $0
-        pushq   get_mem_recovery(%rip)
+        pushq   get_mem_recovery@GOTPCREL(%rip)
 
         movq $9, %rax /* sys_mmap */
         movq $0, %rdi /* pass 0-pointer as start address */
@@ -121,7 +122,7 @@ resize_mem:
         pushq   %rdi
         pushq   %rsi
         pushq   %rdx
-        pushq   resize_mem_recovery(%rip)
+        pushq   resize_mem_recovery@GOTPCREL(%rip)
 
         movq $25, %rax /* sys_mremap */
         xor %rsi, %rdi

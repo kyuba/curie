@@ -20,7 +20,7 @@
         "immutable" "graph" "filesystem" "io-system" "network-system"
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
         "directory" "directory-common" "libc-compat" "utf-8" "shell"
-        "memory-error-handling" "sexpr-stdio" "stdio" "stack" "gc"
+        "sexpr-stdio" "stdio" "stack" "gc" "variables"
         "sexpr-custom" "time" "time-system" "hash" "tree-string" "tree-library"
         "gcd")
 

@@ -80,7 +80,7 @@ struct tree_node {
 #define TREE_INITIALISER { (struct tree_node *)0 }
 
 /*! \brief Create a new Tree
- *  \return New tree root, or (struct tree *)0 when no memory is available.
+ *  \return New tree root.
  *
  *  Create and initialise a new tree without any nodes.
  */

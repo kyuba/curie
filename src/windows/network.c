@@ -50,19 +50,7 @@ void net_open_loop (struct io **in, struct io **out) {
 
 
     iin = io_open (ihandle);
-    if (iin == (struct io *)0) {
-        (*in) = (struct io *)0;
-        (*out) = (struct io *)0;
-        return;
-    }
-
     iout = io_open (ohandle);
-    if (iout == (struct io *)0) {
-        io_close (iin);
-        (*in) = (struct io *)0;
-        (*out) = (struct io *)0;
-        return;
-    }
 
     iin->type = iot_read;
     iout->type = iot_write;

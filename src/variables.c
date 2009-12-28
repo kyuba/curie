@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2009, Kyuba Project Members
+ * Copyright (c) 2008, 2009, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,23 +26,13 @@
  * THE SOFTWARE.
 */
 
-#include <curie/memory.h>
+#define _BSD_SOURCE
+
 #include <curie/main.h>
+#include <curie/memory.h>
 
-static void *rm_recover(unsigned long int s, void *c, unsigned long int l)
-{
-    cexit(22); /* never reached */
-    return (void *)0;
-}
+void *(*get_mem_recovery)(unsigned long int)
+    = (void *(*)(unsigned long int))cexit;
 
-static void *gm_recover(unsigned long int s)
-{
-    cexit(23);
-    return (void *)0; /* never reached */
-}
-
-void terminate_on_allocation_errors()
-{
-    set_resize_mem_recovery_function(rm_recover);
-    set_get_mem_recovery_function(gm_recover);
-}
+void *(*resize_mem_recovery)(unsigned long int, void *, unsigned long int)
+    = (void *(*)(unsigned long int, void *, unsigned long int))cexit;

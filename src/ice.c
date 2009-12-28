@@ -160,8 +160,6 @@ int cmain()
     sexpr icemake;
     char **argv;
 
-    terminate_on_allocation_errors();
-
     while (curie_argv[i] != (char *)0) { i++; }
 
     argvsize = sizeof (char *) * (i + 1);
@@ -187,7 +185,6 @@ int cmain()
 
     context = execute (EXEC_CALL_PURGE, argv, curie_environment);
 
-    if (context == (struct exec_context *)0) return -1;
     if (context->pid <= 0) return -3;
 
     multiplex_add_io_no_callback (out);

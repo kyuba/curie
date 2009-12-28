@@ -43,20 +43,6 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out)
             = MEMORY_POOL_INITIALISER(sizeof (struct sexpr_io));
     struct sexpr_io *rv = get_pool_mem (&pool);
 
-    if (rv == (struct sexpr_io *)0)
-    {
-        if (in != (struct io *)0)
-        {
-            io_close (in);
-        }
-
-        if (out != (struct io *)0)
-        {
-            io_close (out);
-        }
-        return (struct sexpr_io *)0;
-    }
-
     rv->in = in;
     rv->out = out;
 
@@ -115,10 +101,6 @@ static sexpr sx_read_string_long
 
   allocate:
     newstring = aalloc (m);
-    if (newstring == (char *)0)
-    {
-        return sx_nonexistent;
-    }
 
     do {
         if (buf[j] == '"') {
