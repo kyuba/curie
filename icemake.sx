@@ -83,9 +83,10 @@
   (description "Math functionality for libcurie")
   (version "1")
   (url "http://kyuba.org/")
-  (code "math-functions")
+  (code "math-functions" "math-matrix")
   (headers
-        "math" "trig" "constants" "matrix" "functions"))
+        "math" "trig" "constants" "matrix" "functions")
+  (test-cases "math-matrix"))
 
 (programme "icemake" hosted libcurie
   (name "icemake")

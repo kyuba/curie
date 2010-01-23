@@ -32,7 +32,49 @@
   /*! \file 
     \brief Vector and matrix operations */
   
-  #include <constants.h>
+  #include <curie-math/constants.h>
+  
+  #ifdef __cplusplus
+  namespace curiemath {
+    extern "C" {
+  #endif
+      /*! Curie-math one-dimensional vectors are elements of {Q^n | n \in N, n >= 1}. 
+	We are aware there are other vector spaces out there, but for our purposes a vector is just an array of rational numbers
+	[I'd say real numbers but you can't really use irrational numbers in a computer. For starters,  your memory's finite).
+	Its dimension is memorized for convenience reasons. 
+	
+	Users should  not alter the vector itself, but instead create a  new one, especially if its dimension is going to change.*/
+      struct vector {
+	double* data;
+	unsigned int dimension;
+      };
+      typedef struct vector vector;
+      
+      #define UNDEFINED_VECTOR (struct vector) {(void*) 0, -1}
+      
+      /*! VectorV addition. 
+      
+      Vectors are added component-wise. Let x and y be 2 vectors, and let x = (x1, x2) and y = (y1, y2).
+      Then x+y = (x1+y1, x2+y2).
+      
+      If the vectors to be added have different dimensions, UNDEFINED_VECTOR will be returned.*/
+      // todo: variable number of arguments could come in handy here, too
+      vector add(vector v1, vector v2);
+            
+      /*! Scalar multiplication of a vector with a scalar from Q*/
+      vector scalarm(double alpha, vector v1);
+
+      vector cross_product(vector v1, vector v2);
+      
+      vector init (double * d, int dimension);
+      
+      
+      
+
+  #ifdef __cplusplus
+    }
+  }
+#endif
    
 
 #endif
