@@ -29,7 +29,22 @@
 #include <curie-math/functions.h>
 
 int test_exp() {
-    return 0;
+    double d1 = 2.0;
+	double d2 = 1.0;
+	double d3 = -1.0;
+	
+	int e1 = 5;
+	int e2 = 3;
+	int e3 = 6;
+	int e4 = -4;
+	
+	if(power(d1, e2) != 8.0) return 1;
+	if(power(d2, e1) != 1.0) return 2;
+	if(power(d3, e1) != -1.0) return 3;
+	if(power(d3, e3) != 1.0) return 4;
+	if(power(d1, -3) != (1.0/8.0)) return 5;
+	
+	return 0;
 }
 
 

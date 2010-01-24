@@ -28,4 +28,22 @@
   #include <curie-math/functions.h>
 
 
-  
+  double power (double x, int exponent) 
+  {
+	int exp = exponent;
+	if(exponent < 0) exp *= -1;  
+	
+	double q = 1.0, p = x;
+	for(; exp >= 1; exp /= 2)
+	{
+		q = q * (((exp%2)==1) ? p : 1.0);
+		p = p*p; 
+	}
+	
+	double ret = q;
+	if(exponent < 0) 
+	{
+		ret = 1.0/q;
+	}
+	return ret;
+  }

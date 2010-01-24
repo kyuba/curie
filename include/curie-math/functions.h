@@ -38,8 +38,8 @@
     
     */
   
-  /*! \brief base^exp */
-  double pow (double base, double exp);
+  /*! \brief base^exp, with integer exponent */
+  double power (double base, int exp);
   
   /*! \brief Square root of x       
       \return The positive square root of x, if x is >= 0.

@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2008-2010 Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,32 +44,57 @@
 	Its dimension is memorized for convenience reasons. 
 	
 	Users should  not alter the vector itself, but instead create a  new one, especially if its dimension is going to change.*/
-      struct vector {
-	double* data;
-	unsigned int dimension;
-      };
-      typedef struct vector vector;
+    struct vector {
+	  double* data;
+	  unsigned int dimension;
+    };
+     typedef struct vector vector;
       
-      #define UNDEFINED_VECTOR (struct vector) {(void*) 0, -1}
+      #define UNDEFINED_VECTOR (struct vector) {(void*) 0, 0}
       
-      /*! VectorV addition. 
+      /*! Vector addition. 
       
       Vectors are added component-wise. Let x and y be 2 vectors, and let x = (x1, x2) and y = (y1, y2).
       Then x+y = (x1+y1, x2+y2).
       
       If the vectors to be added have different dimensions, UNDEFINED_VECTOR will be returned.*/
       // todo: variable number of arguments could come in handy here, too
-      vector add(vector v1, vector v2);
+      vector vadd(vector v1, vector v2);
             
       /*! Scalar multiplication of a vector with a scalar from Q*/
       vector scalarm(double alpha, vector v1);
 
       vector cross_product(vector v1, vector v2);
+	  
+	  double dot_product(vector v1, vector v2);
       
-      vector init (double * d, int dimension);
-      
-      
-      
+      vector init (double * d, unsigned int dimension);
+	  
+	 
+	 /*! Matrix operations
+	  *
+	  * */
+	  
+	  
+	  struct matrix {
+		double **data;
+		unsigned int rows;
+		unsigned int columns;
+	  };
+	  typedef struct matrix matrix;
+	  
+	  #define UNDEFINED_MATRIX (struct matrix) {(void *) 0, 0, 0}
+	  
+	  matrix madd(matrix m1, matrix m2);
+	  
+	  matrix mmult(matrix m1, matrix m2);
+	  
+	  matrix smmult(double alpha, matrix m);
+	  
+	  double det(matrix m);
+	  
+	  matrix invert(matrix m);
+	  
 
   #ifdef __cplusplus
     }
