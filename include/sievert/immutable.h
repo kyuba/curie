@@ -30,8 +30,8 @@
 extern "C" {
 #endif
 
-#ifndef LIBCURIE_IMMUTABLE_H
-#define LIBCURIE_IMMUTABLE_H
+#ifndef LIBSIEVERT_IMMUTABLE_H
+#define LIBSIEVERT_IMMUTABLE_H
 
 /*! \file
  *  \brief Immutable Objects

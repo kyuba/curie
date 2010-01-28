@@ -28,7 +28,6 @@
 
 #include <curie/graph.h>
 #include <curie/memory.h>
-#include <curie/immutable.h>
 #include <curie/gc.h>
 
 /* TODO: the sexpr graph type needs to get turned into a proper, immutable

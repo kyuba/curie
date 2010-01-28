@@ -1,0 +1,12 @@
+LIBRARY    libsievert.1.dll
+EXPORTS
+    str_immutable                       @1
+    immutable                           @2
+    lock_immutable_pages                @3
+    str_immutable_unaligned             @4
+    tree_add_node_string                @5
+    tree_add_node_string_value          @6
+    tree_get_node_string                @7
+    tree_remove_node_string_specific    @8
+    sx_list_map                         @9
+    sx_list_fold                        @10

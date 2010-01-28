@@ -17,27 +17,27 @@
         "sexpr" "io" "memory-pool" "exec" "multiplex" "string"
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
-        "immutable" "graph" "filesystem" "io-system" "network-system"
+        "graph" "filesystem" "io-system" "network-system"
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
         "directory" "directory-common" "libc-compat" "utf-8" "shell"
         "sexpr-stdio" "stdio" "stack" "gc" "variables"
-        "sexpr-custom" "time" "time-system" "hash" "tree-string" "tree-library"
+        "sexpr-custom" "time" "time-system" "hash" "tree-library"
         "gcd")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
-        "int" "io" "immutable" "constants" "graph" "filesystem" "regex"
+        "int" "io" "constants" "graph" "filesystem" "regex"
         "directory" "string" "utf-8" "shell" "time" "stack" "gc" "hash" "math")
 
   (test-cases
         "bad-allocation" "bad-resize" "curie-main" "environment" "execute-fork"
-        "execute-fork-purge" "exit" "filesystem" "graph" "immutable" "io"
+        "execute-fork-purge" "exit" "filesystem" "graph" "io"
         "memory-allocator" "memory-pool" "memory-primitives"
         "multiplex-all-processes" "multiplex-io" "multiplex-network"
         "multiplex-process" "multiplex-sexpr" "network-loop" "read-write"
         "sexpr-read" "sexpr-write" "tree-node-removal" "tree-plain"
         "tree-random" "tree-random-node-removal" "tree-value" "regex"
-        "directory" "io-special" "gc" "sexpr-custom" "time")
+        "io-special" "gc" "sexpr-custom" "time")
 
   (test-case-reference
         ("temporary-curie-test-data" . "tests/reference/curie-test-data")
@@ -52,6 +52,20 @@
 
   (documentation
         "description"))
+
+(library "sievert" libcurie
+  (name "Sievert")
+  (description "library with auxiliary functionality, based off of libcurie")
+  (version "1")
+  (url "http://kyuba.org/")
+
+  (code "immutable" "tree-string" "sievert-sexpr")
+
+  (headers
+        "immutable" "tree" "sexpr")
+
+  (test-cases
+        "immutable" "directory"))
 
 (library "curie++" libcurie
   (name "Curie++")
@@ -92,6 +106,8 @@
   (name "icemake")
   (description "simple build tool for curie, based on curie")
   (version "11")
+
+  (libraries "sievert")
 
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
         "icemake-link" "icemake-crosslink" "icemake-post-process"

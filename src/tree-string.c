@@ -27,7 +27,7 @@
 */
 
 #include <curie/tree.h>
-#include <curie/immutable.h>
+#include <sievert/immutable.h>
 
 void tree_add_node_string (struct tree *t, char *k)
 {

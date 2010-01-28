@@ -917,26 +917,6 @@ sexpr equalp
 
 /*! @} */
 
-/*! \brief List Map
- *  \param[in] list The list to map.
- *  \param[in] f    The function to apply.
- *
- *  This function applies the given function to each element of f.
- */
-void sx_list_map (sexpr list, void (*f)(sexpr));
-
-/*! \brief List Fold
- *  \param[in] list The list to fold.
- *  \param[in] f    The function to apply.
- *  \param[in] seed The seed value to use.
- *  \return The value constructed by f().
- *
- *  This function applies the given function to each element of f, passing the
- *  return value of f to the next function call and ultimately returning the
- *  return value of the last call to f().
- */
-sexpr sx_list_fold (sexpr list, sexpr (*f)(sexpr, sexpr), sexpr seed);
-
 /*! \brief Join Strings/Symbols
  *  \param[in] a The first string or symbol.
  *  \param[in] b The second string or symbol.

@@ -26,34 +26,27 @@
  * THE SOFTWARE.
 */
 
-#include <curie/main.h>
-#include <curie/memory.h>
-#include <curie/directory.h>
 #include <sievert/sexpr.h>
 
-define_string (str_memory_pool,       "./tests/memory-pool.c");
-define_string (str_memory_primitives, "./tests/memory-primitives.c");
-define_string (str_memory_allocator,  "./tests/memory-allocator.c");
-
-sexpr rd_fold (sexpr e, sexpr s)
+void sx_list_map (sexpr list, void (*f)(sexpr))
 {
-    int i = sx_integer (s);
+    while (consp (list))
+    {
+        f(car(list));
 
-    if (truep(equalp(e, str_memory_pool))) i++;
-    else if (truep(equalp(e, str_memory_primitives))) i++;
-    else if (truep(equalp(e, str_memory_allocator))) i++;
-
-    return make_integer (i);
+        list = cdr (list);
+    }
 }
 
-int cmain()
+sexpr sx_list_fold (sexpr list, sexpr (*f)(sexpr, sexpr), sexpr seed)
 {
-    sexpr l = read_directory ("tests/memory-.*\\.c");
+    while (consp (list))
+    {
+        seed = f(car(list), seed);
 
-    int rv = truep(equalp(sx_list_fold(l, rd_fold, make_integer(0)),
-                   make_integer (3))) ? 0 : 1;
+        list = cdr (list);
+    }
 
-    optimise_static_memory_pools();
-
-    return rv;
+    return seed;
 }
+

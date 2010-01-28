@@ -1,0 +1,30 @@
+#include <windows.h>
+
+1 VERSIONINFO
+ FILEVERSION 11,0,0,1
+ PRODUCTVERSION 11,0,0,1
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+ FILEFLAGS VS_FF_PRERELEASE
+ FILEOS VOS__WINDOWS32
+ FILETYPE VFT_DLL
+ FILESUBTYPE 0x0L
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "080904B0"
+        {
+            VALUE "CompanyName", "kyuba.org"
+            VALUE "FileDescription", "Curie Auxiliary Library - Higher-Level Functionality not needed for Curie"
+            VALUE "FileVersion", "1"
+            VALUE "InternalName", "libsievert"
+            VALUE "LegalCopyright", "Copyright (C) 2008-2010, Kyuba Project Members"
+            VALUE "OriginalFilename", "libsievert.1.dll"
+            VALUE "ProductName", "Sievert: Curie Auxiliary Library"
+            VALUE "ProductVersion", "1"
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x0809 0x04B0
+    }
+}

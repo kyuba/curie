@@ -26,7 +26,7 @@
  * THE SOFTWARE.
 */
 
-#include "curie/immutable.h"
+#include "sievert/immutable.h"
 
 #define STRING1 "hello world"
 #define STRING1_LENGTH (unsigned int)(sizeof(STRING1)-1)

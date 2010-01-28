@@ -20,10 +20,6 @@ EXPORTS
     graph_search_node                   @18
     graph_node_add_edge                 @19
     graph_node_search_edge              @20
-    str_immutable                       @21
-    immutable                           @22
-    lock_immutable_pages                @23
-    str_immutable_unaligned             @24
     io_open                             @25
     io_open_stdin                       @26
     io_open_stdout                      @27
@@ -99,8 +95,6 @@ EXPORTS
     sx_destroy                          @100
     sx_register_type                    @101
     equalp                              @102
-    sx_list_map                         @103
-    sx_list_fold                        @104
     sx_join                             @105
     sx_reverse                          @106
     ewhich                              @107
@@ -123,10 +117,6 @@ EXPORTS
     tree_get_node                       @124
     tree_remove_node_specific           @125
     tree_map                            @126
-    tree_add_node_string                @127
-    tree_add_node_string_value          @128
-    tree_get_node_string                @129
-    tree_remove_node_string_specific    @130
     utf8_get_character                  @131
     utf8_encode                         @132
     multiplex_add_ip6_client_sx         @133
