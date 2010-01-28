@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2008-2010, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -118,6 +118,14 @@ extern void *(*resize_mem_recovery)
  *        function will call get_mem_recovery() and return its result instead.
  *        By default this function is set to use cexit(), however, but then
  *        again the condition is extremely rare, so...
+ *
+ *  \note This function allocates memory so that it is aligned on a
+ *        LIBCURIE_PAGE_SIZE boundary. This is regarded as a feature, and it is
+ *        vital for the operation of some other code in curie; thus you may rely
+ *        on this, but when porting curie to a different architecture you MUST
+ *        ensure that this constraint also holds on that architecture. Failure
+ *        to do so should typically show up in the test cases failing on you,
+ *        especially the memory-pool test cases.
  */
 void *get_mem
         (unsigned long int size);
@@ -134,7 +142,7 @@ void *get_mem
  *  truncated.
  *
  *  \note If there is not enough memory for the resize operation, this function
- *        calls resize_mem_recovery() and returns its result instead; however
+ *        calls resize_mem_recovery() and returns its result instead; however,
  *        the default for that function is to cexit(). It's also extremely rare
  *        that this would happen, so it's probably not a big issue.
  */

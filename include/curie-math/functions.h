@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2008-2010, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,34 +27,34 @@
 */
 
 #ifndef _LIBCURIE_MATH_FUNCTIONS_H
-  #define LIBCURIE_MATH_FUNCTIONS_H
+#define LIBCURIE_MATH_FUNCTIONS_H
   
-  #include <curie-math/constants.h>
-  /*! \file 
-    \brief Elementary functions
-    
-    This file contains definitions of functions like powers of arbitrary base/exponent,
-    logarithms, roots etc.
-    
-    */
+#include <curie-math/constants.h>
+/*! \file 
+ *  \brief Elementary functions
+ *
+ *  This file contains definitions of functions like powers of arbitrary base/exponent,
+ *  logarithms, roots etc.
+ */
   
-  /*! \brief base^exp, with integer exponent */
-  double power (double base, int exp);
+/*! \brief base^exp, with integer exponent */
+double power (double base, int exp);
   
-  /*! \brief Square root of x       
-      \return The positive square root of x, if x is >= 0.
-      For negative x, ERROR_UNDEFINED will be returned.
-  */
-  double sqrt (double x); 
-  
+/*! \brief Square root of x       
+ *  \return The positive square root of x, if x is >= 0.
+ *  For negative x, ERROR_UNDEFINED will be returned.
+ */
+double sqrt (double x); 
 
-  double exp (double x);
-  
-  double ln (double x);
-  
-  double log2 (double x);
-  
-  double log10 (double x);
-  
-  double logarithm (double base, double x);
+double exp (double x);
+
+double ln (double x);
+
+double log2 (double x);
+
+double log10 (double x);
+
+double logarithm (double base, double x);
+
 #endif
+

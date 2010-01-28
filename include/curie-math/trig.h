@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2008-2010, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,43 +27,45 @@
 */
 
 #ifndef LIBCURIE_MATH_TRIG_H
-  #define LIBCURIE_MATH_TRIG_H
-  /*! \file 
-    \brief Trigonometry functions
-    
-    */
-  
-  #include <curie-math/constants.h>
+#define LIBCURIE_MATH_TRIG_H
+/*! \file 
+ *  \brief Trigonometry functions
+ *
+ */
 
-  double sin (double x);
+#include <curie-math/constants.h>
 
-  double sinh (double x);
-  
-  double arcsin (double x);
-  
-  double arcsinh (double x); 
-  
-  double cos (double x);
-  
-  double cosh (double x);
-  
-  double arccos (double x);
+double sin (double x);
 
-  double arccosh (double x);
-  
-  double tan (double x);
-  
-  double tanh (double x);
-  
-  double arctan (double x);
-  
-  double arctanh (double x);
-  
-  double cot (double x);
-  
-  double coth (double x);
-  
-  double arccot (double x);
-  
-  double arccoth (double x); 
+double sinh (double x);
+
+double arcsin (double x);
+
+double arcsinh (double x); 
+
+double cos (double x);
+
+double cosh (double x);
+
+double arccos (double x);
+
+double arccosh (double x);
+
+double tan (double x);
+
+double tanh (double x);
+
+double arctan (double x);
+
+double arctanh (double x);
+
+double cot (double x);
+
+double coth (double x);
+
+double arccot (double x);
+
+double arccoth (double x); 
+
 #endif
+

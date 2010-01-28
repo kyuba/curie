@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2008-2010, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,25 +25,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
 */
-  #include <curie-math/functions.h>
 
+#include <curie-math/functions.h>
 
-  double power (double x, int exponent) 
-  {
-	int exp = exponent;
-	if(exponent < 0) exp *= -1;  
+double power (double x, int exponent) 
+{
+    int exp = exponent;
+    if(exponent < 0) exp *= -1;  
 	
-	double q = 1.0, p = x;
-	for(; exp >= 1; exp /= 2)
-	{
-		q = q * (((exp%2)==1) ? p : 1.0);
-		p = p*p; 
-	}
+    double q = 1.0, p = x;
+    for(; exp >= 1; exp /= 2)
+    {
+        q = q * (((exp%2)==1) ? p : 1.0);
+        p = p*p;
+    }
 	
-	double ret = q;
-	if(exponent < 0) 
-	{
-		ret = 1.0/q;
-	}
-	return ret;
-  }
+    double ret = q;
+    if(exponent < 0) 
+    {
+        ret = 1.0/q;
+    }
+    return ret;
+}
+

@@ -16,7 +16,7 @@
             VALUE "FileDescription", "Icemake - Curie Build Tool"
             VALUE "FileVersion", "11"
             VALUE "InternalName", "icemake"
-            VALUE "LegalCopyright", "Copyright (C) 2009, Kyuba Project Members"
+            VALUE "LegalCopyright", "Copyright (C) 2008-2010, Kyuba Project Members"
             VALUE "OriginalFilename", "icemake.exe"
             VALUE "ProductName", "Icemake"
             VALUE "ProductVersion", "11"

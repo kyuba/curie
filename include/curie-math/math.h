@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008, 2009, Kyuba Project Members
+ * Copyright (c) 2008-2010, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,29 +27,30 @@
 */
 
 #ifndef LIBCURIE_MATH_MATH_H
-  #define LIBCURIE_MATH_MATH_H
+#define LIBCURIE_MATH_MATH_H
 
-  /*! \file
-    \brief Mathematical functions and other math-y goodness
-    
-    This file pretty much just includes the more specific headers. 
-    I want the lib to be rather modular, so that you can include what you need rather than the whole lib.
-    Only if you really need the functionality of the whole lib or at least its better part, include this file.
-  */
+/*! \file
+ *  \brief Mathematical functions and other math-y goodness
+ *
+ *  This file pretty much just includes the more specific headers.
+ *  I want the lib to be rather modular, so that you can include what you need rather than the whole lib.
+ *  Only if you really need the functionality of the whole lib or at least its better part, include this file.
+*/
 
-  /*! \brief Trigonometry */
-  #include <curie-math/trig.h>
+/*! \brief Trigonometry */
+#include <curie-math/trig.h>
 
-  /*! \brief Matrix and vector operations */
-  #include <curie-math/matrix.h>
+/*! \brief Matrix and vector operations */
+#include <curie-math/matrix.h>
 
-  // /*! \brief Statistical operations */
-  // #include <curie-math/stats.h> 
+/*! \brief Statistical operations */
+// #include <curie-math/stats.h> 
 
-  /*! \brief Some special functions,  like logarithms, powers, roots and such */
-  #include <curie-math/functions.h>
+/*! \brief Some special functions, like logarithms, powers, roots and such */
+#include <curie-math/functions.h>
 
-  /*! \brief Mathematical constants */
-  #include <curie-math/constants.h>
+/*! \brief Mathematical constants */
+#include <curie-math/constants.h>
 
 #endif
+
