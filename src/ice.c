@@ -38,7 +38,6 @@
 #define WIDTH 78
 static int items_total  = 1;
 static int items_have   = 0;
-static int exitstatus   = -1;
 static int items_failed = 0;
 static sexpr phase      = sx_false;
 static struct io *out;
@@ -87,20 +86,6 @@ static void complete ()
                           "                                 \r", 81);
 }
 
-static void icemake_death(struct exec_context *context, void *aux)
-{
-    if (exitstatus == -1)
-    {
-        exitstatus = context->exitstatus;
-    }
-    else
-    {
-        exitstatus = context->exitstatus;
-
-        complete();
-    }
-}
-
 static void icemake_read (sexpr sx, struct sexpr_io *io, void *aux)
 {
     if (consp (sx))
@@ -140,15 +125,6 @@ static void icemake_read (sexpr sx, struct sexpr_io *io, void *aux)
         }
 
         update_screen();
-    } else if (eofp(sx)) {
-        if (exitstatus != -1)
-        {
-            complete ();
-        }
-        else
-        {
-            exitstatus = -2;
-        }
     }
 }
 
@@ -173,7 +149,6 @@ int cmain()
 
     multiplex_io();
     multiplex_sexpr();
-    multiplex_process();
 
     icemake = which (str_icemake);
 
@@ -188,7 +163,6 @@ int cmain()
     if (context->pid <= 0) return -3;
 
     multiplex_add_io_no_callback (out);
-    multiplex_add_process (context, icemake_death, (void *)0);
     multiplex_add_sexpr (sx_open_io (context->in, context->out),
                          icemake_read, (void *)0);
 
@@ -196,5 +170,8 @@ int cmain()
 
     afree (argvsize, argv);
 
-    return exitstatus;
+    complete();
+
+    return 0;
 }
+
