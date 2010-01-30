@@ -32,9 +32,9 @@
 #define STRING1_LENGTH (unsigned int)(sizeof(STRING1)-1)
 
 int cmain(void) {
-    const char *immutable_ref1 = str_immutable_unaligned (STRING1);
-    const char *immutable_ref2 = str_immutable_unaligned (immutable_ref1),
-               *immutable_ref3 = str_immutable_unaligned (STRING1);
+    const char *immutable_ref1 = str_immutable (STRING1);
+    const char *immutable_ref2 = str_immutable (immutable_ref1),
+               *immutable_ref3 = str_immutable (STRING1);
     unsigned int i;
 
     if (immutable_ref1 == (const char *)0) return 1;

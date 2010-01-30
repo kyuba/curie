@@ -51,8 +51,6 @@ extern "C" {
  *
  *  This function will generate an immutable copy of the given string, or return
  *  a pointer to a previously generated immutable copy of the same string.
- *
- *  \note The input string MUST be aligned and padded to eight-byte boundaries!
  */
 const char *str_immutable
         (const char *s);
@@ -64,8 +62,6 @@ const char *str_immutable
  *
  *  Similarly to str_immutable(), non-string data should be storable in the
  *  same way, so here we go.
- *
- *  \note Data need not be aligned and padded to eight-byte boundaries.
  */
 const void *immutable
         (const void *data, unsigned long length);
@@ -78,19 +74,6 @@ const void *immutable
  * the memory protection effect.
  */
 void lock_immutable_pages ( void );
-
-/*! \brief Create or find immutable Copy of a String, regardless of Alignment
- *  \param[in] s The string to make an immutable copy of.
- *  \return An immutable copy of the string parameter.
- *
- * The str_immutable() function expects its parameter to be aligned to an 8-byte
- * boundary, as well as zero-padded to the next 8-byte boundary, unless its a
- * previous return value of itself. this function is a bit of a helper to ensure
- * these alignment-constraints in case you dont know if your input meets these
- * criteria.
- */
-const char *str_immutable_unaligned
-        (const char *s);
 
 #endif
 

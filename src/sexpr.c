@@ -121,7 +121,7 @@ static sexpr make_string_or_symbol (const char *string, char symbol)
     struct sexpr_string_or_symbol *s;
     unsigned long len;
     unsigned int i;
-    int_32 hash = str_hash (string, &len);
+    int_pointer hash = str_hash (string, &len);
     struct tree_node *n;
 
     if ((n = tree_get_node ((symbol == (char)1) ? &sx_symbol_tree

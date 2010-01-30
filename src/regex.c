@@ -276,7 +276,7 @@ static void on_regex_graph_free (struct graph *g)
 sexpr rx_compile (const char *s)
 {
     unsigned long len;
-    int_32 hash = str_hash (s, &len);
+    int_pointer hash = str_hash (s, &len);
     struct tree_node *n = tree_get_node (&regex_cache, hash);
 
     if (n == (struct tree_node *)0)

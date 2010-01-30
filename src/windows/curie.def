@@ -124,7 +124,6 @@ EXPORTS
     hash_murmur2_32                     @135
     hash_murmur2_64                     @136
     hash_murmur2_pt                     @137
-    hash_superfast                      @138
     tree_destroy_fnd                    @139
     node_get_value                      @140
     make_rational                       @141

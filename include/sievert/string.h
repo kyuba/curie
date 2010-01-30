@@ -36,13 +36,16 @@
 #ifndef LIBSIEVERT_STRING_H
 #define LIBSIEVERT_STRING_H
 
-const char **str_set_add        (const char **set, const char *string);
-const char **str_set_remove     (const char **set, const char *string);
-const char **str_set_join       (const char **a,   const char **b);
-const char **str_set_intersect  (const char **a,   const char **b);
-const char **str_set_difference (const char **a,   const char **b);
+char **str_set_add        (char **set, const char *string);
+char **str_set_remove     (char **set, const char *string);
+char **str_set_join       (char **a,   char **b);
+char **str_set_intersect  (char **a,   char **b);
+char **str_set_difference (char **a,   char **b);
 
-int          str_set_inp        (const char **set, const char *string);
+int    str_set_inp        (char **set, char *string);
+
+char **str_split          (const char *string, int character);
+char **str_split_ws       (const char *string);
 
 #endif
 

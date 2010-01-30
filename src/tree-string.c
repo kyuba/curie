@@ -31,21 +31,21 @@
 
 void tree_add_node_string (struct tree *t, char *k)
 {
-    tree_add_node(t, (int_pointer)str_immutable_unaligned(k));
+    tree_add_node(t, (int_pointer)str_immutable(k));
 }
 
 void tree_add_node_string_value (struct tree *t, char *k, void *v)
 {
-    tree_add_node_value(t, (int_pointer)str_immutable_unaligned(k), v);
+    tree_add_node_value(t, (int_pointer)str_immutable(k), v);
 }
 
 struct tree_node * tree_get_node_string (struct tree *t, char *k)
 {
-    return tree_get_node (t, (int_pointer)str_immutable_unaligned(k));
+    return tree_get_node (t, (int_pointer)str_immutable(k));
 }
 
 void tree_remove_node_string_specific
         (struct tree *t, char *k, struct tree_node *v)
 {
-    tree_remove_node_specific(t, (int_pointer)str_immutable_unaligned(k), v);
+    tree_remove_node_specific(t, (int_pointer)str_immutable(k), v);
 }

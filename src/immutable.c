@@ -29,7 +29,7 @@
 #include <sievert/immutable.h>
 #include <curie/memory.h>
 #include <curie/tree.h>
-#include <curie/string.h>
+#include <curie/hash.h>
 #include <curie/int.h>
 
 #define IMMUTABLE_CHUNKSIZE (4096*2)
@@ -39,76 +39,44 @@ static char *immutable_cursor = (char *)0;
 static unsigned long immutable_data_size = 0;
 static unsigned long immutable_data_space_left = 0;
 
-static struct tree immutable_strings = TREE_INITIALISER;
-static struct tree immutable_string_hashes = TREE_INITIALISER;
+static struct tree immutable_data_tree = TREE_INITIALISER;
+static struct tree immutable_hashes = TREE_INITIALISER;
 
-const char *str_immutable_unaligned (const char * string) {
-    unsigned int length;
-
-    for (length = 0; string[length] != (char)0; length++);
-    length++;
-
-    if (((length % 8) == 0) && ((((int_pointer)string) % 8) == 0)) {
-        /* must be suitably aligned */
-
-        return str_immutable (string);
-    } else {
-        const char *rv;
-        char *r;
-        unsigned int i;
-
-        r = get_mem (length);
-        /* the return value of this is always suitable for our purposes. */
-
-        for (i = 0; string[i] != (char)0; i++) r[i] = string[i];
-        do {
-            r[i] = (char)0;
-            i++;
-        } while (i < (length + (8-(length % 8))));
-
-        rv = str_immutable (r);
-
-        free_mem (length, r);
-
-        return rv;
-    }
-}
-
-const char *str_immutable (const char * string) {
+const char *str_immutable (const char * string)
+{
     unsigned long stringlength = 0;
-    int_pointer hash;
-    const char *rv;
-    struct tree_node *n;
 
     /* the compiler should put static strings into read-only storage... */
     if (string[0] == (char)0) return (const char *)"";
 
-    if (tree_get_node (&immutable_strings, (int_pointer)string) != (struct tree_node *)0) {
-        return string;
-    }
-
-    hash = (int_pointer)str_hash (string, &stringlength);
-
-    stringlength++; /* add an extra character for the terminating 0 */
-
-    if ((n = tree_get_node (&immutable_string_hashes, hash))
-         != (struct tree_node *)0)
+    while (string[stringlength] != 0)
     {
-        return (const char *)node_get_value (n);
+        stringlength++;
     }
 
-    rv = immutable (string, stringlength);
-
-    tree_add_node (&immutable_strings, (int_pointer)rv);
-
-    tree_add_node_value (&immutable_string_hashes, hash, (void *)rv);
-
-    return rv;
+    return (const char *)immutable (string, stringlength);
 }
 
-const void *immutable ( const void * data, unsigned long length ) {
+const void *immutable (const void * data, unsigned long length)
+{
     const char *rv;
     const char *data_char = (const char *)data;
+    struct tree_node *n;
+    int_pointer hash;
+
+    if (tree_get_node (&immutable_data_tree, (int_pointer)data)
+        != (struct tree_node *)0)
+    {
+        return data;
+    }
+
+    hash = hash_murmur2_pt (data, length, 0);
+
+    if ((n = tree_get_node (&immutable_hashes, hash))
+        != (struct tree_node *)0)
+    {
+        return (const void *)node_get_value (n);
+    }
 
     if (length > immutable_data_space_left) {
         unsigned long new_size = IMMUTABLE_CHUNKSIZE;
@@ -143,10 +111,15 @@ const void *immutable ( const void * data, unsigned long length ) {
          *immutable_cursor = *data_char;
     }
 
+    tree_add_node (&immutable_data_tree, (int_pointer)rv);
+
+    tree_add_node_value (&immutable_hashes, hash, (void *)rv);
+
     return rv;
 }
 
-void lock_immutable_pages ( void ) {
+void lock_immutable_pages ( void )
+{
     if (immutable_data_size != 0) {
         /* not null here... */
         mark_mem_ro (immutable_data_size, immutable_data);
