@@ -85,7 +85,6 @@ static void complete ()
 {
     io_write (out, (char*)"\r                                              "
                           "                                 \r", 81);
-    cexit (exitstatus);
 }
 
 static void icemake_death(struct exec_context *context, void *aux)
@@ -174,7 +173,7 @@ int cmain()
 
     multiplex_io();
     multiplex_sexpr();
-    multiplex_all_processes();
+    multiplex_process();
 
     icemake = which (str_icemake);
 
@@ -197,5 +196,5 @@ int cmain()
 
     afree (argvsize, argv);
 
-    return 0;
+    return exitstatus;
 }
