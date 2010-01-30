@@ -45,9 +45,9 @@ static struct io *out;
 
 static void update_screen ()
 {
-    char buffer[0x1000] = "\r * ";
+    char buffer[0x1000] = " * ";
     const char *s = sx_symbol (phase);
-    int i = 4, p = 4, j, x;
+    int i = 3, p = 4, j, x;
 
     for (j = 0; s[j] != (char)0; j++, i++, p++)
     {
@@ -75,7 +75,7 @@ static void update_screen ()
 
     buffer[i]     = ' ';
     buffer[i+1]   = ']';
-    buffer[i+2]   = ' ';
+    buffer[i+2]   = '\r';
     i += 3;
 
     io_write (out, buffer, i);
@@ -83,7 +83,8 @@ static void update_screen ()
 
 static void complete ()
 {
-    io_write (out, (char*)"\n", 1);
+    io_write (out, (char*)"\r                                              "
+                          "                                 \r", 81);
     cexit (exitstatus);
 }
 
@@ -192,7 +193,7 @@ int cmain()
     multiplex_add_sexpr (sx_open_io (context->in, context->out),
                          icemake_read, (void *)0);
 
-    while (1) multiplex();
+    while (multiplex() == mx_ok);
 
     afree (argvsize, argv);
 

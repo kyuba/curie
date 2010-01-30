@@ -34,7 +34,7 @@
 static struct tree size_map = TREE_INITIALISER;
 
 /* weak stubs for stuff in this file, so that when linked with a libc things
-   from the libc are used */
+ * from the libc are used */
 
 #pragma weak cexit
 #pragma weak abort
@@ -93,7 +93,8 @@ void *realloc (void *ptr, unsigned long length)
                 void *r = arealloc (len, ptr, length);
 
                 tree_remove_node (&size_map, (int_pointer)ptr);
-                tree_add_node_value (&size_map, (int_pointer)r, (void *)(int_pointer)length);
+                tree_add_node_value (&size_map, (int_pointer)r,
+                                     (void *)(int_pointer)length);
 
                 ptr = r;
             }
@@ -191,6 +192,18 @@ int strncmp(const unsigned char *s1, const unsigned char *s2, long count)
 
 /* fuck SSP. learn how to programme, bitches */
 
+#pragma weak __stack_chk_fail
+#pragma weak __guard
+#pragma weak __stack_smash_handler
+
 unsigned long int __stack_chk_fail = 0;
 unsigned long int __guard = 0;
 void __stack_smash_handler ( void *p ) {}
+
+/* and this is really only relevant on ARM with recent compilers, but i
+ * figured i might as well put it in the general file... */
+
+#pragma weak __aeabi_unwind_cpp_pr0
+
+void __aeabi_unwind_cpp_pr0 ( void ) {}
+
