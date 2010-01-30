@@ -35,6 +35,10 @@
 #ifndef LIBCURIE_STRING_H
 #define LIBCURIE_STRING_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <curie/int.h>
 
 /* kudos to markos for this one */
@@ -50,6 +54,8 @@
  */
 int_32 str_hash(const char *data, unsigned long *len);
 
+#ifdef __cplusplus
+}
 #endif
 
-/*! @} */
+#endif

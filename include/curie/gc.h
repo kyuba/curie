@@ -42,6 +42,10 @@
 #ifndef LIBCURIE_GC_H
 #define LIBCURIE_GC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <curie/sexpr.h>
 
 /*! \brief Add Garbage Collector Root
@@ -107,6 +111,8 @@ unsigned long gc_invoke      ();
  */
 unsigned long gc_base_items;
 
+#ifdef __cplusplus
+}
 #endif
 
-/*! @} */
+#endif

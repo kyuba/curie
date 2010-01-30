@@ -62,7 +62,7 @@
   (code "immutable" "tree-string" "sievert-sexpr")
 
   (headers
-        "immutable" "tree" "sexpr")
+        "immutable" "tree" "sexpr" "string")
 
   (test-cases
         "immutable" "directory"))

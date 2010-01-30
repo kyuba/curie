@@ -70,5 +70,3 @@ extern void *stack_start_address;
 void initialise_stack();
 
 #endif
-
-/*! @} */

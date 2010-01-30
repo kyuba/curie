@@ -26,7 +26,7 @@
  * THE SOFTWARE.
 */
 
-#include <curie/tree.h>
+#include <sievert/tree.h>
 #include <curie/multiplex.h>
 
 #include <sys/types.h>

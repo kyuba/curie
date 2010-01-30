@@ -124,4 +124,4 @@ extern char **curie_environment;
 }
 #endif
 
-#endif /* LIBCURIE_MAIN_H */
+#endif

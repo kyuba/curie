@@ -40,6 +40,10 @@
 #ifndef LIBCURIE_HASH_H
 #define LIBCURIE_HASH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <curie/int.h>
 
 /*! \brief MurmurHash2, 32-Bit
@@ -99,6 +103,8 @@ int_pointer hash_murmur2_pt ( const void * key, int len, unsigned int seed );
  */
 int_32      hash_superfast ( const int_8 * data, int len );
 
+#ifdef __cplusplus
+}
 #endif
 
-/*! @} */
+#endif

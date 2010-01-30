@@ -26,58 +26,23 @@
  * THE SOFTWARE.
 */
 
-#include <sievert/tree.h>
+/*! \file
+ *  \brief String Handling -- Advanced Functionality
+ *
+ *  Additional helper functions to deal with strings, including string sets
+ *  (i.e. the typical char ** in regular C).
+ */
 
-#include <stdlib.h>
+#ifndef LIBSIEVERT_STRING_H
+#define LIBSIEVERT_STRING_H
 
-#include <icemake/icemake.h>
+const char **str_set_add        (const char **set, const char *string);
+const char **str_set_remove     (const char **set, const char *string);
+const char **str_set_join       (const char **a,   const char **b);
+const char **str_set_intersect  (const char **a,   const char **b);
+const char **str_set_difference (const char **a,   const char **b);
 
-static void do_cross_link (struct target *target, struct target *source)
-{
-    sexpr cur = source->code;
+int          str_set_inp        (const char **set, const char *string);
 
-    while (consp (cur))
-    {
-        sexpr ccar = car (cur);
-        sexpr cccdr = cdr (ccar);
+#endif
 
-        target->code = cons (cons (sym_link, cccdr), target->code);
-
-        cur = cdr (cur);
-    }
-}
-
-static void target_map_cross_link (struct tree_node *node, void *u)
-{
-    struct target *target = (struct target *) node_get_value (node);
-
-    if (!eolp (target->use_objects))
-    {
-        sexpr cur = target->use_objects;
-
-        while (consp (cur))
-        {
-            sexpr o = car (cur);
-            struct tree_node *n1
-                    = tree_get_node_string (&targets, (char *)sx_string (o));
-            struct target *s;
-
-            if (n1 == (struct tree_node *)0)
-            {
-                exit (68);
-            }
-
-            s = (struct target *) node_get_value (n1);
-
-            do_cross_link (target, s);
-
-            cur = cdr(cur);
-        }
-    }
-}
-
-void crosslink_objects ()
-{
-    sx_write (stdio, cons (sym_cross_link, sx_end_of_list));
-    tree_map (&targets, target_map_cross_link, (void *)0);
-}
