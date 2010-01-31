@@ -79,6 +79,40 @@ static void update_screen ()
     io_write (out, buffer, i);
 }
 
+static void describe_failure (unsigned int code, const char *programme)
+{
+    char buffer[0x1000] = " [ 000 ] ";
+    const char *s = sx_symbol (phase);
+    int i = 9, p = 10, j, x;
+
+    buffer[5] = '0' + (code % 10);
+    code /= 10;
+    buffer[4] = '0' + (code % 10);
+    code /= 10;
+    buffer[3] = '0' + (code % 10);
+
+    for (j = 0; s[j] != (char)0; j++, i++, p++)
+    {
+        buffer[i] = s[j];
+    }
+
+    for (j = 0, x = (WIDTH - p);
+         (j < x) && (programme[j] != (char)0); j++, i++, p++)
+    {
+        buffer[i] = programme[j];
+    }
+
+    for (j = 0, x = WIDTH - p + 2; j < x; j++, i++, p++)
+    {
+        buffer[i] = ' ';
+    }
+
+    buffer[i]   = '\n';
+    i++;
+
+    io_write (out, buffer, i);
+}
+
 static void complete ()
 {
     io_write (out, (char*)"\r                                              "
@@ -118,6 +152,15 @@ static void icemake_read (sexpr sx, struct sexpr_io *io, void *aux)
         }
         else if (truep(equalp (c, sym_failed)))
         {
+            sexpr code;
+            sexpr programme;
+
+            c         = cdr (sx);
+            code      = car (c);
+            programme = car (cdr (c));
+
+            describe_failure (sx_integer (code), sx_string (programme));
+
             items_have++;
             items_failed++;
             if (items_have > items_total) items_have = items_total;
