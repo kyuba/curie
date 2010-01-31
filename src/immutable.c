@@ -100,15 +100,23 @@ const void *immutable (const void * data, unsigned long length)
         immutable_data_size = new_size;
     }
 
-    rv = immutable_cursor;
-
-    for (; length != 0;
+    for (rv = immutable_cursor; length != 0;
          immutable_cursor++,
          data_char++,
          length--,
          immutable_data_space_left--)
     {
          *immutable_cursor = *data_char;
+    }
+
+    *immutable_cursor = 0; /* write an extra 0 after whatever we just wrote */
+    immutable_data_space_left--;
+
+    while ((((unsigned long)immutable_cursor) % sizeof(void *)) != 0)
+    {
+        *immutable_cursor = 0;
+        immutable_cursor++;
+        immutable_data_space_left--;
     }
 
     tree_add_node (&immutable_data_tree, (int_pointer)rv);

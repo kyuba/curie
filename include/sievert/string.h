@@ -42,10 +42,12 @@ char **str_set_join       (char **a,   char **b);
 char **str_set_intersect  (char **a,   char **b);
 char **str_set_difference (char **a,   char **b);
 
-int    str_set_inp        (char **set, char *string);
+int    str_set_inp        (char **set, const char *string);
 
 char **str_split          (const char *string, int character);
 char **str_split_ws       (const char *string);
+
+const char *str_join      (char **set, int character);
 
 #endif
 
