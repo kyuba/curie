@@ -82,7 +82,6 @@ static void update_screen ()
 static void describe_failure (unsigned int code, const char *programme)
 {
     char buffer[0x1000] = " [ 000 ] ";
-    const char *s = sx_symbol (phase);
     int i = 9, p = 10, j, x;
 
     buffer[5] = '0' + (code % 10);
@@ -90,11 +89,6 @@ static void describe_failure (unsigned int code, const char *programme)
     buffer[4] = '0' + (code % 10);
     code /= 10;
     buffer[3] = '0' + (code % 10);
-
-    for (j = 0; s[j] != (char)0; j++, i++, p++)
-    {
-        buffer[i] = s[j];
-    }
 
     for (j = 0, x = (WIDTH - p);
          (j < x) && (programme[j] != (char)0); j++, i++, p++)
