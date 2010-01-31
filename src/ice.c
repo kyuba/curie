@@ -171,6 +171,6 @@ int cmain()
 
     complete();
 
-    return 0;
+    return items_failed;
 }
 
