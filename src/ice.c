@@ -30,9 +30,8 @@
 #include <curie/exec.h>
 #include <curie/sexpr.h>
 #include <curie/multiplex.h>
-#include <curie/shell.h>
 #include <curie/memory.h>
-
+#include <sievert/shell.h>
 #include <icemake/icemake.h>
 
 #define WIDTH 78

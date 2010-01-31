@@ -19,7 +19,7 @@
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
         "graph" "filesystem" "io-system" "network-system"
         "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
-        "directory" "directory-common" "libc-compat" "utf-8" "shell"
+        "directory" "directory-common" "libc-compat" "utf-8"
         "sexpr-stdio" "stdio" "stack" "gc" "variables"
         "sexpr-custom" "time" "time-system" "hash" "tree-library"
         "gcd")
@@ -27,7 +27,7 @@
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
         "int" "io" "constants" "graph" "filesystem" "regex"
-        "directory" "string" "utf-8" "shell" "time" "stack" "gc" "hash" "math")
+        "directory" "string" "utf-8" "time" "stack" "gc" "hash" "math")
 
   (test-cases
         "bad-allocation" "bad-resize" "curie-main" "environment" "execute-fork"
@@ -59,10 +59,10 @@
   (version "1")
   (url "http://kyuba.org/")
 
-  (code "immutable" "tree-string" "sievert-sexpr")
+  (code "immutable" "tree-string" "sievert-sexpr" "shell")
 
   (headers
-        "immutable" "tree" "sexpr" "string")
+        "immutable" "tree" "sexpr" "string" "shell")
 
   (test-cases
         "immutable" "directory"))
@@ -130,6 +130,8 @@
   (name "ice")
   (description "Pretty-printing tool for icemake")
   (version "2")
+
+  (libraries "sievert")
 
   (code "ice"))
 

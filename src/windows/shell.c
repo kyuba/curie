@@ -30,7 +30,7 @@
 
 #include <curie/sexpr.h>
 #include <curie/filesystem.h>
-#include <curie/shell.h>
+#include <sievert/shell.h>
 
 sexpr ewhich (char **environment, sexpr programme)
 {
