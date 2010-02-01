@@ -26,11 +26,68 @@
  * THE SOFTWARE.
 */
 
+#include <curie/memory.h>
+#include <sievert/immutable.h>
 #include <sievert/string.h>
+
+/* note that throughout the code, we're not adding a (char *)0 as the last
+ * element, because immutable() will already effectively do the same. this
+ * might, however, not work on architectures where (char *)0 is not an all-zero
+ * bit pattern... we don't care about this for now, since lately those are
+ * somewhat rare. in case curie would get ported to such an architecture, we
+ * would thus have to make a special version of this file. */
 
 char **str_set_add (char **set, const char *string)
 {
-#warning str_set_add() not implemented
+    string = str_immutable (string);
+
+    if (set == (char **)0)
+    {
+        const char *rv[] = { string };
+
+        return (char **)immutable ((const void *)rv, sizeof (const char *));
+    }
+    else
+    {
+        char **cursor = set, **rv, **rvo;
+        unsigned int items = 0, have_string = 0, size;
+
+        while ((*cursor) != (char *)0)
+        {
+            if (!have_string)
+            {
+                if (str_immutable (*cursor) == string)
+                {
+                    have_string = ~0;
+                }
+            }
+
+            items++;
+            cursor++;
+        }
+
+        if (have_string != 0)
+        {
+            return set;
+        }
+
+        size = sizeof (const char *) * (items + 1);
+        rvo = aalloc (size);
+        cursor = rvo;
+
+        for (cursor = rvo; (*set) != (char *)0; set++, cursor++)
+        {
+            *cursor = (char *)str_immutable(*set);
+        }
+
+        *cursor = (char*)string;
+
+        rv = (char **)immutable ((const void *)rvo, size);
+
+        afree (size, (void *)rvo);
+
+        return rv;
+    }
 }
 
 char **str_set_remove (char **set, const char *string)
