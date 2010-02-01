@@ -97,7 +97,6 @@ EXPORTS
     equalp                              @102
     sx_join                             @105
     sx_reverse                          @106
-    ewhich                              @107
     multiplex_signal                    @108
     multiplex_signal_primary            @109
     multiplex_add_signal                @110

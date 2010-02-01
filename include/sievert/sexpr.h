@@ -69,6 +69,20 @@ void sx_list_map (sexpr list, void (*f)(sexpr));
  */
 sexpr sx_list_fold (sexpr list, sexpr (*f)(sexpr, sexpr), sexpr seed);
 
+sexpr sx_set_add        (sexpr set,    sexpr item);
+sexpr sx_set_remove     (sexpr set,    sexpr item);
+sexpr sx_set_merge      (sexpr a,      sexpr b);
+sexpr sx_set_intersect  (sexpr a,      sexpr b);
+sexpr sx_set_difference (sexpr a,      sexpr b);
+
+sexpr sx_set_inp        (sexpr set,    sexpr item);
+sexpr sx_set_rx_inp     (sexpr set,    sexpr regex);
+
+sexpr sx_split          (sexpr item,   sexpr separator);
+sexpr sx_split_ws       (sexpr item);
+
+sexpr sx_merge          (sexpr set,    sexpr glue);
+
 #ifdef __cplusplus
 }
 #endif

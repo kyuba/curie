@@ -9,3 +9,24 @@ EXPORTS
     tree_remove_node_string_specific    @8
     sx_list_map                         @9
     sx_list_fold                        @10
+    ewhich                              @11
+    str_set_add                         @12
+    str_set_remove                      @13
+    str_set_merge                       @14
+    str_set_intersect                   @15
+    str_set_difference                  @16
+    str_set_inp                         @17
+    str_set_rx_inp                      @18
+    str_split                           @19
+    str_split_ws                        @20
+    str_merge                           @21
+    sx_set_add                          @22
+    sx_set_remove                       @23
+    sx_set_merge                        @24
+    sx_set_intersect                    @25
+    sx_set_difference                   @26
+    sx_set_inp                          @27
+    sx_set_rx_inp                       @28
+    sx_split                            @29
+    sx_split_ws                         @30
+    sx_merge                            @31

@@ -26,29 +26,54 @@
  * THE SOFTWARE.
 */
 
-/*! \file
- *  \brief String Handling -- Advanced Functionality
- *
- *  Additional helper functions to deal with strings, including string sets
- *  (i.e. the typical char ** in regular C).
- */
+#include <sievert/sexpr.h>
 
-#ifndef LIBSIEVERT_STRING_H
-#define LIBSIEVERT_STRING_H
+sexpr sx_set_add (sexpr set, sexpr item)
+{
+#warning sx_set_add() not implemented
+}
 
-char **str_set_add        (char **set, const char *string);
-char **str_set_remove     (char **set, const char *string);
-char **str_set_merge      (char **a,   char **b);
-char **str_set_intersect  (char **a,   char **b);
-char **str_set_difference (char **a,   char **b);
+sexpr sx_set_remove (sexpr set, sexpr item)
+{
+#warning sx_set_remove() not implemented
+}
 
-int    str_set_inp        (char **set, const char *string);
-int    str_set_rx_inp     (char **set, const char *regex);
+sexpr sx_set_merge (sexpr a, sexpr b)
+{
+#warning sx_set_merge() not implemented
+}
 
-char **str_split          (const char *string, int separator);
-char **str_split_ws       (const char *string);
+sexpr sx_set_intersect (sexpr a, sexpr b)
+{
+#warning sx_set_intersect() not implemented
+}
 
-const char *str_merge     (char **set, int glue);
+sexpr sx_set_difference (sexpr a, sexpr b)
+{
+#warning sx_set_difference() not implemented
+}
 
-#endif
+sexpr sx_set_inp (sexpr set, sexpr item)
+{
+#warning sx_set_inp() not implemented
+}
 
+sexpr sx_set_rx_inp (sexpr set, sexpr regex)
+{
+#warning sx_set_rx_inp() not implemented
+}
+
+sexpr sx_split (sexpr item, sexpr separator)
+{
+#warning sx_split() not implemented
+}
+
+sexpr sx_split_ws (sexpr item)
+{
+#warning sx_split_ws() not implemented
+}
+
+sexpr sx_merge (sexpr set, sexpr glue)
+{
+#warning sx_merge() not implemented
+}

@@ -26,29 +26,54 @@
  * THE SOFTWARE.
 */
 
-/*! \file
- *  \brief String Handling -- Advanced Functionality
- *
- *  Additional helper functions to deal with strings, including string sets
- *  (i.e. the typical char ** in regular C).
- */
+#include <sievert/string.h>
 
-#ifndef LIBSIEVERT_STRING_H
-#define LIBSIEVERT_STRING_H
+char **str_set_add (char **set, const char *string)
+{
+#warning str_set_add() not implemented
+}
 
-char **str_set_add        (char **set, const char *string);
-char **str_set_remove     (char **set, const char *string);
-char **str_set_merge      (char **a,   char **b);
-char **str_set_intersect  (char **a,   char **b);
-char **str_set_difference (char **a,   char **b);
+char **str_set_remove (char **set, const char *string)
+{
+#warning str_set_remove() not implemented
+}
 
-int    str_set_inp        (char **set, const char *string);
-int    str_set_rx_inp     (char **set, const char *regex);
+char **str_set_merge (char **a, char **b)
+{
+#warning str_set_merge() not implemented
+}
 
-char **str_split          (const char *string, int separator);
-char **str_split_ws       (const char *string);
+char **str_set_intersect (char **a, char **b)
+{
+#warning str_set_intersect() not implemented
+}
 
-const char *str_merge     (char **set, int glue);
+char **str_set_difference (char **a, char **b)
+{
+#warning str_set_difference() not implemented
+}
 
-#endif
+int str_set_inp (char **set, const char *string)
+{
+#warning str_set_inp() not implemented
+}
 
+int str_set_rx_inp (char **set, const char *regex)
+{
+#warning str_set_rx_inp() not implemented
+}
+
+char **str_split (const char *string, int separator)
+{
+#warning str_split() not implemented
+}
+
+char **str_split_ws (const char *string)
+{
+#warning str_split_ws() not implemented
+}
+
+const char *str_merge (char **set, int glue)
+{
+#warning str_merge() not implemented
+}
