@@ -62,9 +62,9 @@ const void *immutable (const void * data, unsigned long length)
     const char *rv;
     const char *data_char = (const char *)data;
     struct tree_node *n;
-    int_pointer hash;
+    int_pointer hash = hash_murmur2_pt (&data, sizeof (const void *), 0);
 
-    if (tree_get_node (&immutable_data_tree, (int_pointer)data)
+    if (tree_get_node (&immutable_data_tree, hash)
         != (struct tree_node *)0)
     {
         return data;
@@ -119,9 +119,11 @@ const void *immutable (const void * data, unsigned long length)
         immutable_data_space_left--;
     }
 
-    tree_add_node (&immutable_data_tree, (int_pointer)rv);
-
     tree_add_node_value (&immutable_hashes, hash, (void *)rv);
+
+    hash = hash_murmur2_pt (&rv, sizeof (const void *), 0);
+
+    tree_add_node (&immutable_data_tree, hash);
 
     return rv;
 }

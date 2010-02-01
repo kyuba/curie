@@ -92,7 +92,58 @@ char **str_set_add (char **set, const char *string)
 
 char **str_set_remove (char **set, const char *string)
 {
-#warning str_set_remove() not implemented
+    if (set == (char **)0)
+    {
+        return (char **)0;
+    }
+    else
+    {
+        char **cursor = set, **rv, **rvo;
+        const char *t;
+        unsigned int items = 0, have_string = 0, size;
+
+        string = str_immutable (string);
+
+        while ((*cursor) != (char *)0)
+        {
+            if (str_immutable (*cursor) == string)
+            {
+                have_string++;
+            }
+            else
+            {
+                items++;
+            }
+
+            cursor++;
+        }
+
+        if (have_string == 0)
+        {
+            return set;
+        }
+
+        size = sizeof (const char *) * (items + 1);
+        rvo = aalloc (size);
+        cursor = rvo;
+
+        for (cursor = rvo; (*set) != (char *)0; set++)
+        {
+            t = str_immutable (*set);
+
+            if (t != string)
+            {
+                *cursor = (char *)t;
+                cursor++;
+            }
+        }
+
+        rv = (char **)immutable ((const void *)rvo, size);
+
+        afree (size, (void *)rvo);
+
+        return rv;
+    }
 }
 
 char **str_set_merge (char **a, char **b)
