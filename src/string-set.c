@@ -27,6 +27,7 @@
 */
 
 #include <curie/memory.h>
+#include <curie/regex.h>
 #include <sievert/immutable.h>
 #include <sievert/string.h>
 
@@ -123,7 +124,12 @@ char **str_set_remove (char **set, const char *string)
             return set;
         }
 
-        size = sizeof (const char *) * (items + 1);
+        if (items == 0)
+        {
+            return (char **)0;
+        }
+
+        size = sizeof (const char *) * items;
         rvo = aalloc (size);
         cursor = rvo;
 
@@ -148,40 +154,159 @@ char **str_set_remove (char **set, const char *string)
 
 char **str_set_merge (char **a, char **b)
 {
+    if (a == (char **)0)
+    {
+        return b;
+    }
+    else if (b == (char **)0)
+    {
+        return a;
+    }
+    else
+    {
+    }
 #warning str_set_merge() not implemented
 }
 
 char **str_set_intersect (char **a, char **b)
 {
+    if ((a == (char **)0) || (b == (char **)0))
+    {
+        return (char **)0;
+    }
+    else
+    {
+    }
 #warning str_set_intersect() not implemented
 }
 
 char **str_set_difference (char **a, char **b)
 {
+    if (a == (char **)0)
+    {
+        return b;
+    }
+    else if (b == (char **)0)
+    {
+        return a;
+    }
+    else
+    {
+    }
 #warning str_set_difference() not implemented
 }
 
 int str_set_memberp (char **set, const char *string)
 {
-#warning str_set_memberp() not implemented
+    if (set != (char **)0)
+    {
+        string = str_immutable (string);
+
+        while (*set != (char *)0)
+        {
+            if (str_immutable (*set) == string)
+            {
+                return ~0;
+            }
+
+            set++;
+        }
+    }
+
+    return 0;
 }
 
 int str_set_rx_memberp (char **set, const char *regex)
 {
-#warning str_set_rx_memberp() not implemented
+    if (set != (char **)0)
+    {
+        sexpr rx = rx_compile (regex);
+
+        while (*set != (char *)0)
+        {
+            if (truep (rx_match (rx, *set)))
+            {
+                return ~0;
+            }
+
+            set++;
+        }
+    }
+
+    return 0;
 }
 
 char **str_split (const char *string, int separator)
 {
-#warning str_split() not implemented
+    if (string == (const char *)0)
+    {
+        return (char **)0;
+    }
+    else
+    {
+        char **rvo, **rv;
+        const char *cursor = string;
+        unsigned int items = 0, start = 0, size;
+
+        while (*cursor != (char)0)
+        {
+            if ((int)(*cursor) == separator)
+            {
+                items++;
+            }
+
+            cursor++;
+        }
+
+        size = sizeof (const char *) * items;
+
+        rvo = aalloc (size);
+
+        rv = rvo;
+        cursor = string;
+
+        while (*cursor != (char)0)
+        {
+            if ((int)(*cursor) == separator)
+            {
+                unsigned int length = cursor - (string + start);
+
+                *rv = (char *)immutable (string + start, length);
+
+                start += length;
+            }
+
+            cursor++;
+        }
+
+        rv = (char **)immutable ((const void *)rvo, size);
+
+        afree (size, rvo);
+
+        return rv;
+    }
 }
 
 char **str_split_ws (const char *string)
 {
+    if (string == (const char *)0)
+    {
+        return (char **)0;
+    }
+    else
+    {
+    }
 #warning str_split_ws() not implemented
 }
 
 const char *str_merge (char **set, int glue)
 {
+    if (set == (char **)0)
+    {
+        return "";
+    }
+    else
+    {
+    }
 #warning str_merge() not implemented
 }
