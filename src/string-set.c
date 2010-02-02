@@ -161,14 +161,14 @@ char **str_set_difference (char **a, char **b)
 #warning str_set_difference() not implemented
 }
 
-int str_set_inp (char **set, const char *string)
+int str_set_memberp (char **set, const char *string)
 {
-#warning str_set_inp() not implemented
+#warning str_set_memberp() not implemented
 }
 
-int str_set_rx_inp (char **set, const char *regex)
+int str_set_rx_memberp (char **set, const char *regex)
 {
-#warning str_set_rx_inp() not implemented
+#warning str_set_rx_memberp() not implemented
 }
 
 char **str_split (const char *string, int separator)

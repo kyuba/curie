@@ -75,8 +75,8 @@ sexpr sx_set_merge      (sexpr a,      sexpr b);
 sexpr sx_set_intersect  (sexpr a,      sexpr b);
 sexpr sx_set_difference (sexpr a,      sexpr b);
 
-sexpr sx_set_inp        (sexpr set,    sexpr item);
-sexpr sx_set_rx_inp     (sexpr set,    sexpr regex);
+sexpr sx_set_memberp    (sexpr set,    sexpr item);
+sexpr sx_set_rx_memberp (sexpr set,    sexpr regex);
 
 sexpr sx_split          (sexpr item,   sexpr separator);
 sexpr sx_split_ws       (sexpr item);

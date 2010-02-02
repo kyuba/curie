@@ -53,14 +53,14 @@ sexpr sx_set_difference (sexpr a, sexpr b)
 #warning sx_set_difference() not implemented
 }
 
-sexpr sx_set_inp (sexpr set, sexpr item)
+sexpr sx_set_memberp (sexpr set, sexpr item)
 {
-#warning sx_set_inp() not implemented
+#warning sx_set_memberp() not implemented
 }
 
-sexpr sx_set_rx_inp (sexpr set, sexpr regex)
+sexpr sx_set_rx_memberp (sexpr set, sexpr regex)
 {
-#warning sx_set_rx_inp() not implemented
+#warning sx_set_rx_memberp() not implemented
 }
 
 sexpr sx_split (sexpr item, sexpr separator)

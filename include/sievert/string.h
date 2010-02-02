@@ -42,8 +42,8 @@ char **str_set_merge      (char **a,   char **b);
 char **str_set_intersect  (char **a,   char **b);
 char **str_set_difference (char **a,   char **b);
 
-int    str_set_inp        (char **set, const char *string);
-int    str_set_rx_inp     (char **set, const char *regex);
+int    str_set_memberp    (char **set, const char *string);
+int    str_set_rx_memberp (char **set, const char *regex);
 
 char **str_split          (const char *string, int separator);
 char **str_split_ws       (const char *string);
