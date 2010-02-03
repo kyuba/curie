@@ -110,6 +110,7 @@ const void *immutable (const void * data, unsigned long length)
     }
 
     *immutable_cursor = 0; /* write an extra 0 after whatever we just wrote */
+    immutable_cursor++;
     immutable_data_space_left--;
 
     while ((((unsigned long)immutable_cursor) % sizeof(void *)) != 0)
