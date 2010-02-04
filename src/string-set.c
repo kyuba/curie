@@ -419,7 +419,7 @@ char **str_split (const char *string, int separator)
     {
         char **rvo, **rv;
         const char *cursor = string;
-        unsigned int items = 0, start = 0, size;
+        unsigned int items = 0, start = 0, size, length;
 
         while (*cursor != (char)0)
         {
@@ -430,6 +430,8 @@ char **str_split (const char *string, int separator)
 
             cursor++;
         }
+
+        items++;
 
         size = sizeof (const char *) * items;
 
@@ -442,14 +444,20 @@ char **str_split (const char *string, int separator)
         {
             if ((int)(*cursor) == separator)
             {
-                unsigned int length = cursor - (string + start);
+                length = cursor - (string + start);
 
                 *rv = (char *)immutable (string + start, length);
+                rv++;
 
-                start += length;
+                start += length + 1;
             }
 
             cursor++;
+        }
+
+        if ((length = cursor - (string + start)) != 0)
+        {
+            *rv = (char *)immutable (string + start, length);
         }
 
         rv = (char **)immutable ((const void *)rvo, size);

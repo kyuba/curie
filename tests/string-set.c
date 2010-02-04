@@ -80,5 +80,14 @@ int cmain()
 
     if (a != b)                                  { return 0x13; }
 
+    a = str_split ("meow: hello world! <3", ' ');
+
+    if (!str_set_memberp (a, "meow:"))           { return 0x14; }
+    if (!str_set_memberp (a, "hello"))           { return 0x15; }
+    if (str_set_memberp  (a, "world"))           { return 0x16; }
+    if (!str_set_memberp (a, "world!"))          { return 0x17; }
+    if (str_set_memberp  (a, "!"))               { return 0x18; }
+    if (!str_set_memberp (a, "<3"))              { return 0x19; }
+
     return 0;
 }
