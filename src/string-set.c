@@ -230,7 +230,7 @@ char **str_set_intersect (char **a, char **b)
     }
     else
     {
-        char **cursor, **tc, **rvo, **rv;
+        char **cursor, **tc, **rv, **rvo;
         unsigned int items = 0, itemsb = 0, size;
         const char *t;
 
@@ -248,6 +248,7 @@ char **str_set_intersect (char **a, char **b)
         rvo = aalloc (size);
 
         rv = rvo;
+        items = 0;
 
         for (cursor = a; *cursor != (char *)0; cursor++)
         {
@@ -265,11 +266,19 @@ char **str_set_intersect (char **a, char **b)
 
           add:
             *rv = (char *)t;
+            rv++;
             items++;
         }
 
-        rv = (char **)immutable ((const void *)rvo,
-                                 sizeof (const char *) * items);
+        if (items == 0)
+        {
+            rv = (char **)0;
+        }
+        else
+        {
+            rv = (char **)immutable ((const void *)rvo,
+                                     sizeof (const char *) * items);
+        }
 
         afree (size, rvo);
 
@@ -279,7 +288,11 @@ char **str_set_intersect (char **a, char **b)
 
 char **str_set_difference (char **a, char **b)
 {
-    if (a == (char **)0)
+    if (a == b)
+    {
+        return (char **)0;
+    }
+    else if (a == (char **)0)
     {
         return b;
     }
@@ -289,8 +302,71 @@ char **str_set_difference (char **a, char **b)
     }
     else
     {
+        char **cursor, **tc, **tcc, **rv, **rvo;
+        unsigned int items = 0, size;
+        const char *t;
+
+        for (cursor = a; *cursor != (char *)0; cursor++)
+        {
+            items++;
+        }
+        for (cursor = b; *cursor != (char *)0; cursor++)
+        {
+            items++;
+        }
+
+        size = sizeof(const void *) * items;
+
+        rvo = aalloc (size);
+
+        rv = rvo;
+
+        cursor = a;
+        tcc = b;
+        items = 0;
+
+      repeat:
+        while (*cursor != (char *)0)
+        {
+            t = str_immutable (*cursor);
+
+            for (tc = tcc; *tc != (char *)0; tc++)
+            {
+                if (t == str_immutable (*tc))
+                {
+                    goto skip;
+                }
+            }
+
+            *rv = (char *)t;
+            rv++;
+            items++;
+
+          skip:
+            cursor++;
+        }
+
+        if (tcc == b)
+        {
+            tcc = a;
+            cursor = b;
+            goto repeat;
+        }
+
+        if (items == 0)
+        {
+            rv = (char **)0;
+        }
+        else
+        {
+            rv = (char **)immutable ((const void *)rvo,
+                                     sizeof (const char *) * items);
+        }
+
+        afree (size, rvo);
+
+        return rv;
     }
-#warning str_set_difference() not implemented
 }
 
 int str_set_memberp (char **set, const char *string)

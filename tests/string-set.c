@@ -36,31 +36,49 @@ int cmain()
     a = str_set_add (a, "hello");
     a = str_set_add (a, "world");
 
-    if (!str_set_memberp (a, "hello")) { return 0x01; }
-    if (!str_set_memberp (a, "world")) { return 0x02; }
-    if (str_set_memberp  (b, "hello")) { return 0x03; }
+    if (!str_set_memberp (a, "hello"))           { return 0x01; }
+    if (!str_set_memberp (a, "world"))           { return 0x02; }
+    if (str_set_memberp  (b, "hello"))           { return 0x03; }
 
     b = str_set_add (b, "!");
 
-    if (!str_set_memberp (b, "!"))     { return 0x04; }
+    if (!str_set_memberp (b, "!"))               { return 0x04; }
 
     c = str_set_merge (a, b);
 
-    if (!str_set_memberp (c, "hello")) { return 0x05; }
-    if (!str_set_memberp (c, "world")) { return 0x06; }
-    if (!str_set_memberp (c, "!"))     { return 0x07; }
+    if (!str_set_memberp (c, "hello"))           { return 0x05; }
+    if (!str_set_memberp (c, "world"))           { return 0x06; }
+    if (!str_set_memberp (c, "!"))               { return 0x07; }
 
     a = str_set_remove (a, "hello");
 
-    if (str_set_memberp  (a, "hello")) { return 0x08; }
-    if (!str_set_memberp (a, "world")) { return 0x09; }
-    if (str_set_memberp  (a, "!"))     { return 0x0a; }
+    if (str_set_memberp  (a, "hello"))           { return 0x08; }
+    if (!str_set_memberp (a, "world"))           { return 0x09; }
+    if (str_set_memberp  (a, "!"))               { return 0x0a; }
 
     a = str_set_intersect (a, c);
 
-    if (str_set_memberp  (a, "hello")) { return 0x0b; }
-    if (!str_set_memberp (a, "world")) { return 0x0c; }
-    if (str_set_memberp  (a, "!"))     { return 0x0d; }
+    if (str_set_memberp  (a, "hello"))           { return 0x0b; }
+    if (!str_set_memberp (a, "world"))           { return 0x0c; }
+    if (str_set_memberp  (a, "!"))               { return 0x0d; }
+
+    a = str_set_difference (a, c);
+
+    if (!str_set_memberp (a, "hello"))           { return 0x0e; }
+    if (str_set_memberp  (a, "world"))           { return 0x0f; }
+    if (!str_set_memberp (a, "!"))               { return 0x10; }
+
+    a = (char **)0;
+    a = str_set_add (a, "!");
+    a = str_set_add (a, "hello");
+    a = str_set_add (a, "world");
+
+    if (str_set_difference (c, c) != (char **)0) { return 0x11; }
+    if (str_set_difference (a, c) != (char **)0) { return 0x12; }
+
+    b = str_set_add (a, "!");
+
+    if (a != b)                                  { return 0x13; }
 
     return 0;
 }
