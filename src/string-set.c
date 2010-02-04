@@ -182,6 +182,7 @@ char **str_set_merge (char **a, char **b)
         rvo = aalloc (size);
 
         rv = rvo;
+        items = 0;
 
       repeat:
         while ((*a) != (char *)0)
@@ -229,8 +230,51 @@ char **str_set_intersect (char **a, char **b)
     }
     else
     {
+        char **cursor, **tc, **rvo, **rv;
+        unsigned int items = 0, itemsb = 0, size;
+        const char *t;
+
+        for (cursor = a; *cursor != (char *)0; cursor++)
+        {
+            items++;
+        }
+        for (cursor = b; *cursor != (char *)0; cursor++)
+        {
+            itemsb++;
+        }
+
+        size = sizeof(const void *) * ((items < itemsb) ? items : itemsb);
+
+        rvo = aalloc (size);
+
+        rv = rvo;
+
+        for (cursor = a; *cursor != (char *)0; cursor++)
+        {
+            t = str_immutable (*cursor);
+
+            for (tc = b; *tc != (char *)0; tc++)
+            {
+                if (t == str_immutable (*tc))
+                {
+                    goto add;
+                }
+            }
+
+            continue;
+
+          add:
+            *rv = (char *)t;
+            items++;
+        }
+
+        rv = (char **)immutable ((const void *)rvo,
+                                 sizeof (const char *) * items);
+
+        afree (size, rvo);
+
+        return rv;
     }
-#warning str_set_intersect() not implemented
 }
 
 char **str_set_difference (char **a, char **b)

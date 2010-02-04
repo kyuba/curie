@@ -56,5 +56,11 @@ int cmain()
     if (!str_set_memberp (a, "world")) { return 0x09; }
     if (str_set_memberp  (a, "!"))     { return 0x0a; }
 
+    a = str_set_intersect (a, c);
+
+    if (str_set_memberp  (a, "hello")) { return 0x0b; }
+    if (!str_set_memberp (a, "world")) { return 0x0c; }
+    if (str_set_memberp  (a, "!"))     { return 0x0d; }
+
     return 0;
 }
