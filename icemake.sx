@@ -60,7 +60,7 @@
   (url "http://kyuba.org/")
 
   (code "immutable" "tree-string" "sievert-sexpr" "sexpr-set" "string-set"
-        "shell")
+        "string-set-regex" "shell")
 
   (headers
         "immutable" "tree" "sexpr" "string" "shell")

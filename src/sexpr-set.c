@@ -68,11 +68,6 @@ sexpr sx_split (sexpr item, sexpr separator)
 #warning sx_split() not implemented
 }
 
-sexpr sx_split_ws (sexpr item)
-{
-#warning sx_split_ws() not implemented
-}
-
 sexpr sx_merge (sexpr set, sexpr glue)
 {
 #warning sx_merge() not implemented

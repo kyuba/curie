@@ -389,26 +389,6 @@ int str_set_memberp (char **set, const char *string)
     return 0;
 }
 
-int str_set_rx_memberp (char **set, const char *regex)
-{
-    if (set != (char **)0)
-    {
-        sexpr rx = rx_compile (regex);
-
-        while (*set != (char *)0)
-        {
-            if (truep (rx_match (rx, *set)))
-            {
-                return ~0;
-            }
-
-            set++;
-        }
-    }
-
-    return 0;
-}
-
 char **str_split (const char *string, int separator)
 {
     if (string == (const char *)0)
@@ -466,18 +446,6 @@ char **str_split (const char *string, int separator)
 
         return rv;
     }
-}
-
-char **str_split_ws (const char *string)
-{
-    if (string == (const char *)0)
-    {
-        return (char **)0;
-    }
-    else
-    {
-    }
-#warning str_split_ws() not implemented
 }
 
 const char *str_merge (char **set, int glue)

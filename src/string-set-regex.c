@@ -26,28 +26,26 @@
  * THE SOFTWARE.
 */
 
-/*! \file
- *  \brief String Handling -- Advanced Functionality
- *
- *  Additional helper functions to deal with strings, including string sets
- *  (i.e. the typical char ** in regular C).
- */
+#include <curie/memory.h>
+#include <curie/regex.h>
+#include <sievert/string.h>
 
-#ifndef LIBSIEVERT_STRING_H
-#define LIBSIEVERT_STRING_H
+int str_set_rx_memberp (char **set, const char *regex)
+{
+    if (set != (char **)0)
+    {
+        sexpr rx = rx_compile (regex);
 
-char **str_set_add        (char **set, const char *string);
-char **str_set_remove     (char **set, const char *string);
-char **str_set_merge      (char **a,   char **b);
-char **str_set_intersect  (char **a,   char **b);
-char **str_set_difference (char **a,   char **b);
+        while (*set != (char *)0)
+        {
+            if (truep (rx_match (rx, *set)))
+            {
+                return ~0;
+            }
 
-int    str_set_memberp    (char **set, const char *string);
-int    str_set_rx_memberp (char **set, const char *regex);
+            set++;
+        }
+    }
 
-char **str_split          (const char *string, int separator);
-
-const char *str_merge     (char **set, int glue);
-
-#endif
-
+    return 0;
+}

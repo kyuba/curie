@@ -18,7 +18,6 @@ EXPORTS
     str_set_memberp                     @17
     str_set_rx_memberp                  @18
     str_split                           @19
-    str_split_ws                        @20
     str_merge                           @21
     sx_set_add                          @22
     sx_set_remove                       @23
@@ -28,5 +27,4 @@ EXPORTS
     sx_set_memberp                      @27
     sx_set_rx_memberp                   @28
     sx_split                            @29
-    sx_split_ws                         @30
     sx_merge                            @31
