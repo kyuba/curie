@@ -27,6 +27,7 @@
 */
 
 #include <curie/main.h>
+#include <sievert/immutable.h>
 #include <sievert/string.h>
 
 int cmain()
@@ -88,6 +89,9 @@ int cmain()
     if (!str_set_memberp (a, "world!"))          { return 0x17; }
     if (str_set_memberp  (a, "!"))               { return 0x18; }
     if (!str_set_memberp (a, "<3"))              { return 0x19; }
+
+    if (str_merge (a, ' ') != str_immutable ("meow: hello world! <3"))
+                                                 { return 0x1a; }
 
     return 0;
 }

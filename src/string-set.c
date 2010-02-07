@@ -456,6 +456,51 @@ const char *str_merge (char **set, int glue)
     }
     else
     {
+        const char *rv;
+        char **cursor = set, *rvo, *rvc;
+        unsigned int length = 0;
+
+        while (*cursor != (char *)0)
+        {
+            if (cursor != set)
+            {
+                length++;
+            }
+
+            for (rv = *cursor; *rv != (const char)0; rv++)
+            {
+                length++;
+            }
+
+            cursor++;
+        }
+
+        rvo = (char *)aalloc (length);
+
+        rvc = rvo;
+        cursor = set;
+
+        while (*cursor != (char *)0)
+        {
+            if (cursor != set)
+            {
+                *rvc = (char)glue;
+                rvc++;
+            }
+
+            for (rv = *cursor; *rv != (const char)0; rv++)
+            {
+                *rvc = *rv;
+                rvc++;
+            }
+
+            cursor++;
+        }
+
+        rv = immutable ((const void *)rvo, length);
+
+        afree (length, rvo);
+
+        return rv;
     }
-#warning str_merge() not implemented
 }
