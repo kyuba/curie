@@ -446,7 +446,11 @@ sexpr rx_match_sx (sexpr g, sexpr sx)
 {
     if (stringp(sx))
     {
-        return rx_match (g, sx_string(sx));
+        return rx_match (g, sx_string (sx));
+    }
+    else if (symbolp (sx))
+    {
+        return rx_match (g, sx_symbol (sx));
     }
 
     return sx_false;

@@ -59,8 +59,8 @@
   (version "1")
   (url "http://kyuba.org/")
 
-  (code "immutable" "tree-string" "sievert-sexpr" "sexpr-set" "string-set"
-        "string-set-regex" "shell")
+  (code "immutable" "tree-string" "sievert-sexpr" "sexpr-set" "sexpr-set-regex"
+        "sexpr-set-string" "string-set" "string-set-regex" "shell")
 
   (headers
         "immutable" "tree" "sexpr" "string" "shell")

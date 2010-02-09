@@ -30,45 +30,155 @@
 
 sexpr sx_set_add (sexpr set, sexpr item)
 {
-#warning sx_set_add() not implemented
+    sexpr c = set;
+
+    while (consp (c))
+    {
+        if (truep (equalp (car (c), item)))
+        {
+            return set;
+        }
+
+        c = cdr (c);
+    }
+
+    return cons (item, set);
 }
 
 sexpr sx_set_remove (sexpr set, sexpr item)
 {
-#warning sx_set_remove() not implemented
+    sexpr rv = sx_end_of_list, c = set, t;
+
+    while (consp (c))
+    {
+        t = car (c);
+
+        if (falsep (equalp (t, item)))
+        {
+            rv = cons (t, rv);
+        }
+
+        c = cdr (c);
+    }
+
+    return rv;
 }
 
 sexpr sx_set_merge (sexpr a, sexpr b)
 {
-#warning sx_set_merge() not implemented
+    sexpr c, t;
+
+    while (consp (b))
+    {
+        t = car (b);
+        c = a;
+
+        while (consp (c))
+        {
+            if (truep (equalp (car (c), t)))
+            {
+                goto next;
+            }
+
+            c = cdr (c);
+        }
+
+        a = cons (t, a);
+
+      next:
+        b = cdr (b);
+    }
+
+    return a;
 }
 
 sexpr sx_set_intersect (sexpr a, sexpr b)
 {
-#warning sx_set_intersect() not implemented
+    sexpr rv = sx_end_of_list, c, t;
+
+    while (consp (b))
+    {
+        t = car (b);
+        c = a;
+
+        while (consp (c))
+        {
+            if (truep (equalp (car (c), t)))
+            {
+                rv = cons (t, rv);
+                goto next;
+            }
+
+            c = cdr (c);
+        }
+
+      next:
+        b = cdr (b);
+    }
+
+    return rv;
 }
 
 sexpr sx_set_difference (sexpr a, sexpr b)
 {
-#warning sx_set_difference() not implemented
+    sexpr rv = sx_end_of_list, c, t, ob = b;
+
+    while (consp (b))
+    {
+        t = car (b);
+        c = a;
+
+        while (consp (c))
+        {
+            if (truep (equalp (car (c), t)))
+            {
+                goto next_a;
+            }
+
+            c = cdr (c);
+        }
+
+        rv = cons (t, rv);
+
+      next_a:
+        b = cdr (b);
+    }
+
+    while (consp (a))
+    {
+        t = car (a);
+        c = ob;
+
+        while (consp (c))
+        {
+            if (truep (equalp (car (c), t)))
+            {
+                goto next_b;
+            }
+
+            c = cdr (c);
+        }
+
+        rv = cons (t, rv);
+
+      next_b:
+        a = cdr (a);
+    }
+
+    return rv;
 }
 
 sexpr sx_set_memberp (sexpr set, sexpr item)
 {
-#warning sx_set_memberp() not implemented
-}
+    while (consp (set))
+    {
+        if (truep (equalp (car (set), item)))
+        {
+            return sx_true;
+        }
 
-sexpr sx_set_rx_memberp (sexpr set, sexpr regex)
-{
-#warning sx_set_rx_memberp() not implemented
-}
+        set = cdr (set);
+    }
 
-sexpr sx_split (sexpr item, sexpr separator)
-{
-#warning sx_split() not implemented
-}
-
-sexpr sx_merge (sexpr set, sexpr glue)
-{
-#warning sx_merge() not implemented
+    return sx_false;
 }
