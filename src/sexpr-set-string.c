@@ -105,6 +105,11 @@ sexpr sx_merge (sexpr set, sexpr glue)
         set = cdr (set);
     }
 
+    if (sset == (char **)0)
+    {
+        return sx_nil;
+    }
+
     if (stringp (glue))
     {
         s = sx_string (glue);
