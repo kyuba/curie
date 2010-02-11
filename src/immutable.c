@@ -78,7 +78,7 @@ const void *immutable (const void * data, unsigned long length)
         return (const void *)node_get_value (n);
     }
 
-    if (length > immutable_data_space_left) {
+    if ((length + 1) > immutable_data_space_left) {
         unsigned long new_size = IMMUTABLE_CHUNKSIZE;
         lock_immutable_pages();
 
