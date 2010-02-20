@@ -26,61 +26,62 @@
  * THE SOFTWARE.
 */
 
-#include "curie/io.h"
+#include "sievert/sexpr.h"
 
-#define TESTDATA "THIS IS SOME TEST DATA"
-#define TESTDATA_LENGTH (unsigned int)(sizeof(TESTDATA) -1)
-
-int cmain(void) {
-    struct io *out = io_open_write ("build/to-io-test-file"), *in;
-    char cont = (char)1;
-    unsigned int i;
-    int rv = 0;
-
-    if (io_write (out, TESTDATA, TESTDATA_LENGTH) != io_complete) {
-        io_close (out);
-        return 11;
-    }
-
-    io_close (out);
-
-    in = io_open_read ("build/to-io-test-file");
-
-    do {
-        enum io_result res = io_read (in);
-
-        switch (res) {
-            case io_changes:
-            case io_no_change:
-                cont = (char)1;
-                break;
-            case io_end_of_file:
-                cont = (char)0;
-                break;
-            case io_unrecoverable_error:
-                rv = 12;
-                goto end;
-            default:
-                rv = res;
-                goto end;
+static sexpr gtp (sexpr a, sexpr b)
+{
+    if (integerp (a))
+    {
+        if (!integerp (b))
+        {
+            return sx_false;
         }
-    } while (cont == (char)1);
 
-    if (in->length != TESTDATA_LENGTH) {
-        rv = 13;
-        goto end;
+        return (sx_integer (a) > sx_integer (b)) ? sx_true : sx_false;
     }
+    else if (symbolp (a))
+    {
+        const char *av, *bv;
 
-    for (i = 0; i < in->length; i++) {
-        if ((in->buffer)[i] != TESTDATA[i]) {
-            rv = 14;
-            goto end;
+        if (integerp (b))
+        {
+            return sx_true;
         }
+        else if (stringp (b))
+        {
+            return sx_false;
+        }
+
+        av = sx_symbol (a);
+        bv = sx_symbol (b);
+
+        return (av[0] > bv[0]) ? sx_true : sx_false;
     }
+    else
+    {
+        const char *av, *bv;
 
-    end:
+        if (integerp (b) || symbolp (b))
+        {
+            return sx_true;
+        }
 
-    io_close (in);
+        av = sx_string (a);
+        bv = sx_string (b);
+
+        return (av[0] > bv[0]) ? sx_true : sx_false;
+    }
+}
+
+int cmain(void)
+{
+    struct sexpr_io *o = sx_open_o (io_open_write ("build/to-sexpr-sort"));
+    struct sexpr_io *i = sx_open_i (io_open_read  ("tests/data/sexpr-sort"));
+    sexpr a;
+
+    while (nexp (a = sx_read (i)));
+
+    sx_write (o, sx_set_sort_merge(a, gtp));
 
     return 0;
 }

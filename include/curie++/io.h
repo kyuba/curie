@@ -33,9 +33,6 @@
 #ifndef LIBCURIEPP_IO_H
 #define LIBCURIEPP_IO_H
 
-#include <curie/int.h>
-#include <curie/sexpr.h>
-
 #include <curie++/multiplex.h>
 
 /*! \brief Curie++ Namespace

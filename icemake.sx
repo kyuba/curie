@@ -40,15 +40,15 @@
         "io-special" "gc" "sexpr-custom" "time")
 
   (test-case-reference
-        ("temporary-curie-test-data" . "tests/reference/curie-test-data")
-        ("temporary-io-test-file" . "tests/reference/io-test-file")
-        ("temporary-multiplexer-sexpr-test-data" .
+        ("build/to-curie-test-data" . "tests/reference/curie-test-data")
+        ("build/to-io-test-file" . "tests/reference/io-test-file")
+        ("build/to-multiplexer-sexpr-test-data" .
          "tests/reference/multiplexer-sexpr-test-data")
-        ("temporary-multiplexer-test-data" .
+        ("build/to-multiplexer-test-data" .
          "tests/reference/multiplexer-test-data")
-        ("temporary-sexpr-read" . "tests/reference/sexpr-read")
-        ("temporary-sexpr-write" . "tests/reference/sexpr-write")
-        ("temporary-sexpr-custom" . "tests/reference/sexpr-custom"))
+        ("build/to-sexpr-read" . "tests/reference/sexpr-read")
+        ("build/to-sexpr-write" . "tests/reference/sexpr-write")
+        ("build/to-sexpr-custom" . "tests/reference/sexpr-custom"))
 
   (documentation
         "description"))
@@ -60,13 +60,16 @@
   (url "http://kyuba.org/")
 
   (code "immutable" "tree-string" "sievert-sexpr" "sexpr-set" "sexpr-set-regex"
-        "sexpr-set-string" "string-set" "string-set-regex" "shell")
+        "sexpr-set-string" "string-set" "string-set-regex" "shell" "sexpr-sort")
 
   (headers
         "immutable" "tree" "sexpr" "string" "shell")
 
   (test-cases
-        "immutable" "directory" "string-set" "sexpr-set"))
+        "immutable" "directory" "string-set" "sexpr-set" "sexpr-sort")
+
+  (test-case-reference
+        ("build/to-sexpr-sort" . "tests/reference/sexpr-sort")))
 
 (library "curie++" libcurie
   (name "Curie++")

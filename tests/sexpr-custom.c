@@ -33,7 +33,7 @@
 define_string(str_hello_world, "hello world!");
 
 int cmain(void) {
-    struct sexpr_io *o = sx_open_o (io_open_write ("temporary-sexpr-custom")),
+    struct sexpr_io *o = sx_open_o (io_open_write ("build/to-sexpr-custom")),
                     *i;
     sexpr forest = graph_create();
     sexpr s = make_integer(1);
@@ -57,7 +57,7 @@ int cmain(void) {
     sx_close_io (o);
     sx_destroy (forest);
 
-    i = sx_open_i (io_open_read ("temporary-sexpr-custom"));
+    i = sx_open_i (io_open_read ("build/to-sexpr-custom"));
 
     while (!eofp(forest = sx_read (i)))
     {

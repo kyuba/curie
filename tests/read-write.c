@@ -36,14 +36,14 @@ int cmain(void) {
     int fd, i, j;
     char buffer[TESTDATA_SIZE];
 
-    fd = a_create ("temporary-curie-test-data", 0660);
+    fd = a_create ("build/to-curie-test-data", 0660);
     if (fd < 0) return 1;
 
     i = a_close(fd);
     if (i < 0) return 2;
 
 /* test the a_write() and a_open_write() functions */
-    fd = a_open_write ("temporary-curie-test-data");
+    fd = a_open_write ("build/to-curie-test-data");
     if (fd < 0) return 3;
 
     i = a_write(fd, TESTDATA, (unsigned int)TESTDATA_SIZE);
@@ -55,7 +55,7 @@ int cmain(void) {
     if (i < 0) return 6;
 
 /* test the a_read() and a_open_read() functions */
-    fd = a_open_read ("temporary-curie-test-data");
+    fd = a_open_read ("build/to-curie-test-data");
     if (fd < 0) return 7;
 
     i = a_read (fd, buffer, (unsigned int)TESTDATA_SIZE);

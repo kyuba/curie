@@ -77,13 +77,15 @@ static void sx_on_connect(struct sexpr_io *io, sexpr sx_tests[4]) {
     sx_write (io, sx_tests[2]);
     sx_write (io, sx_tests[3]);
 
-    multiplex_add_sexpr (io, (void (*)(sexpr, struct sexpr_io *, void *))sx_read_parent, (void *)sx_tests);
+    multiplex_add_sexpr (io, (void (*)(sexpr, struct sexpr_io *, void *))
+                             sx_read_parent, (void *)sx_tests);
 }
 
 static void sx_read_child_confirmation(sexpr sx, struct sexpr_io *io, void *d)
 {
     if (truep(equalp(sx, (sexpr)d))) {
-        multiplex_add_socket_client_sx ("test-socket-sexpr-io", sx_read_child, (void *)0);
+        multiplex_add_socket_client_sx ("build/to-socket-sexpr-io",
+                                        sx_read_child, (void *)0);
     }
 }
 
@@ -124,7 +126,9 @@ int cmain(void) {
             io = sx_open_io (context->in, context->out);
 
             multiplex_add_process(context, mx_on_death, (void *)0);
-            multiplex_add_socket_sx ("test-socket-sexpr-io", (void (*)(struct sexpr_io *, void *))sx_on_connect, (void *)sx_tests);
+            multiplex_add_socket_sx ("build/to-socket-sexpr-io",
+                                     (void (*)(struct sexpr_io *, void *))
+                                     sx_on_connect, (void *)sx_tests);
 
             multiplex_add_sexpr(io, sx_read_parent_sexpr, (void *)0);
 

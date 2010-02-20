@@ -41,7 +41,6 @@
 
 #include <curie/sexpr.h>
 #include <curie++/io.h>
-#include <curie++/multiplex.h>
 
 namespace curiepp
 {

@@ -79,6 +79,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 INPUT                  = include/curie/ \
                          include/curie++/ \
+                         include/sievert/ \
                          src/
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.h *.c *.S *.s

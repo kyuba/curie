@@ -35,7 +35,7 @@ static void mx_on_read(sexpr sx, struct sexpr_io *io, void *n) {
 
 int cmain(void) {
     struct io *r = io_open_read("tests/data/sexpr-read-test-data"),
-              *w = io_open_write("temporary-multiplexer-sexpr-test-data");
+              *w = io_open_write("build/to-multiplexer-sexpr-test-data");
     struct sexpr_io *io = sx_open_io (r, w);
 
     multiplex_sexpr();

@@ -28,3 +28,4 @@ EXPORTS
     sx_set_rx_memberp                   @28
     sx_split                            @29
     sx_merge                            @31
+    sx_set_sort_merge                   @32

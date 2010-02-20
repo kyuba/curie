@@ -26,61 +26,73 @@
  * THE SOFTWARE.
 */
 
-#include "curie/io.h"
+#include <sievert/sexpr.h>
 
-#define TESTDATA "THIS IS SOME TEST DATA"
-#define TESTDATA_LENGTH (unsigned int)(sizeof(TESTDATA) -1)
+sexpr sx_set_sort_merge (sexpr set, sexpr (*gtp)(sexpr, sexpr))
+{
+    sexpr a = sx_end_of_list, b = sx_end_of_list, c = set;
 
-int cmain(void) {
-    struct io *out = io_open_write ("build/to-io-test-file"), *in;
-    char cont = (char)1;
-    unsigned int i;
-    int rv = 0;
+    while (consp (c))
+    {
+        a = cons (car (c), a);
 
-    if (io_write (out, TESTDATA, TESTDATA_LENGTH) != io_complete) {
-        io_close (out);
-        return 11;
-    }
+        c = cdr (c);
 
-    io_close (out);
-
-    in = io_open_read ("build/to-io-test-file");
-
-    do {
-        enum io_result res = io_read (in);
-
-        switch (res) {
-            case io_changes:
-            case io_no_change:
-                cont = (char)1;
-                break;
-            case io_end_of_file:
-                cont = (char)0;
-                break;
-            case io_unrecoverable_error:
-                rv = 12;
-                goto end;
-            default:
-                rv = res;
-                goto end;
+        if (consp (c))
+        {
+            b = cons (car (c), b);
+            
+            c = cdr (c);
         }
-    } while (cont == (char)1);
-
-    if (in->length != TESTDATA_LENGTH) {
-        rv = 13;
-        goto end;
-    }
-
-    for (i = 0; i < in->length; i++) {
-        if ((in->buffer)[i] != TESTDATA[i]) {
-            rv = 14;
-            goto end;
+        else
+        {
+            break;
         }
     }
 
-    end:
+    if (eolp (b)) /* one or no elements in the list, since b wasnt touched */
+    {
+        return a;
+    }
+    else
+    {
+        sexpr rv = sx_end_of_list, aa, ba;
 
-    io_close (in);
+        a = sx_set_sort_merge (a, gtp);
+        b = sx_set_sort_merge (b, gtp);
 
-    return 0;
+        aa = car (a);
+        ba = car (b);
+
+        while (consp (a) && consp (b))
+        {
+            if (truep (gtp (ba, aa)))
+            {
+                rv = cons (aa, rv);
+                a  = cdr (a);
+                aa = car (a);
+            }
+            else
+            {
+                rv = cons (ba, rv);
+                b  = cdr (b);
+                ba = car (b);
+            }
+        }
+
+        while (consp (a))
+        {
+            rv = cons (car (a), rv);
+            a  = cdr (a);
+        }
+
+        while (consp (b))
+        {
+            rv = cons (car (b), rv);
+            b  = cdr (b);
+        }
+
+        return sx_reverse (rv);
+    }
 }
+
