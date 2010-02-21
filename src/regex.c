@@ -260,9 +260,13 @@ sexpr rx_compile_sx (sexpr sx)
     {
         return sx;
     }
-    else if (stringp(sx))
+    else if (stringp (sx))
     {
         return rx_compile (sx_string (sx));
+    }
+    else if (symbolp (sx))
+    {
+        return sx_compile (sx_symbol (sx));
     }
 
     return sx_nonexistent;
