@@ -98,6 +98,8 @@ int cmain()
     if (truep(sx_set_memberp  (a, str_bang)))       { return 0x18; }
     if (falsep(sx_set_memberp (a, str_heart)))      { return 0x19; }
 
+    a = sx_reverse (a);
+
     if (falsep(equalp(sx_merge (a, str_space), str_teststring)))
                                                     { return 0x1a; }
 

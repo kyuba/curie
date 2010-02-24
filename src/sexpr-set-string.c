@@ -38,12 +38,12 @@ sexpr sx_split (sexpr item, sexpr separator)
 
     if (symbolp (separator))
     {
-        s = sx_symbol (item);
+        s = sx_symbol (separator);
         sep = (int)(s[0]);
     }
     else if (stringp (separator))
     {
-        s = sx_string (item);
+        s = sx_string (separator);
         sep = (int)(s[0]);
     }
     else
