@@ -28,7 +28,7 @@
 
 #include "sievert/sexpr.h"
 
-static sexpr gtp (sexpr a, sexpr b)
+static sexpr gtp (sexpr a, sexpr b, void *aux)
 {
     if (integerp (a))
     {
@@ -81,7 +81,7 @@ int cmain(void)
 
     while (nexp (a = sx_read (i)));
 
-    sx_write (o, sx_set_sort_merge(a, gtp));
+    sx_write (o, sx_set_sort_merge(a, gtp, (void *)0));
 
     return 0;
 }

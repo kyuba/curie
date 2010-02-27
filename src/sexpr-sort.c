@@ -28,7 +28,8 @@
 
 #include <sievert/sexpr.h>
 
-sexpr sx_set_sort_merge (sexpr set, sexpr (*gtp)(sexpr, sexpr))
+sexpr sx_set_sort_merge
+    (sexpr set, sexpr (*gtp)(sexpr, sexpr, void *), void *aux)
 {
     sexpr a = sx_end_of_list, b = sx_end_of_list, c = set;
 
@@ -58,15 +59,15 @@ sexpr sx_set_sort_merge (sexpr set, sexpr (*gtp)(sexpr, sexpr))
     {
         sexpr rv = sx_end_of_list, aa, ba;
 
-        a = sx_set_sort_merge (a, gtp);
-        b = sx_set_sort_merge (b, gtp);
+        a = sx_set_sort_merge (a, gtp, aux);
+        b = sx_set_sort_merge (b, gtp, aux);
 
         aa = car (a);
         ba = car (b);
 
         while (consp (a) && consp (b))
         {
-            if (truep (gtp (ba, aa)))
+            if (truep (gtp (ba, aa, aux)))
             {
                 rv = cons (aa, rv);
                 a  = cdr (a);

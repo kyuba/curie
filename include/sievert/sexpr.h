@@ -173,8 +173,9 @@ sexpr sx_split          (sexpr item,   sexpr separator);
 sexpr sx_merge          (sexpr set,    sexpr glue);
 
 /*! \brief Sort the Set according a Custom Function (S-expression Version)
- *  \param[in] set  The set to sort.
- *  \param[in] gtp  The function to sort with.
+ *  \param[in]     set The set to sort.
+ *  \param[in]     gtp The function to sort with.
+ *  \param[in,out] aux Passed to gtp().
  *  \return The original set, sorted using gtp().
  *
  *  This will apply a merge-sort algorithm over set, using gtp as the comparison
@@ -182,7 +183,8 @@ sexpr sx_merge          (sexpr set,    sexpr glue);
  *  is considered greater than the second. (Thus the name; think of it as
  *  (gt? ...).)
  */
-sexpr sx_set_sort_merge (sexpr set,    sexpr (*gtp)(sexpr, sexpr));
+sexpr sx_set_sort_merge
+    (sexpr set, sexpr (*gtp)(sexpr, sexpr, void *), void *aux);
 
 /*! @} */
 
