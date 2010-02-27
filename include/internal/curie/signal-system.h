@@ -45,8 +45,6 @@
 #include <curie/signal.h>
 
 #define SIGNAL_MAX_NUM sig_winch
-#define SIGNAL_BUS_ERROR 7
-#define SIGNAL_SEGMENTATION_VIOLATION 11
 
 void a_set_signal_handler (enum signal signal,
                            void (*handler)(enum signal signal));

@@ -107,7 +107,7 @@ void multiplex_signal () {
         multiplex_io();
 
         for (i = 0; i < SIGNAL_MAX_NUM; i++) {
-            if ((i != SIGNAL_BUS_ERROR) && (i != SIGNAL_SEGMENTATION_VIOLATION))
+            if ((i != sig_bus) && (i != sig_segv))
             {
                 a_set_signal_handler ((enum signal)i, generic_signal_handler);
             }
@@ -136,7 +136,7 @@ void multiplex_signal_primary () {
         multiplex_io();
 
         for (i = 0; i < SIGNAL_MAX_NUM; i++) {
-            if ((i != SIGNAL_BUS_ERROR) && (i != SIGNAL_SEGMENTATION_VIOLATION))
+            if ((i != sig_bus) && (i != sig_segv))
             {
                 a_set_signal_handler ((enum signal)i, generic_signal_handler);
             }
