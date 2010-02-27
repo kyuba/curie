@@ -88,7 +88,8 @@ static struct io *signal_queue = (struct io *)0;
 static void queue_on_close (struct io *qin, void *u) {
     signal_queue = io_open_special();
     if (signal_queue != (struct io *)0) {
-        multiplex_add_io (signal_queue, queue_on_read, queue_on_close, (void *)0);
+        multiplex_add_io (signal_queue, queue_on_read, queue_on_close,
+                          (void *)0);
     }
 }
 
@@ -106,7 +107,10 @@ void multiplex_signal () {
         multiplex_io();
 
         for (i = 0; i < SIGNAL_MAX_NUM; i++) {
-            a_set_signal_handler ((enum signal)i, generic_signal_handler);
+            if ((i != SIGNAL_BUS_ERROR) && (i != SIGNAL_SEGMENTATION_VIOLATION))
+            {
+                a_set_signal_handler ((enum signal)i, generic_signal_handler);
+            }
         }
 
         if ((signal_queue = io_open_special()) == (struct io *)0)
@@ -114,7 +118,8 @@ void multiplex_signal () {
             return;
         }
 
-        multiplex_add_io (signal_queue, queue_on_read, queue_on_close, (void *)0);
+        multiplex_add_io (signal_queue, queue_on_read, queue_on_close,
+                          (void *)0);
 
         installed = (char)1;
     }
@@ -131,12 +136,16 @@ void multiplex_signal_primary () {
         multiplex_io();
 
         for (i = 0; i < SIGNAL_MAX_NUM; i++) {
-            a_set_signal_handler ((enum signal)i, generic_signal_handler);
+            if ((i != SIGNAL_BUS_ERROR) && (i != SIGNAL_SEGMENTATION_VIOLATION))
+            {
+                a_set_signal_handler ((enum signal)i, generic_signal_handler);
+            }
         }
 
         net_open_loop (&signal_queue_in, &signal_queue);
 
-        multiplex_add_io (signal_queue_in, queue_on_read, queue_on_close, (void *)0);
+        multiplex_add_io (signal_queue_in, queue_on_read, queue_on_close,
+                          (void *)0);
         multiplex_add_io_no_callback (signal_queue);
 
         installed = (char)1;
@@ -144,7 +153,11 @@ void multiplex_signal_primary () {
 #endif
 }
 
-void multiplex_add_signal (enum signal signal, enum signal_callback_result (*handler)(enum signal, void *), void *data) {
+void multiplex_add_signal
+    (enum signal signal,
+     enum signal_callback_result (*handler)(enum signal, void *),
+     void *data)
+{
     static struct memory_pool pool
             = MEMORY_POOL_INITIALISER (sizeof(struct handler));
     struct handler *element = get_pool_mem (&pool);
