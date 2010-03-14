@@ -22,7 +22,7 @@
         "directory" "directory-common" "libc-compat" "utf-8"
         "sexpr-stdio" "stdio" "stack" "gc" "variables"
         "sexpr-custom" "time" "time-system" "hash" "tree-library"
-        "gcd")
+        "gcd" "io-pool")
 
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"

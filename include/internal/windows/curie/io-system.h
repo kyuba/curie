@@ -39,6 +39,8 @@
 #ifndef LIBCURIE_IO_SYSTEM_H
 #define LIBCURIE_IO_SYSTEM_H
 
+#include <curie/io.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -61,6 +63,9 @@ extern "C" {
   int a_lstat(const char *path, void *buffer);
 
   extern char last_error_recoverable_p;
+
+  struct io *io_create ();
+  void io_destroy (struct io *io);
 #ifdef __cplusplus
 }
 #endif

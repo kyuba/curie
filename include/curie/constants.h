@@ -104,6 +104,13 @@ extern "C" {
  */
 #define IO_CHUNKSIZE LIBCURIE_PAGE_SIZE
 
+/*! \brief Number of IO Structs to retain
+ *
+ *  This is to prevent some rare and obscure bugs that easily creep in due to
+ *  asynchronous programming.
+ */
+#define IO_STRUCT_POOL_ENTRIES 0xf
+
 /*! \brief Threshold for sx_read()
  *
  * the sx_read function will try to keep reading off a struct io * until either

@@ -26,50 +26,65 @@
  * THE SOFTWARE.
 */
 
-/*! \internal
- *
- * @{
- */
+#include <curie/io-system.h>
+#include <curie/memory.h>
+#include <curie/constants.h>
 
-/*! \file
- *  \brief Glue Code Header for io.h
- *
- */
+static struct io *rpool[IO_STRUCT_POOL_ENTRIES] = { (struct io *)0 };
 
-#ifndef LIBCURIE_IO_SYSTEM_H
-#define LIBCURIE_IO_SYSTEM_H
+struct io *io_create ()
+{
+    struct io *io = 0;
 
-#include <curie/io.h>
+    if (rpool [0] != (struct io *)0)
+    {
+        int i;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  int a_read  (int fd, void *buf, unsigned int count);
-  int a_write (int fd, const void *buf, unsigned int count);
+        io = rpool[0];
 
-  int a_open_read (const char *path);
-  int a_open_write (const char *path);
-  int a_create (const char *path, int mode);
-  int a_close (int fd);
+        for (i = 1; i < IO_STRUCT_POOL_ENTRIES; i++)
+        {
+            rpool[(i - 1)] = rpool[i];
+        }
+    }
+    else
+    {
+        static struct memory_pool io_pool
+            = MEMORY_POOL_INITIALISER(sizeof(struct io));
 
-  int a_dup (int ofd, int nfd);
-  int a_dup_n (int fd);
+        io = get_pool_mem(&io_pool);
+    }
 
-  int a_make_nonblocking (int fd);
+    io->buffer = get_mem (IO_CHUNKSIZE);
 
-  int a_unlink (const char *path);
+    io->status = io_undefined;
+    io->length = 0;
+    io->position = 0;
+    io->buffersize = IO_CHUNKSIZE;
 
-  int a_stat(const char *path, void *buffer);
-  int a_lstat(const char *path, void *buffer);
-
-  extern char last_error_recoverable_p;
-
-  struct io *io_create ();
-  void io_destroy (struct io *io);
-#ifdef __cplusplus
+    return io;
 }
-#endif
 
-#endif /* LIBCURIE_IO_SYSTEM_H */
+void io_destroy (struct io *io)
+{
+    int i;
 
-/*! @} */
+    for (i = 0; i < IO_STRUCT_POOL_ENTRIES; i++)
+    {
+        if (rpool[i] == (struct io *)0)
+        {
+            rpool[i] = io;
+            return;
+        }
+    }
+
+    free_pool_mem ((void *)(rpool[0]));
+
+    for (i = 1; i < IO_STRUCT_POOL_ENTRIES; i++)
+    {
+        rpool[(i - 1)] = rpool[i];
+    }
+
+    rpool[(IO_STRUCT_POOL_ENTRIES - 1)] = io;
+}
+

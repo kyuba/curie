@@ -27,25 +27,7 @@
 */
 
 #include <curie/io-system.h>
-#include <curie/io.h>
 #include <curie/memory.h>
-
-static struct io *io_create ()
-{
-    static struct memory_pool io_pool = MEMORY_POOL_INITIALISER(sizeof(struct io));
-    struct io *io = 0;
-
-    io = get_pool_mem(&io_pool);
-
-    io->buffer = get_mem (IO_CHUNKSIZE);
-
-    io->status = io_undefined;
-    io->length = 0;
-    io->position = 0;
-    io->buffersize = IO_CHUNKSIZE;
-
-    return io;
-}
 
 struct io *io_open_special ()
 {
@@ -380,5 +362,5 @@ void io_close (struct io *io)
         io->buffersize = 0;
     }
 
-    free_pool_mem ((void *)io);
+    io_destroy (io);
 }
