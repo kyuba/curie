@@ -899,6 +899,7 @@ static struct target *get_context()
     context->documentation    = sx_end_of_list;
     context->have_cpp         = sx_false;
     context->allow_exceptions = sx_true;
+    context->buildnumber      = make_integer (0);
 
     return context;
 }
@@ -1840,6 +1841,51 @@ void loop_processes_nokill()
     sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
 }
 
+static void read_metadata ( void )
+{
+    struct sexpr_io *io = sx_open_i (io_open_read("metadata.sx"));
+    sexpr r;
+
+    while (!eofp(r = sx_read (io)) && !nexp (r))
+    {
+        struct target *t = (struct target *)0;
+
+        sx_write (stdio, r);
+
+        if (consp(r)) {
+            sexpr sxcar = car (r);
+            struct tree_node *node =
+                tree_get_node_string(&targets, (char *)sx_string(sxcar));
+
+            if (node != (struct tree_node *)0)
+            {
+                t = (struct target *)node_get_value (node);
+                
+                t->buildnumber = car (cdr (r));
+            }
+        }
+    }
+
+    sx_close_io (io);
+}
+
+static void target_map_save_metadata (struct tree_node *node, void *i)
+{
+    struct sexpr_io *io = (struct sexpr_io *)i;
+    struct target *t = (struct target *)node_get_value (node);
+
+    sx_write (io, cons (t->name, cons (t->buildnumber, sx_end_of_list)));
+}
+
+static void save_metadata ( void )
+{
+    struct sexpr_io *io = sx_open_o (io_open_write("metadata.sx"));
+
+    tree_map (&targets, target_map_save_metadata, (void *)io);
+
+    sx_close_io (io);
+}
+
 #if defined(_WIN32)
 int main (int argc, char **argv)
 #else
@@ -2209,6 +2255,8 @@ int main (int argc, char **argv, char **environ)
 
     sx_close_io (io);
 
+    read_metadata ();
+
     if (!consp(buildtargets))
     {
         buildtargets = all_targets;
@@ -2240,6 +2288,8 @@ int main (int argc, char **argv, char **environ)
     {
         sx_write (stdio, cons (sym_completed, cons (sym_targets, buildtargets)));
     }
+
+    save_metadata ();
 
     return failures;
 }

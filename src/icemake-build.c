@@ -624,6 +624,8 @@ static void do_build_target(struct target *t)
 {
     sexpr c = t->code;
 
+    t->buildnumber = make_integer (sx_integer (t->buildnumber) + 1);
+
     while (consp (c))
     {
         build_object(car(c), t);

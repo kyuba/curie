@@ -155,6 +155,8 @@ struct target {
     sexpr have_cpp;
     /*!\brief Boolean: Allow Exceptions in C++? */
     sexpr allow_exceptions;
+    /*!\brief Number: How often this target has been built. */
+    sexpr buildnumber;
 };
 
 /*! \brief Effective Operating System Name
