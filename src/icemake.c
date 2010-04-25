@@ -51,6 +51,10 @@
 
 #include <icemake/icemake.h>
 
+#if !defined(NOVERSION)
+#include <icemake/version.h>
+#endif
+
 char uname_os     [UNAMELENGTH]        = "generic";
 char uname_arch   [UNAMELENGTH]        = "generic";
 char uname_vendor [UNAMELENGTH]        = "unknown";
@@ -1098,6 +1102,21 @@ static void process_definition (struct target *context, sexpr definition)
 
     mkdir (buffer, 0755);
 
+    snprintf (buffer, BUFFERSIZE, "build/%s/include", archprefix);
+
+    mkdir (buffer, 0755);
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/include/%s", archprefix, sx_string(context->name));
+
+    mkdir (buffer, 0755);
+
+    snprintf (buffer, BUFFERSIZE, "build/%s/include/%s/version.h", archprefix, sx_string(context->name));
+
+    context->headers =
+        cons (cons (str_version,
+                    cons (make_string (buffer), sx_end_of_list)),
+              context->headers);
+
     snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests", archprefix, sx_string(context->name));
 
     mkdir (buffer, 0755);
@@ -1246,13 +1265,17 @@ static struct target *create_documentation (sexpr definition)
     return context;
 }
 
-static void print_help(char *binaryname)
+static void print_help (char *binaryname)
 {
     fprintf (stdout,
+#if !defined(NOVERSION)
+        icemake_version_long "\n\n"
+#endif
         "Usage: %s [options] [targets]\n"
         "\n"
         "Options:\n"
-        " -h           Print help and exit\n"
+        " -h           Print help (this text) and exit.\n"
+        " -v           Print version and exit.\n\n"
         " -t <chost>   Specify target CHOST\n"
         " -z <version> Specify target toolchain version\n"
         " -d <destdir> Specify the directory to install to.\n"
@@ -1277,6 +1300,17 @@ static void print_help(char *binaryname)
         binaryname);
 }
 
+static void print_version ()
+{
+    fprintf (stdout,
+#if defined(NOVERSION)
+        "icemake (version info not available)"
+#else
+        icemake_version_long "\n"
+#endif
+            );
+}
+ 
 static void write_uname_element (char *source, char *target, int tlen)
 {
     int i = 0;
@@ -2021,6 +2055,9 @@ int main (int argc, char **argv, char **environ)
                     case 'r':
                         do_tests = sx_true;
                         break;
+                    case 'v':
+                        print_version ();
+                        return 0;
                     case 'h':
                     case '-':
                         print_help (argv[0]);

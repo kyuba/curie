@@ -564,6 +564,8 @@ define_string (str_nodefaultlibs,       "-nodefaultlibs");
 define_string (str_nostartfiles,        "-nostartfiles");
 /*! \brief Predefined String */
 define_string (str_doxyfile,            "doxyfile");
+/*! \brief Predefined String */
+define_string (str_version,             "version");
 
 /*! \brief Prefix List with Elements from an Environment Variable
  *  \param[in] x   The original list.
