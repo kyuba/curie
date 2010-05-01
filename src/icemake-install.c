@@ -142,8 +142,6 @@ static void install_close (struct io *in, void *aux)
         in->position = in->length;
     }
 
-    multiplex_del_io (out);
-
     files_open--;
 }
 
