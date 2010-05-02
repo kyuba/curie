@@ -26,22 +26,13 @@
  * THE SOFTWARE.
 */
 
+#include <icemake/icemake.h>
+
 #include <sievert/tree.h>
 #include <curie/multiplex.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-
 #include <stdlib.h>
 #include <stdio.h>
-
-#include <icemake/icemake.h>
-
-#if defined(_WIN32)
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
 
 static void run_tests_library_common (sexpr name, struct target *t)
 {

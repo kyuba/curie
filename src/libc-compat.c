@@ -167,24 +167,23 @@ char *strcat(char *restrict s1, const char *restrict s2)
     return s1;
 }
 
-int memcmp(const unsigned char *s1, const unsigned char *s2, long count)
+int memcmp(const void *s1, const void *s2, unsigned long count)
 {
     for (long i = 0; i < count; i++)
     {
-        if (s1[i] == s2[i]) continue;
-        return (s2[i] - s1[i]);
+        if (((unsigned char *)s1)[i] == ((unsigned char *)s2)[i]) continue;
+        return (((unsigned char *)s2)[i] - ((unsigned char *)s1)[i]);
     }
 
     return 0;
 }
 
-int strncmp(const unsigned char *s1, const unsigned char *s2, long count)
+int strncmp(const char *s1, const char *s2, unsigned long count)
 {
     for (long i = 0; (i < count) && (s1[i] != 0) && (s2[i] != 0); i++)
     {
-        if (s1[i] == s2[i]) continue;
-
-        return (s2[i] - s1[i]);
+        if ((unsigned char)(s1[i]) == (unsigned char)(s2[i])) continue;
+        return ((unsigned char)(s2[i]) - (unsigned char)(s1[i]));
     }
 
     return 0;

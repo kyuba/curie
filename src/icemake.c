@@ -26,8 +26,9 @@
  * THE SOFTWARE.
 */
 
+#include <icemake/icemake.h>
+
 #include <curie/memory.h>
-#include <sievert/tree.h>
 #include <curie/multiplex.h>
 #include <curie/exec.h>
 #include <curie/signal.h>
@@ -35,21 +36,17 @@
 #include <curie/stack.h>
 #include <curie/gc.h>
 
+#include <sievert/tree.h>
+
 #include <string.h>
 #include <stdlib.h>
 #if !defined(_WIN32)
-#include <unistd.h>
 #include <sys/utsname.h>
 #include <fcntl.h>
 #endif
 #include <stdio.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-
 #include <ctype.h>
-
-#include <icemake/icemake.h>
 
 #if !defined(NOVERSION)
 #include <icemake/version.h>
@@ -894,7 +891,6 @@ static struct target *get_context()
     context->test_reference   = sx_end_of_list;
     context->bootstrap        = sx_end_of_list;
     context->headers          = sx_end_of_list;
-    context->use_objects      = sx_end_of_list;
     context->data             = sx_end_of_list;
     context->dname            = sx_false;
     context->description      = sx_false;
@@ -963,7 +959,7 @@ static void process_definition (struct target *context, sexpr definition)
                 if (stringp (r))
                 {
                     context->code = cons (cons(sym_resource, cons (r, cons (generate_resource_file_name(context->name), sx_end_of_list))), context->code);
-                }                
+                } 
             }
         }
         else if (truep(equalp(sxcaar, sym_libraries)))
@@ -1024,7 +1020,7 @@ static void process_definition (struct target *context, sexpr definition)
                 while (consp (sxc))
                 {
                     sexpr filename = car (sxc);
-                    d = cons (cons (filename, find_data (context, filename)), d);
+                    d = cons (cons (filename, find_data (context, filename)),d);
 
                     sxc = cdr (sxc);
                 }
@@ -1032,17 +1028,6 @@ static void process_definition (struct target *context, sexpr definition)
                 d = cons (name, d);
 
                 context->data = cons (d, context->data);
-            }
-        }
-        else if (truep(equalp(sxcaar, sym_use_objects)))
-        {
-            sexpr sxc = cdr (sxcar);
-
-            while (consp (sxc))
-            {
-                context->use_objects = cons (car(sxc), context->use_objects);
-
-                sxc = cdr (sxc);
             }
         }
         else if (truep(equalp(sxcaar, sym_test_case_reference)))
@@ -1136,46 +1121,6 @@ static void process_definition (struct target *context, sexpr definition)
 
     if (uname_toolchain == tc_gcc)
     {
-        if (truep(i_combine) && consp(context->code))
-        {
-            sexpr ccur = sx_end_of_list;
-            sexpr cur = context->code;
-
-            sexpr clist = sx_end_of_list;
-
-            do {
-                sexpr sxcar = car (cur);
-                sexpr sxcaar = car (sxcar);
-                sexpr sxcadar = car (cdr (sxcar));
-
-                if (truep(equalp(sxcaar, sym_c)))
-                {
-                    clist = cons (sxcadar, clist);
-                }
-                else
-                {
-                    ccur = cons (sxcar, ccur);
-                }
-
-                cur = cdr (cur);
-            } while (consp(cur));
-
-            if (consp (clist))
-            {
-                char oname[BUFFERSIZE];
-                sexpr sx_o;
-
-                snprintf (oname, BUFFERSIZE, "%s-combined-c-source",
-                          sx_string(context->name));
-
-                sx_o = make_string (oname);
-
-                ccur = cons (cons (sym_c, cons (clist, cons (generate_object_file_name (context->name, sx_o), sx_end_of_list))), ccur);
-            }
-
-            context->code = ccur;
-        }
-
         if (truep (context->have_cpp) &&
             (truep (context->allow_exceptions) || truep (context->hosted)))
         {
@@ -1263,6 +1208,105 @@ static struct target *create_documentation (sexpr definition)
     process_definition (context, cdr(definition));
 
     return context;
+}
+
+static void combine_code (struct target *context, sexpr type, sexpr object_file)
+{
+    sexpr ccur = sx_end_of_list;
+    sexpr cur = context->code;
+
+    sexpr clist = sx_end_of_list;
+
+    do {
+        sexpr sxcar = car (cur);
+        sexpr sxcaar = car (sxcar);
+        sexpr sxcadar = car (cdr (sxcar));
+
+        if (truep(equalp(sxcaar, type)))
+        {
+            clist = cons (sxcadar, clist);
+        }
+        else
+        {
+            ccur = cons (sxcar, ccur);
+        }
+
+        cur = cdr (cur);
+    } while (consp(cur));
+
+    if (consp (clist))
+    {
+        ccur = cons (cons (type, cons (clist, cons (object_file,
+                     sx_end_of_list))), ccur);
+    }
+
+    context->code = ccur;
+}
+
+static void target_map_merge (struct tree_node *node, void *u)
+{
+    struct target *context = (struct target *)node_get_value(node), *tcontext;
+    sexpr cur, ca, nc, ttype;
+    const char *target;
+
+    if (truep (context->programme)) /* dont merge objects for libraries */
+    {
+        for (cur = context->libraries; consp (cur); cur = cdr (cur))
+        {
+            ca = car (cur);
+            target = sx_string (ca);
+
+            if ((node = tree_get_node_string(&targets, (char *)target))
+                != (struct tree_node *)0)
+            {
+                tcontext = (struct target *)node_get_value (node);
+                context->code = sx_set_merge (context->code, tcontext->code);
+                context->libraries = sx_set_remove (context->libraries, ca);
+            }
+        }
+    }
+
+    if (truep (context->programme)) /* dont need PIC objects for programmes */
+    {
+        nc = sx_end_of_list;
+        for (cur = context->code; consp(cur); cur = cdr (cur))
+        {
+            ca = car (cur);
+            ttype = car (ca);
+
+            if (falsep(equalp(ttype, sym_assembly_pic)) &&
+                falsep(equalp(ttype, sym_preproc_assembly_pic)) &&
+                falsep(equalp(ttype, sym_c_pic)) &&
+                falsep(equalp(ttype, sym_cpp_pic)))
+            {
+                nc = sx_set_add (nc, ca);
+            }
+        }
+
+        context->code = nc;
+    }
+}
+
+static void target_map_combine (struct tree_node *node, void *u)
+{
+    struct target *context = (struct target *)node_get_value(node);
+
+    if ((uname_toolchain == tc_gcc) && truep(i_combine) && consp(context->code))
+    {
+        combine_code (context, sym_c,
+                      generate_object_file_name
+                        (context->name, str_combined_c_source));
+
+        combine_code (context, sym_c_pic,
+                      generate_pic_object_file_name
+                        (context->name, str_combined_c_source));
+    }
+}
+
+static void merge_contexts ( void )
+{
+    tree_map (&targets, target_map_merge, (void *)0);
+    tree_map (&targets, target_map_combine, (void *)0);
 }
 
 static void print_help (char *binaryname)
@@ -2286,13 +2330,14 @@ int main (int argc, char **argv, char **environ)
 
         if (t != (struct target *)0)
         {
-            tree_add_node_string_value (&targets, (char *)sx_string(t->name), t);
+            tree_add_node_string_value (&targets, (char *)sx_string(t->name),t);
         }
     }
 
     sx_close_io (io);
 
     read_metadata ();
+    merge_contexts ();
 
     if (!consp(buildtargets))
     {
@@ -2301,7 +2346,6 @@ int main (int argc, char **argv, char **environ)
 
     sx_write (stdio, cons (sym_targets, buildtargets));
 
-    crosslink_objects ();
     build (buildtargets);
     ice_link (buildtargets);
     post_process (buildtargets);

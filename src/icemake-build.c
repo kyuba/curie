@@ -26,15 +26,12 @@
  * THE SOFTWARE.
 */
 
-#include <sievert/tree.h>
+#include <icemake/icemake.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <sievert/tree.h>
 
 #include <stdlib.h>
 #include <stdio.h>
-
-#include <icemake/icemake.h>
 
 static sexpr f_exist_add (sexpr f, sexpr lis)
 {
@@ -261,31 +258,26 @@ static sexpr prepend_cxxflags_msvc (sexpr x)
 
 static void build_object_gcc_assembly (const char *source, const char *target)
 {
-    workstack
-        = cons (cons (p_assembler,
+    workstack = sx_set_add (workstack, cons (p_assembler,
 /*                  cons (str_dc,*/
                     cons (make_string (source),
                       cons (str_do,
-                        cons (make_string(target), sx_end_of_list))))/*)*/
-                , workstack);
+                        cons (make_string(target), sx_end_of_list))))/*)*/);
 }
 
 static void build_object_gcc_preproc_assembly (const char *source, const char *target)
 {
-    workstack
-        = cons (cons (p_c_compiler,
+    workstack = sx_set_add (workstack, cons (p_c_compiler,
                   prepend_includes_gcc (
                     cons (str_dc,
                       cons (make_string (source),
                         cons (str_do,
-                          cons (make_string(target), sx_end_of_list)))))),
-                workstack);
+                          cons (make_string(target), sx_end_of_list)))))));
 }
 
 static void build_object_gcc_c (const char *source, const char *target)
 {
-    workstack
-        = cons (cons (p_c_compiler,
+    workstack = sx_set_add (workstack, cons (p_c_compiler,
                   cons (str_dgcc,
                   cons (str_stdc99,
                     cons (str_wall,
@@ -295,11 +287,11 @@ static void build_object_gcc_c (const char *source, const char *target)
                           cons (str_dc,
                             cons (make_string (source),
                               cons (str_do,
-                                cons (make_string(target), sx_end_of_list))))))))))),
-                workstack);
+                                cons (make_string(target), sx_end_of_list))))))))))));
 }
 
-static void build_object_gcc_c_combine (sexpr sources, const char *target)
+static void build_object_gcc_c_combine (sexpr sources, const char *target,
+                                        struct target *t)
 {
     sexpr item = cons (str_dgcc,
                    cons (str_stdc99,
@@ -309,63 +301,65 @@ static void build_object_gcc_c_combine (sexpr sources, const char *target)
                          prepend_includes_gcc (
                            cons (str_do,
                              cons (make_string (target), sx_end_of_list))))))));
-    sexpr cur;
+    sexpr cur, sx;
 
     for (cur = sources; consp (cur); cur = cdr (cur))
     {
         item = cons (car (cur), item);
     }
 
-    item = cons (p_c_compiler, cons (str_dcombine, cons (str_dc, item)));
+    sx = cons (str_dcombine, cons (str_dc, item));
 
-    workstack = cons (item, workstack);
+/*
+    if (truep (t->programme) && eolp (cdr (t->code)))
+    {
+        sx = cons (str_dfwhole_program, sx);
+    }
+*/
+
+    item = cons (p_c_compiler, sx);
+
+    workstack = sx_set_add (workstack, item);
 }
 
 static void build_object_gcc_cpp
     (const char *source, const char *target, struct target *t)
 {
-    workstack
-        = cons (cons (p_cpp_compiler,
+    workstack = sx_set_add (workstack, cons (p_cpp_compiler,
                   cons (str_dgcc,
                     prepend_cxxflags_gcc (t,
                     prepend_includes_gcc (
                       cons (str_dc,
                         cons (make_string (source),
                           cons (str_do,
-                            cons (make_string(target), sx_end_of_list)))))))),
-                workstack);
+                            cons (make_string(target), sx_end_of_list)))))))));
 }
 
 static void build_object_gcc_assembly_pic (const char *source, const char *target)
 {
-    workstack
-        = cons (cons (p_c_compiler,
+    workstack = sx_set_add (workstack, cons (p_c_compiler,
                   prepend_includes_gcc (
                     cons (str_dfpic,
                     cons (str_dc,
                       cons (make_string (source),
                         cons (str_do,
-                          cons (make_string(target), sx_end_of_list))))))),
-                workstack);
+                          cons (make_string(target), sx_end_of_list))))))));
 }
 
 static void build_object_gcc_preproc_assembly_pic (const char *source, const char *target)
 {
-    workstack
-        = cons (cons (p_c_compiler,
+    workstack = sx_set_add (workstack, cons (p_c_compiler,
                   prepend_includes_gcc (
                     cons (str_dfpic,
                     cons (str_dc,
                       cons (make_string (source),
                         cons (str_do,
-                          cons (make_string(target), sx_end_of_list))))))),
-                workstack);
+                          cons (make_string(target), sx_end_of_list))))))));
 }
 
 static void build_object_gcc_c_pic (const char *source, const char *target)
 {
-    workstack
-        = cons (cons (p_c_compiler,
+    workstack = sx_set_add (workstack, cons (p_c_compiler,
                   cons (str_dfpic,
                   cons (str_dgcc,
                   cons (str_stdc99,
@@ -376,11 +370,11 @@ static void build_object_gcc_c_pic (const char *source, const char *target)
                           cons (str_dc,
                             cons (make_string (source),
                               cons (str_do,
-                                cons (make_string(target), sx_end_of_list)))))))))))),
-                workstack);
+                                cons (make_string(target), sx_end_of_list)))))))))))));
 }
 
-static void build_object_gcc_c_pic_combine (sexpr sources, const char *target)
+static void build_object_gcc_c_pic_combine (sexpr sources, const char *target,
+                                            struct target *t)
 {
     sexpr item = cons (str_dgcc,
                    cons (str_stdc99,
@@ -390,17 +384,25 @@ static void build_object_gcc_c_pic_combine (sexpr sources, const char *target)
                          prepend_includes_gcc (
                            cons (str_do,
                              cons (make_string (target), sx_end_of_list))))))));
-    sexpr cur;
+    sexpr cur, sx;
 
     for (cur = sources; consp (cur); cur = cdr (cur))
     {
         item = cons (car (cur), item);
     }
 
-    item = cons (p_c_compiler, cons (str_dfpic,
-                 cons (str_dcombine, cons (str_dc, item))));
+    sx = cons (str_dcombine, cons (str_dc, item));
 
-    workstack = cons (item, workstack);
+/*
+    if (truep (t->programme) && eolp (cdr (t->code)))
+    {
+        sx = cons (str_dfwhole_program, sx);
+    }
+*/
+
+    item = cons (p_c_compiler, cons (str_dfpic, sx));
+
+    workstack = sx_set_add (workstack, item);
 }
 
 static void build_object_gcc_cpp_pic
@@ -434,13 +436,14 @@ static void build_object_gcc
     }
     else if (truep(equalp(type, sym_preproc_assembly)))
     {
-        build_object_gcc_preproc_assembly (sx_string(source), sx_string(target));
+        build_object_gcc_preproc_assembly (sx_string(source),sx_string(target));
     }
     else if (truep(equalp(type, sym_c)))
     {
         if (consp (source))
         {
-            build_object_gcc_c_combine (source, sx_string(target));
+            build_object_gcc_c_combine
+                (source, sx_string(target), t);
         }
         else
         {
@@ -463,7 +466,8 @@ static void build_object_gcc
     {
         if (consp (source))
         {
-            build_object_gcc_c_pic_combine (source, sx_string(target));
+            build_object_gcc_c_pic_combine
+                (source, sx_string(target), t);
         }
         else
         {
@@ -483,8 +487,7 @@ static void build_object_gcc
 
 static void build_object_borland_generic (const char *source, const char *target)
 {
-    workstack
-        = cons (cons (p_c_compiler,
+    workstack = sx_set_add (workstack, cons (p_c_compiler,
                   cons (str_dAT,
                   cons (str_dq,
                     cons (str_dw,
@@ -493,14 +496,12 @@ static void build_object_borland_generic (const char *source, const char *target
                         cons (str_do,
                           cons (make_string (target),
                             cons (str_dc,
-                              cons (make_string(source), sx_end_of_list)))))))))),
-                workstack);
+                              cons (make_string(source), sx_end_of_list)))))))))));
 }
 
 static void build_object_borland_cpp (const char *source, const char *target)
 {
-    workstack
-        = cons (cons (p_c_compiler,
+    workstack = sx_set_add (workstack, cons (p_c_compiler,
                   cons (str_dAT,
                   cons (str_dq,
                   cons (str_dP,
@@ -510,8 +511,7 @@ static void build_object_borland_cpp (const char *source, const char *target)
                         cons (str_do,
                           cons (make_string (target),
                             cons (str_dc,
-                              cons (make_string(source), sx_end_of_list))))))))))),
-                workstack);
+                              cons (make_string(source), sx_end_of_list))))))))))));
 }
 
 static void build_object_borland (sexpr type, sexpr source, sexpr target)
@@ -538,16 +538,14 @@ static void build_object_msvc_generic (const char *source, const char *target)
 
     snprintf (buffer, BUFFERSIZE, "/Fo%s", target);
 
-    workstack
-        = cons (cons (p_c_compiler,
+    workstack = sx_set_add (workstack, cons (p_c_compiler,
                       cons (str_sc,
                       cons (str_snologo,
                       cons (str_sTC,
                         prepend_cflags_msvc (
                         prepend_includes_msvc (
                           cons (make_string (source),
-                              cons (make_string(buffer), sx_end_of_list)))))))),
-                workstack);
+                              cons (make_string(buffer), sx_end_of_list)))))))));
 }
 
 static void build_object_msvc_cpp (const char *source, const char *target)
@@ -556,8 +554,7 @@ static void build_object_msvc_cpp (const char *source, const char *target)
 
     snprintf (buffer, BUFFERSIZE, "/Fo%s", target);
 
-    workstack
-        = cons (cons (p_c_compiler,
+    workstack = sx_set_add (workstack, cons (p_c_compiler,
                       cons (str_sc,
                       cons (str_snologo,
                       cons (str_sTP,
@@ -565,8 +562,7 @@ static void build_object_msvc_cpp (const char *source, const char *target)
                         prepend_cxxflags_msvc (
                         prepend_includes_msvc (
                           cons (make_string (source),
-                              cons (make_string(buffer), sx_end_of_list))))))))),
-                workstack);
+                              cons (make_string(buffer), sx_end_of_list))))))))));
 }
 
 static void build_object_msvc_resource (const char *source, const char *target)
@@ -575,11 +571,9 @@ static void build_object_msvc_resource (const char *source, const char *target)
 
     snprintf (buffer, BUFFERSIZE, "/fo%s", target);
 
-    workstack
-        = cons (cons (p_resource_compiler,
+    workstack = sx_set_add (workstack, cons (p_resource_compiler,
                       cons (make_string (buffer),
-                            cons (make_string(source), sx_end_of_list))),
-                workstack);
+                            cons (make_string(source), sx_end_of_list))));
 }
 
 static void build_object_msvc (sexpr type, sexpr source, sexpr target)
@@ -751,7 +745,6 @@ static void target_map_build (struct tree_node *node, void *u)
 void build (sexpr buildtargets)
 {
     sexpr cursor = buildtargets;
-    sexpr use_objects = sx_end_of_list;
 
     sx_write (stdio, cons (sym_phase, cons (sym_build, sx_end_of_list)));
 
@@ -764,64 +757,7 @@ void build (sexpr buildtargets)
         sexpr sxcar = car(cursor);
         const char *target = sx_string (sxcar);
 
-        struct tree_node *node = tree_get_node_string(&targets, (char *)target);
-
-        if (node != (struct tree_node *)0)
-        {
-            struct target *t = (struct target *)node_get_value(node);
-
-            if (!eolp (t->use_objects))
-            {
-                sexpr cuo = t->use_objects;
-
-                while (consp (cuo))
-                {
-                    sexpr tx = use_objects;
-                    sexpr cuocar = car (cuo);
-                    char doadd = 1;
-
-                    while (consp (tx))
-                    {
-                        if (truep(equalp(cuocar, car (tx))))
-                        {
-                            doadd = 0;
-                            break;
-                        }
-                        tx = cdr (tx);
-                    }
-
-                    tx = buildtargets;
-
-                    if (doadd) while (consp (tx))
-                    {
-                        if (truep(equalp(cuocar, car (tx))))
-                        {
-                            doadd = 0;
-                            break;
-                        }
-                        tx = cdr (tx);
-                    }
-
-                    if (doadd)
-                    {
-                        use_objects = cons (cuocar, use_objects);
-                    }
-
-                    cuo = cdr (cuo);
-                }
-            }
-        }
-
         build_target (target);
-        cursor = cdr(cursor);
-    }
-
-    cursor = use_objects;
-
-    while (consp(cursor))
-    {
-        sexpr sxcar = car(cursor);
-        build_target (sx_string (sxcar));
         cursor = cdr(cursor);
     }
 

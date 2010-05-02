@@ -37,7 +37,9 @@
  *
  */
 
-#include <curie/sexpr.h>
+#define _BSD_SOURCE
+
+#include <sievert/sexpr.h>
 #include <icemake/icemake-system.h>
 
 #ifndef ICEMAKE_ICEMAKE_H
@@ -137,8 +139,6 @@ struct target {
     sexpr bootstrap;
     /*!\brief List with all Header Files */
     sexpr headers;
-    /*!\brief List with Objects */
-    sexpr use_objects;
     /*!\brief List with Data Files (for installation) */
     sexpr data;
     /*!\brief Programme/Library Name */
@@ -364,8 +364,6 @@ define_symbol (sym_headers,             "headers");
 /*! \brief Predefined Symbol */
 define_symbol (sym_link,                "link");
 /*! \brief Predefined Symbol */
-define_symbol (sym_use_objects,         "use-objects");
-/*! \brief Predefined Symbol */
 define_symbol (sym_assembly,            "assembly");
 /*! \brief Predefined Symbol */
 define_symbol (sym_preproc_assembly,    "preprocessed-assembly");
@@ -477,8 +475,6 @@ define_string (str_msvcrt,              "msvcrt");
 /*! \brief Predefined String */
 define_string (str_dlc,                 "-lc");
 /*! \brief Predefined String */
-define_string (str_dlcurie,             "-lcurie");
-/*! \brief Predefined String */
 define_string (str_do,                  "-o");
 /*! \brief Predefined String */
 define_string (str_dc,                  "-c");
@@ -566,6 +562,10 @@ define_string (str_nostartfiles,        "-nostartfiles");
 define_string (str_doxyfile,            "doxyfile");
 /*! \brief Predefined String */
 define_string (str_version,             "version");
+/*! \brief Predefined String */
+define_string (str_combined_c_source,   "combined-c-source");
+/*! \brief Predefined String */
+define_string (str_dfwhole_program,     "-fwhole-program");
 
 /*! \brief Prefix List with Elements from an Environment Variable
  *  \param[in] x   The original list.
@@ -616,14 +616,6 @@ void post_process (sexpr targets);
  *  \param[in] targets The targets to build documentation for.
  */
 void build_documentation (sexpr targets);
-
-/*! \brief Crosslink Targets
- *  \param[in] targets The targets to cross-link.
- *
- *  This step is a bit tricky, it's supposed to be used when directly joining
- *  multiple libraries during the build.
- */
-void crosslink_objects ( void );
 
 /*! \brief Loop over all Processes
  *

@@ -40,6 +40,10 @@
 #ifndef ICEMAKE_ICEMAKE_SYSTEN_H
 #define ICEMAKE_ICEMAKE_SYSTEM_H
 
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #endif
 
 /*! @} */

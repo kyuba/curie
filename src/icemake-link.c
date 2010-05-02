@@ -26,25 +26,14 @@
  * THE SOFTWARE.
 */
 
-#define _BSD_SOURCE
+#include <icemake/icemake.h>
 
 #include <sievert/tree.h>
 #include <curie/multiplex.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-#include <icemake/icemake.h>
-
-#if defined(_WIN32)
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
 
 static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
 {
@@ -65,7 +54,9 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
         switch (i_os)
         {
             case os_linux:
-                sx = cons (str_Wls, cons (str_Wlznoexecstack, cons (str_Wlznorelro, cons (str_Wlgcsections, cons (str_Wlsortcommon, sx)))));
+                sx = cons (str_Wls, cons (str_Wlznoexecstack,
+                           cons (str_Wlznorelro, cons (str_Wlgcsections,
+                                 cons (str_Wlsortcommon, sx)))));
                 break;
             default:
                 break;
@@ -292,10 +283,6 @@ static void link_programme_gcc_filename (sexpr ofile, sexpr name, sexpr code, st
     {
         sx = cons (str_dend_group, sx);
     }
-    else if (truep (t->use_curie))
-    {
-        sx = cons (str_dlcurie, sx);
-    }
 
     havebin = (stat (sx_string (ofile), &res) == 0);
 
@@ -432,6 +419,8 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
     sx = collect_code (sx, code, &havelib, &res);
 
     if (!havelib) {
+        unlink (buffer);
+
         workstack
                 = cons (cons (p_archiver,
                         cons (str_dr,

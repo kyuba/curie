@@ -26,11 +26,11 @@
  * THE SOFTWARE.
 */
 
+#include <icemake/icemake.h>
+
 #include <sievert/tree.h>
 
 #include <stdio.h>
-
-#include <icemake/icemake.h>
 
 /*static void post_process_library_gcc (sexpr name, struct target *t)
 {

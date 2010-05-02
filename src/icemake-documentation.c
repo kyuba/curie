@@ -26,16 +26,13 @@
  * THE SOFTWARE.
 */
 
+#include <icemake/icemake.h>
+
 #include <sievert/tree.h>
 #include <curie/filesystem.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-
 #include <stdlib.h>
 #include <stdio.h>
-
-#include <icemake/icemake.h>
 
 static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
 {
