@@ -109,7 +109,7 @@ unsigned long gc_invoke      ();
  *  hint the garbage collector to how many s-expressions are eligible for
  *  garbage collection. This saves on some re-allocations.
  */
-unsigned long gc_base_items;
+extern unsigned long gc_base_items;
 
 #ifdef __cplusplus
 }
