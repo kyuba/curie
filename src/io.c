@@ -277,6 +277,8 @@ enum io_result io_commit (struct io *io)
     switch (io->type) {
         case iot_undefined:
             return io_undefined;
+        case iot_buffer:
+            return io_end_of_file;
         case iot_special_read:
         case iot_read:
             return io_read(io);

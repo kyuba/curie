@@ -32,7 +32,7 @@
 
 static struct io *rpool[IO_STRUCT_POOL_ENTRIES] = { (struct io *)0 };
 
-struct io *io_create ()
+static struct io *get_io_struct ()
 {
     struct io *io = 0;
 
@@ -54,6 +54,33 @@ struct io *io_create ()
 
         io = get_pool_mem(&io_pool);
     }
+
+    return io;
+}
+
+struct io *io_open_buffer (void *buffer, int size)
+{
+    struct io *io = get_io_struct ();
+
+    io->buffer = buffer;
+
+    io->status = io_end_of_file;
+    io->length = size;
+    io->position = 0;
+    io->buffersize = 0; /* set to 0 so other code will not try to manage the
+                           buffer by resizing or freeing it */
+#if defined(_WIN32)
+    io->handle = (void *)0;
+#else
+    io->fd = -1;
+#endif
+
+    return io;
+}
+
+struct io *io_create ()
+{
+    struct io *io = get_io_struct ();
 
     io->buffer = get_mem (IO_CHUNKSIZE);
 

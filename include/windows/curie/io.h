@@ -98,7 +98,20 @@ enum io_type {
      *
      *  Changing an iot_special_read to this won't invalidate the buffer.
      */
-    iot_special_write = 4
+    iot_special_write = 4,
+
+    /*! \brief "Buffer" I/O Mode
+     *
+     *  The "buffer mode" is special in that the complete contents of the "file"
+     *  the struct wraps up are known beforehand. This would be used either when
+     *  the file is mmap()'d, when preparing a memory buffer with data that is
+     *  typically read off a file, or when including files in a binary.
+     *
+     *  Writing to this type of file is discarded. Moving the file position will
+     *  not discard the beginning of the buffer, closing the file will not
+     *  unmap or free the memory occupied by the buffer.
+     */
+    iot_buffer = 5
 };
 
 /*! \brief Result code for an I/O Operation
@@ -310,6 +323,25 @@ struct io *io_open_create
  *  reading from it will report io_changes once after each write operation.
  */
 struct io *io_open_special ( void );
+
+/*! \brief Create I/O Structure from Memory Buffer
+ *  \param[in] buffer The memory buffer to use.
+ *  \param[in] size   The size of the memory buffer.
+ *  \return A new struct io.
+ *
+ *  This function will take the buffer and wrap it up in an iot_buffer type I/O
+ *  structure. Reading from this structure will always report an end-of-file
+ *  condition, as the whole buffer is already available, and writing to it will
+ *  have the written data discarded.
+ *
+ *  \note Closing the I/O structure will not discard the buffer, so you need to
+ *        arrange for the buffer to be freed manually. This shouldn't be a
+ *        problem in most use cases, however, as the buffer should typically
+ *        be used for data that is always present (for example by being compiled
+ *        into the binary) or mmap()'d (thus not using any real memory to begin
+ *        with).
+ */
+struct io *io_open_buffer ( void *buffer, int size );
 
 /*! \brief Write Data to I/O Structure
  *  \param[in] io     The I/O structure to write data to.

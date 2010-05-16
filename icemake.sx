@@ -60,13 +60,15 @@
   (url "http://kyuba.org/")
 
   (code "immutable" "tree-string" "sievert-sexpr" "sexpr-set" "sexpr-set-regex"
-        "sexpr-set-string" "string-set" "string-set-regex" "shell" "sexpr-sort")
+        "sexpr-set-string" "string-set" "string-set-regex" "shell" "sexpr-sort"
+        "cpio")
 
   (headers
-        "immutable" "tree" "sexpr" "string" "shell")
+        "immutable" "tree" "sexpr" "string" "shell" "cpio")
 
   (test-cases
-        "immutable" "directory" "string-set" "sexpr-set" "sexpr-sort")
+        "immutable" "directory" "string-set" "sexpr-set" "sexpr-sort"
+        "cpio")
 
   (test-case-reference
         ("build/to-sexpr-sort" . "tests/reference/sexpr-sort")))
