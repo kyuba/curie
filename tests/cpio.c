@@ -77,12 +77,15 @@ static void on_new_file (struct io *io, const char *name, void *aux)
 
 static void on_end_of_archive (void *aux)
 {
-    cexit ((num_files == 3) ? 0 : 6);
+    num_files++;
 }
 
 int cmain()
 {
-    struct io *f = io_open_read ("tests/data/test-data.cpio");
+    struct io *f   = io_open_read  ("tests/data/test-data.cpio");
+    struct io *out = io_open_write ("build/test-archive.cpio");
+    struct io *s;
+    struct cpio *cpio;
 
     stdio = sx_open_stdio();
 
@@ -93,5 +96,23 @@ int cmain()
 
     while (multiplex() != mx_nothing_to_do);
 
-    return 1;
+    f = io_open_read  ("tests/data/test-data.cpio");
+    cpio_read_archive (f, ".*1", on_new_file, on_end_of_archive, (void *)0);
+
+    while (multiplex() != mx_nothing_to_do);
+
+    cpio = cpio_create_archive (out);
+
+    s = io_open_special ();
+
+    cpio_next_file (cpio, "file-1", s);
+
+    io_write (s, "whee\n", 5);
+    io_write (s, "whoo", 4);
+
+    cpio_next_file (cpio, "file-2", io_open_buffer ("boing", 5));
+
+    cpio_close (cpio);
+
+    return (num_files == 6) ? 0 : 1;
 }

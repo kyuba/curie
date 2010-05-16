@@ -49,12 +49,13 @@ extern "C" {
 
 #include <curie/io.h>
 
-struct cpio
-{
-    struct io *output;
-    struct io *current_file;
-    const char *current_file_name;
-};
+/*! \brief CPIO Archive Handle
+ *
+ *  This structure is used to keep track of the state of a created archive. The
+ *  contents are not really important to users, so the struct's definition is
+ *  hidden.
+ */
+struct cpio;
 
 /*! \brief Initialise the CPIO Multiplexer
  *
@@ -99,12 +100,40 @@ void cpio_read_archive
       void (*on_end_of_archive) (void *aux),
       void *aux );
 
+/*! \brief Create a CPIO Archive
+ *  \param[out] out Output file.
+ *  \return The new cpio structure.
+ *
+ *  Creates a new CPIO handler that will write its data to the given output
+ *  file.
+ */
 struct cpio *cpio_create_archive
     ( struct io *out );
 
+/*! \brief Add a File to a CPIO Archive
+ *  \param[out] cpio     The archive to add the file to.
+ *  \param[in]  filename Name of the file to create.
+ *  \param[in]  file     File data to fill the file with.
+ *
+ *  Use this function to add a file to a CPIO archive. Most file metadata is
+ *  stubbed with more or less sane defaults. The file data is added immediately
+ *  if file is an iot_buffer type structure, otherwise it is added with the next
+ *  call to cpio_close() or cpio_next_file().
+ *
+ *  Make sure filename is not made unavailable until the data is written, if
+ *  need be, use the str_immutable() function. Also note that this function will
+ *  call io_close() on the file when appropriate, so do not manually close the
+ *  file after passing it to this function.
+ */
 void cpio_next_file
     ( struct cpio *cpio, const char *filename, struct io *file );
 
+/*! \brief Finalise a CPIO Archive
+ *  \param[in] cpio The archive to close.
+ *
+ *  This will write the archive's trailer, flush all data and close the output
+ *  stream.
+ */
 void cpio_close
     ( struct cpio *cpio );
 

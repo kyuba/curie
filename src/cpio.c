@@ -39,6 +39,14 @@ enum cpio_options
     co_have_end_of_archive
 };
 
+struct cpio
+{
+    struct io *output;
+    struct io *current_file;
+    const char *current_file_name;
+    int inode;
+};
+
 struct cpio_read_data
 {
     enum cpio_options options;
@@ -286,10 +294,12 @@ void cpio_read_archive
               (struct io *)0, rx_compile (regex) };
 
         cpio_process_fragment (io, (void *)&data);
+
+        io_close (io);
     }
     else
     {
-        struct memory_pool pool =
+        static struct memory_pool pool =
             MEMORY_POOL_INITIALISER (sizeof (struct cpio_read_data));
         struct cpio_read_data *data = get_pool_mem (&pool);
 
@@ -309,18 +319,110 @@ void cpio_read_archive
 struct cpio *cpio_create_archive
     ( struct io *out )
 {
-#warning cpio_create_archive(): not implemented
+    static struct memory_pool pool =
+        MEMORY_POOL_INITIALISER (sizeof (struct cpio));
+    struct cpio *cpio = get_pool_mem (&pool);
+
+    cpio->output            = out;
+    cpio->current_file      = (struct io *)0;
+    cpio->current_file_name = (const char *)0;
+    cpio->inode             = 0;
+
+    return cpio;
+}
+
+static void cpio_write_file
+    (struct io *out, char *b, int size, const char *fname, int inode)
+{
+    int_16 ts = 0x71c7, ts2;
+    int_32 tl = size;
+
+    io_collect (out, (char *)&ts, 2); /* magic */
+
+    ts = 1;       io_collect (out, (char *)&ts, 2); /* dev */
+    ts = inode;   io_collect (out, (char *)&ts, 2); /* inode */
+    ts = 0100644; io_collect (out, (char *)&ts, 2); /* mode */
+    ts = 0;       io_collect (out, (char *)&ts, 2); /* uid */
+    ts = 0;       io_collect (out, (char *)&ts, 2); /* gid */
+    ts = 1;       io_collect (out, (char *)&ts, 2); /* nlink */
+    ts = 0;       io_collect (out, (char *)&ts, 2); /* rdev */
+    ts = 0;       io_collect (out, (char *)&ts, 2); /* mtime[0] */
+    ts = 0;       io_collect (out, (char *)&ts, 2); /* mtime[1] */
+
+    for (ts = 0; fname[ts]; ts++);
+    ts++;
+
+    io_collect (out, (char *)&ts, 2); /* namesize */
+
+    ts2 = (tl & 0xff00) >> 16;
+    io_collect (out, (char *)&ts2, 2); /* filesize[0] */
+
+    ts2 = (tl & 0x00ff);
+    io_collect (out, (char *)&ts2, 2); /* filesize[1] */
+
+    io_collect (out, (char *)fname, ts);
+
+    if ((ts % 2) == 1)
+    {
+        io_collect (out, (char *)"", 1);
+    }
+
+    if (b != (char *)0)
+    {
+        io_write (out, (char *)b, size);
+
+        if ((size % 2) == 1)
+        {
+            io_collect (out, (char *)"", 1);
+        }
+    }
+}
+
+static void cpio_complete_last_file
+    (struct cpio *cpio)
+{
+    if (cpio->current_file)
+    {
+        struct io *io = cpio->current_file;
+        cpio_write_file
+            (cpio->output, io->buffer, io->length, cpio->current_file_name,
+             cpio->inode);
+
+        io_close (io);
+
+        cpio->current_file      = (struct io *)0;
+        cpio->current_file_name = (const char *)0;
+        cpio->inode++;
+    }
 }
 
 void cpio_next_file
     ( struct cpio *cpio, const char *filename, struct io *file )
 {
-#warning cpio_next_file(): not implemented
+    cpio_complete_last_file (cpio);
+
+    if (file->type == iot_buffer)
+    {
+        cpio_write_file
+            (cpio->output, file->buffer, file->length, filename, cpio->inode);
+
+        io_close (file);
+
+        cpio->inode++;
+    }
+    else
+    {
+        cpio->current_file      = file;
+        cpio->current_file_name = filename;
+    }
 }
 
 void cpio_close
     ( struct cpio *cpio )
 {
-#warning cpio_close(): not implemented
+    cpio_complete_last_file (cpio);
+    cpio_write_file (cpio->output, (char *)0, 0, "TRAILER!!!", cpio->inode);
+
+    io_close (cpio->output);
 }
 
