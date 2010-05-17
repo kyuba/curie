@@ -27,6 +27,7 @@
 */
 
 #include <curie-math/matrix.h>
+#include <curie/memory.h>
 
 vector init (double * data_, unsigned int dimension_) 
 {
@@ -102,6 +103,20 @@ vector cross_product (vector v1, vector v2)
 	}
 }
 
+double ** madd_data(double **d1, double** d2, int rows, int columns)
+{
+	double ** ret = get_mem(rows * sizeof(double *)); 
+	
+	for(int i = 0; i < rows; i++) {
+		ret[i] = get_mem(columns * sizeof(double)); 
+		for(int k = 0; k < columns; k++) {
+			ret[i][k] = d1[i][k] + d2[i][k]; 
+		}
+	}
+	
+	return ret;
+}
+
 matrix madd(matrix m1, matrix m2)
 {
 	if ((m1.columns != m2.columns) || (m1.rows != m2.rows))
@@ -110,13 +125,30 @@ matrix madd(matrix m1, matrix m2)
 	}
 	else 
 	{
-		double d[m1.rows][m1.columns];
-		for(int i = 0; i < m1.rows; i++) {
-			for(int k = 0; k < m1.columns; k++) {
-				d[i][k] = m1.data[i][k] + m2.data[i][k];				
+		double ** data = madd_data( m1.data, m2.data, m1.rows, m1.columns);
+		matrix m = {data, m1.rows, m1.columns};
+		return m;
+	}
+}
+
+matrix smmult(double alpha, matrix m)
+{
+	if(m.data != (void *) 0)
+	{
+		double ** rdata = get_mem(m.rows * sizeof(double*));
+		for(int i = 0; i < m.rows; i++)
+		{
+			rdata[i] = get_mem(m.columns * sizeof(double));
+			for(int k = 0; k < m.columns; k++) 
+			{
+				rdata[i][k] = alpha * (m.data[i])[k];
 			}
 		}
-		matrix ret = {d, m1.rows, m1.columns};
-		return ret;
+		matrix ret = {rdata, m.rows, m.columns};
+		return ret; 
+	}
+	else 
+	{
+		return UNDEFINED_MATRIX;
 	}
 }

@@ -88,14 +88,22 @@ namespace curiemath {
 	  
 #define UNDEFINED_MATRIX (struct matrix) {(void *) 0, 0, 0}
 
+	//! Addition of matrices with equal dimensions
+	//!
+	//! If dimensions of the matrices differ, UNDEFINED_MATRIX will be returned.
     matrix madd(matrix m1, matrix m2);
 
+	//! Multiplies a lxm matrix with a mxn matrix and returns a lxn matrix. If dimensions
+	//! do not match, UNDEFINED_MATRIX will be returned.
     matrix mmult(matrix m1, matrix m2);
 
+	//! Multiplication of a matrix with a real number. 
     matrix smmult(double alpha, matrix m);
 
+	//! Determinant of a quadratic matrix.
     double det(matrix m);
 
+	//! Computes the inverse of a matrix, if invertible. Returns UNDEFINED_MATRIX otherwise.
     matrix invert(matrix m);
 
 #ifdef __cplusplus
