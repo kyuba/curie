@@ -50,7 +50,8 @@ struct cpio
 struct cpio_read_data
 {
     enum cpio_options options;
-    void (*on_new_file) (struct io *io, const char *name, void *aux);
+    void (*on_new_file) (struct io *io, const char *name,
+                         struct metadata *metadata, void *aux);
     void (*on_end_of_archive) (void *aux);
     void *aux;
     int remaining_file_data;
@@ -78,6 +79,7 @@ static void cpio_process_fragment
     int_32 tl;
     const char *fname;
     unsigned char t1;
+    struct metadata metadata;
 
     if (data->options == co_have_end_of_archive)
     {
@@ -196,7 +198,7 @@ static void cpio_process_fragment
                 {
                     data->on_new_file
                         (io_open_buffer (io->buffer + pos, tl), fname,
-                         data->aux);
+                         &metadata, data->aux);
                     pos += tl + (((tl % 2) == 1) ? 1 : 0);
                 }
                 else
@@ -210,7 +212,7 @@ static void cpio_process_fragment
                     io_write (data->current_file, io->buffer + pos, rem);
 
                     data->on_new_file
-                        (data->current_file, fname, data->aux);
+                        (data->current_file, fname, &metadata, data->aux);
 
                     pos += rem;
                 }
@@ -283,7 +285,8 @@ static void cpio_closing
 
 void cpio_read_archive
     ( struct io *io, const char *regex,
-      void (*on_new_file) (struct io *io, const char *name, void *aux),
+      void (*on_new_file) (struct io *io, const char *name,
+                           struct metadata *metadata, void *aux),
       void (*on_end_of_archive) (void *aux),
       void *aux )
 {
@@ -397,7 +400,8 @@ static void cpio_complete_last_file
 }
 
 void cpio_next_file
-    ( struct cpio *cpio, const char *filename, struct io *file )
+    ( struct cpio *cpio, const char *filename, struct metadata *metadata,
+      struct io *file )
 {
     cpio_complete_last_file (cpio);
 

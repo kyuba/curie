@@ -47,6 +47,7 @@
 extern "C" {
 #endif
 
+#include <sievert/metadata.h>
 #include <curie/io.h>
 
 /*! \brief CPIO Archive Handle
@@ -96,7 +97,8 @@ void multiplex_cpio
  */
 void cpio_read_archive
     ( struct io *io, const char *regex,
-      void (*on_new_file) (struct io *io, const char *name, void *aux),
+      void (*on_new_file) (struct io *io, const char *name,
+                           struct metadata *metadata, void *aux),
       void (*on_end_of_archive) (void *aux),
       void *aux );
 
@@ -113,20 +115,24 @@ struct cpio *cpio_create_archive
 /*! \brief Add a File to a CPIO Archive
  *  \param[out] cpio     The archive to add the file to.
  *  \param[in]  filename Name of the file to create.
+ *  \param[in]  metadata File attributes. May be 0 for "sane" defaults.
  *  \param[in]  file     File data to fill the file with.
  *
  *  Use this function to add a file to a CPIO archive. Most file metadata is
- *  stubbed with more or less sane defaults. The file data is added immediately
- *  if file is an iot_buffer type structure, otherwise it is added with the next
- *  call to cpio_close() or cpio_next_file().
+ *  stubbed with more or less sane defaults if you pass a 0-pointer instead of
+ *  an actual metadata struct. The file data is added immediately if file is an
+ *  iot_buffer type structure, otherwise it is added with the next call to
+ *  cpio_close() or cpio_next_file().
  *
  *  Make sure filename is not made unavailable until the data is written, if
- *  need be, use the str_immutable() function. Also note that this function will
- *  call io_close() on the file when appropriate, so do not manually close the
- *  file after passing it to this function.
+ *  need be, use the str_immutable() function. The same applies to the metadata
+ *  struct if you pass one. Also note that this function will call io_close() on
+ *  the file when appropriate, so do not manually close the file after passing
+ *  it to this function.
  */
 void cpio_next_file
-    ( struct cpio *cpio, const char *filename, struct io *file );
+    ( struct cpio *cpio, const char *filename, struct metadata *metadata,
+      struct io *file );
 
 /*! \brief Finalise a CPIO Archive
  *  \param[in] cpio The archive to close.

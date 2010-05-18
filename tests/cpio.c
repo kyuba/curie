@@ -42,7 +42,8 @@ define_symbol (sym_world,            "world");
 static struct sexpr_io *stdio;
 static int num_files = 0;
 
-static void on_new_file (struct io *io, const char *name, void *aux)
+static void on_new_file
+    (struct io *io, const char *name, struct metadata *metadata, void *aux)
 {
     sexpr n = make_string (name);
     struct sexpr_io *sxio = sx_open_i (io);
@@ -105,12 +106,13 @@ int cmain()
 
     s = io_open_special ();
 
-    cpio_next_file (cpio, "file-1", s);
+    cpio_next_file (cpio, "file-1", (struct metadata *)0, s);
 
     io_write (s, "whee\n", 5);
     io_write (s, "whoo", 4);
 
-    cpio_next_file (cpio, "file-2", io_open_buffer ("boing", 5));
+    cpio_next_file (cpio, "file-2", (struct metadata *)0,
+                    io_open_buffer ("boing", 5));
 
     cpio_close (cpio);
 
