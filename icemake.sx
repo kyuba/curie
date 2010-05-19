@@ -64,7 +64,7 @@
         "cpio")
 
   (headers
-        "immutable" "tree" "sexpr" "string" "shell" "cpio")
+        "immutable" "tree" "sexpr" "string" "shell" "cpio" "ar")
 
   (test-cases
         "immutable" "directory" "string-set" "sexpr-set" "sexpr-sort"

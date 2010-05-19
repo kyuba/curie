@@ -243,7 +243,8 @@ struct metadata *metadata_from_path
 void metadata_to_unix
     (struct metadata *metadata,
      enum metadata_classification_unix *classification,
-     int *uid, int *gid, int *mode, int *atime, int *mtime, int *ctime);
+     int *uid, int *gid, int *mode, int *atime, int *mtime, int *ctime,
+     int *attributes);
 
 sexpr metadata_to_sexpr
     (struct metadata *metadata);
