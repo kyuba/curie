@@ -26,29 +26,6 @@
  * THE SOFTWARE.
 */
 
-/*! \internal
- *
- * @{
- */
+#include <sievert/ar.h>
 
-/*! \file
- *  \brief Glue Code Header for time.h
- *
- */
-
-#ifndef LIBCURIE_TIME_SYSTEM_H
-#define LIBCURIE_TIME_SYSTEM_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-long long __a_time();
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* LIBCURIE_TIME_SYSTEM_H */
-
-/*! @} */
+#warning .a archive handling has not been implemented

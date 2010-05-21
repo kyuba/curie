@@ -27,6 +27,7 @@
 */
 
 #include <curie/time.h>
+#include <curie/constants.h>
 #include <curie/time-system.h>
 
 int_date dt_get_kin (void)
@@ -58,8 +59,7 @@ void dt_split_kin (int_date kin, struct date *date)
 
 unsigned int dt_get_time (void)
 {
-    return ((((double)(__a_time() % SECONDS_PER_DAY))
-             / (double)SECONDS_PER_DAY) * 99999999);
+    return __a_time() % SECONDS_PER_DAY;
 }
 
 void dt_get (struct datetime *date)
@@ -67,6 +67,5 @@ void dt_get (struct datetime *date)
     int_64 utime = __a_time();
 
     date->date = UNIX_EPOCH + (utime / SECONDS_PER_DAY);
-    date->time = ((((double)(__a_time() % SECONDS_PER_DAY))
-                   / (double)SECONDS_PER_DAY) * 99999999);
+    date->time = utime % SECONDS_PER_DAY;
 }

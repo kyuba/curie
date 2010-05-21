@@ -26,29 +26,29 @@
  * THE SOFTWARE.
 */
 
-/*! \internal
- *
- * @{
- */
-
 /*! \file
- *  \brief Glue Code Header for time.h
+ *  \brief Date and Time Conversion Functions
  *
+ *  Since there's at least a dozen different calendar and time systems in use
+ *  these days, the functions in this header allow you to convert date and time
+ *  between different formats.
  */
 
-#ifndef LIBCURIE_TIME_SYSTEM_H
-#define LIBCURIE_TIME_SYSTEM_H
+#ifndef LIBSIEVERT_TIME_H
+#define LIBSIEVERT_TIME_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-long long __a_time();
+#include <curie/time.h>
+
+void dt_from_unix (struct datetime *date, unsigned long long timestamp);
+
+unsigned long long dt_to_unix (struct datetime *date);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* LIBCURIE_TIME_SYSTEM_H */
-
-/*! @} */
+#endif

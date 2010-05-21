@@ -26,29 +26,10 @@
  * THE SOFTWARE.
 */
 
-/*! \internal
- *
- * @{
- */
+#include <curie/main.h>
 
-/*! \file
- *  \brief Glue Code Header for time.h
- *
- */
-
-#ifndef LIBCURIE_TIME_SYSTEM_H
-#define LIBCURIE_TIME_SYSTEM_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-long long __a_time();
-
-#ifdef __cplusplus
+int cmain ()
+{
+#warning .a archive tests have not been implemented yet
+    return 0;
 }
-#endif
-
-#endif /* LIBCURIE_TIME_SYSTEM_H */
-
-/*! @} */

@@ -160,6 +160,21 @@ extern "C" {
  */
 #define GRAPH_EDGE_CHUNK_SIZE 0x8
 
+/*! \brief Date of the Unix Epoch
+ *
+ *  For code dealing with dates, this is the offset between the long count and
+ *  the unix epoch.
+ *
+ *  Remember: the first of January 1970 is 12.17.16.7.5.
+ */
+#define UNIX_EPOCH (12*144000 + 17*7200 + 16*360 + 7*20 + 5)
+
+/*! \brief Seconds per Day
+ *
+ *  Should work fine everywhere on earth, but you never know...
+ */
+#define SECONDS_PER_DAY (24 * 60 * 60)
+
 #ifdef __cplusplus
 }
 #endif

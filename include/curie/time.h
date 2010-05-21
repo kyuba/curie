@@ -33,6 +33,11 @@
  *  longer with respect to date wrapping issues.
  *
  *  I'm just not sure yet how long an int_64 will suffice.
+ *
+ *  Oh yeah, in case you're not familiar with the calendar: it's the
+ *  mesoamerican long count. And no, the mayan calendar doesn't "end" on
+ *  13.0.0.0.0, that's just bollocks. In fact, it'll happily last a lot
+ *  longer than that.
  */
 
 #ifndef LIBCURIE_TIME_H
@@ -74,7 +79,7 @@ struct date
 struct datetime
 {
     int_date      date;      /*!< Days since the epoch */
-    unsigned int  time;      /*!< 0-99999999, representing 00:00:00 - 23:59:59*/
+    unsigned int  time;      /*!< Seconds since the start of the day */
 };
 
 /*! \brief Get the current Date

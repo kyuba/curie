@@ -31,6 +31,7 @@
 #include <curie/int.h>
 #include <curie/regex.h>
 #include <sievert/cpio.h>
+#include <sievert/time.h>
 
 enum cpio_options
 {
@@ -74,12 +75,59 @@ static void cpio_process_fragment
     (struct io *io, void *aux)
 {
     struct cpio_read_data *data = (struct cpio_read_data *)aux;
-    int pos = io->position, len = io->length, rem;
-    int_16 ts;
+    int pos = io->position, len = io->length, rem, i;
+    int_16 ts, *header;
     int_32 tl;
     const char *fname;
-    unsigned char t1;
-    struct metadata metadata;
+    unsigned char header_copy [26];
+
+    /* file metadata structure; we're pre-allocating this since it's the same
+     * for each header and creating this on the stack shouldn't take too long
+     * either. */
+    struct metadata_datetime datetime[1] =
+        { { mdp_last_modification, { 0, 0 } } };
+    struct metadata_acl acl[3] =
+        { { mct_owning_user,  (const char *)0, 0 },
+          { mct_owning_group, (const char *)0, 0 },
+          { mct_default,      (const char *)0, 0 } };
+    struct metadata_classification_unix_type classification_unix =
+        { mdt_unix, mcu_unknown };
+    struct metadata_attribute_integer attribute_source_device =
+        { mat_source_device_id, 0 };
+    struct metadata_attribute_integer attribute_inode =
+        { mat_inode, 0 };
+    struct metadata_attribute_integer attribute_flags =
+        { mat_flags, 0 };
+    struct metadata_attribute_integer attribute_user_id =
+        { mat_user_id, 0 };
+    struct metadata_attribute_integer attribute_group_id =
+        { mat_group_id, 0 };
+    struct metadata_attribute_integer attribute_link_count =
+        { mat_link_count, 0 };
+    struct metadata_attribute_integer attribute_device =
+        { mat_link_device_id, 0 };
+    /* note: the double-cast is to kill gcc's type-punning/strict-aliasing
+     *       warning. */
+    struct metadata_classification *classification[2] =
+        { (struct metadata_classification *)((void *)&classification_unix),
+          (struct metadata_classification *)0 };
+    struct metadata_attribute *attributes[8] =
+        { (struct metadata_attribute *)((void *)&attribute_source_device),
+          (struct metadata_attribute *)((void *)&attribute_inode),
+          (struct metadata_attribute *)((void *)&attribute_flags),
+          (struct metadata_attribute *)((void *)&attribute_user_id),
+          (struct metadata_attribute *)((void *)&attribute_group_id),
+          (struct metadata_attribute *)((void *)&attribute_link_count),
+          (struct metadata_attribute *)((void *)&attribute_device),
+          (struct metadata_attribute *)0 };
+    struct metadata metadata =
+        { 1, 0, 3,
+          datetime,
+          (struct metadata_relation *)0,
+          acl,
+          classification,
+          attributes,
+          (struct metadata_signature **)0 };
 
     if (data->options == co_have_end_of_archive)
     {
@@ -92,59 +140,97 @@ static void cpio_process_fragment
 
         if (data->remaining_file_data == 0)
         {
+            header = (int_16 *)(io->buffer + pos);
+
             if (rem < 26)
             {
                 /* not enough remaining data to fill a complete header */
                 break;
             }
 
-            ts = *((int_16 *)(io->buffer + pos));
+            ts = header[0];
+
+            if (ts == 0xc771)
+            {
+                /* header with switched endianness */
+
+                for (i = 0; i < 26; i += 2)
+                {
+                    /* copy the header with switched endianness*/
+
+                    header_copy [i] =
+                        *((unsigned char *)(io->buffer + pos + i + 1));
+                    header_copy [(i+1)] =
+                        *((unsigned char *)(io->buffer + pos + i));
+                }
+
+                header = (int_16 *)header_copy;
+                ts = header[0];
+            }
 
             if (ts == 0x71c7)
             {
                 /* native header */
 
-                /* not using most fields, but still pointing out which field
-                 * would be where. */
+                attribute_source_device.integer = header[1];
+                attribute_inode.integer         = header[2];
 
-                /* ts = *((int_16 *)(io->buffer + pos + 2));  */ /* dev */
-                /* ts = *((int_16 *)(io->buffer + pos + 4));  */ /* ino */
-                /* ts = *((int_16 *)(io->buffer + pos + 6));  */ /* mode */
-                /* ts = *((int_16 *)(io->buffer + pos + 8));  */ /* uid */
-                /* ts = *((int_16 *)(io->buffer + pos + 10)); */ /* gid */
-                /* ts = *((int_16 *)(io->buffer + pos + 12)); */ /* nlink */
-                /* ts = *((int_16 *)(io->buffer + pos + 14)); */ /* rdev */
-                /* tl = *((int_32 *)(io->buffer + pos + 16)); */ /* mtime */
-                ts = *((int_16 *)(io->buffer + pos + 20)); /* nsize */
-                tl = ((*((int_16 *)(io->buffer + pos + 22))) << 16) |
-                      (*((int_16 *)(io->buffer + pos + 24))); /* fsize */
-            }
-            else if (ts == 0xc771)
-            {
-                /* header with switched endinanness */
-                t1 = *(io->buffer + pos);
+                ts = header[3];
 
-                if (t1 == 0x71) /* non-native and big-endian */
+                switch (ts & 0xf000) /* file type mask */
                 {
-                    ts = ((*(io->buffer + pos + 20)) << 8) |
-                          (*(io->buffer + pos + 21));
-                    tl = ((*(io->buffer + pos + 22)) << 24) |
-                         ((*(io->buffer + pos + 23)) << 16) |
-                         ((*(io->buffer + pos + 24)) << 8) |
-                          (*(io->buffer + pos + 25));
+                    case 0xc000:
+                        classification_unix.classification=mcu_socket;
+                        break;
+                    case 0xa000:
+                        classification_unix.classification=mcu_symbolic_link;
+                        break;
+                    case 0x8000:
+                        classification_unix.classification=mcu_file;
+                        break;
+                    case 0x6000:
+                        classification_unix.classification=mcu_block_device;
+                        break;
+                    case 0x4000:
+                        classification_unix.classification=mcu_directory;
+                        break;
+                    case 0x2000:
+                        classification_unix.classification=mcu_character_device;
+                        break;
+                    case 0x1000:
+                        classification_unix.classification=mcu_fifo;
+                        break;
+                    default:
+                        classification_unix.classification=mcu_unknown;
+                        break;
                 }
-                else /* non-native and little endian */
-                {
-                    ts = ((*(io->buffer + pos + 21)) << 8) |
-                          (*(io->buffer + pos + 20));
-                    /* this is a bit counter-intuitive, since the values are
-                     * actually stored as two 16-bit integers with the first
-                     * being the most-significant 16 bits. */
-                    tl = ((*(io->buffer + pos + 23)) << 24) |
-                         ((*(io->buffer + pos + 22)) << 16) |
-                         ((*(io->buffer + pos + 25)) << 8) |
-                          (*(io->buffer + pos + 24));
-                }
+
+                attribute_flags.integer = ((ts & 0x800) ? MAT_SET_UID : 0)
+                                        | ((ts & 0x400) ? MAT_SET_GID : 0)
+                                        | ((ts & 0x200) ? MAT_STICKY  : 0);
+
+                acl[0].access = MCT_SET | ((ts & 0100) ? MCT_EXECUTE : 0)
+                                        | ((ts & 0200) ? MCT_WRITE   : 0)
+                                        | ((ts & 0400) ? MCT_READ    : 0);
+
+                acl[1].access = MCT_SET | ((ts & 0010) ? MCT_EXECUTE : 0)
+                                        | ((ts & 0020) ? MCT_WRITE   : 0)
+                                        | ((ts & 0040) ? MCT_READ    : 0);
+
+                acl[2].access = MCT_SET | ((ts & 0001) ? MCT_EXECUTE : 0)
+                                        | ((ts & 0002) ? MCT_WRITE   : 0)
+                                        | ((ts & 0004) ? MCT_READ    : 0);
+
+                attribute_user_id.integer       = header[4];
+                attribute_group_id.integer      = header[5];
+                attribute_link_count.integer    = header[6];
+                attribute_device.integer        = header[7];
+
+                dt_from_unix (&(datetime[0].datetime),
+                              ((header[8]) << 16) | (header[9]));
+
+                ts = header[10]; /* nsize */
+                tl = ((header[11]) << 16) | (header[12]); /* fsize */
             }
             else
             {
@@ -334,23 +420,29 @@ struct cpio *cpio_create_archive
     return cpio;
 }
 
-static void cpio_write_file
-    (struct io *out, char *b, int size, const char *fname, int inode)
+static void reset_cpio (struct cpio *cpio, struct metadata *metadata)
 {
+#warning not setting metadata in reset_cpio() yet.
+}
+
+static void cpio_write_file
+    (struct cpio *cpio, char *b, int size, const char *fname)
+{
+    struct io *out = cpio->output;
     int_16 ts = 0x71c7, ts2;
     int_32 tl = size;
 
     io_collect (out, (char *)&ts, 2); /* magic */
 
-    ts = 1;       io_collect (out, (char *)&ts, 2); /* dev */
-    ts = inode;   io_collect (out, (char *)&ts, 2); /* inode */
-    ts = 0100644; io_collect (out, (char *)&ts, 2); /* mode */
-    ts = 0;       io_collect (out, (char *)&ts, 2); /* uid */
-    ts = 0;       io_collect (out, (char *)&ts, 2); /* gid */
-    ts = 1;       io_collect (out, (char *)&ts, 2); /* nlink */
-    ts = 0;       io_collect (out, (char *)&ts, 2); /* rdev */
-    ts = 0;       io_collect (out, (char *)&ts, 2); /* mtime[0] */
-    ts = 0;       io_collect (out, (char *)&ts, 2); /* mtime[1] */
+    ts = 1;           io_collect (out, (char *)&ts, 2); /* dev */
+    ts = cpio->inode; io_collect (out, (char *)&ts, 2); /* inode */
+    ts = 0100644;     io_collect (out, (char *)&ts, 2); /* mode */
+    ts = 0;           io_collect (out, (char *)&ts, 2); /* uid */
+    ts = 0;           io_collect (out, (char *)&ts, 2); /* gid */
+    ts = 1;           io_collect (out, (char *)&ts, 2); /* nlink */
+    ts = 0;           io_collect (out, (char *)&ts, 2); /* rdev */
+    ts = 0;           io_collect (out, (char *)&ts, 2); /* mtime[0] */
+    ts = 0;           io_collect (out, (char *)&ts, 2); /* mtime[1] */
 
     for (ts = 0; fname[ts]; ts++);
     ts++;
@@ -379,6 +471,8 @@ static void cpio_write_file
             io_collect (out, (char *)"", 1);
         }
     }
+    
+    cpio->inode++;
 }
 
 static void cpio_complete_last_file
@@ -387,15 +481,14 @@ static void cpio_complete_last_file
     if (cpio->current_file)
     {
         struct io *io = cpio->current_file;
+
         cpio_write_file
-            (cpio->output, io->buffer, io->length, cpio->current_file_name,
-             cpio->inode);
+            (cpio, io->buffer, io->length, cpio->current_file_name);
 
         io_close (io);
 
         cpio->current_file      = (struct io *)0;
         cpio->current_file_name = (const char *)0;
-        cpio->inode++;
     }
 }
 
@@ -405,14 +498,14 @@ void cpio_next_file
 {
     cpio_complete_last_file (cpio);
 
+    reset_cpio (cpio, metadata);
+
     if (file->type == iot_buffer)
     {
         cpio_write_file
-            (cpio->output, file->buffer, file->length, filename, cpio->inode);
+            (cpio, file->buffer, file->length, filename);
 
         io_close (file);
-
-        cpio->inode++;
     }
     else
     {
@@ -425,7 +518,8 @@ void cpio_close
     ( struct cpio *cpio )
 {
     cpio_complete_last_file (cpio);
-    cpio_write_file (cpio->output, (char *)0, 0, "TRAILER!!!", cpio->inode);
+    reset_cpio (cpio, (struct metadata *)0);
+    cpio_write_file (cpio, (char *)0, 0, "TRAILER!!!");
 
     io_close (cpio->output);
 }

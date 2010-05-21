@@ -33,6 +33,11 @@
  *  by system-specific code or archive readers/writers to describe metadata for
  *  files such as ownership, access rights, modification or access times and
  *  similar attributes.
+ *
+ *  Turns out it's rather complex if you keep it system-agnostic. It should
+ *  still be fairly easy to use, there's not too much to iterate over and most
+ *  of the time you'll just be interested in one or two bits of information
+ *  anyway.
  */
 
 #ifndef LIBSIEVERT_METADATA_H

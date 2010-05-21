@@ -26,29 +26,17 @@
  * THE SOFTWARE.
 */
 
-/*! \internal
- *
- * @{
- */
+#include <curie/constants.h>
+#include <sievert/time.h>
 
-/*! \file
- *  \brief Glue Code Header for time.h
- *
- */
-
-#ifndef LIBCURIE_TIME_SYSTEM_H
-#define LIBCURIE_TIME_SYSTEM_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-long long __a_time();
-
-#ifdef __cplusplus
+void dt_from_unix (struct datetime *date, unsigned long long timestamp)
+{
+    date->date = UNIX_EPOCH + (timestamp / SECONDS_PER_DAY);
+    date->time = timestamp % SECONDS_PER_DAY;
 }
-#endif
 
-#endif /* LIBCURIE_TIME_SYSTEM_H */
+unsigned long long dt_to_unix (struct datetime *date)
+{
+    return ((date->date - UNIX_EPOCH) * SECONDS_PER_DAY) + date->time;
+}
 
-/*! @} */

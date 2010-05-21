@@ -61,14 +61,14 @@
 
   (code "immutable" "tree-string" "sievert-sexpr" "sexpr-set" "sexpr-set-regex"
         "sexpr-set-string" "string-set" "string-set-regex" "shell" "sexpr-sort"
-        "cpio")
+        "cpio" "ar" "time-unix")
 
   (headers
-        "immutable" "tree" "sexpr" "string" "shell" "cpio" "ar")
+        "immutable" "tree" "sexpr" "string" "shell" "cpio" "ar" "time")
 
   (test-cases
         "immutable" "directory" "string-set" "sexpr-set" "sexpr-sort"
-        "cpio")
+        "cpio" "ar")
 
   (test-case-reference
         ("build/to-sexpr-sort" . "tests/reference/sexpr-sort")))
