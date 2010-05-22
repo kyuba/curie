@@ -53,18 +53,36 @@
   (documentation
         "description"))
 
+(library "syscall" libcurie
+  (name "libsyscall")
+  (description "raw syscall library, useful for implementing libcs and low-level system tools")
+  (version "1")
+
+  (code "syscall")
+
+  (headers
+        "syscall"))
+
 (library "sievert" libcurie
   (name "Sievert")
   (description "library with auxiliary functionality, based off of libcurie")
   (version "1")
   (url "http://kyuba.org/")
 
-  (code "immutable" "tree-string" "sievert-sexpr" "sexpr-set" "sexpr-set-regex"
-        "sexpr-set-string" "string-set" "string-set-regex" "shell" "sexpr-sort"
-        "cpio" "ar" "time-unix")
+  (libraries
+        "syscall")
+
+  (code "immutable"
+        "tree-string"
+        "sievert-sexpr" "sexpr-set" "sexpr-set-regex" "sexpr-set-string"
+        "sexpr-sort"
+        "string-set" "string-set-regex"
+        "shell"
+        "cpio" "ar"
+        "time-unix")
 
   (headers
-        "immutable" "tree" "sexpr" "string" "shell" "cpio" "ar" "time")
+        "immutable" "tree" "sexpr" "string" "shell" "cpio" "ar" "time" "io")
 
   (test-cases
         "immutable" "directory" "string-set" "sexpr-set" "sexpr-sort"
@@ -120,16 +138,6 @@
 
   (documentation
         "icemake" "ice" "icemake.sx"))
-
-(library "syscall" libcurie
-  (name "libsyscall")
-  (description "raw syscall library, useful for implementing libcs and low-level system tools")
-  (version "1")
-
-  (code "syscall")
-
-  (headers
-        "syscall"))
 
 (programme "ice" libcurie
   (name "ice")
