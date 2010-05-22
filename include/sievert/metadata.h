@@ -245,6 +245,10 @@ struct metadata *metadata_from_sexpr
 struct metadata *metadata_from_path
     (const char *path);
 
+void metadata_from_path_closure
+    (const char *path, void (*with_metadata) (struct metadata *, void *aux),
+     void *aux);
+
 void metadata_to_unix
     (struct metadata *metadata,
      enum metadata_classification_unix *classification,

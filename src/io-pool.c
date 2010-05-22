@@ -58,12 +58,13 @@ static struct io *get_io_struct ()
     return io;
 }
 
-struct io *io_open_buffer (void *buffer, int size)
+struct io *io_open_buffer (void *buffer, unsigned int size)
 {
     struct io *io = get_io_struct ();
 
     io->buffer = buffer;
 
+    io->type = iot_buffer;
     io->status = io_end_of_file;
     io->length = size;
     io->position = 0;

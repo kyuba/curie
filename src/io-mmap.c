@@ -26,33 +26,46 @@
  * THE SOFTWARE.
 */
 
-/*! \file
- *  \brief Advanced I/O Features
- *
- *  Curie's basic I/O is intended to provide everything you need to get things
- *  working. This usually results in the use of single-pass streams, which may
- *  not provide optimal performance and require extra copying. In contrast,
- *  functions and features in this header are intended to maximize performance,
- *  or fall back to streams for unsupported architectures.
- *
- *  \note Using functions in this file may require linking against libsyscall.
- */
+#include <curie/memory.h>
+#include <curie/multiplex.h>
+#include <sievert/io.h>
 
-#ifndef LIBSIEVERT_IO_H
-#define LIBSIEVERT_IO_H
+struct io_get_file_data
+{
+    void (*on_file_read)(void *, unsigned int, void *);
+    void  *aux;
+};
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+static void mx_read (struct io *io, void *aux)
+{
+}
 
-#include <curie/io.h>
+static void mx_close (struct io *io, void *aux)
+{
+    struct io_get_file_data *d = (struct io_get_file_data *)aux;
+    void *buffer = io->buffer;
+
+    buffer = resize_mem (io->buffersize, buffer, io->length);
+
+    io->buffersize = 0;
+    io->buffer     = (void *)0;
+
+    d->on_file_read (buffer, io->length, d->aux);
+
+    free_pool_mem (aux);
+}
 
 void io_get_file_contents
     (const char *path, void (*on_file_read)(void *, unsigned int, void *),
-     void *aux);
+     void *aux)
+{
+    struct io *io = io_open_read (path);
+    struct memory_pool pool =
+        MEMORY_POOL_INITIALISER (sizeof(struct io_get_file_data));
+    struct io_get_file_data *d = get_pool_mem (&pool);
 
-#ifdef __cplusplus
+    d->on_file_read = on_file_read;
+    d->aux          = aux;
+
+    multiplex_add_io (io, mx_read, mx_close, (void *)d);
 }
-#endif
-
-#endif

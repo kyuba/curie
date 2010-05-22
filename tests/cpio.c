@@ -28,7 +28,9 @@
 
 #include <curie/main.h>
 #include <curie/sexpr.h>
+#include <curie/memory.h>
 #include <curie/multiplex.h>
+#include <sievert/io.h>
 #include <sievert/cpio.h>
 
 define_string (str_trailer,          "TRAILER!!!");
@@ -81,24 +83,34 @@ static void on_end_of_archive (void *aux)
     num_files++;
 }
 
+static void on_archive_buffered
+    (void *data, unsigned int size, void *aux)
+{
+    struct io *f = io_open_buffer (data, size);
+
+    cpio_read_archive (f, ".*", on_new_file, on_end_of_archive, (void *)0);
+
+    f = io_open_buffer (data, size);
+
+    cpio_read_archive (f, ".*1", on_new_file, on_end_of_archive, (void *)0);
+
+    free_mem (size, data);
+}
+
 int cmain()
 {
-    struct io *f   = io_open_read  ("tests/data/test-data.cpio");
     struct io *out = io_open_write ("build/test-archive.cpio");
     struct io *s;
     struct cpio *cpio;
 
     stdio = sx_open_stdio();
 
+    multiplex_io ();
     multiplex_cpio ();
     multiplex_sexpr ();
 
-    cpio_read_archive (f, ".*", on_new_file, on_end_of_archive, (void *)0);
-
-    while (multiplex() != mx_nothing_to_do);
-
-    f = io_open_read  ("tests/data/test-data.cpio");
-    cpio_read_archive (f, ".*1", on_new_file, on_end_of_archive, (void *)0);
+    io_get_file_contents
+        ("tests/data/test-data.cpio", on_archive_buffered, (void *)0);
 
     while (multiplex() != mx_nothing_to_do);
 

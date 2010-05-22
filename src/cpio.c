@@ -371,9 +371,9 @@ static void cpio_process_fragment
 static void cpio_closing
     (struct io *io, void *aux)
 {
-    struct cpio_read_data *data = (struct cpio_read_data *)aux;
+    cpio_process_fragment (io, aux);
 
-    free_pool_mem ((void *)data);
+    free_pool_mem (aux);
 }
 
 void cpio_read_archive

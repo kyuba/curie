@@ -341,7 +341,7 @@ struct io *io_open_special ( void );
  *        into the binary) or mmap()'d (thus not using any real memory to begin
  *        with).
  */
-struct io *io_open_buffer ( void *buffer, int size );
+struct io *io_open_buffer ( void *buffer, unsigned int size );
 
 /*! \brief Write Data to I/O Structure
  *  \param[in] io     The I/O structure to write data to.
