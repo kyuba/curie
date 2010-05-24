@@ -80,7 +80,8 @@
         "shell"
         "cpio" "ar"
         "time-unix"
-        "io-mmap")
+        "io-mmap"
+        "metadata-common" "metadata-path" "metadata-unix")
 
   (headers
         "immutable" "tree" "sexpr" "string" "shell" "cpio" "ar" "time" "io")

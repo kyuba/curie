@@ -236,8 +236,14 @@ struct metadata
 
 struct metadata *metadata_from_unix
     (enum metadata_classification_unix classification,
-     int uid, int gid, int mode, int atime, int mtime, int ctime,
-     int attributes);
+     int uid, int gid, int mode, long atime, long mtime, long ctime,
+     long size, int device, int attributes);
+
+void metadata_from_unix_closure
+    (enum metadata_classification_unix classification,
+     int uid, int gid, int mode, long atime, long mtime, long ctime,
+     long size, int device, int attributes,
+     void (*with_metadata) (struct metadata *, void *), void *aux);
 
 struct metadata *metadata_from_sexpr
     (sexpr data);
@@ -246,14 +252,14 @@ struct metadata *metadata_from_path
     (const char *path);
 
 void metadata_from_path_closure
-    (const char *path, void (*with_metadata) (struct metadata *, void *aux),
+    (const char *path, void (*with_metadata) (struct metadata *, void *),
      void *aux);
 
 void metadata_to_unix
     (struct metadata *metadata,
      enum metadata_classification_unix *classification,
-     int *uid, int *gid, int *mode, int *atime, int *mtime, int *ctime,
-     int *attributes);
+     int *uid, int *gid, int *mode, long *atime, long *mtime, long *ctime,
+     long *size, int *device, int *attributes);
 
 sexpr metadata_to_sexpr
     (struct metadata *metadata);
