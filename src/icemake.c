@@ -26,6 +26,10 @@
  * THE SOFTWARE.
 */
 
+#if !defined(_WIN32)
+#include <sys/utsname.h>
+#endif
+
 #include <icemake/icemake.h>
 
 #include <curie/main.h>
@@ -36,17 +40,9 @@
 #include <curie/signal.h>
 #include <curie/filesystem.h>
 #include <curie/stack.h>
-#include <curie/gc.h>
 
+#include <sievert/shell.h>
 #include <sievert/tree.h>
-
-#include <string.h>
-#include <stdlib.h>
-#if !defined(_WIN32)
-#include <sys/utsname.h>
-#include <fcntl.h>
-#endif
-#include <stdio.h>
 
 #include <ctype.h>
 
@@ -90,8 +86,6 @@ sexpr do_build_documentation           = sx_false;
 
 static sexpr all_targets               = sx_end_of_list;
 struct tree targets                    = TREE_INITIALISER;
-
-static char **xenviron                 = (char **)0;
 
 sexpr p_c_compiler                     = sx_false;
 sexpr p_cpp_compiler                   = sx_false;
@@ -139,9 +133,31 @@ void mkdir_p (sexpr path)
     mkdir (sx_string (path), 0755);
 }
 
+static const char *c_getenv (const char *var)
+{
+    const char **c = (const char **)curie_environment, *d;
+    int i;
+
+    while ((d = (*c)) != (const char *)0)
+    {
+        d = (*c);
+
+        for (i = 0; d[i] == var[i]; i++);
+
+        if ((d[i] == '=') && (var[i] == 0))
+        {
+            return d + i + 1;
+        }
+
+        c++;
+    }
+
+    return (const char *)0;
+}
+
 sexpr prepend_flags_from_environment (sexpr x, const char *var)
 {
-    char *f = getenv (var);
+    const char *f = c_getenv (var);
 
     if (f != (char *)0)
     {
@@ -1341,13 +1357,24 @@ static void print_version ()
  
 static void write_uname_element (char *source, char *target, int tlen)
 {
-    int i = 0;
+    int  i = 0;
+    char c = 0;
 
     while (source[i] != 0)
     {
-        if (isalnum(source[i]))
+        c = source[i];
+
+        if ((c >= '0') && (c <= '9'))
         {
-            target[i] = tolower(source[i]);
+            target[i] = c;
+        }
+        else if ((c >= 'a') && (c <= 'z'))
+        {
+            target[i] = c;
+        }
+        else if ((c >= 'A') && (c <= 'Z'))
+        {
+            target[i] = (c - 'A') + 'a';
         }
         else
         {
@@ -1366,69 +1393,22 @@ static void write_uname_element (char *source, char *target, int tlen)
     target[i] = 0;
 }
 
-static sexpr cwhich (sexpr programme)
-{
-    char buffer[BUFFERSIZE];
-    char *x = getenv("PATH"), *y = buffer;
-
-    if (x == (char *)0) return sx_false;
-
-    while (y < (buffer + BUFFERSIZE - 1))
-    {
-        if ((*x == 0) || (*x == ':') || (*x == ';'))
-        {
-            sexpr b, s;
-
-            *y = 0;
-            y = buffer;
-
-            b = make_string (buffer);
-
-            if (truep (filep (s = sx_join (b, str_slash, programme))))
-            {
-                return s;
-            }
-
-            if (truep (filep (s = sx_join (b, str_backslash,
-                                           sx_join (programme, str_dot_exe,
-                                                    sx_nil)))))
-            {
-                return s;
-            }
-
-    	    if (*x == 0)
-	        {
-	            return sx_false;
-    	    }
-        }
-        else
-        {
-            *y = *x;
-            y++;
-        }
-
-        x++;
-    }
-
-    return sx_false;
-}
-
 static sexpr xwhich (char *programme)
 {
     sexpr w, p = make_string (programme);
 
     if ((tcversion != (char *)0) &&
-          ((w = cwhich (sx_join (architecture, str_dash,
-                          sx_join (p, str_dash, make_string (tcversion))))),
+          ((w = which (sx_join (architecture, str_dash,
+                         sx_join (p, str_dash, make_string (tcversion))))),
            stringp(w)))
     {
         return w;
     }
-    else if ((w = cwhich (sx_join (architecture, str_dash, p))), stringp(w))
+    else if ((w = which (sx_join (architecture, str_dash, p))), stringp(w))
     {
         return w;
     }
-    else if ((w = cwhich (make_string (programme))), stringp(w))
+    else if ((w = which (make_string (programme))), stringp(w))
     {
         return w;
     }
@@ -1574,7 +1554,7 @@ static void process_on_death(struct exec_context *context, void *p)
                                          cons (sx,
                                              sx_end_of_list))));
 
-            exit (24);
+            on_error (ie_programme_failed, "");
         }
         else
         {
@@ -1687,15 +1667,16 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
     {
         chdir (wdir);
     }
-    if ((i_os == os_windows) || /* dynamic linker overrides are useless on win32 */
-        falsep (rsx))
+    if ((i_os == os_windows) || falsep (rsx))
+        /* dynamic linker overrides are useless on win32*/
     {
-        context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex, xenviron);
+        context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex,
+                           curie_environment);
     }
     else
     {
         char *tenv[3];
-        sexpr s = sx_join (str_PATHe, make_string (getenv ("PATH")), sx_nil);
+        sexpr s = sx_join (str_PATHe, make_string (c_getenv ("PATH")), sx_nil);
             
         tenv[0] = (char *)sx_string (rsx);
         tenv[1] = (char *)sx_string (s);;
@@ -1940,22 +1921,13 @@ void on_warning (enum icemake_error error, const char *text)
               cons (sym_warning, cons (make_string (text), sx_end_of_list)));
 }
 
-#if defined(_WIN32)
-int main (int argc, char **argv)
-#else
-int main (int argc, char **argv, char **environ)
-#endif
+int cmain ()
 {
     struct sexpr_io *io;
     sexpr r;
     int i = 1, q;
-    char *target_architecture = (char *)getenv("CHOST");
+    char *target_architecture = (char *)c_getenv("CHOST");
     sexpr buildtargets = sx_end_of_list;
-
-#if defined(_WIN32)
-#else
-    xenviron = environ;
-#endif
 
     stdio = sx_open_stdout ();
 
@@ -1968,34 +1940,34 @@ int main (int argc, char **argv, char **environ)
 
     i_destlibdir = str_lib;
 
-    while (i < argc)
+    while (curie_argv[i])
     {
-        if (argv[i][0] == '-')
+        if (curie_argv[i][0] == '-')
         {
             int y = 1;
             int xn = i + 1;
-            while (argv[i][y] != 0)
+            while (curie_argv[i][y] != 0)
             {
-                switch (argv[i][y])
+                switch (curie_argv[i][y])
                 {
                     case 't':
-                        if (xn < argc)
+                        if (curie_argv[xn])
                         {
-                            target_architecture = argv[xn];
+                            target_architecture = curie_argv[xn];
                             xn++;
                         }
                         break;
                     case 'z':
-                        if (xn < argc)
+                        if (curie_argv[xn])
                         {
-                            tcversion = argv[xn];
+                            tcversion = curie_argv[xn];
                             xn++;
                         }
                         break;
                     case 'd':
-                        if (xn < argc)
+                        if (curie_argv[xn])
                         {
-                            i_destdir = make_string(argv[xn]);
+                            i_destdir = make_string(curie_argv[xn]);
                             xn++;
                         }
                         break;
@@ -2028,33 +2000,34 @@ int main (int argc, char **argv, char **environ)
                         break;
                     case 'b':
                         i_fsl = fs_fhs_binlib;
-                        if (xn < argc)
+                        if (curie_argv[xn])
                         {
-                            i_pname = make_string(argv[xn]);
+                            i_pname = make_string(curie_argv[xn]);
                             xn++;
                         }
                     case 'l':
-                        if (xn < argc)
+                        if (curie_argv[xn])
                         {
-                            i_destlibdir = make_string(argv[xn]);
+                            i_destlibdir = make_string(curie_argv[xn]);
                             xn++;
                         }
                         break;
                     case 'a':
-                        if ((xn + 1) < argc)
+                        if (curie_argv[(xn + 1)])
                         {
                             i_alternatives
-                                    = cons (cons (make_symbol(argv[xn]),
-                                                  make_string(argv[(xn + 1)])),
-                                            i_alternatives);
+                                    = cons (cons
+                                        (make_symbol(curie_argv[xn]),
+                                         make_string(curie_argv[(xn + 1)])),
+                                      i_alternatives);
 
                             xn += 2;
                         }
                         break;
                     case 'j':
-                        if (xn < argc)
+                        if (curie_argv[xn])
                         {
-                            char *s = argv[xn];
+                            char *s = curie_argv[xn];
                             unsigned int j;
 
                             max_processes = 0;
@@ -2080,7 +2053,7 @@ int main (int argc, char **argv, char **environ)
                         return 0;
                     case 'h':
                     case '-':
-                        print_help (argv[0]);
+                        print_help (curie_argv[0]);
                         return 0;
                 }
 
@@ -2091,7 +2064,7 @@ int main (int argc, char **argv, char **environ)
         }
         else
         {
-            buildtargets = cons (make_string (argv[i]), buildtargets);
+            buildtargets = cons (make_string (curie_argv[i]), buildtargets);
             i++;
         }
     }
@@ -2164,11 +2137,11 @@ int main (int argc, char **argv, char **environ)
         struct utsname un;
 #endif
 
-        if (!falsep(cwhich(str_cl)))
+        if (!falsep(which(str_cl)))
         {
             uname_toolchain = tc_msvc;
         }
-        else if (!falsep(cwhich(str_bcc32)))
+        else if (!falsep(which(str_bcc32)))
         {
             uname_toolchain = tc_borland;
         }

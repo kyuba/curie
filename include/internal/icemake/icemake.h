@@ -119,7 +119,8 @@ enum icemake_error
     ie_failed_to_spawn_subprocess,
     ie_failed_to_execute_binary_image,
     ie_problematic_signal,
-    ie_unknown_code_file_type
+    ie_unknown_code_file_type,
+    ie_programme_failed
 };
 
 struct toolchain_description

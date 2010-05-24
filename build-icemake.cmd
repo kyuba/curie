@@ -4,7 +4,7 @@ REM Win32\cmd Variant
 
 SET INCLUDES=-Iinclude\windows -Iinclude\internal\windows -Iinclude -Iinclude\internal
 SET INCLUDESMSVC=/Iinclude\windows /Iinclude\internal\windows /Iinclude /Iinclude\internal
-SET ICEMAKE_FILES=icemake icemake-build icemake-install icemake-link icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree-basic immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio utf-8 sexpr-custom hash tree-string tree-library gcd variables libc-compat io-pool sexpr-set
+SET ICEMAKE_FILES=icemake icemake-build icemake-install icemake-link icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree-basic immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio utf-8 sexpr-custom hash tree-string tree-library gcd variables libc-compat io-pool sexpr-set bootstrap shell
 SET OBJECTS=
 
 SET TOOLCHAINTYPE=
@@ -117,4 +117,4 @@ CALL :GETTOOLCHAIN
 CALL :BUILDALL %ICEMAKE_FILES%
 CALL :LINKALL %ICEMAKE_FILES%
 
-build\b-icemake.exe %* curie sievert icemake
+build\b-icemake.exe %* syscall curie sievert icemake ice

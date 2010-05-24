@@ -2,7 +2,7 @@
 # Build System Bootstrap
 # POSIX/sh Variant
 
-ICEMAKE_FILES="icemake icemake-build icemake-install icemake-link icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree-basic immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio utf-8 sexpr-custom hash tree-string tree-library gcd variables libc-compat io-pool sexpr-set"
+ICEMAKE_FILES="icemake icemake-build icemake-install icemake-link icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree-basic immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio utf-8 sexpr-custom hash tree-string tree-library gcd variables libc-compat io-pool sexpr-set bootstrap shell"
 
 if [ ! -n "${CC}" ]; then CC='cc'; fi
 if [ ! -n "${LD}" ]; then LD='cc'; fi
@@ -79,4 +79,4 @@ linkbinary() {
 buildall ${ICEMAKE_FILES}
 BINARY=b-icemake linkbinary ${ICEMAKE_FILES}
 
-./build/b-icemake $@ curie sievert icemake ice
+./build/b-icemake $@ syscall curie sievert icemake ice
