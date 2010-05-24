@@ -31,10 +31,6 @@
 #include <sievert/tree.h>
 #include <curie/multiplex.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
 {
     define_string (str_u,                "-u");

@@ -31,9 +31,6 @@
 #include <sievert/tree.h>
 #include <curie/filesystem.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-
 static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
 {
     sexpr dir = get_build_file (t, sx_nil),

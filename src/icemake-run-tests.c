@@ -31,9 +31,6 @@
 #include <sievert/tree.h>
 #include <curie/multiplex.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-
 static void run_tests_library_common (sexpr name, struct target *t)
 {
     sexpr s = t->test_cases;
