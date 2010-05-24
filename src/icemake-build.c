@@ -26,23 +26,14 @@
  * THE SOFTWARE.
 */
 
+#include <curie/filesystem.h>
 #include <icemake/icemake.h>
 
 #include <sievert/tree.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-
 static sexpr f_exist_add (sexpr f, sexpr lis)
 {
-    struct stat st;
-
-    if (stat (sx_string (f), &st) == 0)
-    {
-        return cons (f, lis);
-    }
-
-    return lis;
+    return truep (filep (f)) ? cons (f, lis) : lis;
 }
 
 static sexpr permutate_paths_vendor (sexpr p, sexpr lis)
@@ -102,48 +93,32 @@ static sexpr permutate_paths (sexpr p)
     return lis;
 }
 
-static sexpr prepend_includes_common (sexpr x)
+static sexpr prepend_includes_common (struct target *t, sexpr x)
 {
     sexpr include_paths = permutate_paths (str_include);
     sexpr cur = include_paths;
-    char buffer [BUFFERSIZE];
 
     if (stringp (i_destdir))
     {
-        switch (i_fsl)
-        {
-            case fs_fhs:
-            case fs_fhs_binlib:
-                snprintf (buffer, BUFFERSIZE, "-I%s/include", sx_string(i_destdir));
-                break;
-            case fs_afsl:
-                snprintf (buffer, BUFFERSIZE, "-I%s/%s/%s/include", sx_string(i_destdir), uname_os, uname_arch);
-                break;
-        }
-        
-        x = cons (make_string (buffer), x);
+        x = cons (sx_join (str_dI,
+                           get_install_file (t, str_include), sx_nil), x);
     }
 
     while (consp (cur))
     {
         sexpr sxcar = car(cur);
 
-        snprintf (buffer, BUFFERSIZE, "-I%s", sx_string(sxcar));
-
-        x = cons (make_string (buffer), x);
+        x = cons (sx_join (str_dI, sxcar, sx_nil), x);
 
         cur = cdr (cur);
     }
-
-    snprintf (buffer, BUFFERSIZE, "-Ibuild/%s/include", archprefix);
-    x = cons (make_string (buffer), x);
-
-    return x;
+        
+    return cons (sx_join (str_dIbuilds, architecture, str_sinclude), x);
 }
 
-static sexpr prepend_includes_gcc (sexpr x)
+static sexpr prepend_includes_gcc (struct target *t, sexpr x)
 {
-    return prepend_includes_common (x);
+    return prepend_includes_common (t, x);
 }
 
 static sexpr prepend_ccflags_gcc (sexpr x)
@@ -184,7 +159,7 @@ static sexpr prepend_cxxflags_gcc (struct target *t, sexpr x)
 
     x = prepend_flags_from_environment (x, "CXXFLAGS");
 
-    if (falsep (t->allow_exceptions))
+    if (!(t->options & ICEMAKE_ALLOW_EXCEPTIONS))
     {
         x = cons (str_dfno_rtti, cons (str_dfno_exceptions, x));
     }
@@ -192,9 +167,9 @@ static sexpr prepend_cxxflags_gcc (struct target *t, sexpr x)
     return prepend_ccflags_gcc(x);
 }
 
-static sexpr prepend_includes_borland (sexpr x)
+static sexpr prepend_includes_borland (struct target *t, sexpr x)
 {
-    return prepend_includes_common (x);
+    return prepend_includes_common (t, x);
 }
 
 static sexpr prepend_cflags_borland (sexpr x)
@@ -207,43 +182,27 @@ static sexpr prepend_cxxflags_borland (sexpr x)
     return prepend_flags_from_environment (x, "CXXFLAGS");
 }
 
-static sexpr prepend_includes_msvc (sexpr x)
+static sexpr prepend_includes_msvc (struct target *t, sexpr x)
 {
     sexpr include_paths = permutate_paths (str_include);
     sexpr cur = include_paths;
-    char buffer[BUFFERSIZE];
 
     if (stringp (i_destdir))
     {
-        switch (i_fsl)
-        {
-            case fs_fhs:
-            case fs_fhs_binlib:
-                snprintf (buffer, BUFFERSIZE, "/I%s\\include", sx_string(i_destdir));
-                break;
-            case fs_afsl:
-                snprintf (buffer, BUFFERSIZE, "/I%s\\%s\\%s\\include", sx_string(i_destdir), uname_os, uname_arch);
-                break;
-        }
-        
-        x = cons (make_string (buffer), x);
+        x = cons (sx_join (str_sI,
+                           get_install_file (t, str_include), sx_nil), x);
     }
 
     while (consp (cur))
     {
         sexpr sxcar = car(cur);
 
-        snprintf (buffer, BUFFERSIZE, "/I%s", sx_string(sxcar));
-
-        x = cons (make_string (buffer), x);
+        x = cons (sx_join (str_sI, sxcar, sx_nil), x);
 
         cur = cdr (cur);
     }
 
-    snprintf (buffer, BUFFERSIZE, "/Ibuild\\%s\\include", archprefix);
-    x = cons (make_string (buffer), x);
-
-    return x;
+    return cons (sx_join (str_sIbuilds, architecture, str_sinclude), x);
 }
 
 static sexpr prepend_cflags_msvc (sexpr x)
@@ -256,26 +215,28 @@ static sexpr prepend_cxxflags_msvc (sexpr x)
     return prepend_flags_from_environment (x, "CXXFLAGS");
 }
 
-static void build_object_gcc_assembly (const char *source, const char *target)
+static void build_object_gcc_assembly
+    (const char *source, const char *target, struct target *t)
 {
     workstack = sx_set_add (workstack, cons (p_assembler,
-/*                  cons (str_dc,*/
                     cons (make_string (source),
                       cons (str_do,
-                        cons (make_string(target), sx_end_of_list))))/*)*/);
+                        cons (make_string(target), sx_end_of_list)))));
 }
 
-static void build_object_gcc_preproc_assembly (const char *source, const char *target)
+static void build_object_gcc_preproc_assembly
+    (const char *source, const char *target, struct target *t)
 {
     workstack = sx_set_add (workstack, cons (p_c_compiler,
-                  prepend_includes_gcc (
+                  prepend_includes_gcc (t,
                     cons (str_dc,
                       cons (make_string (source),
                         cons (str_do,
                           cons (make_string(target), sx_end_of_list)))))));
 }
 
-static void build_object_gcc_c (const char *source, const char *target)
+static void build_object_gcc_c
+    (const char *source, const char *target, struct target *t)
 {
     workstack = sx_set_add (workstack, cons (p_c_compiler,
                   cons (str_dgcc,
@@ -283,22 +244,22 @@ static void build_object_gcc_c (const char *source, const char *target)
                     cons (str_wall,
                       cons (str_pedantic,
                         prepend_cflags_gcc (
-                        prepend_includes_gcc (
+                        prepend_includes_gcc (t,
                           cons (str_dc,
                             cons (make_string (source),
                               cons (str_do,
                                 cons (make_string(target), sx_end_of_list))))))))))));
 }
 
-static void build_object_gcc_c_combine (sexpr sources, const char *target,
-                                        struct target *t)
+static void build_object_gcc_c_combine
+    (sexpr sources, const char *target, struct target *t)
 {
     sexpr item = cons (str_dgcc,
                    cons (str_stdc99,
                      cons (str_wall,
                        cons (str_pedantic,
                          prepend_cflags_gcc (
-                         prepend_includes_gcc (
+                         prepend_includes_gcc (t,
                            cons (str_do,
                              cons (make_string (target), sx_end_of_list))))))));
     sexpr cur, sx;
@@ -311,7 +272,7 @@ static void build_object_gcc_c_combine (sexpr sources, const char *target,
     sx = cons (str_dcombine, cons (str_dc, item));
 
 /*
-    if (truep (t->programme) && eolp (cdr (t->code)))
+    if ((t->options & ICEMAKE_PROGRAMME) && eolp (cdr (t->code)))
     {
         sx = cons (str_dfwhole_program, sx);
     }
@@ -328,17 +289,18 @@ static void build_object_gcc_cpp
     workstack = sx_set_add (workstack, cons (p_cpp_compiler,
                   cons (str_dgcc,
                     prepend_cxxflags_gcc (t,
-                    prepend_includes_gcc (
+                    prepend_includes_gcc (t,
                       cons (str_dc,
                         cons (make_string (source),
                           cons (str_do,
                             cons (make_string(target), sx_end_of_list)))))))));
 }
 
-static void build_object_gcc_assembly_pic (const char *source, const char *target)
+static void build_object_gcc_assembly_pic
+    (const char *source, const char *target, struct target *t)
 {
     workstack = sx_set_add (workstack, cons (p_c_compiler,
-                  prepend_includes_gcc (
+                  prepend_includes_gcc (t,
                     cons (str_dfpic,
                     cons (str_dc,
                       cons (make_string (source),
@@ -346,10 +308,11 @@ static void build_object_gcc_assembly_pic (const char *source, const char *targe
                           cons (make_string(target), sx_end_of_list))))))));
 }
 
-static void build_object_gcc_preproc_assembly_pic (const char *source, const char *target)
+static void build_object_gcc_preproc_assembly_pic
+    (const char *source, const char *target, struct target *t)
 {
     workstack = sx_set_add (workstack, cons (p_c_compiler,
-                  prepend_includes_gcc (
+                  prepend_includes_gcc (t,
                     cons (str_dfpic,
                     cons (str_dc,
                       cons (make_string (source),
@@ -357,7 +320,8 @@ static void build_object_gcc_preproc_assembly_pic (const char *source, const cha
                           cons (make_string(target), sx_end_of_list))))))));
 }
 
-static void build_object_gcc_c_pic (const char *source, const char *target)
+static void build_object_gcc_c_pic
+    (const char *source, const char *target, struct target *t)
 {
     workstack = sx_set_add (workstack, cons (p_c_compiler,
                   cons (str_dfpic,
@@ -366,22 +330,22 @@ static void build_object_gcc_c_pic (const char *source, const char *target)
                     cons (str_wall,
                       cons (str_pedantic,
                         prepend_cflags_gcc (
-                        prepend_includes_gcc (
+                        prepend_includes_gcc (t,
                           cons (str_dc,
                             cons (make_string (source),
                               cons (str_do,
                                 cons (make_string(target), sx_end_of_list)))))))))))));
 }
 
-static void build_object_gcc_c_pic_combine (sexpr sources, const char *target,
-                                            struct target *t)
+static void build_object_gcc_c_pic_combine
+    (sexpr sources, const char *target, struct target *t)
 {
     sexpr item = cons (str_dgcc,
                    cons (str_stdc99,
                      cons (str_wall,
                        cons (str_pedantic,
                          prepend_cflags_gcc (
-                         prepend_includes_gcc (
+                         prepend_includes_gcc (t,
                            cons (str_do,
                              cons (make_string (target), sx_end_of_list))))))));
     sexpr cur, sx;
@@ -394,7 +358,7 @@ static void build_object_gcc_c_pic_combine (sexpr sources, const char *target,
     sx = cons (str_dcombine, cons (str_dc, item));
 
 /*
-    if (truep (t->programme) && eolp (cdr (t->code)))
+    if ((t->options & ICEMAKE_PROGRAMME) && eolp (cdr (t->code)))
     {
         sx = cons (str_dfwhole_program, sx);
     }
@@ -413,7 +377,7 @@ static void build_object_gcc_cpp_pic
                   cons (str_dfpic,
                   cons (str_dgcc,
                     prepend_cxxflags_gcc (t,
-                    prepend_includes_gcc (
+                    prepend_includes_gcc (t,
                       cons (str_dc,
                         cons (make_string (source),
                           cons (str_do,
@@ -432,11 +396,13 @@ static void build_object_gcc
     }
     else if (truep(equalp(type, sym_assembly)))
     {
-        build_object_gcc_assembly (sx_string(source), sx_string(target));
+        build_object_gcc_assembly
+            (sx_string(source), sx_string(target), t);
     }
     else if (truep(equalp(type, sym_preproc_assembly)))
     {
-        build_object_gcc_preproc_assembly (sx_string(source),sx_string(target));
+        build_object_gcc_preproc_assembly
+            (sx_string(source),sx_string(target), t);
     }
     else if (truep(equalp(type, sym_c)))
     {
@@ -447,7 +413,7 @@ static void build_object_gcc
         }
         else
         {
-            build_object_gcc_c (sx_string(source), sx_string(target));
+            build_object_gcc_c (sx_string(source), sx_string(target), t);
         }
     }
     else if (truep(equalp(type, sym_cpp)))
@@ -456,11 +422,13 @@ static void build_object_gcc
     }
     else if (truep(equalp(type, sym_assembly_pic)))
     {
-        build_object_gcc_assembly_pic (sx_string(source), sx_string(target));
+        build_object_gcc_assembly_pic
+            (sx_string(source), sx_string(target), t);
     }
     else if (truep(equalp(type, sym_preproc_assembly_pic)))
     {
-        build_object_gcc_preproc_assembly_pic (sx_string(source), sx_string(target));
+        build_object_gcc_preproc_assembly_pic
+            (sx_string(source), sx_string(target), t);
     }
     else if (truep(equalp(type, sym_c_pic)))
     {
@@ -471,35 +439,38 @@ static void build_object_gcc
         }
         else
         {
-            build_object_gcc_c_pic (sx_string(source), sx_string(target));
+            build_object_gcc_c_pic
+                (sx_string(source), sx_string(target), t);
         }
     }
     else if (truep(equalp(type, sym_cpp_pic)))
     {
-        build_object_gcc_cpp_pic (sx_string(source), sx_string(target), t);
+        build_object_gcc_cpp_pic
+            (sx_string(source), sx_string(target), t);
     }
     else
     {
-        fprintf (stderr, "Unknown code file type: %s\n", sx_symbol(type));
-        exit (20);
+        on_error (ie_unknown_code_file_type, sx_symbol (type));
     }
 }
 
-static void build_object_borland_generic (const char *source, const char *target)
+static void build_object_borland_generic
+    (const char *source, const char *target, struct target *t)
 {
     workstack = sx_set_add (workstack, cons (p_c_compiler,
                   cons (str_dAT,
                   cons (str_dq,
                     cons (str_dw,
                       prepend_cflags_borland (
-                      prepend_includes_borland (
+                      prepend_includes_borland (t,
                         cons (str_do,
                           cons (make_string (target),
                             cons (str_dc,
                               cons (make_string(source), sx_end_of_list)))))))))));
 }
 
-static void build_object_borland_cpp (const char *source, const char *target)
+static void build_object_borland_cpp
+    (const char *source, const char *target, struct target *t)
 {
     workstack = sx_set_add (workstack, cons (p_c_compiler,
                   cons (str_dAT,
@@ -507,14 +478,15 @@ static void build_object_borland_cpp (const char *source, const char *target)
                   cons (str_dP,
                     cons (str_dw,
                       prepend_cxxflags_borland (
-                      prepend_includes_borland (
+                      prepend_includes_borland (t,
                         cons (str_do,
                           cons (make_string (target),
                             cons (str_dc,
                               cons (make_string(source), sx_end_of_list))))))))))));
 }
 
-static void build_object_borland (sexpr type, sexpr source, sexpr target)
+static void build_object_borland
+    (sexpr type, sexpr source, sexpr target, struct target *t)
 {
     if (truep(equalp(type, sym_link))) return;
 
@@ -524,35 +496,33 @@ static void build_object_borland (sexpr type, sexpr source, sexpr target)
     }
     else if (truep(equalp(type, sym_cpp)))
     {
-        build_object_borland_cpp (sx_string(source), sx_string(target));
+        build_object_borland_cpp (sx_string(source), sx_string(target), t);
     }
     else
     {
-        build_object_borland_generic (sx_string(source), sx_string(target));
+        build_object_borland_generic (sx_string(source), sx_string(target), t);
     }
 }
 
-static void build_object_msvc_generic (const char *source, const char *target)
+static void build_object_msvc_generic
+    (const char *source, const char *target, struct target *t)
 {
-    char buffer[BUFFERSIZE];
-
-    snprintf (buffer, BUFFERSIZE, "/Fo%s", target);
+    sexpr b = sx_join (str_sFo, make_string (target), sx_nil);
 
     workstack = sx_set_add (workstack, cons (p_c_compiler,
                       cons (str_sc,
                       cons (str_snologo,
                       cons (str_sTC,
                         prepend_cflags_msvc (
-                        prepend_includes_msvc (
+                        prepend_includes_msvc (t,
                           cons (make_string (source),
-                              cons (make_string(buffer), sx_end_of_list)))))))));
+                              cons (b, sx_end_of_list)))))))));
 }
 
-static void build_object_msvc_cpp (const char *source, const char *target)
+static void build_object_msvc_cpp
+    (const char *source, const char *target, struct target *t)
 {
-    char buffer[BUFFERSIZE];
-
-    snprintf (buffer, BUFFERSIZE, "/Fo%s", target);
+    sexpr b = sx_join (str_sFo, make_string (target), sx_nil);
 
     workstack = sx_set_add (workstack, cons (p_c_compiler,
                       cons (str_sc,
@@ -560,37 +530,36 @@ static void build_object_msvc_cpp (const char *source, const char *target)
                       cons (str_sTP,
                       cons (str_sEHsc,
                         prepend_cxxflags_msvc (
-                        prepend_includes_msvc (
+                        prepend_includes_msvc (t,
                           cons (make_string (source),
-                              cons (make_string(buffer), sx_end_of_list))))))))));
+                              cons (b, sx_end_of_list))))))))));
 }
 
-static void build_object_msvc_resource (const char *source, const char *target)
+static void build_object_msvc_resource
+    (const char *source, const char *target, struct target *t)
 {
-    char buffer[BUFFERSIZE];
-
-    snprintf (buffer, BUFFERSIZE, "/fo%s", target);
+    sexpr b = sx_join (str_sfo, make_string (target), sx_nil);
 
     workstack = sx_set_add (workstack, cons (p_resource_compiler,
-                      cons (make_string (buffer),
-                            cons (make_string(source), sx_end_of_list))));
+                      cons (b, cons (make_string(source), sx_end_of_list))));
 }
 
-static void build_object_msvc (sexpr type, sexpr source, sexpr target)
+static void build_object_msvc
+    (sexpr type, sexpr source, sexpr target, struct target *t)
 {
     if (truep(equalp(type, sym_link))) return;
 
     if (truep(equalp(type, sym_resource)))
     {
-        build_object_msvc_resource (sx_string(source), sx_string(target));
+        build_object_msvc_resource (sx_string(source), sx_string(target), t);
     }
     else if (truep(equalp(type, sym_cpp)))
     {
-        build_object_msvc_cpp (sx_string(source), sx_string(target));
+        build_object_msvc_cpp (sx_string(source), sx_string(target), t);
     }
     else
     {
-        build_object_msvc_generic (sx_string(source), sx_string(target));
+        build_object_msvc_generic (sx_string(source), sx_string(target), t);
     }
 }
 
@@ -600,91 +569,90 @@ static void build_object(sexpr desc, struct target *t)
     sexpr source = car(cdr(desc));
     sexpr target = car(cdr(cdr(desc)));
 
-    struct stat sst, tst;
-    if ((stat (sx_string (source), &sst) == 0) &&
-        (stat (sx_string (target), &tst) == 0) &&
-        (tst.st_mtime > sst.st_mtime)) return;
-
     switch (uname_toolchain)
     {
         case tc_gcc:
             build_object_gcc     (type, source, target, t); break;
         case tc_borland:
-            build_object_borland (type, source, target);    break;
+            build_object_borland (type, source, target, t); break;
         case tc_msvc:
-            build_object_msvc    (type, source, target);    break;
+            build_object_msvc    (type, source, target, t); break;
     }
 }
 
 static void create_special_files (struct target *t)
 {
     char buffer[BUFFERSIZE];
-    char nbuffer[BUFFERSIZE];
     int i = 0;
     struct io *io;
     char c;
+    sexpr b = sx_join (t->buildbase, architecture,
+                sx_join (str_sincludes, t->name, str_sversiondh)),
+          n, o;
+    const char *nx = sx_string (t->name), *ox;
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/include/%s/version.h",
-              archprefix, sx_string(t->name));
-
-    io = io_open_write (buffer);
+    io = io_open_write (sx_string (b));
 
     io_collect (io, "/* this file was generated by icemake */\n\n", 42);
 
-    snprintf (nbuffer, BUFFERSIZE, "%s", sx_string(t->name));
-
-    for (i = 0; nbuffer[i]; i++)
+    for (i = 0; (i < (BUFFERSIZE - 2)) && nx[i]; i++)
     {
-        c = buffer[i];
+        c = nx[i];
 
         if (c == '+')
         {
-            c = 'x';
+            buffer[i] = 'x';
         }
         else if ((c < 'a') && (c > 'z') && (c < 'A') && (c > 'Z'))
         {
             buffer[i] = '_';
         }
+        else
+        {
+            buffer[i] = c;
+        }
     }
 
-    snprintf   (buffer, BUFFERSIZE, "#define %s_name \"%s\"\n",
-                nbuffer, sx_string (t->name));
-    for        (i = 0; buffer[i]; i++);
-    io_collect (io, buffer, i);
+    buffer[i] = 0;
+
+    n = make_string (buffer);
+
+    o = sx_join (str_hdefines, n,
+          sx_join (str_uname, str_sq,
+            sx_join (t->name, str_qnl, sx_nil)));
 
     if (stringp (t->durl))
     {
-        snprintf   (buffer, BUFFERSIZE, "#define %s_url \"%s\"\n",
-                    nbuffer, sx_string (t->durl));
-        for        (i = 0; buffer[i]; i++);
-        io_collect (io, buffer, i);
+        o = sx_join (o, str_hdefines,
+              sx_join (n, str_uurl,
+                sx_join (str_sq, t->durl, str_qnl)));
     }
+        
+    o = sx_join (o, str_hdefines,
+          sx_join (n, str_uversion,
+            sx_join (str_space, t->dversion, str_nl)));
 
-    snprintf   (buffer, BUFFERSIZE, "#define %s_version %s\n",
-                nbuffer, sx_string (t->dversion));
-    for        (i = 0; buffer[i]; i++);
-    io_collect (io, buffer, i);
+    o = sx_join (o, str_hdefines,
+          sx_join (n, str_uversion_s,
+            sx_join (str_sq, t->dversion, str_qnl)));
 
-    snprintf   (buffer, BUFFERSIZE, "#define %s_version_s \"%s\"\n",
-                nbuffer, sx_string (t->dversion));
-    for        (i = 0; buffer[i]; i++);
-    io_collect (io, buffer, i);
+    o = sx_join (o, str_hdefines,
+          sx_join (n, str_ubuild_number,
+            sx_join (str_space, t->buildnumber, str_nl)));
 
-    snprintf   (buffer, BUFFERSIZE, "#define %s_build_number %li\n",
-                nbuffer, sx_integer (t->buildnumber));
-    for        (i = 0; buffer[i]; i++);
-    io_collect (io, buffer, i);
+    o = sx_join (o, str_hdefines,
+          sx_join (n, str_ubuild_number_s,
+            sx_join (str_sq, t->buildnumber, str_qnl)));
 
-    snprintf   (buffer, BUFFERSIZE, "#define %s_build_number_s \"%li\"\n",
-                nbuffer, sx_integer (t->buildnumber));
-    for        (i = 0; buffer[i]; i++);
-    io_collect (io, buffer, i);
+    o = sx_join (o, str_hdefines,
+          sx_join (n, str_uversion_long,
+            sx_join (str_sq, t->name,
+              sx_join (str_dash, t->dversion,
+                sx_join (str_dot, t->buildnumber, str_qnl)))));
 
-    snprintf   (buffer, BUFFERSIZE, "#define %s_version_long \"%s-%s.%li\"\n",
-                nbuffer, sx_string (t->name), sx_string(t->dversion),
-                sx_integer (t->buildnumber));
-    for        (i = 0; buffer[i]; i++);
-    io_collect (io, buffer, i);
+    ox = sx_string (o);
+    for        (i = 0; ox[i]; i++);
+    io_collect (io, ox, i);
 
     io_flush   (io);
     io_close   (io);

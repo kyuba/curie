@@ -109,6 +109,19 @@ sexpr sx_join (sexpr a, sexpr b, sexpr c)
     unsigned int j = 0, k = 0;
     const char *s;
 
+    if (integerp (a))
+    {
+        a = sx_to_string (a);
+    }
+    if (integerp (b))
+    {
+        b = sx_to_string (b);
+    }
+    if (integerp (c))
+    {
+        c = sx_to_string (c);
+    }
+
     if (stringp (a) || symbolp(a))
     {
         s = stringp (a) ? sx_string (a) : sx_symbol(a);

@@ -140,7 +140,7 @@ static void diff_test_reference_library (sexpr name, struct target *t)
 
 static void do_run_tests_target(struct target *t)
 {
-    if (truep(t->library))
+    if (t->options & ICEMAKE_LIBRARY)
     {
         diff_test_reference_library (t->name, t);
         run_tests_library (t->name, t);

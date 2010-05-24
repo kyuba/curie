@@ -135,7 +135,7 @@
   (libraries "sievert")
 
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
-        "icemake-link" "icemake-post-process" "icemake-documentation")
+        "icemake-link" "icemake-documentation")
 
   (documentation
         "icemake" "ice" "icemake.sx"))

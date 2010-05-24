@@ -28,6 +28,8 @@
 
 #include <icemake/icemake.h>
 
+#include <curie/main.h>
+
 #include <curie/memory.h>
 #include <curie/multiplex.h>
 #include <curie/exec.h>
@@ -61,7 +63,6 @@ enum fs_layout i_fsl                   = fs_afsl;
 enum operating_system i_os             = os_unknown;
 enum instruction_set i_is              = is_generic;
 
-char  archbuffer [BUFFERSIZE];
 char *archprefix                       = "generic-unknown-generic-generic";
 char *tcversion                        = (char *)0;
 
@@ -104,9 +105,39 @@ sexpr p_latex                          = sx_false;
 sexpr p_pdflatex                       = sx_false;
 sexpr p_doxygen                        = sx_false;
 
+sexpr architecture                     = sx_false;
+
 static sexpr i_alternatives            = sx_end_of_list;
 
 struct sexpr_io *stdio;
+
+void mkdir_pi (sexpr path)
+{
+    char buffer[BUFFERSIZE];
+    const char *p = sx_string (path);
+    int i;
+
+    for (i = 0; (p[i] != 0) && (i < (BUFFERSIZE - 2)); i++)
+    {
+        if (((p[i] == '/') || (p[i] == '\\')) && (i > 0))
+        {
+            buffer[i] = 0;
+
+            if (falsep (filep (make_string (buffer))))
+            {
+                mkdir (buffer, 0755);
+            }
+        }
+
+        buffer[i] = p[i];
+    }
+}
+
+void mkdir_p (sexpr path)
+{
+    mkdir_pi (path);
+    mkdir (sx_string (path), 0755);
+}
 
 sexpr prepend_flags_from_environment (sexpr x, const char *var)
 {
@@ -148,7 +179,7 @@ sexpr prepend_flags_from_environment (sexpr x, const char *var)
     return x;
 }
 
-void mangle_path_borland (char *b)
+char *mangle_path_borland (char *b)
 {
     int i;
 
@@ -159,26 +190,54 @@ void mangle_path_borland (char *b)
             b[i] = 'x';
         }
     }
+
+    return b;
+}
+
+sexpr mangle_path_borland_sx (sexpr b)
+{
+    char buffer[BUFFERSIZE];
+    int i;
+    const char *bx = sx_string (b);
+
+    for (i = 0; (i < (BUFFERSIZE - 2)) && bx[i]; i++)
+    {
+        buffer[i] = bx[i];
+    }
+
+    buffer[i] = 0;
+
+    return make_string (mangle_path_borland (buffer));
+}
+
+sexpr lowercase (sexpr s)
+{
+    char buffer[BUFFERSIZE], c;
+    int i;
+    const char *sx = sx_string (s);
+
+    for (i = 0; (i < (BUFFERSIZE - 2)) && sx[i]; i++)
+    {
+        c = sx[i];
+
+        buffer[i] = ((c >= 'A') && (c <= 'Z'))
+                  ? ('a' + (c - 'A'))
+                  : c;
+    }
+
+    buffer[i] = 0;
+
+    return make_string (buffer);
 }
 
 sexpr sx_string_dir_prefix_c (const char *f, sexpr p)
 {
-    char buffer[BUFFERSIZE];
-
-    switch (i_os)
+    if (i_os == os_windows)
     {
-        case os_windows:
-            if (uname_toolchain != tc_gcc)
-            {
-                snprintf (buffer, BUFFERSIZE, "%s\\%s", sx_string(p), f);
-                break;
-            }
-        default:
-            snprintf (buffer, BUFFERSIZE, "%s/%s", sx_string(p), f);
-            break;
+        return sx_join (p, str_backslash, make_string (f));
     }
 
-    return make_string(buffer);
+    return sx_join (p, str_slash, make_string (f));
 }
 
 static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
@@ -189,14 +248,8 @@ static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
 static sexpr find_actual_file (sexpr p, sexpr file)
 {
     sexpr r = sx_string_dir_prefix (file, p);
-    struct stat st;
 
-    if (stat (sx_string (r), &st) == 0)
-    {
-        return r;
-    }
-
-    return sx_false;
+    return (truep(filep (r)) ? r : sx_false);
 }
 
 static sexpr find_in_permutations_vendor (sexpr p, sexpr file)
@@ -311,26 +364,16 @@ static sexpr find_in_permutations (sexpr p, sexpr file)
 
 static sexpr find_code_with_suffix (sexpr file, char *s)
 {
-    char buffer[BUFFERSIZE];
-    sexpr r, sr;
-
-    snprintf (buffer, BUFFERSIZE, "%s%s", sx_string(file), s);
-
-    r = find_in_permutations (str_src, (sr = make_string (buffer)));
-
-    return r;
+    return find_in_permutations
+        (str_src,
+         sx_join (file, make_string (s), sx_nil));
 }
 
 static sexpr find_test_case_with_suffix (sexpr file, char *s)
 {
-    char buffer[BUFFERSIZE];
-    sexpr r, sr;
-
-    snprintf (buffer, BUFFERSIZE, "%s%s", sx_string(file), s);
-
-    r = find_in_permutations (str_tests, (sr = make_string (buffer)));
-
-    return r;
+    return find_in_permutations
+        (str_tests,
+         sx_join (file, make_string (s), sx_nil));
 }
 
 static sexpr find_code_c (sexpr file)
@@ -389,14 +432,9 @@ static sexpr find_test_case_cpp (sexpr file)
 
 static sexpr find_header_with_suffix (sexpr name, sexpr file, char *s)
 {
-    char buffer[BUFFERSIZE];
-    sexpr r, sr;
-
-    snprintf (buffer, BUFFERSIZE, "%s/%s%s", sx_string(name), sx_string(file), s);
-
-    r = find_in_permutations (str_include, (sr = make_string (buffer)));
-
-    return r;
+    return find_in_permutations
+        (str_include,
+         sx_join (name, str_slash, sx_join (file, make_string (s), sx_nil)));
 }
 
 static sexpr find_header_h (sexpr name, sexpr file)
@@ -404,123 +442,121 @@ static sexpr find_header_h (sexpr name, sexpr file)
     return find_header_with_suffix (name, file, ".h");
 }
 
-static sexpr generate_object_file_name (sexpr name, sexpr file)
+sexpr get_build_file (struct target *t, sexpr file)
 {
-    char buffer[BUFFERSIZE];
-
     switch (uname_toolchain)
     {
         case tc_msvc:
-            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.obj", archprefix, sx_string(name), sx_string(file));
-            break;
+            return sx_join (t->buildbase, architecture,
+                   sx_join (str_backslash, t->name,
+                   sx_join (str_backslash, file, sx_nil)));
         case tc_borland:
-            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.obj", archprefix, sx_string(name), sx_string(file));
-            mangle_path_borland (buffer);
-            break;
+            return mangle_path_borland_sx
+                     (sx_join (t->buildbase, architecture,
+                      sx_join (str_backslash, t->name,
+                      sx_join (str_backslash, file, sx_nil))));
         case tc_gcc:
-            snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.o", archprefix, sx_string(name), sx_string(file));
-            break;
+            return sx_join (t->buildbase, architecture,
+                   sx_join (str_slash, t->name,
+                   sx_join (str_slash, file, sx_nil)));
     }
 
-    return make_string(buffer);
+    return sx_false;
 }
 
-static sexpr generate_resource_file_name (sexpr name)
+sexpr get_install_file (struct target *t, sexpr file)
 {
-    char buffer[BUFFERSIZE];
-
-    switch (uname_toolchain)
+    switch (i_fsl)
     {
-        case tc_msvc:
-            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.res", archprefix, sx_string(name), sx_string(name));
-            break;
-        case tc_borland:
-            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\%s.res", archprefix, sx_string(name), sx_string(name));
-            mangle_path_borland (buffer);
-            break;
-        case tc_gcc:
-            snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.res", archprefix, sx_string(name), sx_string(name));
-            break;
-    }
-
-    return make_string(buffer);
-}
-
-static sexpr generate_pic_object_file_name (sexpr name, sexpr file)
-{
-    char buffer[BUFFERSIZE];
-
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/%s.pic.o", archprefix, sx_string(name), sx_string(file));
-
-    return make_string(buffer);
-}
-
-static sexpr generate_test_object_file_name (sexpr name, sexpr file)
-{
-    char buffer[BUFFERSIZE];
-
-    switch (uname_toolchain)
-    {
-        case tc_msvc:
-            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.obj", archprefix, sx_string(name), sx_string(file));
-            break;
-        case tc_borland:
-            snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.obj", archprefix, sx_string(name), sx_string(file));
-            mangle_path_borland (buffer);
-            break;
-        case tc_gcc:
-            snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s.o", archprefix, sx_string(name), sx_string(file));
-            break;
-    }
-
-    return make_string(buffer);
-}
-
-static sexpr generate_test_executable_file_name (sexpr name, sexpr file)
-{
-    char buffer[BUFFERSIZE];
-
-    switch (i_os)
-    {
-        case os_windows:
+        case fs_fhs:
+        case fs_fhs_binlib:
             switch (uname_toolchain)
             {
                 case tc_msvc:
-                    snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.exe", archprefix, sx_string(name), sx_string(file));
-                    break;
                 case tc_borland:
-                    snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.exe", archprefix, sx_string(name), sx_string(file));
-                    mangle_path_borland (buffer);
-                    break;
+                    return sx_join (i_destdir, str_backslash, file);
                 case tc_gcc:
-                    snprintf (buffer, BUFFERSIZE, "build\\%s\\%s\\tests\\%s.exe", archprefix, sx_string(name), sx_string(file));
+                    return sx_join (i_destdir, str_slash, file);
             }
-            break;
-        default:
-            snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests/%s", archprefix, sx_string(name), sx_string(file));
+        case fs_afsl:
+            switch (uname_toolchain)
+            {
+                case tc_msvc:
+                case tc_borland:
+                    return sx_join (i_destdir, str_backslash,
+                             sx_join (make_string (uname_os), str_backslash,
+                               sx_join (make_string (uname_arch), str_backslash,
+                                        file)));
+                case tc_gcc:
+                    return sx_join (i_destdir, str_slash,
+                             sx_join (make_string (uname_os), str_slash,
+                               sx_join (make_string (uname_arch), str_slash,
+                                        file)));
+            }
     }
 
-    return make_string(buffer);
+    return sx_false;
+}
+
+static sexpr generate_file_name_with_suffix
+    (sexpr file, struct target *t, sexpr suffix)
+{
+    return get_build_file (t, sx_join (file, suffix, sx_nil));
+}
+
+static sexpr generate_object_file_name (sexpr file, struct target *t)
+{
+    return generate_file_name_with_suffix
+        (file, t, ((uname_toolchain == tc_gcc) ? str_dot_o : str_dot_obj));
+}
+
+static sexpr generate_resource_file_name (struct target *t)
+{
+    return generate_file_name_with_suffix (t->name, t, str_dot_res);
+}
+
+static sexpr generate_pic_object_file_name (sexpr file, struct target *t)
+{
+    return generate_file_name_with_suffix (file, t, str_dot_pic_o);
+}
+
+static sexpr generate_test_object_file_name (sexpr file, struct target *t)
+{
+    if (uname_toolchain == tc_gcc)
+    {
+        return generate_file_name_with_suffix
+            (sx_join (str_test_dash, file, sx_nil), t, str_dot_o);
+    }
+
+    return generate_file_name_with_suffix
+        (sx_join (str_test_dash, file, sx_nil), t, str_dot_obj);
+}
+
+static sexpr generate_test_executable_file_name (sexpr file, struct target *t)
+{
+    return generate_file_name_with_suffix
+        (sx_join (str_test_dash, file, sx_nil), t,
+                  ((i_os == os_windows ? str_dot_exe : sx_nil)));
 }
 
 static sexpr find_code_highlevel (struct target *context, sexpr file)
 {
-    sexpr r;
-    char buffer[BUFFERSIZE];
-    sexpr subfile;
-
-    snprintf (buffer, BUFFERSIZE, "%s-highlevel", sx_string (file));
-    subfile = make_string (buffer);
+    sexpr r, subfile = sx_join (file, str_dhighlevel, sx_nil);
 
     if (((r = find_code_cpp (subfile)), stringp(r)))
     {
-        context->have_cpp = sx_true;
+        context->options |= ICEMAKE_HAVE_CPP;
 
-        return cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list)));
+        return cons(sym_cpp, cons (r,
+                 cons (generate_object_file_name (subfile, context),
+                   sx_end_of_list)));
+
     }
     else if (((r = find_code_c (subfile)), stringp(r)))
     {
-        return cons(sym_c, cons (r, cons (generate_object_file_name(context->name, subfile), sx_end_of_list)));
+        return cons(sym_c, cons (r,
+                 cons (generate_object_file_name (subfile, context),
+                   sx_end_of_list)));
     }
 
     return sx_false;
@@ -528,22 +564,21 @@ static sexpr find_code_highlevel (struct target *context, sexpr file)
 
 static sexpr find_code_highlevel_pic (struct target *context, sexpr file)
 {
-    sexpr r;
-    char buffer[BUFFERSIZE];
-    sexpr subfile;
-
-    snprintf (buffer, BUFFERSIZE, "%s-highlevel", sx_string (file));
-    subfile = make_string (buffer);
+    sexpr r, subfile = sx_join (file, str_dhighlevel, sx_nil);
 
     if (((r = find_code_cpp (subfile)), stringp(r)))
     {
-        context->have_cpp = sx_true;
+        context->options |= ICEMAKE_HAVE_CPP;
 
-        return cons(sym_cpp_pic, cons (r, cons (generate_pic_object_file_name(context->name, subfile), sx_end_of_list)));
+        return cons(sym_cpp_pic, cons (r,
+                 cons (generate_pic_object_file_name (subfile, context),
+                   sx_end_of_list)));
     }
     else if (((r = find_code_c (subfile)), stringp(r)))
     {
-        return cons(sym_c_pic, cons (r, cons (generate_pic_object_file_name(context->name, subfile), sx_end_of_list)));
+        return cons(sym_c_pic, cons (r,
+                 cons (generate_pic_object_file_name (subfile, context),
+                   sx_end_of_list)));
     }
 
     return sx_false;
@@ -551,9 +586,6 @@ static sexpr find_code_highlevel_pic (struct target *context, sexpr file)
 
 static void find_code (struct target *context, sexpr file)
 {
-    define_symbol (sym_invalid_choice,    "invalid-choice");
-    define_symbol (sym_missing_code_file, "missing-code-file");
-
     sexpr r;
     sexpr primus   = sx_false;
     sexpr secundus = sx_false;
@@ -585,11 +617,7 @@ static void find_code (struct target *context, sexpr file)
 
                 if (consp (file))
                 {
-                    sx_write (stdio, cons (sym_invalid_choice,
-                                           cons (ch,
-                                                 cons (e, sx_end_of_list))));
-
-                    exit (60);
+                    on_error (ie_invalid_choice, sx_string (file));
                 }
 
                 break;
@@ -608,64 +636,48 @@ static void find_code (struct target *context, sexpr file)
     {
         if ((r = find_code_S (file)), stringp(r))
         {
-            primus = cons(sym_preproc_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+            primus =
+                cons(sym_preproc_assembly, cons (r,
+                  cons (generate_object_file_name (file, context),
+                    sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries))
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
             {
-                switch (uname_toolchain)
-                {
-                    case tc_gcc:
-                        secundus = cons(sym_preproc_assembly_pic, cons (find_code_pic_S (file), cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
-                        break;
-                    case tc_msvc:
-                    case tc_borland:
-                        break;
-                }
+                secundus =
+                    cons(sym_preproc_assembly_pic,
+                      cons (find_code_pic_S (file),
+                        cons (generate_pic_object_file_name
+                                (file, context), sx_end_of_list)));
             }
 
-            tertius = find_code_highlevel     (context, file);
-            if (truep(i_dynamic_libraries))
+            tertius = find_code_highlevel (context, file);
+
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
             {
-                switch (uname_toolchain)
-                {
-                    case tc_gcc:
-                        quartus = find_code_highlevel_pic (context, file);
-                        break;
-                    case tc_msvc:
-                    case tc_borland:
-                        break;
-                }
+                quartus = find_code_highlevel_pic (context, file);
             }
         }
         else if ((r = find_code_s (file)), stringp(r))
         {
-            primus = cons(sym_assembly, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+            primus =
+                cons(sym_assembly, cons (r,
+                  cons (generate_object_file_name (file, context),
+                    sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries))
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
             {
-                switch (uname_toolchain)
-                {
-                    case tc_gcc:
-                        secundus = cons(sym_assembly_pic, cons (find_code_pic_s (file), cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
-                        break;
-                    case tc_msvc:
-                    case tc_borland:
-                        break;
-                }
+                secundus =
+                    cons(sym_assembly_pic,
+                      cons (find_code_pic_s (file),
+                        cons (generate_pic_object_file_name
+                                (file, context), sx_end_of_list)));
             }
 
-            tertius = find_code_highlevel     (context, file);
-            if (truep(i_dynamic_libraries))
+            tertius = find_code_highlevel (context, file);
+
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
             {
-                switch (uname_toolchain)
-                {
-                    case tc_gcc:
-                        quartus = find_code_highlevel_pic (context, file);
-                        break;
-                    case tc_msvc:
-                    case tc_borland:
-                        break;
-                }
+                quartus = find_code_highlevel_pic (context, file);
             }
         }
     }
@@ -674,46 +686,35 @@ static void find_code (struct target *context, sexpr file)
     {
         if (((r = find_code_cpp (file)), stringp(r)))
         {
-            context->have_cpp = sx_true;
+            context->options |= ICEMAKE_HAVE_CPP;
 
-            primus = cons(sym_cpp, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+            primus = cons(sym_cpp, cons (r,
+                       cons (generate_object_file_name (file, context),
+                         sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries))
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
             {
-                switch (uname_toolchain)
-                {
-                    case tc_gcc:
-                        secundus = cons(sym_cpp_pic, cons (r, cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
-                        break;
-                    case tc_msvc:
-                    case tc_borland:
-                        break;
-                }
+                secundus = cons(sym_cpp_pic, cons (r,
+                             cons (generate_pic_object_file_name
+                                     (file, context), sx_end_of_list)));
             }
         }
         else if (((r = find_code_c (file)), stringp(r)))
         {
-            primus = cons(sym_c, cons (r, cons (generate_object_file_name(context->name, file), sx_end_of_list)));
+            primus = cons(sym_c, cons (r,
+                       cons (generate_object_file_name (file, context),
+                         sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries))
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
             {
-                switch (uname_toolchain)
-                {
-                    case tc_gcc:
-                        secundus = cons(sym_c_pic, cons (r, cons (generate_pic_object_file_name(context->name, file), sx_end_of_list)));
-                        break;
-                    case tc_msvc:
-                    case tc_borland:
-                        break;
-                }
+                secundus = cons (sym_c_pic, cons (r,
+                             cons (generate_pic_object_file_name
+                                     (file, context), sx_end_of_list)));
             }
         }
         else
         {
-            sx_write (stdio, cons (sym_missing_code_file,
-                                   cons (file, sx_end_of_list)));
-
-            exit(20);
+            on_error (ie_missing_code_file, sx_string (file));
         }
     }
 
@@ -758,16 +759,21 @@ static void find_test_case (struct target *context, sexpr file)
 
     if (((r = find_test_case_cpp (file)), stringp(r)))
     {
-        primus = cons(sym_cpp, cons (r, cons (generate_test_object_file_name(context->name, file), cons (generate_test_executable_file_name(context->name, file), sx_end_of_list))));
+        primus = cons(sym_cpp, cons (r,
+                   cons (generate_test_object_file_name (file, context),
+                     cons (generate_test_executable_file_name (file, context),
+                       sx_end_of_list))));
     }
     else if (((r = find_test_case_c (file)), stringp(r)))
     {
-        primus = cons(sym_c, cons (r, cons (generate_test_object_file_name(context->name, file), cons (generate_test_executable_file_name(context->name, file), sx_end_of_list))));
+        primus = cons(sym_c, cons (r,
+                   cons (generate_test_object_file_name (file, context),
+                     cons (generate_test_executable_file_name (file, context),
+                       sx_end_of_list))));
     }
     else
     {
-        fprintf (stderr, "missing test case: %s\n", sx_string(file));
-        exit(20);
+        on_error (ie_missing_test_case, sx_string (file));
     }
 
     context->test_cases = cons (primus, context->test_cases);
@@ -783,21 +789,14 @@ static void find_header (struct target *context, sexpr file)
     }
     else
     {
-        fprintf (stderr, "missing header file: %s\n", sx_string(file));
-        exit(21);
+        on_error (ie_missing_header, sx_string (file));
     }
 }
 
 static sexpr find_documentation_with_suffix (sexpr file, char *s)
 {
-    char buffer[BUFFERSIZE];
-    sexpr r, sr;
-
-    snprintf (buffer, BUFFERSIZE, "%s%s", sx_string(file), s);
-
-    r = find_in_permutations (str_documentation, (sr = make_string (buffer)));
-
-    return r;
+    return find_in_permutations
+        (str_documentation, sx_join (file, make_string (s), sx_nil));
 }
 
 static sexpr find_documentation_tex (sexpr file)
@@ -856,8 +855,7 @@ static void find_documentation (struct target *context, sexpr file)
     }
     else
     {
-        fprintf (stderr, "missing documentation file: %s\n", sx_string(file));
-        exit(21);
+        on_error (ie_missing_documentation, sx_string (file));
     }
 }
 
@@ -867,8 +865,7 @@ static sexpr find_data (struct target *context, sexpr file)
 
     if ((r = find_in_permutations (str_data, file)), !stringp(r))
     {
-        fprintf (stderr, "missing data file: %s\n", sx_string(file));
-        exit(21);
+        on_error (ie_missing_data, sx_string (file));
     }
 
     return r;
@@ -879,10 +876,6 @@ static struct target *get_context()
     static struct memory_pool pool = MEMORY_POOL_INITIALISER (sizeof(struct target));
     struct target *context = get_pool_mem (&pool);
 
-    context->library          = sx_false;
-    context->programme        = sx_false;
-    context->hosted           = sx_false;
-    context->use_curie        = sx_false;
     context->libraries        = sx_end_of_list;
     context->deffile          = sx_false;
     context->olibraries       = sx_end_of_list;
@@ -897,17 +890,23 @@ static struct target *get_context()
     context->dversion         = sx_false;
     context->durl             = sx_false;
     context->documentation    = sx_end_of_list;
-    context->have_cpp         = sx_false;
-    context->allow_exceptions = sx_true;
     context->buildnumber      = make_integer (0);
+    context->options          = ICEMAKE_ALLOW_EXCEPTIONS;
+
+    if (i_os == os_windows)
+    {
+        context->buildbase    = str_build_backslash;
+    }
+    else
+    {
+        context->buildbase    = str_build_slash;
+    }
 
     return context;
 }
 
 static void process_definition (struct target *context, sexpr definition)
 {
-    char buffer[BUFFERSIZE];
-
     while (consp(definition))
     {
         sexpr sxcar = car (definition);
@@ -915,11 +914,11 @@ static void process_definition (struct target *context, sexpr definition)
 
         if (truep(equalp(sxcar, sym_no_exceptions)))
         {
-            context->allow_exceptions = sx_false;
+            context->options &= ~ICEMAKE_ALLOW_EXCEPTIONS;
         }
         else if (truep(equalp(sxcar, sym_hosted)))
         {
-            context->hosted = sx_true;
+            context->options |= ICEMAKE_HOSTED;
         }
         else if (truep(equalp(sxcaar, sym_name)))
         {
@@ -939,7 +938,7 @@ static void process_definition (struct target *context, sexpr definition)
         }
         else if (truep(equalp(sxcar, sym_libcurie)))
         {
-            context->use_curie = sx_true;
+            context->options |= ICEMAKE_USE_CURIE;
         }
         else if (truep(equalp(sxcaar, sym_code)))
         {
@@ -958,7 +957,11 @@ static void process_definition (struct target *context, sexpr definition)
 
                 if (stringp (r))
                 {
-                    context->code = cons (cons(sym_resource, cons (r, cons (generate_resource_file_name(context->name), sx_end_of_list))), context->code);
+                    context->code =
+                        cons (cons(sym_resource, cons (r,
+                                cons (generate_resource_file_name (context),
+                                      sx_end_of_list))),
+                              context->code);
                 } 
             }
         }
@@ -1079,50 +1082,26 @@ static void process_definition (struct target *context, sexpr definition)
         definition = cdr (definition);
     }
 
-    snprintf (buffer, BUFFERSIZE, "build/%s", archprefix);
+    mkdir_p (get_build_file (context, sx_nil));
 
-    mkdir (buffer, 0755);
+    mkdir_p (sx_join (context->buildbase, architecture, str_sinclude));
 
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s", archprefix, sx_string(context->name));
-
-    mkdir (buffer, 0755);
-
-    snprintf (buffer, BUFFERSIZE, "build/%s/include", archprefix);
-
-    mkdir (buffer, 0755);
-
-    snprintf (buffer, BUFFERSIZE, "build/%s/include/%s", archprefix, sx_string(context->name));
-
-    mkdir (buffer, 0755);
-
-    snprintf (buffer, BUFFERSIZE, "build/%s/include/%s/version.h", archprefix, sx_string(context->name));
+    mkdir_p (sx_join (context->buildbase, architecture,
+                      sx_join (str_sincludes, context->name, sx_nil)));
 
     context->headers =
         cons (cons (str_version,
-                    cons (make_string (buffer), sx_end_of_list)),
+                    cons (sx_join (context->buildbase, architecture,
+                                   sx_join (str_sincludes, context->name,
+                                            str_sversiondh)),
+                          sx_end_of_list)),
               context->headers);
-
-    snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests", archprefix, sx_string(context->name));
-
-    mkdir (buffer, 0755);
-
-    if (uname_toolchain == tc_borland)
-    {
-        snprintf (buffer, BUFFERSIZE, "build/%s/%s", archprefix, sx_string(context->name));
-        mangle_path_borland (buffer);
-
-        mkdir (buffer, 0755);
-
-        snprintf (buffer, BUFFERSIZE, "build/%s/%s/tests", archprefix, sx_string(context->name));
-        mangle_path_borland (buffer);
-
-        mkdir (buffer, 0755);
-    }
 
     if (uname_toolchain == tc_gcc)
     {
-        if (truep (context->have_cpp) &&
-            (truep (context->allow_exceptions) || truep (context->hosted)))
+        if ((context->options & ICEMAKE_HAVE_CPP) &&
+            ((context->options & ICEMAKE_ALLOW_EXCEPTIONS) ||
+             (context->options & ICEMAKE_HOSTED)))
         {
             context->libraries = cons (str_supcpp, context->libraries);
             if (i_os == os_darwin)
@@ -1133,7 +1112,8 @@ static void process_definition (struct target *context, sexpr definition)
             context->libraries = cons (str_gcc, context->libraries);
         }
 
-        if (truep(context->hosted) && falsep (context->have_cpp))
+        if ((context->options & ICEMAKE_HOSTED) &&
+            !(context->options & ICEMAKE_HAVE_CPP))
         {
             switch (i_os)
             {
@@ -1150,10 +1130,11 @@ static void process_definition (struct target *context, sexpr definition)
         }
     }
 
-    if (truep(context->use_curie))
+    if (context->options & ICEMAKE_USE_CURIE)
     {
-        if (falsep (context->hosted) &&
-            (falsep (context->have_cpp) || falsep(context->allow_exceptions)))
+        if (!(context->options & ICEMAKE_HOSTED) &&
+            (!(context->options & ICEMAKE_HAVE_CPP) ||
+             !(context->options & ICEMAKE_ALLOW_EXCEPTIONS)))
         {
             context->libraries = cons (str_curie_bootstrap, context->libraries);
         }
@@ -1174,7 +1155,8 @@ static struct target *create_library (sexpr definition)
     struct target *context = get_context();
 
     context->name = car(definition);
-    context->library = sx_true;
+
+    context->options |= ICEMAKE_LIBRARY;
 
     process_definition (context, cdr(definition));
 
@@ -1192,7 +1174,8 @@ static struct target *create_programme (sexpr definition)
     struct target *context = get_context();
 
     context->name = car(definition);
-    context->programme = sx_true;
+
+    context->options |= ICEMAKE_PROGRAMME;
 
     process_definition (context, cdr(definition));
 
@@ -1249,7 +1232,8 @@ static void target_map_merge (struct tree_node *node, void *u)
     sexpr cur, ca, nc, ttype;
     const char *target;
 
-    if (truep (context->programme)) /* dont merge objects for libraries */
+    if (context->options & ICEMAKE_PROGRAMME)
+        /* dont merge objects for libraries */
     {
         for (cur = context->libraries; consp (cur); cur = cdr (cur))
         {
@@ -1266,7 +1250,8 @@ static void target_map_merge (struct tree_node *node, void *u)
         }
     }
 
-    if (truep (context->programme)) /* dont need PIC objects for programmes */
+    if (context->options & ICEMAKE_PROGRAMME)
+        /* dont need PIC objects for programmes */
     {
         nc = sx_end_of_list;
         for (cur = context->code; consp(cur); cur = cdr (cur))
@@ -1295,11 +1280,11 @@ static void target_map_combine (struct tree_node *node, void *u)
     {
         combine_code (context, sym_c,
                       generate_object_file_name
-                        (context->name, str_combined_c_source));
+                        (str_combined_c_source, context));
 
         combine_code (context, sym_c_pic,
                       generate_pic_object_file_name
-                        (context->name, str_combined_c_source));
+                        (str_combined_c_source, context));
     }
 }
 
@@ -1309,13 +1294,13 @@ static void merge_contexts ( void )
     tree_map (&targets, target_map_combine, (void *)0);
 }
 
-static void print_help (char *binaryname)
+static void print_help ()
 {
-    fprintf (stdout,
+    sx_write (stdio, make_symbol (
 #if !defined(NOVERSION)
         icemake_version_long "\n\n"
 #endif
-        "Usage: %s [options] [targets]\n"
+        "Usage: icemake [options] [targets]\n"
         "\n"
         "Options:\n"
         " -h           Print help (this text) and exit.\n"
@@ -1340,19 +1325,18 @@ static void print_help (char *binaryname)
         "\n"
         "The [targets] specify a list of things to build, according to the\n"
         "icemake.sx file located in the current working directory.\n"
-        "\n",
-        binaryname);
+        "\n"));
 }
 
 static void print_version ()
 {
-    fprintf (stdout,
+    sx_write (stdio, make_symbol (
 #if defined(NOVERSION)
         "icemake (version info not available)"
 #else
         icemake_version_long "\n"
 #endif
-            );
+            ));
 }
  
 static void write_uname_element (char *source, char *target, int tlen)
@@ -1382,7 +1366,7 @@ static void write_uname_element (char *source, char *target, int tlen)
     target[i] = 0;
 }
 
-static sexpr cwhich (char *programme)
+static sexpr cwhich (sexpr programme)
 {
     char buffer[BUFFERSIZE];
     char *x = getenv("PATH"), *y = buffer;
@@ -1391,37 +1375,31 @@ static sexpr cwhich (char *programme)
 
     while (y < (buffer + BUFFERSIZE - 1))
     {
-        if ((*x == 0) ||
-#if !defined(_WIN32)
-            (*x == ':')
-#else
-            (*x == ';')
-#endif
-           ) {
-            char subbuffer[BUFFERSIZE];
-            struct stat st;
+        if ((*x == 0) || (*x == ':') || (*x == ';'))
+        {
+            sexpr b, s;
 
             *y = 0;
             y = buffer;
 
-            snprintf (subbuffer, BUFFERSIZE, "%s/%s", buffer, programme);
+            b = make_string (buffer);
 
-            if (stat (subbuffer, &st) == 0)
+            if (truep (filep (s = sx_join (b, str_slash, programme))))
             {
-                return make_string (subbuffer);
+                return s;
             }
 
-            snprintf (subbuffer, BUFFERSIZE, "%s\\%s.exe", buffer, programme);
-
-            if (stat (subbuffer, &st) == 0)
+            if (truep (filep (s = sx_join (b, str_backslash,
+                                           sx_join (programme, str_dot_exe,
+                                                    sx_nil)))))
             {
-                return make_string (subbuffer);
+                return s;
             }
 
-	    if (*x == 0)
-	    {
-	        return sx_false;
-	    }
+    	    if (*x == 0)
+	        {
+	            return sx_false;
+    	    }
         }
         else
         {
@@ -1437,21 +1415,20 @@ static sexpr cwhich (char *programme)
 
 static sexpr xwhich (char *programme)
 {
-    char buffer[BUFFERSIZE];
-    sexpr w;
+    sexpr w, p = make_string (programme);
 
     if ((tcversion != (char *)0) &&
-         (snprintf (buffer, BUFFERSIZE, "%s-%s-%s", archprefix, programme, tcversion),
-          (w = cwhich (buffer)), stringp(w)))
+          ((w = cwhich (sx_join (architecture, str_dash,
+                          sx_join (p, str_dash, make_string (tcversion))))),
+           stringp(w)))
     {
         return w;
     }
-    else if (snprintf (buffer, BUFFERSIZE, "%s-%s", archprefix, programme),
-             (w = cwhich (buffer)), stringp(w))
+    else if ((w = cwhich (sx_join (architecture, str_dash, p))), stringp(w))
     {
         return w;
     }
-    else if ((w = cwhich (programme)), stringp(w))
+    else if ((w = cwhich (make_string (programme))), stringp(w))
     {
         return w;
     }
@@ -1465,8 +1442,7 @@ static void initialise_toolchain_gcc()
     if (falsep(p_c_compiler)) { p_c_compiler = xwhich ("cc"); }
     if (falsep(p_c_compiler))
     {
-        fprintf (stderr, "cannot find C compiler.\n");
-        exit (21);
+        on_error (ie_missing_tool, "gcc");
     }
 
     p_linker = p_c_compiler;
@@ -1475,31 +1451,25 @@ static void initialise_toolchain_gcc()
     p_cpp_compiler = xwhich ("g++");
     if (falsep(p_cpp_compiler))
     {
-        fprintf (stderr, "cannot find C++ compiler.\n");
-        exit (22);
+        on_error (ie_missing_tool, "g++");
     }
 
     p_assembler = xwhich ("as");
     if (falsep(p_assembler))
     {
-        fprintf (stderr, "cannot find assembler.\n");
-        exit (23);
+        on_error (ie_missing_tool, "as");
     }
 
     p_archiver = xwhich ("ar");
     if (falsep(p_archiver))
     {
-        fprintf (stderr, "cannot find archiver.\n");
-        exit (25);
+        on_error (ie_missing_tool, "ar");
     }
 
     p_diff = xwhich ("diff");
     if (falsep(p_diff))
     {
-        sexpr out;
-        sx_write (stdio,
-                  (out = cons (sym_missing_programme,
-                               cons (sym_diff, sx_end_of_list))));
+        on_warning (ie_missing_tool, "diff");
     }
 }
 
@@ -1508,8 +1478,7 @@ static void initialise_toolchain_borland()
     p_c_compiler = xwhich ("bcc32");
     if (falsep(p_c_compiler))
     {
-        fprintf (stderr, "cannot find C compiler.\n");
-        exit (21);
+        on_error (ie_missing_tool, "bcc32");
     }
 
     p_linker = p_c_compiler;
@@ -1519,17 +1488,13 @@ static void initialise_toolchain_borland()
     p_archiver = xwhich ("tlib");
     if (falsep(p_archiver))
     {
-        fprintf (stderr, "cannot find archiver.\n");
-        exit (25);
+        on_error (ie_missing_tool, "tlib");
     }
 
     p_diff = xwhich ("diff");
     if (falsep(p_diff))
     {
-        sexpr out;
-        sx_write (stdio,
-                  (out = cons (sym_missing_programme,
-                               cons (sym_diff, sx_end_of_list))));
+        on_warning (ie_missing_tool, "diff");
     }
 }
 
@@ -1538,22 +1503,19 @@ static void initialise_toolchain_msvc()
     p_c_compiler = xwhich ("cl");
     if (falsep(p_c_compiler))
     {
-        fprintf (stderr, "cannot find C compiler.\n");
-        exit (21);
+        on_error (ie_missing_tool, "cl");
     }
 
     p_resource_compiler = xwhich ("rc");
     if (falsep(p_resource_compiler))
     {
-        fprintf (stderr, "cannot find resource compiler.\n");
-        exit (22);
+        on_error (ie_missing_tool, "rc");
     }
 
     p_linker = xwhich ("link");
     if (falsep(p_linker))
     {
-        fprintf (stderr, "cannot find linker.\n");
-        exit (24);
+        on_error (ie_missing_tool, "link");
     }
 
     p_assembler = p_c_compiler;
@@ -1562,51 +1524,37 @@ static void initialise_toolchain_msvc()
     p_archiver = xwhich ("lib");
     if (falsep(p_archiver))
     {
-        fprintf (stderr, "cannot find archiver.\n");
-        exit (25);
+        on_error (ie_missing_tool, "lib");
     }
 
     p_diff = xwhich ("diff");
     if (falsep(p_diff))
     {
-        sexpr out;
-        sx_write (stdio,
-                  (out = cons (sym_missing_programme,
-                               cons (sym_diff, sx_end_of_list))));
+        on_warning (ie_missing_tool, "diff");
     }
 }
 
 static void initialise_toolchain_tex()
 {
-    sexpr out;
-
     p_latex = xwhich ("latex");
     if (falsep(p_latex))
     {
-        sx_write (stdio,
-                  (out = cons (sym_missing_programme,
-                               cons (sym_latex, sx_end_of_list))));
+        on_warning (ie_missing_tool, "latex");
     }
 
     p_pdflatex = xwhich ("pdflatex");
     if (falsep(p_pdflatex))
     {
-        sx_write (stdio,
-                  (out = cons (sym_missing_programme,
-                               cons (sym_pdflatex, sx_end_of_list))));
+        on_warning (ie_missing_tool, "pdflatex");
     }
 }
 
 static void initialise_toolchain_doxygen()
 {
-    sexpr out;
-
     p_doxygen = xwhich ("doxygen");
     if (falsep(p_doxygen))
     {
-        sx_write (stdio,
-                  (out = cons (sym_missing_programme,
-                               cons (sym_doxygen, sx_end_of_list))));
+        on_warning (ie_missing_tool, "doxygen");
     }
 }
 
@@ -1665,7 +1613,6 @@ static void process_on_death_nokill(struct exec_context *context, void *p)
 static void map_environ (struct tree_node *node, void *psx)
 {
     sexpr *sx = (sexpr *)psx;
-    char buffer[BUFFERSIZE];
     struct target *t = node_get_value (node);
 
     if (falsep (*sx))
@@ -1673,19 +1620,17 @@ static void map_environ (struct tree_node *node, void *psx)
         switch (i_os)
         {
             case os_darwin:
-                snprintf (buffer, BUFFERSIZE, "DYLIB_LIBRARY_PATH=build/%s/%s", archprefix, sx_string(t->name));
-            default:
-                snprintf (buffer, BUFFERSIZE, "LD_LIBRARY_PATH=build/%s/%s", archprefix, sx_string(t->name));
+                *sx = sx_join (str_DYLIB_LIBRARY_PATHe,
+                               get_build_file (t, sx_nil), sx_nil);
                 break;
+            default:
+                *sx = sx_join (str_LD_LIBRARY_PATHe,
+                               get_build_file (t, sx_nil), sx_nil);
         }
-
-        *sx = make_string (buffer);
     }
     else
     {
-        snprintf (buffer, BUFFERSIZE, ":build/%s/%s", archprefix, sx_string(t->name));
-
-        *sx = sx_join (*sx, make_string (buffer), sx_nil);
+        *sx = sx_join (*sx, str_colon, get_build_file (t, sx_nil));
     }
 }
 
@@ -1749,14 +1694,12 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
     }
     else
     {
-        char buffer[4096];
         char *tenv[3];
+        sexpr s = sx_join (str_PATHe, make_string (getenv ("PATH")), sx_nil);
             
         tenv[0] = (char *)sx_string (rsx);
-        tenv[1] = buffer;
+        tenv[1] = (char *)sx_string (s);;
         tenv[2] = (char *)0;
-
-        snprintf (buffer, 4096, "PATH=%s", getenv("PATH"));
 
         context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex, tenv);
     }
@@ -1769,14 +1712,13 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
 
     switch (context->pid)
     {
-        case -1: fprintf (stderr, "failed to spawn subprocess\n");
-                 exit (22);
-        case 0:  fprintf (stderr, "failed to execute binary image\n");
-                 exit (23);
+        case -1: on_error (ie_failed_to_spawn_subprocess, "");
+                 break;
+        case 0:  on_error (ie_failed_to_execute_binary_image, "");
+                 break;
         default: alive_processes++;
                  multiplex_add_process (context, f, (void *)sx);
                  afree (exsize, ex);
-                 return;
     }
 }
 
@@ -1794,19 +1736,18 @@ static void spawn_stack_items (void (*f)(struct exec_context *, void *))
 
 enum signal_callback_result cb_on_bad_signal(enum signal s, void *p)
 {
-    fprintf (stderr, "problematic signal received: %i\n", s);
-    exit (s);
+    on_error (ie_problematic_signal, (const char *)0);
 
     return scr_keep;
 }
 
-static sexpr initialise_libcurie_filename (char *filename)
+static sexpr initialise_libcurie_filename (sexpr f)
 {
     struct sexpr_io *io;
     sexpr r;
-    struct stat st;
+    const char *filename = sx_string (f);
 
-    if (stat(filename, &st) != 0) return sx_false;
+    if (falsep (filep (f))) return sx_false;
 
     io = sx_open_i (io_open_read(filename));
 
@@ -1830,48 +1771,68 @@ static sexpr initialise_libcurie_filename (char *filename)
 
 static void initialise_libcurie()
 {
-    char buffer[BUFFERSIZE];
-
-    if (snprintf (buffer, BUFFERSIZE, "build/curie/%s/libcurie.sx", archprefix),
-        truep(initialise_libcurie_filename(buffer))) return;
-
     if (!falsep(i_destdir))
     {
-        if (snprintf (buffer, BUFFERSIZE, "%s/%s/libcurie.sx", sx_string(i_destdir), sx_string (i_destlibdir)),
-            truep(initialise_libcurie_filename(buffer))) return;
+        if (truep (initialise_libcurie_filename
+                       (sx_join (i_destdir, str_slash,
+                          sx_join (i_destlibdir, str_slibcuriedsx, sx_nil)))))
+        {
+            return;
+        }
 
         switch (i_fsl)
         {
             case fs_fhs:
             case fs_fhs_binlib:
-                if (snprintf (buffer, BUFFERSIZE, "%s/usr/%s/libcurie.sx", sx_string(i_destdir), sx_string (i_destlibdir)),
-                    truep(initialise_libcurie_filename(buffer))) return;
-                if (snprintf (buffer, BUFFERSIZE, "%s/%s/libcurie.sx", sx_string(i_destdir), sx_string (i_destlibdir)),
-                    truep(initialise_libcurie_filename(buffer))) return;
+                if (truep (initialise_libcurie_filename
+                               (sx_join (i_destdir, str_susrs,
+                                  sx_join (i_destlibdir, str_slibcuriedsx,
+                                           sx_nil)))))
+                {
+                    return;
+                }
                 break;
             case fs_afsl:
-                if (snprintf (buffer, BUFFERSIZE, "%s/%s/%s/lib/libcurie.sx", sx_string(i_destdir), uname_os, uname_arch),
-                    truep(initialise_libcurie_filename(buffer))) return;
-                break;
+                if (truep (initialise_libcurie_filename
+                     (sx_join (i_destdir, str_slash,
+                        sx_join (make_string (uname_os), str_slash,
+                          sx_join (make_string (uname_arch),
+                            str_slibslibcuriedsx, sx_nil))))))
+                {
+                    return;
+                }
         }
     }
 
-    if (snprintf (buffer, BUFFERSIZE, "/%s/libcurie.sx", sx_string (i_destlibdir)),
-        truep(initialise_libcurie_filename(buffer))) return;
+    if (truep (initialise_libcurie_filename
+                   (sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
+    {
+        return;
+    }
 
     switch (i_fsl)
     {
         case fs_fhs:
         case fs_fhs_binlib:
-            if (snprintf (buffer, BUFFERSIZE, "/usr/%s/libcurie.sx", sx_string (i_destlibdir)),
-                truep(initialise_libcurie_filename(buffer))) return;
-            if (snprintf (buffer, BUFFERSIZE, "/%s/libcurie.sx", sx_string (i_destlibdir)),
-                truep(initialise_libcurie_filename(buffer))) return;
-        case fs_afsl:
-            if (snprintf (buffer, BUFFERSIZE, "/%s/%s/lib/libcurie.sx", uname_os, uname_arch), truep(initialise_libcurie_filename(buffer))) return;
-            if (truep(initialise_libcurie_filename("/usr/lib/libcurie.sx"))) return;
-            if (truep(initialise_libcurie_filename("/lib/libcurie.sx"))) return;
+            if (truep (initialise_libcurie_filename
+                 (sx_join (str_susrs, i_destlibdir, str_slibcuriedsx))))
+            {
+                return;
+            }
+            if (truep (initialise_libcurie_filename
+                 (sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
+            {
+                return;
+            }
             break;
+        case fs_afsl:
+            if (truep (initialise_libcurie_filename
+                 (sx_join (str_slash, make_string (uname_os),
+                    sx_join (str_slash, make_string (uname_arch),
+                        str_slibslibcuriedsx)))))
+            {
+                return;
+            }
     }
 }
 
@@ -1964,6 +1925,21 @@ static void save_metadata ( void )
     sx_close_io (io);
 }
 
+
+void on_error (enum icemake_error error, const char *text)
+{
+    sx_write (stdio,
+              cons (sym_error, cons (make_string (text), sx_end_of_list)));
+
+    cexit (error);
+}
+
+void on_warning (enum icemake_error error, const char *text)
+{
+    sx_write (stdio,
+              cons (sym_warning, cons (make_string (text), sx_end_of_list)));
+}
+
 #if defined(_WIN32)
 int main (int argc, char **argv)
 #else
@@ -1975,17 +1951,17 @@ int main (int argc, char **argv, char **environ)
     int i = 1, q;
     char *target_architecture = (char *)getenv("CHOST");
     sexpr buildtargets = sx_end_of_list;
-    struct stat st;
 
 #if defined(_WIN32)
 #else
     xenviron = environ;
 #endif
 
-    if (stat ("icemake.sx", &st) != 0)
+    stdio = sx_open_stdout ();
+
+    if (falsep (filep (make_string ("icemake.sx"))))
     {
-        perror ("icemake.sx");
-        exit (15);
+        on_error (ie_missing_description_file, "");
     }
 
     mkdir ("build", 0755);
@@ -2178,20 +2154,21 @@ int main (int argc, char **argv, char **environ)
         {
             uname_toolchain = tc_gcc;
         }
+    
+        architecture = make_string (archprefix);
     }
     else
     {
         char *toolchain = "unknown";
-        int j;
 #if !defined(_WIN32)
         struct utsname un;
 #endif
 
-        if (!falsep(cwhich("cl")))
+        if (!falsep(cwhich(str_cl)))
         {
             uname_toolchain = tc_msvc;
         }
-        else if (!falsep(cwhich("bcc32")))
+        else if (!falsep(cwhich(str_bcc32)))
         {
             uname_toolchain = tc_borland;
         }
@@ -2235,18 +2212,13 @@ int main (int argc, char **argv, char **environ)
             case tc_msvc:    toolchain = "msvc";    break;
         }
 
-        snprintf (archbuffer, BUFFERSIZE, "%s-%s-%s-%s",
-                  uname_arch, uname_vendor, uname_os, toolchain);
+        architecture = lowercase (sx_join (make_string (uname_arch), str_dash,
+                                  sx_join (make_string (uname_vendor), str_dash,
+                                  sx_join (make_string (uname_os), str_dash,
+                                           make_string (toolchain)))));
 
-        for (j = 0; archbuffer[j]; j++)
-        {
-            archbuffer[j] = tolower(archbuffer[j]);
-        }
-
-        archprefix = archbuffer;
+        archprefix = (char *)sx_string (architecture);
     }
-
-    stdio                   = sx_open_stdout();
 
     switch (uname_toolchain)
     {
@@ -2348,7 +2320,6 @@ int main (int argc, char **argv, char **environ)
 
     build (buildtargets);
     ice_link (buildtargets);
-    post_process (buildtargets);
 
     if (truep (do_build_documentation))
     {

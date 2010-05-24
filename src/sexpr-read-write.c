@@ -636,34 +636,18 @@ static void sx_write_cons (struct sexpr_io *io, struct sexpr_cons *sx) {
     (void)io_collect (io->out, ")", 1);
 }
 
-static void sx_write_integer (struct io *io, int_pointer_s i) {
-    char num [SX_MAX_NUMBER_LENGTH];
+static void sx_write_integer (struct io *io, int_pointer_s i)
+{
+    sexpr s = sx_to_string (make_integer (i));
+    const char *sx = sx_string (s);
+    int c = 0;
 
-    int neg = 0;
-    unsigned int j = 0;
-
-    if(i < 0) {
-        neg = 1;
-        i *= -1;
+    while (sx[c])
+    {
+        c++;
     }
 
-    do {
-        char s;
-        s = '0' + (char)(i % 10);
-
-        num[(SX_MAX_NUMBER_LENGTH-2)-j] = s;
-
-        i /= 10;
-        j++;
-    } while ((i != 0) && (j < (SX_MAX_NUMBER_LENGTH-2)));
-
-    if(neg == 1) {
-        num[SX_MAX_NUMBER_LENGTH-2-j] = '-';
-        j++;
-    }
-    num[(SX_MAX_NUMBER_LENGTH-1)] = (char)0;
-
-    (void)io_collect (io, num+((SX_MAX_NUMBER_LENGTH-1) -j), j);
+    (void)io_collect (io, sx, c);
 }
 
 static unsigned int sx_write_dispatch (struct sexpr_io *io, sexpr sx)

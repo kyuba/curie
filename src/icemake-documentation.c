@@ -36,57 +36,40 @@
 
 static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
 {
-    char dirbuffer[BUFFERSIZE];
-    char buffer[BUFFERSIZE];
-
-    snprintf (dirbuffer, BUFFERSIZE, "build/%s/%s", archprefix, sx_string(t->name));
-    snprintf (buffer,    BUFFERSIZE, "../../../%s", sx_string(file));
+    sexpr dir = get_build_file (t, sx_nil),
+          b   = sx_join (str_ddsddsdds, file, sx_nil);
 
     if (stringp (p_pdflatex))
     {
-        char tarbuffer[BUFFERSIZE];
-        struct stat sst, tst;
-
-        snprintf (tarbuffer, BUFFERSIZE, "%s/%s.pdf", dirbuffer, sx_string(base));
-
-        if ((stat (sx_string (file), &sst) == 0) &&
-            (stat (tarbuffer, &tst) == 0) &&
-            (tst.st_mtime > sst.st_mtime)) return;
+/*        sexpr tar = get_build_file (t, sx_join (base, str_dot_pdf, sx_nil));*/
 
         workstack
                 = cons (cons (sym_chdir,
-                              cons (make_string (dirbuffer),
+                              cons (dir,
                                     cons (p_pdflatex,
-                                          cons (make_string(buffer),
+                                          cons (b,
                                                 sx_end_of_list)))),
                         cons (cons (sym_chdir,
-                                    cons (make_string (dirbuffer),
+                                    cons (dir,
                                           cons (p_pdflatex,
-                                                cons (make_string(buffer),
+                                                cons (b,
                                                       sx_end_of_list)))),
                               workstack));
     }
     else if (stringp (p_latex))
     {
-        char tarbuffer[BUFFERSIZE];
-        struct stat sst, tst;
-
-        snprintf (tarbuffer, BUFFERSIZE, "%s/%s.dvi", dirbuffer, sx_string(base));
-
-        if ((stat (sx_string (file), &sst) == 0) &&
-            (stat (tarbuffer, &tst) == 0) &&
-            (tst.st_mtime > sst.st_mtime)) return;
+/*        sexpr tar = get_build_file (t, sx_join (base, str_dot_dvi, sx_nil));*/
 
         workstack
                 = cons (cons (sym_chdir,
-                              cons (make_string (dirbuffer),
+                              cons (dir,
                                     cons (p_latex,
-                                          cons (make_string(buffer),
+                                          cons (b,
                                                 sx_end_of_list)))),
                         cons (cons (sym_chdir,
-                                    cons (make_string (dirbuffer),
+                                    cons (dir,
                                           cons (p_latex,
-                                                cons (make_string(buffer),
+                                                cons (b,
                                                       sx_end_of_list)))),
                               workstack));
     }

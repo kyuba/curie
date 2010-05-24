@@ -931,6 +931,16 @@ sexpr equalp
  */
 sexpr sx_join (sexpr a, sexpr b, sexpr c);
 
+/*! \brief Turn Argument into a String
+ *  \param[in] a The argument to convert.
+ *  \return The converted form of the argument.
+ *
+ *  This will try to turn some types of arguments into a string representation;
+ *  currently this only works for integers. Incompatible arguments are returned
+ *  the way they were passed.
+ */
+sexpr sx_to_string (sexpr a);
+
 /*! \brief Reverse a List
  *  \param[in] sx The list to reverse.
  *  \return The reverse of sx.

@@ -106,6 +106,36 @@ enum fs_layout
     fs_fhs_binlib
 };
 
+enum icemake_error
+{
+    ie_missing_description_file,
+    ie_missing_tool,
+    ie_missing_header,
+    ie_missing_test_case,
+    ie_missing_documentation,
+    ie_missing_data,
+    ie_missing_code_file,
+    ie_invalid_choice,
+    ie_failed_to_spawn_subprocess,
+    ie_failed_to_execute_binary_image,
+    ie_problematic_signal,
+    ie_unknown_code_file_type
+};
+
+struct toolchain_description
+{
+    enum toolchain        toolchain;
+    enum operating_system operating_system;
+    enum instruction_set  instruction_set;
+};
+
+#define ICEMAKE_PROGRAMME        (1 << 0x0)
+#define ICEMAKE_LIBRARY          (1 << 0x1)
+#define ICEMAKE_HAVE_CPP         (1 << 0x2)
+#define ICEMAKE_ALLOW_EXCEPTIONS (1 << 0x3)
+#define ICEMAKE_HOSTED           (1 << 0x4)
+#define ICEMAKE_USE_CURIE        (1 << 0x5)
+
 /*! \brief Icemake Target
  *
  *  This structure contains all the information that is needed to build binaries
@@ -115,20 +145,12 @@ enum fs_layout
 struct target {
     /*!\brief Programme/Library Short Name */
     sexpr name;
-    /*!\brief Boolean: Is the Target a Library? */
-    sexpr library;
-    /*!\brief Boolean: Is the Target a Programme? */
-    sexpr programme;
-    /*!\brief The Libraries to link against */
+   /*!\brief The Libraries to link against */
     sexpr libraries;
     /*!\brief The Libraries to link against */
     sexpr deffile;
     /*!\brief The Libraries that the icemake.sx specifies to link against */
     sexpr olibraries;
-    /*!\brief Boolean: Hosted Environment? */
-    sexpr hosted;
-    /*!\brief Boolean: Uses Curie? */
-    sexpr use_curie;
     /*!\brief List with all Code Files */
     sexpr code;
     /*!\brief List with all Test Cases */
@@ -151,12 +173,12 @@ struct target {
     sexpr durl;
     /*!\brief List of Documentation Files */
     sexpr documentation;
-    /*!\brief Boolean: Using any C++ Files? */
-    sexpr have_cpp;
-    /*!\brief Boolean: Allow Exceptions in C++? */
-    sexpr allow_exceptions;
     /*!\brief Number: How often this target has been built. */
     sexpr buildnumber;
+    /*!\brief Options */
+    unsigned int options;
+    /*!\brief Base Path for Build Data */
+    sexpr buildbase;
 };
 
 /*! \brief Effective Operating System Name
@@ -207,17 +229,17 @@ extern enum instruction_set i_is;
  */
 extern struct tree targets;
 
-/*! \brief Architecture Descriptor
- *
- *  Derived from the effective OS, architecture, vendor and toolchain.
- */
-extern char  archbuffer [BUFFERSIZE];
-
 /*! \brief Effective Architecture Descriptor
  *
  *  Derived from the effective OS, architecture, vendor and toolchain.
  */
 extern char *archprefix;
+
+/*! \brief Effective Architecture Descriptor (S-expression)
+ *
+ *  Derived from the effective OS, architecture, vendor and toolchain.
+ */
+extern sexpr architecture;
 
 /*! \brief Toolchain Version
  *
@@ -440,13 +462,15 @@ define_symbol (sym_run_tests,           "run-tests");
 /*! \brief Predefined Symbol */
 define_symbol (sym_cross_link,          "cross-link");
 /*! \brief Predefined Symbol */
-define_symbol (sym_post_process,        "post-process");
-/*! \brief Predefined Symbol */
 define_symbol (sym_execute,             "execute");
 /*! \brief Predefined Symbol */
 define_symbol (sym_targets,             "targets");
 /*! \brief Predefined Symbol */
 define_symbol (sym_no_exceptions,       "no-exceptions");
+/*! \brief Predefined Symbol */
+define_symbol (sym_error,               "error");
+/*! \brief Predefined Symbol */
+define_symbol (sym_warning,             "warning");
 
 /*! \brief Predefined String */
 define_string (str_bootstrap,           "bootstrap");
@@ -566,6 +590,152 @@ define_string (str_version,             "version");
 define_string (str_combined_c_source,   "combined-c-source");
 /*! \brief Predefined String */
 define_string (str_dfwhole_program,     "-fwhole-program");
+/*! \brief Predefined String */
+define_string (str_build_slash,         "build/");
+/*! \brief Predefined String */
+define_string (str_build_backslash,     "build\\");
+/*! \brief Predefined String */
+define_string (str_slash,               "/");
+/*! \brief Predefined String */
+define_string (str_backslash,           "\\");
+/*! \brief Predefined String */
+define_string (str_dot_obj,             ".obj");
+/*! \brief Predefined String */
+define_string (str_dot_o,               ".o");
+/*! \brief Predefined String */
+define_string (str_dot_h,               ".h");
+/*! \brief Predefined String */
+define_string (str_dot_res,             ".res");
+/*! \brief Predefined String */
+define_string (str_dot_exe,             ".exe");
+/*! \brief Predefined String */
+define_string (str_dot_pic_o,           ".pic.o");
+/*! \brief Predefined String */
+define_string (str_dL,                  "-L");
+/*! \brief Predefined String */
+define_string (str_dI,                  "-I");
+/*! \brief Predefined String */
+define_string (str_sI,                  "/I");
+/*! \brief Predefined String */
+define_string (str_dIbuilds,            "-Ibuild/");
+/*! \brief Predefined String */
+define_string (str_sIbuilds,            "/Ibuild/");
+/*! \brief Predefined String */
+define_string (str_dl,                  "-l");
+/*! \brief Predefined String */
+define_string (str_dot_lib,             ".lib");
+/*! \brief Predefined String */
+define_string (str_sLIBPATHc,           "/LIBPATH:");
+/*! \brief Predefined String */
+define_string (str_dhighlevel,          "-highlevel");
+/*! \brief Predefined String */
+define_string (str_dbootstrap,          "-bootstrap");
+/*! \brief Predefined String */
+define_string (str_dash,                "-");
+/*! \brief Predefined String */
+define_string (str_test_dash,           "test-");
+/*! \brief Predefined String */
+define_string (str_sinclude,            "/include");
+/*! \brief Predefined String */
+define_string (str_sincludes,           "/include/");
+/*! \brief Predefined String */
+define_string (str_includes,            "include/");
+/*! \brief Predefined String */
+define_string (str_sversiondh,          "/version.h");
+/*! \brief Predefined String */
+define_string (str_colon,               ":");
+/*! \brief Predefined String */
+define_string (str_cl,                  "cl");
+/*! \brief Predefined String */
+define_string (str_bcc32,               "bcc32");
+/*! \brief Predefined String */
+define_string (str_slibcuriedsx,        "/libcurie.sx");
+/*! \brief Predefined String */
+define_string (str_libcuriedsx,         "libcurie.sx");
+/*! \brief Predefined String */
+define_string (str_susrs,               "/usr/");
+/*! \brief Predefined String */
+define_string (str_slibs,               "/lib/");
+/*! \brief Predefined String */
+define_string (str_bslib,               "\\lib");
+/*! \brief Predefined String */
+define_string (str_bin,                 "bin");
+/*! \brief Predefined String */
+define_string (str_slib,                "/lib");
+/*! \brief Predefined String */
+define_string (str_slibslibcuriedsx,    "/lib/libcurie.sx");
+/*! \brief Predefined String */
+define_string (str_DYLIB_LIBRARY_PATHe, "DYLIB_LIBRARY_PATH=");
+/*! \brief Predefined String */
+define_string (str_LD_LIBRARY_PATHe,    "LD_LIBRARY_PATH=");
+/*! \brief Predefined String */
+define_string (str_PATHe,               "PATH=");
+/*! \brief Predefined String */
+define_string (str_soutc,               "/out:");
+/*! \brief Predefined String */
+define_string (str_sdefc,               "/def:");
+/*! \brief Predefined String */
+define_string (str_simplibc,            "/implib:");
+/*! \brief Predefined String */
+define_string (str_dot_sx,              ".sx");
+/*! \brief Predefined String */
+define_string (str_dot_a,               ".a");
+/*! \brief Predefined String */
+define_string (str_dot_dll,             ".dll");
+/*! \brief Predefined String */
+define_string (str_dot,                 ".");
+/*! \brief Predefined String */
+define_string (str_dot_so,              ".so");
+/*! \brief Predefined String */
+define_string (str_dot_so_dot,          ".so.");
+/*! \brief Predefined String */
+define_string (str_dWlcdsonameclib,     "-Wl,-soname,lib");
+/*! \brief Predefined String */
+define_string (str_sgenericsdocs,       "/generic/doc/");
+/*! \brief Predefined String */
+define_string (str_sgenericsmans,       "/generic/man/");
+/*! \brief Predefined String */
+define_string (str_sgenericsconfigurations, "/generic/configuration/");
+/*! \brief Predefined String */
+define_string (str_ssharesmans,         "/share/man/");
+/*! \brief Predefined String */
+define_string (str_ssharesdocs,         "/share/doc/");
+/*! \brief Predefined String */
+define_string (str_setcs,               "/etc/");
+/*! \brief Predefined String */
+define_string (str_ddsddsdds,           "../../../");
+/*! \brief Predefined String */
+define_string (str_dot_pdf,             ".pdf");
+/*! \brief Predefined String */
+define_string (str_dot_dvi,             ".dvi");
+/*! \brief Predefined String */
+define_string (str_sFo,                 "/Fo");
+/*! \brief Predefined String */
+define_string (str_sfo,                 "/fo");
+/*! \brief Predefined String */
+define_string (str_hdefines,            "#define ");
+/*! \brief Predefined String */
+define_string (str_sq,                  " \"");
+/*! \brief Predefined String */
+define_string (str_qnl,                 "\"\n");
+/*! \brief Predefined String */
+define_string (str_nl,                  "\n");
+/*! \brief Predefined String */
+define_string (str_uname,               "_name");
+/*! \brief Predefined String */
+define_string (str_uurl,                "_url");
+/*! \brief Predefined String */
+define_string (str_uversion,            "_version");
+/*! \brief Predefined String */
+define_string (str_uversion_s,          "_version_s");
+/*! \brief Predefined String */
+define_string (str_ubuild_number,       "_build_number");
+/*! \brief Predefined String */
+define_string (str_ubuild_number_s,     "_build_number_s");
+/*! \brief Predefined String */
+define_string (str_uversion_long,       "_version_long");
+/*! \brief Predefined String */
+define_string (str_space,               " ");
 
 /*! \brief Prefix List with Elements from an Environment Variable
  *  \param[in] x   The original list.
@@ -607,11 +777,6 @@ void run_tests (sexpr targets);
  */
 void ice_link (sexpr targets);
 
-/*! \brief Post Process Targets
- *  \param[in] targets The targets to post process.
- */
-void post_process (sexpr targets);
-
 /*! \brief Build Documentation
  *  \param[in] targets The targets to build documentation for.
  */
@@ -640,12 +805,33 @@ void loop_processes_nokill ( void );
 void count_print_items ( void );
 
 /*! \brief Path Name Mangling (Borland)
+ *  \return b;
  *
  *  BCC and related tools can't handle some characters in path names... in
  *  particular, they can't seem to handle the "+" character too well since it's
  *  used for other things in some of the tools.
  */
-void mangle_path_borland (char *b);
+char *mangle_path_borland (char *b);
+
+/*! \brief Path Name Mangling (Borland) (S-expressions)
+ *  \return b;
+ *
+ *  BCC and related tools can't handle some characters in path names... in
+ *  particular, they can't seem to handle the "+" character too well since it's
+ *  used for other things in some of the tools.
+ */
+sexpr mangle_path_borland_sx (sexpr b);
+
+sexpr lowercase (sexpr s);
+
+sexpr get_build_file   (struct target *t, sexpr file);
+sexpr get_install_file (struct target *t, sexpr file);
+
+void mkdir_pi (sexpr path);
+void mkdir_p  (sexpr path);
+
+void on_error   (enum icemake_error error, const char *text);
+void on_warning (enum icemake_error error, const char *text);
 
 #endif
 
