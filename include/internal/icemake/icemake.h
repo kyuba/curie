@@ -133,9 +133,8 @@ struct toolchain_description
 #define ICEMAKE_PROGRAMME        (1 << 0x0)
 #define ICEMAKE_LIBRARY          (1 << 0x1)
 #define ICEMAKE_HAVE_CPP         (1 << 0x2)
-#define ICEMAKE_ALLOW_EXCEPTIONS (1 << 0x3)
-#define ICEMAKE_HOSTED           (1 << 0x4)
-#define ICEMAKE_USE_CURIE        (1 << 0x5)
+#define ICEMAKE_HOSTED           (1 << 0x3)
+#define ICEMAKE_USE_CURIE        (1 << 0x4)
 
 /*! \brief Icemake Target
  *
@@ -158,8 +157,6 @@ struct target {
     sexpr test_cases;
     /*!\brief List with all Test Case Reference Files */
     sexpr test_reference;
-    /*!\brief List with Bootstrap Files (Curie only) */
-    sexpr bootstrap;
     /*!\brief List with all Header Files */
     sexpr headers;
     /*!\brief List with Data Files (for installation) */
@@ -467,14 +464,10 @@ define_symbol (sym_execute,             "execute");
 /*! \brief Predefined Symbol */
 define_symbol (sym_targets,             "targets");
 /*! \brief Predefined Symbol */
-define_symbol (sym_no_exceptions,       "no-exceptions");
-/*! \brief Predefined Symbol */
 define_symbol (sym_error,               "error");
 /*! \brief Predefined Symbol */
 define_symbol (sym_warning,             "warning");
 
-/*! \brief Predefined String */
-define_string (str_bootstrap,           "bootstrap");
 /*! \brief Predefined String */
 define_string (str_curie,               "curie");
 /*! \brief Predefined String */

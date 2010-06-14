@@ -73,12 +73,12 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
             }
 
         }
-        else if (truep(co_freestanding) &&
-                 (!(t->options & ICEMAKE_HAVE_CPP) ||
-                  !(t->options & ICEMAKE_ALLOW_EXCEPTIONS)))
+        else if (truep(co_freestanding))
         {
             if (truep(i_static))
+            {
                 sx = cons (str_static, sx);
+            }
 
             switch (i_os)
             {
@@ -371,7 +371,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
         {
             sexpr libname = car (cur);
 
-            if (falsep(equalp(str_curie_bootstrap, libname)) && falsep(equalp(name, libname)))
+            if (falsep(equalp(name, libname)))
             {
                 sx = cons (sx_join (str_dl, libname, sx_nil), sx);
             }
@@ -476,8 +476,7 @@ static void link_library_borland_dynamic
     {
         sexpr libname = car (cur);
 
-        if (falsep(equalp(str_curie_bootstrap, libname)) &&
-            falsep(equalp(name, libname)))
+        if (falsep(equalp(name, libname)))
         {
             sx = cons (mangle_path_borland_sx (sx_join (str_lib, libname,
                                                         str_dot_lib)), sx);
@@ -644,21 +643,6 @@ static void do_link_target(struct target *t)
                     link_library_borland_dynamic (t->name, t->code, t); break;
                 case tc_msvc:
                     link_library_msvc_dynamic    (t->name, t->code, t); break;
-            }
-        }
-
-        if (!eolp(t->bootstrap))
-        {
-            sexpr b = sx_join (t->name, str_dbootstrap, sx_nil);
-
-            switch (uname_toolchain)
-            {
-                case tc_gcc:
-                    link_library_gcc     (b, t->bootstrap, t); break;
-                case tc_borland:
-                    link_library_borland (b, t->bootstrap, t); break;
-                case tc_msvc:
-                    link_library_msvc    (b, t->bootstrap, t); break;
             }
         }
     }

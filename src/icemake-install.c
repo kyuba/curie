@@ -550,11 +550,6 @@ static void do_install_target(struct target *t)
     if (t->options & ICEMAKE_LIBRARY)
     {
         install_library (t->name, t);
-
-        if (!eolp(t->bootstrap))
-        {
-            install_library (sx_join (t->name, str_dbootstrap, sx_nil), t);
-        }
     }
     else if (t->options & ICEMAKE_PROGRAMME)
     {

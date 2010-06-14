@@ -648,7 +648,7 @@ static void find_code (struct target *context, sexpr file)
         }
     }
 
-    if (falsep(equalp(str_bootstrap, file)) || truep (co_freestanding))
+    if (truep (co_freestanding))
     {
         if ((r = find_code_S (file)), stringp(r))
         {
@@ -734,37 +734,18 @@ static void find_code (struct target *context, sexpr file)
         }
     }
 
-    if (truep(equalp(file, str_bootstrap)))
+    context->code = cons (primus, context->code);
+    if (!falsep(secundus))
     {
-        context->bootstrap = cons (primus, context->bootstrap);
-        if (!falsep(secundus))
-        {
-            context->bootstrap = cons (secundus, context->bootstrap);
-        }
-        if (!falsep(tertius))
-        {
-            context->bootstrap = cons (tertius, context->bootstrap);
-        }
-        if (!falsep(quartus))
-        {
-            context->bootstrap = cons (quartus, context->bootstrap);
-        }
+        context->code = cons (secundus, context->code);
     }
-    else
+    if (!falsep(tertius))
     {
-        context->code = cons (primus, context->code);
-        if (!falsep(secundus))
-        {
-            context->code = cons (secundus, context->code);
-        }
-        if (!falsep(tertius))
-        {
-            context->code = cons (tertius, context->code);
-        }
-        if (!falsep(quartus))
-        {
-            context->code = cons (quartus, context->code);
-        }
+        context->code = cons (tertius, context->code);
+    }
+    if (!falsep(quartus))
+    {
+        context->code = cons (quartus, context->code);
     }
 }
 
@@ -898,7 +879,6 @@ static struct target *get_context()
     context->code             = sx_end_of_list;
     context->test_cases       = sx_end_of_list;
     context->test_reference   = sx_end_of_list;
-    context->bootstrap        = sx_end_of_list;
     context->headers          = sx_end_of_list;
     context->data             = sx_end_of_list;
     context->dname            = sx_false;
@@ -907,7 +887,7 @@ static struct target *get_context()
     context->durl             = sx_false;
     context->documentation    = sx_end_of_list;
     context->buildnumber      = make_integer (0);
-    context->options          = ICEMAKE_ALLOW_EXCEPTIONS;
+    context->options          = 0;
 
     if (i_os == os_windows)
     {
@@ -928,11 +908,7 @@ static void process_definition (struct target *context, sexpr definition)
         sexpr sxcar = car (definition);
         sexpr sxcaar = car (sxcar);
 
-        if (truep(equalp(sxcar, sym_no_exceptions)))
-        {
-            context->options &= ~ICEMAKE_ALLOW_EXCEPTIONS;
-        }
-        else if (truep(equalp(sxcar, sym_hosted)))
+        if (truep(equalp(sxcar, sym_hosted)))
         {
             context->options |= ICEMAKE_HOSTED;
         }
@@ -1116,12 +1092,13 @@ static void process_definition (struct target *context, sexpr definition)
     if (uname_toolchain == tc_gcc)
     {
         if ((context->options & ICEMAKE_HAVE_CPP) &&
-            ((context->options & ICEMAKE_ALLOW_EXCEPTIONS) ||
-             (context->options & ICEMAKE_HOSTED)))
+             (context->options & ICEMAKE_HOSTED))
         {
             context->libraries = cons (str_supcpp, context->libraries);
             if (i_os == os_darwin)
-              context->libraries = cons (str_gcc_eh, context->libraries);
+            {
+                context->libraries = cons (str_gcc_eh, context->libraries);
+            }
         }
         else
         {
@@ -1148,9 +1125,7 @@ static void process_definition (struct target *context, sexpr definition)
 
     if (context->options & ICEMAKE_USE_CURIE)
     {
-        if (!(context->options & ICEMAKE_HOSTED) &&
-            (!(context->options & ICEMAKE_HAVE_CPP) ||
-             !(context->options & ICEMAKE_ALLOW_EXCEPTIONS)))
+        if (!(context->options & ICEMAKE_HOSTED))
         {
             context->libraries = cons (str_curie_bootstrap, context->libraries);
         }

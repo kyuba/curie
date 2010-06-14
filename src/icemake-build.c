@@ -159,10 +159,7 @@ static sexpr prepend_cxxflags_gcc (struct target *t, sexpr x)
 
     x = prepend_flags_from_environment (x, "CXXFLAGS");
 
-    if (!(t->options & ICEMAKE_ALLOW_EXCEPTIONS))
-    {
-        x = cons (str_dfno_rtti, cons (str_dfno_exceptions, x));
-    }
+    x = cons (str_dfno_rtti, cons (str_dfno_exceptions, x));
 
     return prepend_ccflags_gcc(x);
 }
@@ -665,15 +662,6 @@ static void do_build_target (struct target *t)
     t->buildnumber = make_integer (sx_integer (t->buildnumber) + 1);
 
     create_special_files (t);
-
-    while (consp (c))
-    {
-        build_object(car(c), t);
-
-        c = cdr (c);
-    }
-
-    c = t->bootstrap;
 
     while (consp (c))
     {

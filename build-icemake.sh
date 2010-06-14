@@ -79,4 +79,4 @@ linkbinary() {
 buildall ${ICEMAKE_FILES}
 BINARY=b-icemake linkbinary ${ICEMAKE_FILES}
 
-./build/b-icemake $@ syscall curie sievert icemake ice
+./build/b-icemake $@ curie-bootstrap syscall curie sievert icemake ice

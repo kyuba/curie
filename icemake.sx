@@ -2,6 +2,13 @@
 ; vim:ft=lisp
 ;;
 
+(library "curie-bootstrap" libcurie
+  (name "Curie Boostrap")
+  (description "Inialisation code for libcurie, used when building freestanding programmes")
+  (version "1")
+
+  (code "bootstrap"))
+
 (library "curie" libcurie
   (name "Curie")
   (description "minimalistic, sexpr-based, non-posix(!), non-ansi(!) libc")
@@ -9,7 +16,7 @@
   (url "http://kyuba.org/")
 
   (freestanding-if-assembly
-        "io-system" "memory" "bootstrap" "network-system" "exec-system"
+        "io-system" "memory" "network-system" "exec-system"
         "multiplex-system" "signal-system" "directory" "time-system")
 
   (code (tree "tree-basic")
@@ -18,7 +25,7 @@
         "memory-allocator" "sexpr-library" "sexpr-read-write" "network"
         "multiplex-io" "multiplex-sexpr" "multiplex-process" "multiplex-signal"
         "graph" "filesystem" "io-system" "network-system"
-        "exec-system" "multiplex-system" "signal-system" "bootstrap" "regex"
+        "exec-system" "multiplex-system" "signal-system" "regex"
         "directory" "directory-common" "libc-compat" "utf-8"
         "sexpr-stdio" "stdio" "stack" "gc" "variables"
         "sexpr-custom" "time" "time-system" "hash" "tree-library"
@@ -105,17 +112,6 @@
         "int" "io" "multiplex" "sexpr" "main")
 
   (test-cases
-        "objects" "exceptions"))
-
-(library "curie++-se" libcurie no-exceptions
-  (name "Curie++ SE")
-  (description "C++ bindings for libcurie (Sans Exceptions)")
-  (version "11")
-  (url "http://kyuba.org")
-
-  (code "memory++" "io++" "sexpr++" "libc++-compat")
-
-  (test-cases
         "objects"))
 
 (library "curie-math" libcurie
@@ -149,11 +145,3 @@
   (libraries "sievert")
 
   (code "ice"))
-
-(documentation "examples" libcurie no-exceptions
-  (description "Curie code examples")
-  (version "1")
-  (libraries "curie++-se")
-  
-  (test-cases "cpp-without-exceptions"))
-
