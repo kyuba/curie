@@ -657,7 +657,8 @@ static void find_code (struct target *context, sexpr file)
                   cons (generate_object_file_name (file, context),
                     sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
                 secundus =
                     cons(sym_preproc_assembly_pic,
@@ -668,7 +669,8 @@ static void find_code (struct target *context, sexpr file)
 
             tertius = find_code_highlevel (context, file);
 
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
                 quartus = find_code_highlevel_pic (context, file);
             }
@@ -680,7 +682,8 @@ static void find_code (struct target *context, sexpr file)
                   cons (generate_object_file_name (file, context),
                     sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
                 secundus =
                     cons(sym_assembly_pic,
@@ -691,7 +694,8 @@ static void find_code (struct target *context, sexpr file)
 
             tertius = find_code_highlevel (context, file);
 
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
                 quartus = find_code_highlevel_pic (context, file);
             }
@@ -708,7 +712,8 @@ static void find_code (struct target *context, sexpr file)
                        cons (generate_object_file_name (file, context),
                          sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
                 secundus = cons(sym_cpp_pic, cons (r,
                              cons (generate_pic_object_file_name
@@ -721,7 +726,8 @@ static void find_code (struct target *context, sexpr file)
                        cons (generate_object_file_name (file, context),
                          sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc))
+            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
                 secundus = cons (sym_c_pic, cons (r,
                              cons (generate_pic_object_file_name
@@ -908,7 +914,11 @@ static void process_definition (struct target *context, sexpr definition)
         sexpr sxcar = car (definition);
         sexpr sxcaar = car (sxcar);
 
-        if (truep(equalp(sxcar, sym_hosted)))
+        if (truep(equalp(sxcar, sym_no_shared_library)))
+        {
+            context->options |= ICEMAKE_NO_SHARED_LIBRARY;
+        }
+        else if (truep(equalp(sxcar, sym_hosted)))
         {
             context->options |= ICEMAKE_HOSTED;
         }

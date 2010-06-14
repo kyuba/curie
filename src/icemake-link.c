@@ -615,7 +615,8 @@ static void do_link_target(struct target *t)
 
     if (t->options & ICEMAKE_LIBRARY)
     {
-        if ((uname_toolchain != tc_msvc) || falsep(i_dynamic_libraries))
+        if ((uname_toolchain != tc_msvc) || falsep(i_dynamic_libraries) ||
+            (t->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
             switch (uname_toolchain)
             {
@@ -628,7 +629,8 @@ static void do_link_target(struct target *t)
             }
         }
 
-        if (truep(i_dynamic_libraries))
+        if (truep(i_dynamic_libraries) &&
+            !(t->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
             switch (uname_toolchain)
             {

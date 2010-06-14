@@ -130,11 +130,12 @@ struct toolchain_description
     enum instruction_set  instruction_set;
 };
 
-#define ICEMAKE_PROGRAMME        (1 << 0x0)
-#define ICEMAKE_LIBRARY          (1 << 0x1)
-#define ICEMAKE_HAVE_CPP         (1 << 0x2)
-#define ICEMAKE_HOSTED           (1 << 0x3)
-#define ICEMAKE_USE_CURIE        (1 << 0x4)
+#define ICEMAKE_PROGRAMME         (1 << 0x0)
+#define ICEMAKE_LIBRARY           (1 << 0x1)
+#define ICEMAKE_HAVE_CPP          (1 << 0x2)
+#define ICEMAKE_HOSTED            (1 << 0x3)
+#define ICEMAKE_USE_CURIE         (1 << 0x4)
+#define ICEMAKE_NO_SHARED_LIBRARY (1 << 0x5)
 
 /*! \brief Icemake Target
  *
@@ -467,6 +468,8 @@ define_symbol (sym_targets,             "targets");
 define_symbol (sym_error,               "error");
 /*! \brief Predefined Symbol */
 define_symbol (sym_warning,             "warning");
+/*! \brief Predefined Symbol */
+define_symbol (sym_no_shared_library,   "no-shared-library");
 
 /*! \brief Predefined String */
 define_string (str_curie,               "curie");

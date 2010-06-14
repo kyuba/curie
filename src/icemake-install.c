@@ -282,9 +282,8 @@ static sexpr get_data_install_path
 
 static void install_library_dynamic_common (sexpr name, struct target *t)
 {
-    char buffer[BUFFERSIZE];
-
     if (truep (i_dynamic_libraries) &&
+        !(t->options & ICEMAKE_NO_SHARED_LIBRARY) &&
         (!(t->options & ICEMAKE_HAVE_CPP) || (i_os != os_darwin)))
     {
         sexpr fname;
@@ -305,9 +304,8 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
         if (truep(filep(fname)))
         {
             workstack
-                    = cons (cons (make_string (buffer),
-                            get_so_library_install_path (t)),
-                    workstack);
+                    = cons (cons (fname, get_so_library_install_path (t)),
+                            workstack);
 
             switch (i_os)
             {
