@@ -446,14 +446,12 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
 static void link_library_borland (sexpr name, sexpr code, struct target *t)
 {
-    sexpr sx = sx_end_of_list,
+    sexpr sx = sx_end_of_list, sxx = sx_end_of_list,
           b = get_build_file (t, sx_join (str_lib, name, str_dot_lib));
 
     write_curie_sx (name, t);
 
     sx = collect_code (sx, code);
-
-    sexpr sxx = sx_end_of_list;
 
     while (consp (sx))
     {
