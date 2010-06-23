@@ -553,8 +553,6 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
         cur = cdr (cur);
     }
 
-    sx = get_special_linker_options (sx);
-
     while (consp (sx))
     {
 /*        sxx = cons (str_plus, cons (car (sx), sxx));*/

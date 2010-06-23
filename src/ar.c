@@ -28,4 +28,4 @@
 
 #include <sievert/ar.h>
 
-#warning .a archive handling has not been implemented
+#pragma message (".a archive handling has not been implemented")

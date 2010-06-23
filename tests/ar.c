@@ -30,6 +30,6 @@
 
 int cmain ()
 {
-#warning .a archive tests have not been implemented yet
+#pragma message(".a archive tests have not been implemented yet")
     return 0;
 }

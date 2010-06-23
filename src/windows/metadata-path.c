@@ -29,25 +29,23 @@
 #include <curie/memory.h>
 #include <sievert/metadata.h>
 
-void metadata_destroy (struct metadata *metadata)
+struct metadata *metadata_from_path
+    (const char *path)
 {
-    if (metadata->datetime_count > 0)
-    {
-        afree (sizeof (struct metadata_datetime) * metadata->datetime_count,
-               metadata->datetime);
-    }
-    if (metadata->relation_count > 0)
-    {
-        afree (sizeof (struct metadata_relation) * metadata->relation_count,
-               metadata->relation);
-    }
-    if (metadata->acl_count > 0)
-    {
-        afree (sizeof (struct metadata_acl) * metadata->acl_count,
-               metadata->acl);
-    }
-
-    free_pool_mem (metadata);
-
-#pragma message("metadata_destroy() incomplete")
+#pragma message("metadata_from_path() incomplete")
 }
+
+void metadata_from_path_closure
+    (const char *path, void (*with_metadata) (struct metadata *, void *),
+     void *aux)
+{
+#pragma message("metadata_from_path_closure() incomplete")
+}
+
+void metadata_apply_to_path
+    (struct metadata *metadata,
+     const char *path)
+{
+#pragma message("metadata_apply_to_path() incomplete")
+}
+

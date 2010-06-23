@@ -38,7 +38,7 @@ struct metadata *metadata_from_unix
         MEMORY_POOL_INITIALISER (sizeof (struct metadata));
     struct metadata *rv = get_pool_mem (&pool);
 
-#warning metadata_from_unix() incomplete
+#pragma message("metadata_from_unix() incomplete")
     
     return rv;
 }
@@ -51,7 +51,7 @@ void metadata_from_unix_closure
 {
     struct metadata metadata;
 
-#warning metadata_from_unix_closure() incomplete
+#pragma message("metadata_from_unix_closure() incomplete")
 
     with_metadata (&metadata, aux);
 }
@@ -62,5 +62,5 @@ void metadata_to_unix
      int *uid, int *gid, int *mode, long *atime, long *mtime, long *ctime,
      long *size, int *device, int *attributes)
 {
-#warning metadata_to_unix() incomplete
+#pragma message("metadata_to_unix() incomplete")
 }

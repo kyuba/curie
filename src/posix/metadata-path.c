@@ -134,6 +134,6 @@ void metadata_apply_to_path
     (struct metadata *metadata,
      const char *path)
 {
-#warning metadata_apply_to_path() incomplete
+#pragma message("metadata_apply_to_path() incomplete")
 }
 
