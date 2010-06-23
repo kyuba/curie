@@ -35,6 +35,8 @@
 sexpr ewhich (char **environment, sexpr programme)
 {
     define_string (str_slash, "\\");
+    define_string (str_dot_exe, ".exe");
+
     char *x = (char *)0, *y, buffer[BUFFERSIZE];
     int i;
 
@@ -67,6 +69,13 @@ sexpr ewhich (char **environment, sexpr programme)
                 y = buffer;
                 b = make_string (buffer);
                 f = sx_join (b, str_slash, programme);
+
+                if (truep (linkp (f)))
+                {
+                    return f;
+                }
+
+                f = sx_join (f, str_dot_exe, sx_nil);
 
                 if (truep (linkp (f)))
                 {
