@@ -465,12 +465,14 @@ sexpr get_build_file (struct target *t, sexpr file)
         case tc_msvc:
             return sx_join (t->buildbase, architecture,
                    sx_join (str_backslash, t->name,
-                   sx_join (str_backslash, file, sx_nil)));
+                     (nilp (file) ? sx_nil
+                                  : sx_join (str_backslash, file, sx_nil))));
         case tc_borland:
             return mangle_path_borland_sx
                      (sx_join (t->buildbase, architecture,
                       sx_join (str_backslash, t->name,
-                      sx_join (str_backslash, file, sx_nil))));
+                      (nilp (file) ? sx_nil
+                                   : sx_join (str_backslash, file, sx_nil)))));
         case tc_gcc:
             return sx_join (t->buildbase, architecture,
                    sx_join (str_slash, t->name,
@@ -1612,7 +1614,7 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
 
     tree_map (&targets, map_environ, (void *)&rsx);
 
-    sx_write (stdio, cons (sym_execute, cons (sx, sx_end_of_list)));
+    sx_write (stdio, cons (sym_execute, sx));
 
     if (truep(equalp(cf, sym_chdir)))
     {
@@ -1628,24 +1630,20 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
         sx = cdr (cfcdr);
     }
 
-    while (consp (cur))
+    for (c = 0; consp (cur); cur = cdr (cur))
     {
         c++;
-        cur = cdr (cur);
     }
     c++;
 
     exsize = sizeof(char*)*c;
     ex = aalloc (exsize);
 
-    c = 0;
-    cur = sx;
-    while (consp (cur))
+    for (c = 0, cur = sx; consp (cur); cur = cdr (cur))
     {
         sexpr sxcar = car (cur);
         ex[c] = (char *)sx_string (sxcar);
         c++;
-        cur = cdr (cur);
     }
     ex[c] = (char *)0;
 
@@ -1653,6 +1651,7 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
     {
         chdir (wdir);
     }
+
     if ((i_os == os_windows) || falsep (rsx))
         /* dynamic linker overrides are useless on win32*/
     {

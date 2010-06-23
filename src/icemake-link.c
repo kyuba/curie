@@ -111,6 +111,37 @@ static sexpr get_special_linker_options (sexpr sx)
 {
     define_string (str_multiply_defined, "-multiply_defined");
     define_string (str_warning,          "warning");
+    define_string (str_smachinec,        "/machine:");
+    define_string (str_x86,              "x86");
+    define_string (str_x64,              "x64");
+    sexpr machine_spec = sx_nil;
+
+    if (uname_toolchain == tc_msvc)
+    {
+        /* parsing for x86 subtypes... gotta remember to do this properly
+         * one of these days */
+        if (((uname_arch[0] == 'x') || (uname_arch[0] == 'X')) &&
+             (uname_arch[1] == '8') && (uname_arch[2] == '6')  &&
+             (uname_arch[3] != 0))
+        {
+            if ((uname_arch[4] == '6') && (uname_arch[5] == '4') &&
+                (uname_arch[6] == 0))
+            {
+                machine_spec = sx_join (str_smachinec, str_x64, sx_nil);
+            }
+            else if ((uname_arch[4] == '3') && (uname_arch[5] == '2') &&
+                     (uname_arch[6] == 0))
+            {
+                machine_spec = sx_join (str_smachinec, str_x86, sx_nil);
+            }
+        }
+
+        if (nilp (machine_spec))
+        {
+            machine_spec =
+                sx_join (str_smachinec, make_string (uname_arch), sx_nil);
+        }
+    }
         
     if (stringp (i_destdir))
     {
@@ -155,6 +186,11 @@ static sexpr get_special_linker_options (sexpr sx)
     if (i_os == os_darwin)
     {
         sx = cons (str_multiply_defined, cons (str_warning, sx));
+    }
+
+    if (!nilp (machine_spec))
+    {
+        sx = cons (machine_spec, sx);
     }
 
     return prepend_flags_from_environment (sx, "LDFLAGS");
