@@ -1318,6 +1318,7 @@ static void print_help ()
         " -L           Optimise linking.\n"
         " -c           Use gcc's -combine option for C source files.\n"
         " -o           Don't link dynamic libraries.\n"
+        " -O           Do link dynamic libraries.\n"
         " -S           Enforce a static link (default).\n"
         " -R           Enforce a dynamic link.\n"
         " -j <num>     Spawn <num> processes simultaneously.\n"
@@ -1726,7 +1727,11 @@ static sexpr initialise_libcurie_filename (sexpr f)
         else if (truep(equalp(r, sym_hosted)))
         {
             co_freestanding = sx_false;
-            i_dynamic_libraries = sx_false;
+
+            if (i_os != os_windows)
+            {
+                i_dynamic_libraries = sx_false;
+            }
         }
     }
 
@@ -1979,6 +1984,9 @@ int cmain ()
                         break;
                     case 'o':
                         in_dynamic_libraries = sx_false;
+                        break;
+                    case 'O':
+                        in_dynamic_libraries = sx_true;
                         break;
                     case 's':
                         i_fsl = fs_afsl;

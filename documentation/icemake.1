@@ -61,6 +61,11 @@ Do not link dynamic libraries. This simply disables linking of .so files and
 generation of the .pic.o files. It does not necessarily influence linking
 against shared objects already present on the target system.
 
+.IP "-O"
+Do link dynamic libraries. This does the opposite of what -o does. Same notes
+apply. Do be careful with this option, usually dynamic linking is disabled for
+a reason...
+
 .IP "-r"
 Execute library runtime tests. This option will build and execute runtime tests
 for libraries specified in the icemake.sx file.
