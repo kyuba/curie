@@ -29,3 +29,12 @@ EXPORTS
     sx_split                            @29
     sx_merge                            @31
     sx_set_sort_merge                   @32
+    sx_set_sort_merge                   @32
+    dt_from_unix                        @33
+    dt_to_unix                          @34
+    metadata_from_unix                  @35
+    metadata_from_sexpr                 @36
+    metadata_from_path                  @37
+    metadata_to_unix                    @38
+    metadata_to_sexpr                   @39
+    metadata_to_path                    @40
