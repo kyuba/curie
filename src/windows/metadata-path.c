@@ -29,23 +29,17 @@
 #include <curie/memory.h>
 #include <sievert/metadata.h>
 
-struct metadata *metadata_from_path
-    (const char *path)
+void metadata_from_path
+    (const char *path,
+     void (*with_metadata) (struct metadata *, void *), void *aux)
 {
 #pragma message("metadata_from_path() incomplete")
 }
 
-void metadata_from_path_closure
-    (const char *path, void (*with_metadata) (struct metadata *, void *),
-     void *aux)
-{
-#pragma message("metadata_from_path_closure() incomplete")
-}
-
-void metadata_apply_to_path
+void metadata_to_path
     (struct metadata *metadata,
      const char *path)
 {
-#pragma message("metadata_apply_to_path() incomplete")
+#pragma message("metadata_to_path() incomplete")
 }
 

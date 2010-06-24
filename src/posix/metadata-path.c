@@ -31,59 +31,13 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/unistd.h>
+#include <unistd.h>
 
 struct metadata_indirection
 {
     void (*with_metadata)(struct metadata *, void *);
     void *aux;
 };
-
-struct metadata *metadata_from_path
-    (const char *path)
-{
-    struct stat st;
-
-    if (stat (path, &st) != 0)
-    {
-        static struct memory_pool pool =
-            MEMORY_POOL_INITIALISER (sizeof (struct metadata));
-        struct metadata *rv = get_pool_mem (&pool);
-
-        rv->datetime_count = 0;
-        rv->relation_count = 0;
-        rv->acl_count      = 0;
-        
-        rv->classification = (struct metadata_classification **)0;
-        rv->attribute      = (struct metadata_attribute **)0;
-        rv->signature      = (struct metadata_signature **)0;
-
-        return rv;
-    }
-    else
-    {
-        enum metadata_classification_unix c;
-        int attributes;
-
-             if (0xc000 & st.st_mode) { c = mcu_socket;           }
-        else if (0xa000 & st.st_mode) { c = mcu_symbolic_link;    }
-        else if (0x8000 & st.st_mode) { c = mcu_file;             }
-        else if (0x6000 & st.st_mode) { c = mcu_block_device;     }
-        else if (0x4000 & st.st_mode) { c = mcu_directory;        }
-        else if (0x2000 & st.st_mode) { c = mcu_character_device; }
-        else if (0x1000 & st.st_mode) { c = mcu_fifo;             }
-        else                          { c = mcu_unknown;          }
-
-        if (0x0800 & st.st_mode) { attributes |= MAT_SET_UID; }
-        if (0x0400 & st.st_mode) { attributes |= MAT_SET_GID; }
-        if (0x0200 & st.st_mode) { attributes |= MAT_STICKY;  }
-
-        return metadata_from_unix
-            (c, st.st_uid, st.st_gid, st.st_mode, st.st_atime, st.st_mtime,
-             st.st_ctime, st.st_size, st.st_dev, attributes);
-
-    }
-}
 
 static void with_metadata_indirect (struct metadata *metadata, void *aux)
 {
@@ -92,9 +46,9 @@ static void with_metadata_indirect (struct metadata *metadata, void *aux)
     i->with_metadata (metadata, i->aux);
 }
 
-void metadata_from_path_closure
-    (const char *path, void (*with_metadata) (struct metadata *, void *),
-     void *aux)
+void metadata_from_path
+    (const char *path,
+     void (*with_metadata) (struct metadata *, void *), void *aux)
 {
     struct stat st;
 
@@ -123,17 +77,17 @@ void metadata_from_path_closure
         if (0x0400 & st.st_mode) { attributes |= MAT_SET_GID; }
         if (0x0200 & st.st_mode) { attributes |= MAT_STICKY;  }
 
-        metadata_from_unix_closure
+        metadata_from_unix
             (c, st.st_uid, st.st_gid, st.st_mode, st.st_atime, st.st_mtime,
              st.st_ctime, st.st_size, st.st_dev, attributes,
              with_metadata_indirect, &i);
     }
 }
 
-void metadata_apply_to_path
+void metadata_to_path
     (struct metadata *metadata,
      const char *path)
 {
-#pragma message("metadata_apply_to_path() incomplete")
+#pragma message("metadata_to_path() incomplete")
 }
 

@@ -29,21 +29,7 @@
 #include <curie/memory.h>
 #include <sievert/metadata.h>
 
-struct metadata *metadata_from_unix
-    (enum metadata_classification_unix classification,
-     int uid, int gid, int mode, long atime, long mtime, long ctime,
-     long size, int device, int attributes)
-{
-    static struct memory_pool pool =
-        MEMORY_POOL_INITIALISER (sizeof (struct metadata));
-    struct metadata *rv = get_pool_mem (&pool);
-
-#pragma message("metadata_from_unix() incomplete")
-    
-    return rv;
-}
-
-void metadata_from_unix_closure
+void metadata_from_unix
     (enum metadata_classification_unix classification,
      int uid, int gid, int mode, long atime, long mtime, long ctime,
      long size, int device, int attributes,
@@ -51,7 +37,7 @@ void metadata_from_unix_closure
 {
     struct metadata metadata;
 
-#pragma message("metadata_from_unix_closure() incomplete")
+#pragma message("metadata_from_unix() incomplete")
 
     with_metadata (&metadata, aux);
 }

@@ -234,26 +234,19 @@ struct metadata
     struct metadata_signature      **signature;
 };
 
-struct metadata *metadata_from_unix
-    (enum metadata_classification_unix classification,
-     int uid, int gid, int mode, long atime, long mtime, long ctime,
-     long size, int device, int attributes);
-
-void metadata_from_unix_closure
+void metadata_from_unix
     (enum metadata_classification_unix classification,
      int uid, int gid, int mode, long atime, long mtime, long ctime,
      long size, int device, int attributes,
      void (*with_metadata) (struct metadata *, void *), void *aux);
 
-struct metadata *metadata_from_sexpr
-    (sexpr data);
+void metadata_from_sexpr
+    (sexpr data,
+     void (*with_metadata)(struct metadata *, void *), void *aux);
 
-struct metadata *metadata_from_path
-    (const char *path);
-
-void metadata_from_path_closure
-    (const char *path, void (*with_metadata) (struct metadata *, void *),
-     void *aux);
+void metadata_from_path
+    (const char *path,
+     void (*with_metadata) (struct metadata *, void *), void *aux);
 
 void metadata_to_unix
     (struct metadata *metadata,
@@ -264,12 +257,9 @@ void metadata_to_unix
 sexpr metadata_to_sexpr
     (struct metadata *metadata);
 
-void metadata_apply_to_path
+void metadata_to_path
     (struct metadata *metadata,
      const char *path);
-
-void metadata_destroy
-    (struct metadata *metadata);
 
 #ifdef __cplusplus
 }
