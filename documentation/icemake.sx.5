@@ -187,16 +187,25 @@ used verbatim.
 
 Example: (data "foo.config")
 
-.IP freestanding-if-assembly
-This is mostly a hack to allow icemake to build curie itself and effectively
-determine if the compiled version of curie requires linking against the host
-libc. Since the only way to avoid linking against the host libc is by using
-assembly files, this option specifies which assembly files need to be present
-for the library to sustain itself, and since the files here are searched for in
-accordance with the general file lookup rules, you're free to have different
-assembly files for each target.
+.SH Architecture-specific Options
+A special
+.IB target .sx
+file is used to determine certain special build parameters for some targets, in
+particular libcurie. The file is searched for in the src/ directory, like
+(code ...) elements, and
+.I target
+refers to the target name as specified in
+.B icemake.sx
+.
 
-For an example, have a look at curie's icemake.sx.
+The following options are currently supported:
+
+.IP freestanding
+This is used with libcurie to tell icemake that the port of libcurie is
+self-sufficient enough to not require linking against the host libc.
+
+.IP hosted
+The opposite of the freestanding flag.
 
 .SH File Lookup
 Whenever a file is searched for, icemake tries a series of paths to find a file

@@ -15,10 +15,6 @@
   (version "11")
   (url "http://kyuba.org/")
 
-  (freestanding-if-assembly
-        "io-system" "memory" "network-system" "exec-system"
-        "multiplex-system" "signal-system" "directory" "time-system")
-
   (code (tree "tree-basic")
         (memory "memory" "memory-valgrind")
         "sexpr" "io" "memory-pool" "exec" "multiplex" "string"

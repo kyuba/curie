@@ -415,8 +415,6 @@ define_symbol (sym_libcurie,            "libcurie");
 /*! \brief Predefined Symbol */
 define_symbol (sym_freestanding,        "freestanding");
 /*! \brief Predefined Symbol */
-define_symbol (sym_freestanding_if_asm, "freestanding-if-assembly");
-/*! \brief Predefined Symbol */
 define_symbol (sym_data,                "data");
 /*! \brief Predefined Symbol */
 define_symbol (sym_description,         "description");

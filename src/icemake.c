@@ -392,6 +392,11 @@ static sexpr find_test_case_with_suffix (sexpr file, char *s)
          sx_join (file, make_string (s), sx_nil));
 }
 
+static sexpr find_code_sx (sexpr file)
+{
+    return find_code_with_suffix (file, ".sx");
+}
+
 static sexpr find_code_c (sexpr file)
 {
     return find_code_with_suffix (file, ".c");
@@ -911,6 +916,8 @@ static struct target *get_context()
 
 static void process_definition (struct target *context, sexpr definition)
 {
+    sexpr sx;
+
     while (consp(definition))
     {
         sexpr sxcar = car (definition);
@@ -1049,41 +1056,39 @@ static void process_definition (struct target *context, sexpr definition)
                 sxc = cdr (sxc);
             }
         }
-        else if (truep(equalp(sxcaar, sym_freestanding_if_asm)))
+
+        definition = cdr (definition);
+    }
+
+    if ((sx = find_code_sx(context->name)), stringp(sx))
+    {
+        const char *s = sx_string (sx);
+        struct sexpr_io *in = sx_open_i (io_open_read(s));
+        sexpr r;
+
+        while (!eofp ((r = sx_read (in))))
         {
-            sexpr sxc = cdr (sxcar);
-
-            co_freestanding = sx_true;
-
-            while (consp (sxc))
+            if (truep (equalp (r, sym_freestanding)))
             {
-                sexpr r;
-
-                if (((r = find_code_s(car(sxc))), !falsep(r)) ||
-                    ((r = find_code_S(car(sxc))), !falsep(r)))
-                {
-                    sxc = cdr (sxc);
-                }
-                else
-                {
-                    co_freestanding = sx_false;
-
-                    if (i_os != os_windows)
-                    {
-                        i_dynamic_libraries = sx_false;
-                    }
-
-                    break;
-                }
+                co_freestanding = sx_true;
             }
-
-            if (nilp (in_dynamic_libraries) && truep(co_freestanding))
+            else if (truep (equalp (r, sym_hosted)))
             {
-                i_dynamic_libraries = sx_true;
+                co_freestanding = sx_false;
+                    
+                if (i_os != os_windows)
+                {
+                    i_dynamic_libraries = sx_false;
+                }
             }
         }
 
-        definition = cdr (definition);
+        sx_close_io (in);
+
+        if (nilp (in_dynamic_libraries) && truep(co_freestanding))
+        {
+            i_dynamic_libraries = sx_true;
+        }
     }
 
     mkdir_p (get_build_file (context, sx_nil));
