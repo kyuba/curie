@@ -319,11 +319,12 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
                     break;
                 default:
                     workstack
-                            = cons (cons (sx_join (str_lib, name,
+                        = cons (cons (sym_symlink,
+                                      cons (sx_join (str_lib, name,
                                             sx_join (str_dot_so_dot,
                                                      t->dversion, sx_nil)),
-                                          get_so_library_symlink_path (t)),
-                                    workstack);
+                                            get_so_library_symlink_path (t))),
+                                workstack);
             }
         }
     }
