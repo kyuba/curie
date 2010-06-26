@@ -2073,6 +2073,8 @@ int icemake_prepare_toolchain
         in_dynamic_libraries = sx_false;
     }
 
+    initialise_libcurie();
+
     return with_data (&td, aux);
 }
 
@@ -2080,54 +2082,21 @@ int icemake_prepare
     (struct icemake *im, const char *path, struct toolchain_descriptor *td,
      int (*with_data)(struct icemake *, void *), void *aux)
 {
-    struct icemake iml;
+    struct icemake iml = { on_error, on_warning, sx_end_of_list, stdio };
+    sexpr icemake_sx_path = make_string (path);
+    struct sexpr_io *io;
+    sexpr r;
 
-    if (im == 0)
+    define_string (str_sicemakedsx, "/icemake.sx");
+
+    if (im == (struct icemake *)0)
     {
         im = &iml;
     }
 
-    td->global = im;
-    return with_data (im, aux);
-}
+    icemake_sx_path = sx_join (icemake_sx_path, str_sicemakedsx, sx_nil);
 
-static void collect_targets (struct tree_node *n, void *aux)
-{
-    sexpr *targets = (sexpr *)aux;
-    const char *key = (const char *)n->key;
-
-    *targets = sx_set_add (*targets, make_string (key));
-}
-
-int icemake
-    (struct icemake *im)
-{
-}
-
-static int with_toolchain (struct toolchain_descriptor *td, void *aux)
-{
-    sexpr r;
-    struct sexpr_io *io;
-    initialise_libcurie();
-    struct icemake_meta *im = (struct icemake_meta *)aux;
-
-    if (nilp(in_dynamic_libraries))
-    {
-        if (i_os == os_windows)
-        {
-            i_dynamic_libraries = sx_true;
-        }
-        else if (falsep(co_freestanding))
-        {
-            i_dynamic_libraries = sx_false;
-        }
-    }
-    else
-    {
-        i_dynamic_libraries = in_dynamic_libraries;
-    }
-
-    io = sx_open_i (io_open_read ("icemake.sx"));
+    io = sx_open_i (io_open_read (sx_string (icemake_sx_path)));
 
     while (!eofp(r = sx_read (io)))
     {
@@ -2160,6 +2129,21 @@ static int with_toolchain (struct toolchain_descriptor *td, void *aux)
 
     sx_close_io (io);
 
+    td->global = im;
+    return with_data (im, aux);
+}
+
+static void collect_targets (struct tree_node *n, void *aux)
+{
+    sexpr *targets = (sexpr *)aux;
+    const char *key = (const char *)n->key;
+
+    *targets = sx_set_add (*targets, make_string (key));
+}
+
+int icemake
+    (struct icemake *im)
+{
     read_metadata ();
     merge_contexts ();
 
@@ -2197,6 +2181,39 @@ static int with_toolchain (struct toolchain_descriptor *td, void *aux)
     save_metadata ();
 
     return failures;
+}
+
+static int with_icemake (struct icemake *im, void *aux)
+{
+    struct icemake_meta *imc = (struct icemake_meta *)aux;
+
+    im->buildtargets = imc->buildtargets;
+
+    return icemake (im);
+}
+
+static int with_toolchain (struct toolchain_descriptor *td, void *aux)
+{
+    struct icemake_meta *im = (struct icemake_meta *)aux;
+
+    if (nilp(in_dynamic_libraries))
+    {
+        if (i_os == os_windows)
+        {
+            i_dynamic_libraries = sx_true;
+        }
+        else if (falsep(co_freestanding))
+        {
+            i_dynamic_libraries = sx_false;
+        }
+    }
+    else
+    {
+        i_dynamic_libraries = in_dynamic_libraries;
+    }
+
+    return icemake_prepare
+        ((struct icemake *)0, ".", td, with_icemake, (void *)im);
 }
 
 int cmain ()
