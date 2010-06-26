@@ -63,7 +63,15 @@ static void loop_install()
         sexpr spec = car (workstack);
         sexpr source = car (spec);
         sexpr target = cdr (spec);
+        int mode = 0444;
         struct io *in, *out;
+
+        if (integerp (source))
+        {
+            mode   = sx_integer (source);
+            source = car (target);
+            target = cdr (target);
+        }
 
         if (truep(equalp(source, sym_symlink))) /* no symlinks on windows */
         {
@@ -77,8 +85,8 @@ static void loop_install()
         }
         else if (truep (filep (source)))
         {
-            sx_write (stdio, cons (sym_install,
-                      cons (source, cons (target, sx_end_of_list))));
+            sx_write (stdio, cons (sym_install, cons (make_integer (mode),
+                      cons (source, cons (target, sx_end_of_list)))));
 
             mkdir_pi (target);
             CopyFile (sx_string (source), sx_string (target), FALSE);
@@ -120,7 +128,15 @@ static void loop_install()
         sexpr spec = car (workstack);
         sexpr source = car (spec);
         sexpr target = cdr (spec);
+        int mode = 0444;
         struct io *in, *out;
+
+        if (integerp (source))
+        {
+            mode   = sx_integer (source);
+            source = car (target);
+            target = cdr (target);
+        }
 
         if (truep(equalp(source, sym_symlink)))
         {
@@ -134,15 +150,15 @@ static void loop_install()
         }
         else if (truep (filep (source)))
         {
-            sx_write (stdio, cons (sym_install,
-                      cons (source, cons (target, sx_end_of_list))));
+            sx_write (stdio, cons (sym_install, cons (make_integer (mode),
+                      cons (source, cons (target, sx_end_of_list)))));
 
             mkdir_pi (target);
 
             files_open++;
 
             in  = io_open_read   (sx_string (source));
-            out = io_open_create (sx_string (target), 0755);
+            out = io_open_create (sx_string (target), mode);
 
             multiplex_add_io (in, install_read, install_close, (void *)out);
             multiplex_add_io_no_callback (out);
@@ -304,7 +320,8 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
         if (truep(filep(fname)))
         {
             workstack
-                    = cons (cons (fname, get_so_library_install_path (t)),
+                    = cons (cons (make_integer(0555),
+                                  cons (fname, get_so_library_install_path(t))),
                             workstack);
 
             switch (i_os)
@@ -362,11 +379,12 @@ static void install_library_msvc (sexpr name, struct target *t)
 
 static void install_programme_common (sexpr name, struct target *t)
 {
-    workstack
-        = cons (cons (get_build_file (t, sx_join (name, (i_os == os_windows 
-                                                          ? str_dot_exe
-                                                          : sx_nil), sx_nil)),
-                      get_programme_install_path(t)), workstack);
+    workstack = cons
+        (cons (make_integer (0555),
+               cons (get_build_file (t, sx_join (name, (i_os == os_windows 
+                                                         ? str_dot_exe
+                                                         : sx_nil), sx_nil)),
+                     get_programme_install_path(t))), workstack);
 }
 
 static void install_programme_gcc (sexpr name, struct target *t)
