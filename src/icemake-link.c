@@ -708,21 +708,12 @@ static void link_target (const char *target)
     }
 }
 
-static void target_map_link (struct tree_node *node, void *u)
-{
-    do_link_target(node_get_value(node));
-}
-
 void ice_link (sexpr buildtargets)
 {
     sexpr cursor = buildtargets;
     sx_write (stdio, cons (sym_phase, cons (sym_link, sx_end_of_list)));
 
-    if (eolp(cursor))
-    {
-        tree_map (&targets, target_map_link, (void *)0);
-    }
-    else while (consp(cursor))
+    while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
         link_target (sx_string(sxcar));

@@ -693,22 +693,13 @@ static void build_target (const char *target)
     }
 }
 
-static void target_map_build (struct tree_node *node, void *u)
-{
-    do_build_target(node_get_value(node));
-}
-
 void build (sexpr buildtargets)
 {
     sexpr cursor = buildtargets;
 
     sx_write (stdio, cons (sym_phase, cons (sym_build, sx_end_of_list)));
 
-    if (eolp(cursor))
-    {
-        tree_map (&targets, target_map_build, (void *)0);
-    }
-    else while (consp(cursor))
+    while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
         const char *target = sx_string (sxcar);

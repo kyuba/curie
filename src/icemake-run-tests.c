@@ -144,11 +144,6 @@ static void do_run_tests_target(struct target *t)
     }
 }
 
-static void target_map_run_tests (struct tree_node *node, void *u)
-{
-    do_run_tests_target(node_get_value(node));
-}
-
 static void run_tests_target (const char *target)
 {
     struct tree_node *node = tree_get_node_string(&targets, (char *)target);
@@ -164,11 +159,7 @@ void run_tests (sexpr buildtargets)
     sexpr cursor = buildtargets;
     sx_write (stdio, cons (sym_phase, cons (sym_run_tests, sx_end_of_list)));
 
-    if (eolp(cursor))
-    {
-        tree_map (&targets, target_map_run_tests, (void *)0);
-    }
-    else while (consp(cursor))
+    while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
         run_tests_target (sx_string(sxcar));

@@ -588,11 +588,6 @@ static void install_target (const char *target)
     }
 }
 
-static void target_map_install (struct tree_node *node, void *u)
-{
-    do_install_target(node_get_value(node));
-}
-
 void install (sexpr buildtargets)
 {
     sexpr cursor = buildtargets;
@@ -602,11 +597,7 @@ void install (sexpr buildtargets)
         return;
     }
 
-    if (eolp(cursor))
-    {
-        tree_map (&targets, target_map_install, (void *)0);
-    }
-    else while (consp(cursor))
+    while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
         install_target (sx_string(sxcar));

@@ -123,11 +123,24 @@ enum icemake_error
     ie_programme_failed
 };
 
-struct toolchain_description
+struct icemake
+{
+    void (*on_error)   (enum icemake_error error, const char *text);
+    void (*on_warning) (enum icemake_error error, const char *text);
+
+    sexpr buildtargets;
+    sexpr all_targets;
+
+    struct sexpr_io *stdio;
+};
+
+struct toolchain_descriptor
 {
     enum toolchain        toolchain;
     enum operating_system operating_system;
     enum instruction_set  instruction_set;
+
+    struct icemake *global;
 };
 
 #define ICEMAKE_PROGRAMME         (1 << 0x0)
@@ -178,6 +191,8 @@ struct target {
     unsigned int options;
     /*!\brief Base Path for Build Data */
     sexpr buildbase;
+    /*!\brief Toolchain Descriptor */
+    struct toolchain_descriptor *td;
 };
 
 /*! \brief Effective Operating System Name
@@ -200,7 +215,8 @@ extern char uname_vendor [UNAMELENGTH];
 
 /*! \brief Effective Toolchain Code
  *
- *  Derived through the -t flag, or guessed based on the uname data.
+ *  Derived through the -t flag, or guessed based on the uname data and the
+ *  available C compilers.
  */
 extern enum toolchain uname_toolchain;
 
@@ -232,7 +248,7 @@ extern struct tree targets;
  *
  *  Derived from the effective OS, architecture, vendor and toolchain.
  */
-extern char *archprefix;
+extern const char *archprefix;
 
 /*! \brief Effective Architecture Descriptor (S-expression)
  *
@@ -827,6 +843,17 @@ void mkdir_p  (sexpr path);
 
 void on_error   (enum icemake_error error, const char *text);
 void on_warning (enum icemake_error error, const char *text);
+
+int icemake_prepare_toolchain
+    (const char *name,
+     int (*with_data)(struct toolchain_descriptor *, void *), void *aux);
+
+int icemake_prepare
+    (struct icemake *im, const char *path, struct toolchain_descriptor *td,
+     int (*with_data)(struct icemake *, void *), void *aux);
+
+int icemake
+    (struct icemake *im);
 
 #endif
 

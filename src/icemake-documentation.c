@@ -101,11 +101,6 @@ static void do_build_documentation_target (struct target *t)
     }
 }
 
-static void target_map_build_documentation (struct tree_node *node, void *u)
-{
-    do_build_documentation_target(node_get_value(node));
-}
-
 static void build_documentation_target (const char *target)
 {
     struct tree_node *node = tree_get_node_string(&targets, (char *)target);
@@ -122,11 +117,7 @@ void build_documentation (sexpr buildtargets)
 
     sx_write (stdio, cons (sym_phase, cons (sym_build_documentation, sx_end_of_list)));
 
-    if (eolp(cursor))
-    {
-        tree_map (&targets, target_map_build_documentation, (void *)0);
-    }
-    else while (consp(cursor))
+    while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
         build_documentation_target (sx_string(sxcar));
