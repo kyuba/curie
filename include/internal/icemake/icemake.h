@@ -129,7 +129,6 @@ struct icemake
     void (*on_warning) (enum icemake_error error, const char *text);
 
     sexpr buildtargets;
-    sexpr all_targets;
 
     struct sexpr_io *stdio;
 };

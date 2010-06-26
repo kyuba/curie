@@ -84,7 +84,6 @@ sexpr do_tests                         = sx_false;
 sexpr do_install                       = sx_false;
 sexpr do_build_documentation           = sx_false;
 
-static sexpr all_targets               = sx_end_of_list;
 struct tree targets                    = TREE_INITIALISER;
 
 sexpr p_c_compiler                     = sx_false;
@@ -1159,8 +1158,6 @@ static void process_definition (struct target *context, sexpr definition)
             context->olibraries = cons (str_curie, context->olibraries);
         }
     }
-
-    all_targets = cons (context->name, all_targets);
 }
 
 static struct target *create_library (sexpr definition)
@@ -2094,6 +2091,14 @@ int icemake_prepare
     return with_data (im, aux);
 }
 
+static void collect_targets (struct tree_node *n, void *aux)
+{
+    sexpr *targets = (sexpr *)aux;
+    const char *key = (const char *)n->key;
+
+    *targets = sx_set_add (*targets, make_string (key));
+}
+
 int icemake
     (struct icemake *im)
 {
@@ -2160,7 +2165,7 @@ static int with_toolchain (struct toolchain_descriptor *td, void *aux)
 
     if (!consp(im->buildtargets))
     {
-        im->buildtargets = all_targets;
+        tree_map (&targets, collect_targets, &(im->buildtargets));
     }
 
     sx_write (stdio, cons (sym_targets, im->buildtargets));
