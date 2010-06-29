@@ -292,7 +292,8 @@ static void link_programme_gcc_filename
                       cons (ofile,
                             collect_code (sx, code))))));
 
-    workstack = cons (cons (p_linker, sx), workstack);
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                      cons (p_linker, sx));
 }
 
 static void link_programme_borland_filename
@@ -308,7 +309,8 @@ static void link_programme_borland_filename
                         cons (ofile,
                               collect_code (sx, code)))));
 
-    workstack = cons (cons (p_linker, sx), workstack);
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                      cons (p_linker, sx));
 }
 
 static void link_programme_msvc_filename
@@ -327,7 +329,8 @@ static void link_programme_msvc_filename
                cons (sx_join (str_soutc, ofile, sx_nil),
                      collect_code (sx, code)));
 
-    workstack = cons (cons (p_linker, sx), workstack);
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                       cons (p_linker, sx));
 }
 
 static void write_curie_sx (sexpr name, struct target *t)
@@ -384,13 +387,12 @@ static void link_library_gcc (sexpr name, sexpr code, struct target *t)
 
     write_curie_sx (name, t);
 
-    workstack
-            = cons (cons (p_archiver,
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                    cons (p_archiver,
                     cons (str_dr,
                           cons (str_ds,
                                 cons (str_dc,
-                                      cons (b, collect_code (sx, code)))))),
-            workstack);
+                                      cons (b, collect_code (sx, code)))))));
 }
 
 static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
@@ -401,7 +403,8 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
     if (i_os == os_windows)
     {
-        cur = cons (str_kernel32, cons (str_mingw32, cons (str_coldname, cons (str_mingwex, cons (str_msvcrt, t->libraries)))));
+        cur = cons (str_kernel32, cons (str_mingw32, cons (str_coldname,
+                    cons (str_mingwex, cons (str_msvcrt, t->libraries)))));
 
         sx = cons (str_dend_group, sx);
         while (consp (cur))
@@ -465,21 +468,19 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
     sx = cons (str_nostdlib,
                cons (str_nostartfiles, cons (str_nodefaultlibs, sx)));
 
-    workstack
-            = cons (cons (p_linker,
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                    cons (p_linker,
                           cons (((i_os == os_darwin) ? str_ddynamiclib :
                                                        str_dshared),
                                 cons (str_dfpic,
-                          cons (str_do, cons (lshort, sx))))),
-                    workstack);
+                          cons (str_do, cons (lshort, sx))))));
 
     if (i_os == os_windows)
     {
-        workstack
-                = cons (cons (p_linker,
+        t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                        cons (p_linker,
                               cons (str_dfpic,
-                              cons (str_do, cons (lname, sx)))),
-                        workstack);
+                              cons (str_do, cons (lname, sx)))));
     }
 }
 
@@ -498,7 +499,8 @@ static void link_library_borland (sexpr name, sexpr code, struct target *t)
         sx = cdr (sx);
     }
 
-    workstack = cons (cons (p_archiver, cons (b, sxx)), workstack);
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                       cons (p_archiver, cons (b, sxx)));
 }
 
 static void link_library_borland_dynamic
@@ -530,21 +532,19 @@ static void link_library_borland_dynamic
     /* just collect_code(), because bcc doesn't use extra PIC objects */
     sx = collect_code (sx, code);
 
-    workstack
-            = cons (cons (p_linker,
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                    cons (p_linker,
                           cons (str_dq, cons (str_dWD,
                                 get_special_linker_options (t->icemake,
-                                    cons (str_do, cons (b, sx)))))),
-                    workstack);
+                                    cons (str_do, cons (b, sx)))))));
 
     b = get_build_file (t, sx_join (str_lib, name, str_dot_dll));
 
-    workstack
-            = cons (cons (p_linker,
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                    cons (p_linker,
                           cons (str_dq, cons (str_dWD,
                                 get_special_linker_options (t->icemake,
-                                    cons (str_do, cons (b, sx)))))),
-                    workstack);
+                                    cons (str_do, cons (b, sx)))))));
 }
 
 static void link_library_msvc (sexpr name, sexpr code, struct target *t)
@@ -558,8 +558,8 @@ static void link_library_msvc (sexpr name, sexpr code, struct target *t)
 
     sx = collect_code (sx, code);
 
-    workstack = cons (cons (p_archiver, cons (str_snologo, cons (b, sx))),
-                      workstack);
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                       cons (p_archiver, cons (str_snologo, cons (b, sx))));
 }
 
 static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
@@ -605,13 +605,12 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
 
     sxx = cons (sx_join (str_sdefc, t->deffile, sx_nil), sxx);
 
-    workstack
-            = cons (cons (p_linker,
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                    cons (p_linker,
                           cons (str_snologo,
                             cons (str_sdll,
                               cons (bi,
-                              cons (sx_join (str_soutc, b, sx_nil), sxx))))),
-                    workstack);
+                                cons (sx_join (str_soutc, b, sx_nil), sxx))))));
 
     if (truep(do_tests))
     {
@@ -701,7 +700,7 @@ static void do_link_target(struct target *t)
     }
 }
 
-void icemake_link (struct icemake *im)
+int icemake_link (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
     sx_write (stdio, cons (sym_phase, cons (sym_link, sx_end_of_list)));
@@ -721,5 +720,5 @@ void icemake_link (struct icemake *im)
         cursor = cdr(cursor);
     }
 
-    icemake_loop_processes (im);
+    return icemake_loop_processes (im);
 }

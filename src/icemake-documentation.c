@@ -39,7 +39,7 @@ static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
     {
 /*        sexpr tar = get_build_file (t, sx_join (base, str_dot_pdf, sx_nil));*/
 
-        workstack
+        t->icemake->workstack
                 = cons (cons (sym_chdir,
                               cons (dir,
                                     cons (p_pdflatex,
@@ -50,13 +50,13 @@ static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
                                           cons (p_pdflatex,
                                                 cons (b,
                                                       sx_end_of_list)))),
-                              workstack));
+                              t->icemake->workstack));
     }
     else if (stringp (p_latex))
     {
 /*        sexpr tar = get_build_file (t, sx_join (base, str_dot_dvi, sx_nil));*/
 
-        workstack
+        t->icemake->workstack
                 = cons (cons (sym_chdir,
                               cons (dir,
                                     cons (p_latex,
@@ -67,17 +67,16 @@ static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
                                           cons (p_latex,
                                                 cons (b,
                                                       sx_end_of_list)))),
-                              workstack));
+                              t->icemake->workstack));
     }
 }
 
-static void build_documentation_doxygen ()
+static void build_documentation_doxygen (struct icemake *icemake)
 {
     if (stringp (p_doxygen) && truep (filep (str_doxyfile)))
     {
-        workstack = cons (cons (p_doxygen,
-                                sx_end_of_list),
-                          workstack);
+        icemake->workstack = sx_set_add (icemake->workstack,
+                          cons (p_doxygen, sx_end_of_list));
     }
 }
 
@@ -100,7 +99,7 @@ static void do_build_documentation_target (struct target *t)
     }
 }
 
-void icemake_build_documentation (struct icemake *im)
+int icemake_build_documentation (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
 
@@ -122,7 +121,7 @@ void icemake_build_documentation (struct icemake *im)
         cursor = cdr(cursor);
     }
 
-    build_documentation_doxygen ();
+    build_documentation_doxygen (im);
 
-    icemake_loop_processes (im);
+    return icemake_loop_processes (im);
 }

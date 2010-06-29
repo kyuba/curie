@@ -213,7 +213,8 @@ static sexpr prepend_cxxflags_msvc (sexpr x)
 static void build_object_gcc_assembly
     (const char *source, const char *target, struct target *t)
 {
-    workstack = sx_set_add (workstack, cons (p_assembler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_assembler,
                     cons (make_string (source),
                       cons (str_do,
                         cons (make_string(target), sx_end_of_list)))));
@@ -222,7 +223,8 @@ static void build_object_gcc_assembly
 static void build_object_gcc_preproc_assembly
     (const char *source, const char *target, struct target *t)
 {
-    workstack = sx_set_add (workstack, cons (p_c_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
                   prepend_includes_gcc (t,
                     cons (str_dc,
                       cons (make_string (source),
@@ -233,7 +235,8 @@ static void build_object_gcc_preproc_assembly
 static void build_object_gcc_c
     (const char *source, const char *target, struct target *t)
 {
-    workstack = sx_set_add (workstack, cons (p_c_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
                   cons (str_dgcc,
                   cons (str_stdc99,
                     cons (str_wall,
@@ -243,7 +246,8 @@ static void build_object_gcc_c
                           cons (str_dc,
                             cons (make_string (source),
                               cons (str_do,
-                                cons (make_string(target), sx_end_of_list))))))))))));
+                                cons (make_string(target),
+                                  sx_end_of_list))))))))))));
 }
 
 static void build_object_gcc_c_combine
@@ -275,13 +279,14 @@ static void build_object_gcc_c_combine
 
     item = cons (p_c_compiler, sx);
 
-    workstack = sx_set_add (workstack, item);
+    t->icemake->workstack = sx_set_add (t->icemake->workstack, item);
 }
 
 static void build_object_gcc_cpp
     (const char *source, const char *target, struct target *t)
 {
-    workstack = sx_set_add (workstack, cons (p_cpp_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_cpp_compiler,
                   cons (str_dgcc,
                     prepend_cxxflags_gcc (t,
                     prepend_includes_gcc (t,
@@ -294,7 +299,8 @@ static void build_object_gcc_cpp
 static void build_object_gcc_assembly_pic
     (const char *source, const char *target, struct target *t)
 {
-    workstack = sx_set_add (workstack, cons (p_c_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
                   prepend_includes_gcc (t,
                     cons (str_dfpic,
                     cons (str_dc,
@@ -306,7 +312,8 @@ static void build_object_gcc_assembly_pic
 static void build_object_gcc_preproc_assembly_pic
     (const char *source, const char *target, struct target *t)
 {
-    workstack = sx_set_add (workstack, cons (p_c_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
                   prepend_includes_gcc (t,
                     cons (str_dfpic,
                     cons (str_dc,
@@ -318,7 +325,8 @@ static void build_object_gcc_preproc_assembly_pic
 static void build_object_gcc_c_pic
     (const char *source, const char *target, struct target *t)
 {
-    workstack = sx_set_add (workstack, cons (p_c_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
                   cons (str_dfpic,
                   cons (str_dgcc,
                   cons (str_stdc99,
@@ -329,7 +337,8 @@ static void build_object_gcc_c_pic
                           cons (str_dc,
                             cons (make_string (source),
                               cons (str_do,
-                                cons (make_string(target), sx_end_of_list)))))))))))));
+                                cons (make_string(target),
+                                  sx_end_of_list)))))))))))));
 }
 
 static void build_object_gcc_c_pic_combine
@@ -361,14 +370,15 @@ static void build_object_gcc_c_pic_combine
 
     item = cons (p_c_compiler, cons (str_dfpic, sx));
 
-    workstack = sx_set_add (workstack, item);
+    t->icemake->workstack = sx_set_add (t->icemake->workstack, item);
 }
 
 static void build_object_gcc_cpp_pic
     (const char *source, const char *target, struct target *t)
 {
-    workstack
-        = cons (cons (p_cpp_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack,
+                cons (p_cpp_compiler,
                   cons (str_dfpic,
                   cons (str_dgcc,
                     prepend_cxxflags_gcc (t,
@@ -376,8 +386,7 @@ static void build_object_gcc_cpp_pic
                       cons (str_dc,
                         cons (make_string (source),
                           cons (str_do,
-                            cons (make_string(target), sx_end_of_list))))))))),
-                workstack);
+                            cons (make_string(target), sx_end_of_list))))))))));
 }
 
 static void build_object_gcc
@@ -452,7 +461,8 @@ static void build_object_gcc
 static void build_object_borland_generic
     (const char *source, const char *target, struct target *t)
 {
-    workstack = sx_set_add (workstack, cons (p_c_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
                   cons (str_dAT,
                   cons (str_dq,
                     cons (str_dw,
@@ -467,7 +477,8 @@ static void build_object_borland_generic
 static void build_object_borland_cpp
     (const char *source, const char *target, struct target *t)
 {
-    workstack = sx_set_add (workstack, cons (p_c_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
                   cons (str_dAT,
                   cons (str_dq,
                   cons (str_dP,
@@ -504,7 +515,8 @@ static void build_object_msvc_generic
 {
     sexpr b = sx_join (str_sFo, make_string (target), sx_nil);
 
-    workstack = sx_set_add (workstack, cons (p_c_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
                       cons (str_sc,
                       cons (str_snologo,
                       cons (str_sTC,
@@ -519,7 +531,8 @@ static void build_object_msvc_cpp
 {
     sexpr b = sx_join (str_sFo, make_string (target), sx_nil);
 
-    workstack = sx_set_add (workstack, cons (p_c_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
                       cons (str_sc,
                       cons (str_snologo,
                       cons (str_sTP,
@@ -535,7 +548,8 @@ static void build_object_msvc_resource
 {
     sexpr b = sx_join (str_sfo, make_string (target), sx_nil);
 
-    workstack = sx_set_add (workstack, cons (p_resource_compiler,
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_resource_compiler,
                       cons (b, cons (make_string(source), sx_end_of_list))));
 }
 
@@ -681,7 +695,7 @@ static void do_build_target (struct target *t)
     }
 }
 
-void icemake_build (struct icemake *im)
+int icemake_build (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
 
@@ -702,5 +716,5 @@ void icemake_build (struct icemake *im)
         cursor = cdr(cursor);
     }
 
-    icemake_loop_processes (im);
+    return icemake_loop_processes (im);
 }

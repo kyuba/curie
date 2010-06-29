@@ -61,10 +61,7 @@ enum instruction_set i_is              = is_generic;
 const char *archprefix                 = "generic-unknown-generic-generic";
 char *tcversion                        = (char *)0;
 
-static int alive_processes             = 0;
 static unsigned int max_processes      = 1;
-
-static int failures                    = 0;
 
 sexpr co_freestanding                  = sx_false;
 
@@ -76,8 +73,6 @@ sexpr i_pname                          = sx_false;
 sexpr i_destlibdir                     = sx_false;
 sexpr i_dynamic_libraries              = sx_true;
 static sexpr in_dynamic_libraries      = sx_nil;
-
-sexpr workstack                        = sx_end_of_list;
 
 sexpr do_tests                         = sx_false;
 sexpr do_install                       = sx_false;
@@ -98,6 +93,13 @@ sexpr p_doxygen                        = sx_false;
 sexpr architecture                     = sx_false;
 
 static sexpr i_alternatives            = sx_end_of_list;
+
+struct process_data
+{
+    sexpr command;
+    struct icemake *icemake;
+    int *failures;
+};
 
 struct sexpr_io *stdio;
 
@@ -1533,41 +1535,17 @@ static void initialise_toolchain_doxygen()
     }
 }
 
-static void spawn_stack_items
-    (void (*)(struct exec_context *, void *), struct icemake *im);
+static void spawn_stack_items (struct icemake *im, int *fl);
 
 static void process_on_death
     (struct exec_context *context, void *p)
 {
+    struct process_data *d = (struct process_data *)p;
+
     if (context->status == ps_terminated)
     {
-        sexpr sx = (sexpr)p;
-        alive_processes--;
-
-        if (context->exitstatus != 0)
-        {
-            sx_write (stdio, cons (sym_failed,
-                                   cons (make_integer (context->exitstatus),
-                                         cons (sx,
-                                             sx_end_of_list))));
-
-            on_error (ie_programme_failed, "");
-        }
-        else
-        {
-            sx_write (stdio, cons (sym_completed, cons (sx, sx_end_of_list)));
-        }
-
-        free_exec_context (context);
-    }
-}
-
-static void process_on_death_nokill(struct exec_context *context, void *p)
-{
-    if (context->status == ps_terminated)
-    {
-        sexpr sx = (sexpr)p;
-        alive_processes--;
+        sexpr sx = (sexpr)d->command;
+        (d->icemake->alive_processes)--;
 
         if (context->exitstatus != 0)
         {
@@ -1576,7 +1554,9 @@ static void process_on_death_nokill(struct exec_context *context, void *p)
                             cons (sx,
                                   sx_end_of_list))));
 
-            failures++;
+            on_warning (ie_programme_failed, "");
+
+            d->failures++;
         }
         else
         {
@@ -1585,6 +1565,8 @@ static void process_on_death_nokill(struct exec_context *context, void *p)
 
         free_exec_context (context);
     }
+
+    free_pool_mem (p);
 }
 
 static void map_environ (struct tree_node *node, void *psx)
@@ -1612,7 +1594,8 @@ static void map_environ (struct tree_node *node, void *psx)
 }
 
 static void spawn_item
-    (sexpr sx, void (*f)(struct exec_context *, void *), struct icemake *im)
+    (sexpr sx, void (*f)(struct exec_context *, void *), struct icemake *im,
+     int *fl)
 {
     sexpr cur = sx, cf = car (sx);
     struct exec_context *context;
@@ -1621,6 +1604,9 @@ static void spawn_item
     int c = 0, exsize;
     char **ex;
     sexpr rsx = sx_false;
+    static struct memory_pool pool =
+        MEMORY_POOL_INITIALISER(sizeof (struct process_data));
+    struct process_data *pd;
 
     tree_map (&(im->targets), map_environ, (void *)&rsx);
 
@@ -1684,7 +1670,12 @@ static void spawn_item
         chdir (odir);
     }
 
-    sx = car (sx);
+    pd = (struct process_data *)get_pool_mem (&pool);
+
+    pd->command  = car(sx);
+    pd->icemake  = im;
+    pd->failures = fl;
+
 
     switch (context->pid)
     {
@@ -1692,22 +1683,30 @@ static void spawn_item
                  break;
         case 0:  on_error (ie_failed_to_execute_binary_image, "");
                  break;
-        default: alive_processes++;
-                 multiplex_add_process (context, f, (void *)sx);
+        default: (im->alive_processes)++;
+                 multiplex_add_process (context, f, (void *)pd);
                  afree (exsize, ex);
     }
 }
 
-static void spawn_stack_items
-    (void (*f)(struct exec_context *, void *), struct icemake *im)
+static void spawn_stack_items (struct icemake *im, int *fl)
 {
-    while (consp (workstack) && (alive_processes < max_processes))
+    while (consp (im->workstack) && ((im->alive_processes) < max_processes))
     {
-        sexpr wcdr = cdr (workstack);
+        sexpr spec = car (im->workstack);
+        sexpr sca  = car (spec);
 
-        spawn_item (car (workstack), f, im);
+        if (truep (equalp (sym_install, sca)) ||
+            truep (equalp (sym_symlink, sca)))
+        {
+            icemake_install_file (im, cdr (spec));
+        }
+        else
+        {
+            spawn_item (spec, process_on_death, im, fl);
+        }
 
-        workstack = wcdr;
+        im->workstack = cdr (im->workstack);
     }
 }
 
@@ -1817,48 +1816,39 @@ static void initialise_libcurie()
     }
 }
 
-void count_print_items()
+int icemake_count_print_items (struct icemake *im )
 {
     int count = 0;
     sexpr cur;
 
-    for (cur = workstack; consp (cur); count++, cur = cdr (cur));
+    for (cur = im->workstack; consp (cur); count++, cur = cdr (cur));
 
     if (count > 0)
     {
         sx_write (stdio, cons (sym_items_total,
                                cons (make_integer (count), sx_end_of_list)));
     }
+
+    return count;
 }
 
-void icemake_loop_processes (struct icemake *im)
+int icemake_loop_processes (struct icemake *im)
 {
-    count_print_items();
+    int failures = 0;
 
-    spawn_stack_items (process_on_death, im);
+    icemake_count_print_items (im);
 
-    while (alive_processes > 0)
+    spawn_stack_items (im, &failures);
+
+    while ((im->alive_processes) > 0)
     {
         multiplex();
-        spawn_stack_items (process_on_death, im);
+        spawn_stack_items (im, &failures);
     }
 
     sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
-}
 
-void icemake_loop_processes_nokill (struct icemake *im)
-{
-    count_print_items();
-
-    spawn_stack_items (process_on_death_nokill, im);
-
-    while (alive_processes > 0)
-    {
-        multiplex();
-        spawn_stack_items (process_on_death_nokill, im);
-    }
-
-    sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
+    return failures;
 }
 
 static void read_metadata ( struct icemake *im )
@@ -2087,7 +2077,8 @@ int icemake_prepare
      int (*with_data)(struct icemake *, void *), void *aux)
 {
     struct icemake iml =
-        { on_error, on_warning, sx_end_of_list, stdio, TREE_INITIALISER, td };
+        { on_error, on_warning, sx_end_of_list, stdio, TREE_INITIALISER, td,
+          0, sx_end_of_list };
     sexpr icemake_sx_path = make_string (path);
     struct sexpr_io *io;
     sexpr r;
@@ -2149,6 +2140,8 @@ static void collect_targets (struct tree_node *n, void *aux)
 int icemake
     (struct icemake *im)
 {
+    int failures = 0;
+
     read_metadata  (im);
     merge_contexts (im);
 
@@ -2159,22 +2152,22 @@ int icemake
 
     sx_write (stdio, cons (sym_targets, im->buildtargets));
 
-    icemake_build (im);
-    icemake_link  (im);
+    failures += icemake_build (im);
+    failures += icemake_link  (im);
 
     if (truep (do_build_documentation))
     {
-        icemake_build_documentation (im);
+        failures += icemake_build_documentation (im);
     }
 
     if (truep (do_tests))
     {
-        icemake_run_tests (im);
+        failures += icemake_run_tests (im);
     }
 
     if (truep (do_install))
     {
-        icemake_install (im);
+        failures += icemake_install (im);
     }
 
     if (!eolp (im->buildtargets))

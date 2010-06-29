@@ -51,9 +51,6 @@
 /*! \brief Length of any uname Fields */
 #define UNAMELENGTH 128
 
-/*! \brief Number of Files to install in parallel */
-#define MAX_FILES_IN_PARALLEL 10
-
 /*! \brief Toolchain Codes */
 enum toolchain
 {
@@ -186,6 +183,11 @@ struct icemake
     struct tree targets;
 
     struct toolchain_descriptor *toolchain;
+
+    int alive_processes;
+
+    /*! \brief List: Queued tasks */
+    sexpr workstack;
 };
 
 #define ICEMAKE_PROGRAMME         (1 << 0x0)
@@ -312,9 +314,6 @@ extern sexpr i_dynamic_libraries;
 
 /*! \brief Boolean: A freestanding Version of Curie is available */
 extern sexpr co_freestanding;
-
-/*! \brief List: Programmes to execute */
-extern sexpr workstack;
 
 /*! \brief Destination Directory
  *
@@ -808,51 +807,44 @@ sexpr prepend_flags_from_environment (sexpr x, const char *var);
 sexpr sx_string_dir_prefix_c (const char *f, sexpr p);
 
 /*! \brief Build Targets
- *  \param[in] targets The targets to build.
+ *  \param[in] icemake Icemake handle.
  */
-void icemake_build (struct icemake *);
+int icemake_build (struct icemake *icemake);
 
 /*! \brief Install Targets
- *  \param[in] targets The targets to install.
+ *  \param[in] icemake Icemake handle.
  */
-void icemake_install (struct icemake *);
+int icemake_install (struct icemake *);
 
 /*! \brief Run Test Cases
- *  \param[in] targets The targets to run test cases for.
+ *  \param[in] icemake Icemake handle.
  */
-void icemake_run_tests (struct icemake *);
+int icemake_run_tests (struct icemake *);
 
 /*! \brief Link Targets
- *  \param[in] targets The targets to link.
+ *  \param[in] icemake Icemake handle.
  */
-void icemake_link (struct icemake *);
+int icemake_link (struct icemake *);
 
 /*! \brief Build Documentation
- *  \param[in] targets The targets to build documentation for.
+ *  \param[in] icemake Icemake handle.
  */
-void icemake_build_documentation (struct icemake *);
+int icemake_build_documentation (struct icemake *);
 
 /*! \brief Loop over all Processes
+ *  \param[in] icemake Icemake handle.
  *
  *  This will go through the workstack and process all of the items. If any of
  *  the programmes fail, icemake terminates.
  */
-void icemake_loop_processes ( struct icemake *im );
-
-/*! \brief Loop over all Processes
- *
- *  This will go through the workstack and process all of the items. Icemake
- *  won't die if any of the executed programmes die, instead this will count
- *  how many have failed and finally return that. This is used for test cases.
- */
-void icemake_loop_processes_nokill ( struct icemake *im );
+int icemake_loop_processes ( struct icemake *im );
 
 /*! \brief Count Workstack Items
  *
  *  This function will count the number of workstack items and print them to
  *  stdio as "(items-total X)", if there's more than one item.
  */
-void count_print_items ( void );
+int icemake_count_print_items ( struct icemake *im );
 
 /*! \brief Path Name Mangling (Borland)
  *  \return b;
@@ -893,6 +885,9 @@ int icemake_prepare
 
 int icemake
     (struct icemake *im);
+
+int icemake_install_file
+    (struct icemake *im, sexpr spec);
 
 #endif
 

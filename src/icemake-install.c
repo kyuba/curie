@@ -28,167 +28,139 @@
 
 #include <icemake/icemake.h>
 
+#include <curie/memory.h>
 #include <curie/multiplex.h>
 #include <curie/filesystem.h>
 
-static int files_open = 0;
-
-static void install_read (struct io *in, void *aux)
-{
-    struct io *out = (struct io *)aux;
-
-    if (((in->length) - (in->position)) > 0)
-    {
-        io_write (out,
-                  (in->buffer) + (in->position),
-                  (in->length) - (in->position));
-
-        in->position = in->length;
-    }
-}
-
 #if defined(_WIN32)
 /* windows comes with dedicated file copy functions, so let's use those... */
-static void loop_install()
+int icemake_install_file
+    (struct icemake *im, sexpr spec)
 {
-    int fo = 0;
-    sx_write (stdio, cons (sym_phase, cons (sym_install, sx_end_of_list)));
-    count_print_items();
+    sexpr source = car (spec);
+    sexpr target = cdr (spec);
+    int mode = 0444;
+    struct io *in, *out;
 
-    more_files:
-
-    while (consp (workstack))
+    if (integerp (source))
     {
-        sexpr spec = car (workstack);
-        sexpr source = car (spec);
-        sexpr target = cdr (spec);
-        int mode = 0444;
-        struct io *in, *out;
-
-        if (integerp (source))
-        {
-            mode   = sx_integer (source);
-            source = car (target);
-            target = cdr (target);
-        }
-
-        if (truep(equalp(source, sym_symlink))) /* no symlinks on windows */
-        {
-/*            source = car (target);
-            target = cdr (target);
-
-            sx_write (stdio, cons (sym_symlink,
-                      cons (source, cons (target, sx_end_of_list))));
-
-            symlink (sx_string(source), sx_string(target));*/
-        }
-        else if (truep (filep (source)))
-        {
-            sx_write (stdio, cons (sym_install, cons (make_integer (mode),
-                      cons (source, cons (target, sx_end_of_list)))));
-
-            mkdir_pi (target);
-            CopyFile (sx_string (source), sx_string (target), FALSE);
-        }
-
-        workstack = cdr(workstack);
+        mode   = sx_integer (source);
+        source = car (target);
+        target = cdr (target);
     }
 
-    sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
+    if (truep(equalp(source, sym_symlink))) /* no symlinks on windows */
+    {
+/*        source = car (target);
+        target = cdr (target);
+
+        sx_write (stdio, cons (sym_symlink,
+                  cons (source, cons (target, sx_end_of_list))));
+
+        symlink (sx_string(source), sx_string(target));*/
+    }
+    else if (truep (filep (source)))
+    {
+        sx_write (stdio, cons (sym_install, cons (make_integer (mode),
+                  cons (source, cons (target, sx_end_of_list)))));
+
+        mkdir_pi (target);
+        CopyFile (sx_string (source), sx_string (target), FALSE);
+    }
+
+    return 0;
 }
 
 #else
-static void install_close (struct io *in, void *aux)
+
+struct file_metadata
 {
-    struct io *out = (struct io *)aux;
+    struct io      *out;
+    struct icemake *icemake;
+};
+
+static void install_read (struct io *in, void *aux)
+{
+    struct file_metadata *meta = (struct file_metadata *)aux;
 
     if (((in->length) - (in->position)) > 0)
     {
-        io_write (out,
+        io_write (meta->out,
+                  (in->buffer) + (in->position),
+                  (in->length) - (in->position));
+
+        in->position = in->length;
+    }
+}
+
+static void install_close (struct io *in, void *aux)
+{
+    struct file_metadata *meta = (struct file_metadata *)aux;
+
+    if (((in->length) - (in->position)) > 0)
+    {
+        io_write (meta->out,
                   (in->buffer) + (in->position),
                   (in->length) - (in->position));
 
         in->position = in->length;
     }
 
-    files_open--;
+    (meta->icemake->alive_processes)--;
+
+    free_pool_mem (aux);
 }
 
-static void loop_install()
+int icemake_install_file
+    (struct icemake *im, sexpr spec)
 {
-    sx_write (stdio, cons (sym_phase, cons (sym_install, sx_end_of_list)));
-    int fo = 0;
-    count_print_items();
+    sexpr source = car (spec);
+    sexpr target = cdr (spec);
+    int mode = 0444;
+    struct io *in, *out;
+    static struct memory_pool pool =
+        MEMORY_POOL_INITIALISER (sizeof (struct file_metadata));
+    struct file_metadata *meta;
 
-    more_files:
-
-    while (consp (workstack))
+    if (integerp (source))
     {
-        sexpr spec = car (workstack);
-        sexpr source = car (spec);
-        sexpr target = cdr (spec);
-        int mode = 0444;
-        struct io *in, *out;
-
-        if (integerp (source))
-        {
-            mode   = sx_integer (source);
-            source = car (target);
-            target = cdr (target);
-        }
-
-        if (truep(equalp(source, sym_symlink)))
-        {
-            source = car (target);
-            target = cdr (target);
-
-            sx_write (stdio, cons (sym_symlink,
-                      cons (source, cons (target, sx_end_of_list))));
-
-            symlink (sx_string(source), sx_string(target));
-        }
-        else if (truep (filep (source)))
-        {
-            sx_write (stdio, cons (sym_install, cons (make_integer (mode),
-                      cons (source, cons (target, sx_end_of_list)))));
-
-            mkdir_pi (target);
-
-            files_open++;
-
-            in  = io_open_read   (sx_string (source));
-            out = io_open_create (sx_string (target), mode);
-
-            multiplex_add_io (in, install_read, install_close, (void *)out);
-            multiplex_add_io_no_callback (out);
-        }
-
-        workstack = cdr(workstack);
-        
-        if (files_open >= MAX_FILES_IN_PARALLEL)
-        {
-            break;
-        }
+        mode   = sx_integer (source);
+        source = car (target);
+        target = cdr (target);
     }
 
-    while (files_open > 0)
+    if (truep(equalp(source, sym_symlink)))
     {
-        if (fo != files_open)
-        {
-            fo = files_open;
-            sx_write (stdio, cons (sym_items_remaining,
-                      cons (make_integer (files_open), sx_end_of_list)));
-        }
-        
-        if ((files_open < MAX_FILES_IN_PARALLEL) && consp (workstack))
-        {
-            goto more_files;
-        }
+        source = car (target);
+        target = cdr (target);
 
-        multiplex();
+        sx_write (stdio, cons (sym_symlink,
+                  cons (source, cons (target, sx_end_of_list))));
+
+        symlink (sx_string(source), sx_string(target));
+    }
+    else if (truep (filep (source)))
+    {
+        sx_write (stdio, cons (sym_install, cons (make_integer (mode),
+                  cons (source, cons (target, sx_end_of_list)))));
+
+        mkdir_pi (target);
+
+        meta = (struct file_metadata *)get_pool_mem (&pool);
+
+        in  = io_open_read   (sx_string (source));
+        out = io_open_create (sx_string (target), mode);
+
+        meta->out     = out;
+        meta->icemake = im;
+
+        (im->alive_processes)++;
+
+        multiplex_add_io (in, install_read, install_close, (void *)meta);
+        multiplex_add_io_no_callback (out);
     }
 
-    sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
+    return 0;
 }
 #endif
 
@@ -318,29 +290,28 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
 
         if (truep(filep(fname)))
         {
-            workstack
-                    = cons (cons (make_integer(0555),
-                                  cons (fname, get_so_library_install_path(t))),
-                            workstack);
+            t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                        cons (sym_install,
+                            cons (make_integer(0555),
+                                cons (fname, get_so_library_install_path(t)))));
 
             switch (i_os)
             {
                 case os_windows:
-                    workstack
-                            = cons (cons (get_build_file
-                                            (t, sx_join (str_lib, name,
-                                                         str_dot_dll)),
-                                          get_so_library_symlink_path (t)),
-                                    workstack);
+                    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                                cons (sym_install,
+                                  cons (get_build_file
+                                    (t, sx_join (str_lib, name,
+                                                 str_dot_dll)),
+                                  get_so_library_symlink_path (t))));
                     break;
                 default:
-                    workstack
-                        = cons (cons (sym_symlink,
+                    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                                cons (sym_symlink,
                                       cons (sx_join (str_lib, name,
                                             sx_join (str_dot_so_dot,
                                                      t->dversion, sx_nil)),
-                                            get_so_library_symlink_path (t))),
-                                workstack);
+                                            get_so_library_symlink_path (t))));
             }
         }
     }
@@ -348,42 +319,44 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
 
 static void install_library_gcc (sexpr name, struct target *t)
 {
-    workstack
-        = cons (cons (get_build_file (t, sx_join (str_lib, name, str_dot_a)),
-                      get_library_install_path (t)),
-                workstack);
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                cons (sym_install,
+                   cons (get_build_file (t, sx_join (str_lib, name, str_dot_a)),
+                      get_library_install_path (t))));
 
     install_library_dynamic_common (name, t);
 }
 
 static void install_library_borland (sexpr name, struct target *t)
 {
-    workstack
-        = cons (cons (get_build_file (t, sx_join (str_lib, name, str_dot_lib)),
-                      get_library_install_path (t)),
-                workstack);
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                cons (sym_install,
+                   cons (get_build_file (t, sx_join (str_lib, name,
+                                                     str_dot_lib)),
+                      get_library_install_path (t))));
 
     install_library_dynamic_common (name, t);
 }
 
 static void install_library_msvc (sexpr name, struct target *t)
 {
-    workstack
-        = cons (cons (get_build_file (t, sx_join (str_lib, name, str_dot_lib)),
-                      get_library_install_path (t)),
-                workstack);
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                cons (sym_install,
+                   cons (get_build_file (t, sx_join (str_lib, name,
+                                                     str_dot_lib)),
+                      get_library_install_path (t))));
 
     install_library_dynamic_common (name, t);
 }
 
 static void install_programme_common (sexpr name, struct target *t)
 {
-    workstack = cons
-        (cons (make_integer (0555),
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+         cons (sym_install, cons (make_integer (0555),
                cons (get_build_file (t, sx_join (name, (i_os == os_windows 
                                                          ? str_dot_exe
                                                          : sx_nil), sx_nil)),
-                     get_programme_install_path(t))), workstack);
+                     get_programme_install_path(t)))));
 }
 
 static void install_programme_gcc (sexpr name, struct target *t)
@@ -411,8 +384,8 @@ static void install_headers_common (sexpr name, struct target *t)
         sexpr c3 = car(c2);
         sexpr c4 = car(cdr(c2));
 
-        workstack = cons (cons (c4, get_header_install_path (t, c3)),
-                          workstack);
+        t->icemake->workstack = sx_set_add (t->icemake->workstack,
+             cons (sym_install, cons (c4, get_header_install_path (t, c3))));
 
         c = cdr (c);
     }
@@ -439,10 +412,11 @@ static void install_support_files (sexpr name, struct target *t)
 
     if (truep(equalp(name, str_curie)))
     {
-        workstack = cons (cons (get_build_file (t, str_libcuriedsx),
+        t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                           cons (sym_install,
+                             cons (get_build_file (t, str_libcuriedsx),
                                 get_install_file (t, sx_join (i_destlibdir,
-                                                  str_slibcuriedsx, sx_nil))),
-                          workstack);
+                                                  str_slibcuriedsx, sx_nil)))));
     }
 
     while (consp (cur))
@@ -456,9 +430,9 @@ static void install_support_files (sexpr name, struct target *t)
         {
             sexpr s = car (ccur);
 
-            workstack =
-                cons (cons (cdr (s),
-                      get_data_install_path (t, dname, car (s))), workstack);
+            t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                      cons (sym_install, cons (cdr (s),
+                      get_data_install_path (t, dname, car (s)))));
 
             ccur = cdr (ccur);
         }
@@ -500,21 +474,20 @@ static void install_documentation_with_suffix
 
     if (truep(filep(fn)))
     {
-        workstack
-                = cons (cons (fn,
+        t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                        cons (sym_install, cons (fn,
                               get_documentation_install_path
-                                (t, name, c4, t->dversion, suffix)),
-                        workstack);
+                                (t, name, c4, t->dversion, suffix))));
     }
 }
 
 static void install_documentation_man
     (sexpr name, struct target *t, sexpr file, sexpr abbr, sexpr section)
 {
-    workstack = cons (cons (file,
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                      cons (sym_install, cons (file,
                             get_documentation_man_install_path
-                                (t, abbr, section)),
-                      workstack);
+                                (t, abbr, section))));
 }
 
 static void install_documentation (sexpr name, struct target *t)
@@ -577,14 +550,16 @@ static void do_install_target(struct target *t)
     install_documentation (t->name, t);
 }
 
-void icemake_install (struct icemake *im)
+int icemake_install (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
 
     if (falsep(i_destdir))
     {
-        return;
+        return 0;
     }
+    
+    sx_write (stdio, cons (sym_phase, cons (sym_install, sx_end_of_list)));
 
     while (consp(cursor))
     {
@@ -601,5 +576,5 @@ void icemake_install (struct icemake *im)
         cursor = cdr(cursor);
     }
 
-    loop_install();
+    return icemake_loop_processes (im);
 }

@@ -38,7 +38,7 @@ static void run_tests_library_common (sexpr name, struct target *t)
     {
         sexpr r = cdr(cdr(cdr(car(s))));
 
-        workstack = cons (r, workstack);
+        t->icemake->workstack = sx_set_add (t->icemake->workstack, r);
 
         s = cdr (s);
     }
@@ -98,8 +98,8 @@ static void diff_test_reference_library_common (sexpr name, struct target *t)
             sexpr r = car (cur);
             sexpr o = car (r), g = cdr (r);
 
-            workstack = cons (cons (p_diff, cons (o, cons (g, sx_end_of_list))),
-                              workstack);
+            t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                              cons (p_diff, cons (o, cons (g, sx_end_of_list))));
 
             cur = cdr (cur);
         }
@@ -143,7 +143,7 @@ static void do_run_tests_target(struct target *t)
     }
 }
 
-void icemake_run_tests (struct icemake *im)
+int icemake_run_tests (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
     sx_write (stdio, cons (sym_phase, cons (sym_run_tests, sx_end_of_list)));
@@ -163,5 +163,5 @@ void icemake_run_tests (struct icemake *im)
         cursor = cdr(cursor);
     }
 
-    icemake_loop_processes_nokill (im);
+    return icemake_loop_processes (im);
 }
