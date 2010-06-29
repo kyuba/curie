@@ -39,6 +39,7 @@
 
 #define _BSD_SOURCE
 
+#include <sievert/tree.h>
 #include <sievert/sexpr.h>
 #include <icemake/icemake-system.h>
 
@@ -123,6 +124,13 @@ enum icemake_error
     ie_programme_failed
 };
 
+struct toolchain_descriptor
+{
+    enum toolchain        toolchain;
+    enum operating_system operating_system;
+    enum instruction_set  instruction_set;
+};
+
 struct icemake
 {
     void (*on_error)   (enum icemake_error error, const char *text);
@@ -131,15 +139,14 @@ struct icemake
     sexpr buildtargets;
 
     struct sexpr_io *stdio;
-};
 
-struct toolchain_descriptor
-{
-    enum toolchain        toolchain;
-    enum operating_system operating_system;
-    enum instruction_set  instruction_set;
+    /*! \brief Build Targets
+     *
+     *  Derived from icemake.sx and command-line arguments.
+     */
+    struct tree targets;
 
-    struct icemake *global;
+    struct toolchain_descriptor *toolchain;
 };
 
 #define ICEMAKE_PROGRAMME         (1 << 0x0)
@@ -158,7 +165,7 @@ struct toolchain_descriptor
 struct target {
     /*!\brief Programme/Library Short Name */
     sexpr name;
-   /*!\brief The Libraries to link against */
+    /*!\brief The Libraries to link against */
     sexpr libraries;
     /*!\brief The Libraries to link against */
     sexpr deffile;
@@ -191,7 +198,7 @@ struct target {
     /*!\brief Base Path for Build Data */
     sexpr buildbase;
     /*!\brief Toolchain Descriptor */
-    struct toolchain_descriptor *td;
+    struct icemake *icemake;
 };
 
 /*! \brief Effective Operating System Name
@@ -236,12 +243,6 @@ extern enum operating_system i_os;
  *  Derived from uname_arch.
  */
 extern enum instruction_set i_is;
-
-/*! \brief Build Targets
- *
- *  Derived from icemake.sx and command-line arguments.
- */
-extern struct tree targets;
 
 /*! \brief Effective Architecture Descriptor
  *
@@ -797,7 +798,7 @@ void icemake_build_documentation (struct icemake *);
  *  This will go through the workstack and process all of the items. If any of
  *  the programmes fail, icemake terminates.
  */
-void loop_processes ( void );
+void icemake_loop_processes ( struct icemake *im );
 
 /*! \brief Loop over all Processes
  *
@@ -805,7 +806,7 @@ void loop_processes ( void );
  *  won't die if any of the executed programmes die, instead this will count
  *  how many have failed and finally return that. This is used for test cases.
  */
-void loop_processes_nokill ( void );
+void icemake_loop_processes_nokill ( struct icemake *im );
 
 /*! \brief Count Workstack Items
  *

@@ -29,8 +29,6 @@
 #include <curie/filesystem.h>
 #include <icemake/icemake.h>
 
-#include <sievert/tree.h>
-
 static sexpr f_exist_add (sexpr f, sexpr lis)
 {
     return truep (filep (f)) ? cons (f, lis) : lis;
@@ -683,16 +681,6 @@ static void do_build_target (struct target *t)
     }
 }
 
-static void build_target (const char *target)
-{
-    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
-
-    if (node != (struct tree_node *)0)
-    {
-        do_build_target (node_get_value(node));
-    }
-}
-
 void icemake_build (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
@@ -703,10 +691,16 @@ void icemake_build (struct icemake *im)
     {
         sexpr sxcar = car(cursor);
         const char *target = sx_string (sxcar);
+        struct tree_node *node =
+            tree_get_node_string (&(im->targets), (char *)target);
 
-        build_target (target);
+        if (node != (struct tree_node *)0)
+        {
+            do_build_target (node_get_value(node));
+        }
+
         cursor = cdr(cursor);
     }
 
-    loop_processes();
+    icemake_loop_processes (im);
 }

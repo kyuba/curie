@@ -42,7 +42,6 @@
 #include <curie/stack.h>
 
 #include <sievert/shell.h>
-#include <sievert/tree.h>
 
 #include <ctype.h>
 
@@ -83,8 +82,6 @@ sexpr workstack                        = sx_end_of_list;
 sexpr do_tests                         = sx_false;
 sexpr do_install                       = sx_false;
 sexpr do_build_documentation           = sx_false;
-
-struct tree targets                    = TREE_INITIALISER;
 
 sexpr p_c_compiler                     = sx_false;
 sexpr p_cpp_compiler                   = sx_false;
@@ -885,9 +882,10 @@ static sexpr find_data (struct target *context, sexpr file)
     return r;
 }
 
-static struct target *get_context()
+static struct target *get_context (struct icemake *im)
 {
-    static struct memory_pool pool = MEMORY_POOL_INITIALISER (sizeof(struct target));
+    static struct memory_pool pool
+        = MEMORY_POOL_INITIALISER (sizeof(struct target));
     struct target *context = get_pool_mem (&pool);
 
     context->libraries        = sx_end_of_list;
@@ -905,6 +903,7 @@ static struct target *get_context()
     context->documentation    = sx_end_of_list;
     context->buildnumber      = make_integer (0);
     context->options          = 0;
+    context->icemake          = im;
 
     if (i_os == os_windows)
     {
@@ -1160,9 +1159,9 @@ static void process_definition (struct target *context, sexpr definition)
     }
 }
 
-static struct target *create_library (sexpr definition)
+static struct target *create_library (struct icemake *im, sexpr definition)
 {
-    struct target *context = get_context();
+    struct target *context = get_context(im);
 
     context->name = car(definition);
 
@@ -1179,9 +1178,9 @@ static struct target *create_library (sexpr definition)
     return context;
 }
 
-static struct target *create_programme (sexpr definition)
+static struct target *create_programme (struct icemake *im, sexpr definition)
 {
-    struct target *context = get_context();
+    struct target *context = get_context(im);
 
     context->name = car(definition);
 
@@ -1192,9 +1191,9 @@ static struct target *create_programme (sexpr definition)
     return context;
 }
 
-static struct target *create_documentation (sexpr definition)
+static struct target *create_documentation (struct icemake *im,sexpr definition)
 {
-    struct target *context = get_context();
+    struct target *context = get_context(im);
 
     context->name = car(definition);
 
@@ -1241,6 +1240,7 @@ static void target_map_merge (struct tree_node *node, void *u)
     struct target *context = (struct target *)node_get_value(node), *tcontext;
     sexpr cur, ca, nc, ttype;
     const char *target;
+    struct icemake *im = (struct icemake *)u;
 
     if (context->options & ICEMAKE_PROGRAMME)
         /* dont merge objects for libraries */
@@ -1250,7 +1250,7 @@ static void target_map_merge (struct tree_node *node, void *u)
             ca = car (cur);
             target = sx_string (ca);
 
-            if ((node = tree_get_node_string(&targets, (char *)target))
+            if ((node = tree_get_node_string(&(im->targets), (char *)target))
                 != (struct tree_node *)0)
             {
                 tcontext = (struct target *)node_get_value (node);
@@ -1298,10 +1298,10 @@ static void target_map_combine (struct tree_node *node, void *u)
     }
 }
 
-static void merge_contexts ( void )
+static void merge_contexts ( struct icemake *im )
 {
-    tree_map (&targets, target_map_merge, (void *)0);
-    tree_map (&targets, target_map_combine, (void *)0);
+    tree_map (&(im->targets), target_map_merge,   (void *)im);
+    tree_map (&(im->targets), target_map_combine, (void *)im);
 }
 
 static void print_help ()
@@ -1533,9 +1533,11 @@ static void initialise_toolchain_doxygen()
     }
 }
 
-static void spawn_stack_items(void (*)(struct exec_context *, void *));
+static void spawn_stack_items
+    (void (*)(struct exec_context *, void *), struct icemake *im);
 
-static void process_on_death(struct exec_context *context, void *p)
+static void process_on_death
+    (struct exec_context *context, void *p)
 {
     if (context->status == ps_terminated)
     {
@@ -1609,7 +1611,8 @@ static void map_environ (struct tree_node *node, void *psx)
     }
 }
 
-static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
+static void spawn_item
+    (sexpr sx, void (*f)(struct exec_context *, void *), struct icemake *im)
 {
     sexpr cur = sx, cf = car (sx);
     struct exec_context *context;
@@ -1619,7 +1622,7 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
     char **ex;
     sexpr rsx = sx_false;
 
-    tree_map (&targets, map_environ, (void *)&rsx);
+    tree_map (&(im->targets), map_environ, (void *)&rsx);
 
     sx_write (stdio, cons (sym_execute, sx));
 
@@ -1695,13 +1698,14 @@ static void spawn_item (sexpr sx, void (*f)(struct exec_context *, void *))
     }
 }
 
-static void spawn_stack_items (void (*f)(struct exec_context *, void *))
+static void spawn_stack_items
+    (void (*f)(struct exec_context *, void *), struct icemake *im)
 {
     while (consp (workstack) && (alive_processes < max_processes))
     {
         sexpr wcdr = cdr (workstack);
 
-        spawn_item (car (workstack), f);
+        spawn_item (car (workstack), f, im);
 
         workstack = wcdr;
     }
@@ -1827,37 +1831,37 @@ void count_print_items()
     }
 }
 
-void loop_processes()
+void icemake_loop_processes (struct icemake *im)
 {
     count_print_items();
 
-    spawn_stack_items (process_on_death);
+    spawn_stack_items (process_on_death, im);
 
     while (alive_processes > 0)
     {
         multiplex();
-        spawn_stack_items (process_on_death);
+        spawn_stack_items (process_on_death, im);
     }
 
     sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
 }
 
-void loop_processes_nokill()
+void icemake_loop_processes_nokill (struct icemake *im)
 {
     count_print_items();
 
-    spawn_stack_items (process_on_death_nokill);
+    spawn_stack_items (process_on_death_nokill, im);
 
     while (alive_processes > 0)
     {
         multiplex();
-        spawn_stack_items (process_on_death_nokill);
+        spawn_stack_items (process_on_death_nokill, im);
     }
 
     sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
 }
 
-static void read_metadata ( void )
+static void read_metadata ( struct icemake *im )
 {
     struct sexpr_io *io = sx_open_i (io_open_read("metadata.sx"));
     sexpr r;
@@ -1871,7 +1875,7 @@ static void read_metadata ( void )
         if (consp(r)) {
             sexpr sxcar = car (r);
             struct tree_node *node =
-                tree_get_node_string(&targets, (char *)sx_string(sxcar));
+                tree_get_node_string(&(im->targets), (char *)sx_string(sxcar));
 
             if (node != (struct tree_node *)0)
             {
@@ -1893,11 +1897,11 @@ static void target_map_save_metadata (struct tree_node *node, void *i)
     sx_write (io, cons (t->name, cons (t->buildnumber, sx_end_of_list)));
 }
 
-static void save_metadata ( void )
+static void save_metadata ( struct icemake *im )
 {
     struct sexpr_io *io = sx_open_o (io_open_write("metadata.sx"));
 
-    tree_map (&targets, target_map_save_metadata, (void *)io);
+    tree_map (&(im->targets), target_map_save_metadata, (void *)io);
 
     sx_close_io (io);
 }
@@ -2082,7 +2086,8 @@ int icemake_prepare
     (struct icemake *im, const char *path, struct toolchain_descriptor *td,
      int (*with_data)(struct icemake *, void *), void *aux)
 {
-    struct icemake iml = { on_error, on_warning, sx_end_of_list, stdio };
+    struct icemake iml =
+        { on_error, on_warning, sx_end_of_list, stdio, TREE_INITIALISER, td };
     sexpr icemake_sx_path = make_string (path);
     struct sexpr_io *io;
     sexpr r;
@@ -2109,27 +2114,27 @@ int icemake_prepare
 
             if (truep(equalp(sxcar, sym_library)))
             {
-                t = create_library (cdr (r));
+                t = create_library (im, cdr (r));
             }
             else if (truep(equalp(sxcar, sym_programme)))
             {
-                t = create_programme (cdr (r));
+                t = create_programme (im, cdr (r));
             }
             else if (truep(equalp(sxcar, sym_documentation)))
             {
-                t = create_documentation (cdr (r));
+                t = create_documentation (im, cdr (r));
             }
         }
 
         if (t != (struct target *)0)
         {
-            tree_add_node_string_value (&targets, (char *)sx_string(t->name),t);
+            tree_add_node_string_value
+                (&(im->targets), (char *)sx_string(t->name), t);
         }
     }
 
     sx_close_io (io);
 
-    td->global = im;
     return with_data (im, aux);
 }
 
@@ -2144,18 +2149,18 @@ static void collect_targets (struct tree_node *n, void *aux)
 int icemake
     (struct icemake *im)
 {
-    read_metadata ();
-    merge_contexts ();
+    read_metadata  (im);
+    merge_contexts (im);
 
     if (!consp(im->buildtargets))
     {
-        tree_map (&targets, collect_targets, &(im->buildtargets));
+        tree_map (&(im->targets), collect_targets, &(im->buildtargets));
     }
 
     sx_write (stdio, cons (sym_targets, im->buildtargets));
 
     icemake_build (im);
-    icemake_link (im);
+    icemake_link  (im);
 
     if (truep (do_build_documentation))
     {
@@ -2178,7 +2183,7 @@ int icemake
             (stdio, cons (sym_completed, cons (sym_targets, im->buildtargets)));
     }
 
-    save_metadata ();
+    save_metadata (im);
 
     return failures;
 }

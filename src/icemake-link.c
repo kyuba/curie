@@ -28,7 +28,6 @@
 
 #include <icemake/icemake.h>
 
-#include <sievert/tree.h>
 #include <curie/multiplex.h>
 
 static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
@@ -107,7 +106,7 @@ static void map_includes (struct tree_node *node, void *psx)
                          get_build_file (t, sx_nil), sx_nil), *sx);
 }
 
-static sexpr get_special_linker_options (sexpr sx)
+static sexpr get_special_linker_options (struct icemake *im, sexpr sx)
 {
     define_string (str_multiply_defined, "-multiply_defined");
     define_string (str_warning,          "warning");
@@ -181,7 +180,7 @@ static sexpr get_special_linker_options (sexpr sx)
         }
     }
 
-    tree_map (&targets, map_includes, (void *)&sx);
+    tree_map (&(im->targets), map_includes, (void *)&sx);
 
     if (i_os == os_darwin)
     {
@@ -288,7 +287,7 @@ static void link_programme_gcc_filename
     }
 
     sx = (get_libc_linker_options_gcc (t,
-              get_special_linker_options (
+              get_special_linker_options (t->icemake,
                   cons (str_do,
                       cons (ofile,
                             collect_code (sx, code))))));
@@ -304,7 +303,7 @@ static void link_programme_borland_filename
     sx = collect_library_link_flags (sx, t);
 
     sx = cons (str_dq,
-               get_special_linker_options (
+               get_special_linker_options (t->icemake,
                     cons (str_do,
                         cons (ofile,
                               collect_code (sx, code)))));
@@ -316,7 +315,7 @@ static void link_programme_msvc_filename
     (sexpr ofile, sexpr name, sexpr code, struct target *t)
 {
     int i;
-    sexpr sx = get_special_linker_options (sx_end_of_list);
+    sexpr sx = get_special_linker_options (t->icemake, sx_end_of_list);
 
     for (i = 0; (i < 6) && (uname_arch[i] == "x86-64"[i]); i++);
 
@@ -367,7 +366,9 @@ static void link_test_cases
             sexpr s2 = cdr(cdr(s1));
             sexpr s3 = car(s2);
             sexpr s4 = car(cdr(s2));
-            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3, sx_end_of_list))), sx_end_of_list);
+            sexpr s5 = cons(cons (car (s1),
+                            cons (s3, cons(s3, sx_end_of_list))),
+                                 sx_end_of_list);
 
             f (s4, name, s5, t);
 
@@ -414,11 +415,13 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
             cur = cdr (cur);
         }
-        sx = get_special_linker_options (cons (str_dstart_group, sx));
+        sx = get_special_linker_options
+            (t->icemake, cons (str_dstart_group, sx));
     }
     else
     {
-        sx = get_special_linker_options (sx);
+        sx = get_special_linker_options
+            (t->icemake, sx);
     }
 
     switch (i_os)
@@ -519,7 +522,7 @@ static void link_library_borland_dynamic
         cur = cdr (cur);
     }
 
-    sx = get_special_linker_options (sx);
+    sx = get_special_linker_options (t->icemake, sx);
 
     b = get_build_file (t, sx_join (str_lib, name,
                              sx_join (str_dot, t->dversion, str_dot_dll)));
@@ -530,7 +533,7 @@ static void link_library_borland_dynamic
     workstack
             = cons (cons (p_linker,
                           cons (str_dq, cons (str_dWD,
-                                get_special_linker_options (
+                                get_special_linker_options (t->icemake,
                                     cons (str_do, cons (b, sx)))))),
                     workstack);
 
@@ -539,7 +542,7 @@ static void link_library_borland_dynamic
     workstack
             = cons (cons (p_linker,
                           cons (str_dq, cons (str_dWD,
-                                get_special_linker_options (
+                                get_special_linker_options (t->icemake,
                                     cons (str_do, cons (b, sx)))))),
                     workstack);
 }
@@ -561,7 +564,7 @@ static void link_library_msvc (sexpr name, sexpr code, struct target *t)
 
 static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
 {
-    sexpr sx = get_special_linker_options (sx_end_of_list), cur,
+    sexpr sx = get_special_linker_options (t->icemake, sx_end_of_list), cur,
           sxx = sx_end_of_list, b, bi;
 
     if (falsep (t->deffile))
@@ -698,16 +701,6 @@ static void do_link_target(struct target *t)
     }
 }
 
-static void link_target (const char *target)
-{
-    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
-
-    if (node != (struct tree_node *)0)
-    {
-        do_link_target (node_get_value(node));
-    }
-}
-
 void icemake_link (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
@@ -716,9 +709,17 @@ void icemake_link (struct icemake *im)
     while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
-        link_target (sx_string(sxcar));
+        const char *target = sx_string(sxcar);
+        struct tree_node *node =
+            tree_get_node_string (&(im->targets), (char *)target);
+
+        if (node != (struct tree_node *)0)
+        {
+            do_link_target (node_get_value(node));
+        }
+
         cursor = cdr(cursor);
     }
 
-    loop_processes();
+    icemake_loop_processes (im);
 }

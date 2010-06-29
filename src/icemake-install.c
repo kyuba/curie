@@ -28,7 +28,6 @@
 
 #include <icemake/icemake.h>
 
-#include <sievert/tree.h>
 #include <curie/multiplex.h>
 #include <curie/filesystem.h>
 
@@ -578,16 +577,6 @@ static void do_install_target(struct target *t)
     install_documentation (t->name, t);
 }
 
-static void install_target (const char *target)
-{
-    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
-
-    if (node != (struct tree_node *)0)
-    {
-        do_install_target (node_get_value(node));
-    }
-}
-
 void icemake_install (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
@@ -600,7 +589,15 @@ void icemake_install (struct icemake *im)
     while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
-        install_target (sx_string(sxcar));
+        const char *target = sx_string (sxcar);
+        struct tree_node *node =
+            tree_get_node_string (&(im->targets), (char *)target);
+
+        if (node != (struct tree_node *)0)
+        {
+            do_install_target (node_get_value(node));
+        }
+
         cursor = cdr(cursor);
     }
 

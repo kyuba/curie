@@ -28,7 +28,6 @@
 
 #include <icemake/icemake.h>
 
-#include <sievert/tree.h>
 #include <curie/filesystem.h>
 
 static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
@@ -101,30 +100,29 @@ static void do_build_documentation_target (struct target *t)
     }
 }
 
-static void build_documentation_target (const char *target)
-{
-    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
-
-    if (node != (struct tree_node *)0)
-    {
-        do_build_documentation_target (node_get_value(node));
-    }
-}
-
 void icemake_build_documentation (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
 
-    sx_write (stdio, cons (sym_phase, cons (sym_build_documentation, sx_end_of_list)));
+    sx_write (stdio, cons (sym_phase, cons (sym_build_documentation,
+                           sx_end_of_list)));
 
     while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
-        build_documentation_target (sx_string(sxcar));
+        const char *target = sx_string (sxcar);
+        struct tree_node *node =
+            tree_get_node_string (&(im->targets), (char *)target);
+
+        if (node != (struct tree_node *)0)
+        {
+            do_build_documentation_target (node_get_value(node));
+        }
+
         cursor = cdr(cursor);
     }
 
     build_documentation_doxygen ();
 
-    loop_processes();
+    icemake_loop_processes (im);
 }

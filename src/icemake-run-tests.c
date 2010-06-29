@@ -28,7 +28,6 @@
 
 #include <icemake/icemake.h>
 
-#include <sievert/tree.h>
 #include <curie/multiplex.h>
 
 static void run_tests_library_common (sexpr name, struct target *t)
@@ -144,16 +143,6 @@ static void do_run_tests_target(struct target *t)
     }
 }
 
-static void run_tests_target (const char *target)
-{
-    struct tree_node *node = tree_get_node_string(&targets, (char *)target);
-
-    if (node != (struct tree_node *)0)
-    {
-        do_run_tests_target (node_get_value(node));
-    }
-}
-
 void icemake_run_tests (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
@@ -162,9 +151,17 @@ void icemake_run_tests (struct icemake *im)
     while (consp(cursor))
     {
         sexpr sxcar = car(cursor);
-        run_tests_target (sx_string(sxcar));
+        const char *target = sx_string (sxcar);
+        struct tree_node *node =
+            tree_get_node_string (&(im->targets), (char *)target);
+
+        if (node != (struct tree_node *)0)
+        {
+            do_run_tests_target (node_get_value(node));
+        }
+
         cursor = cdr(cursor);
     }
 
-    loop_processes_nokill();
+    icemake_loop_processes_nokill (im);
 }
