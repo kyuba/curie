@@ -124,11 +124,50 @@ enum icemake_error
     ie_programme_failed
 };
 
+enum icemake_invocation
+{
+    ii_build,
+    ii_link,
+    ii_install,
+    ii_test,
+    ii_documentation
+};
+
+struct target;
+
+struct toolchain_gcc
+{
+    sexpr gcc;
+};
+
+struct toolchain_borland
+{
+    sexpr bcc32;
+};
+
+struct toolchain_msvc
+{
+    sexpr cl;
+};
+
 struct toolchain_descriptor
 {
     enum toolchain        toolchain;
     enum operating_system operating_system;
     enum instruction_set  instruction_set;
+
+    int (*build)         (struct target *);
+    int (*link)          (struct target *);
+    int (*install)       (struct target *);
+    int (*test)          (struct target *);
+    int (*documentation) (struct target *);
+
+    union
+    {
+        struct toolchain_gcc     gcc;
+        struct toolchain_borland borland;
+        struct toolchain_msvc    msvc;
+    } programmes;
 };
 
 struct icemake
