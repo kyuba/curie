@@ -28,7 +28,7 @@
 
 #include <icemake/icemake.h>
 
-void build_documentation (sexpr a) {}
-void run_tests (sexpr a) {}
+void icemake_build_documentation (struct icemake *im) {}
+void icemake_run_tests (struct icemake *im) {}
 void gc_call (sexpr sx) {}
 void initialise_stack () {}

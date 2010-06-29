@@ -2154,22 +2154,22 @@ int icemake
 
     sx_write (stdio, cons (sym_targets, im->buildtargets));
 
-    build (im->buildtargets);
-    ice_link (im->buildtargets);
+    icemake_build (im);
+    icemake_link (im);
 
     if (truep (do_build_documentation))
     {
-        build_documentation (im->buildtargets);
+        icemake_build_documentation (im);
     }
 
     if (truep (do_tests))
     {
-        run_tests (im->buildtargets);
+        icemake_run_tests (im);
     }
 
     if (truep (do_install))
     {
-        install (im->buildtargets);
+        icemake_install (im);
     }
 
     if (!eolp (im->buildtargets))

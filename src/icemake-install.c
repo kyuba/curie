@@ -588,9 +588,9 @@ static void install_target (const char *target)
     }
 }
 
-void install (sexpr buildtargets)
+void icemake_install (struct icemake *im)
 {
-    sexpr cursor = buildtargets;
+    sexpr cursor = im->buildtargets;
 
     if (falsep(i_destdir))
     {

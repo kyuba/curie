@@ -708,9 +708,9 @@ static void link_target (const char *target)
     }
 }
 
-void ice_link (sexpr buildtargets)
+void icemake_link (struct icemake *im)
 {
-    sexpr cursor = buildtargets;
+    sexpr cursor = im->buildtargets;
     sx_write (stdio, cons (sym_phase, cons (sym_link, sx_end_of_list)));
 
     while (consp(cursor))

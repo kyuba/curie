@@ -770,27 +770,27 @@ sexpr sx_string_dir_prefix_c (const char *f, sexpr p);
 /*! \brief Build Targets
  *  \param[in] targets The targets to build.
  */
-void build (sexpr targets);
+void icemake_build (struct icemake *);
 
 /*! \brief Install Targets
  *  \param[in] targets The targets to install.
  */
-void install (sexpr targets);
+void icemake_install (struct icemake *);
 
 /*! \brief Run Test Cases
  *  \param[in] targets The targets to run test cases for.
  */
-void run_tests (sexpr targets);
+void icemake_run_tests (struct icemake *);
 
 /*! \brief Link Targets
  *  \param[in] targets The targets to link.
  */
-void ice_link (sexpr targets);
+void icemake_link (struct icemake *);
 
 /*! \brief Build Documentation
  *  \param[in] targets The targets to build documentation for.
  */
-void build_documentation (sexpr targets);
+void icemake_build_documentation (struct icemake *);
 
 /*! \brief Loop over all Processes
  *

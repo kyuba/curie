@@ -693,9 +693,9 @@ static void build_target (const char *target)
     }
 }
 
-void build (sexpr buildtargets)
+void icemake_build (struct icemake *im)
 {
-    sexpr cursor = buildtargets;
+    sexpr cursor = im->buildtargets;
 
     sx_write (stdio, cons (sym_phase, cons (sym_build, sx_end_of_list)));
 
