@@ -141,32 +141,55 @@ enum icemake_invocation
     ii_documentation
 };
 
+enum visualiser
+{
+    vs_raw,
+    vs_ice
+};
+
 struct target;
 
 struct toolchain_gcc
 {
     sexpr gcc;
+    sexpr ld;
+    sexpr gpp;
+    sexpr as;
+    sexpr ar;
 };
 
 struct toolchain_borland
 {
     sexpr bcc32;
+    sexpr tlib;
 };
 
 struct toolchain_msvc
 {
     sexpr cl;
+    sexpr rc;
+    sexpr link;
+    sexpr lib;
 };
 
 struct toolchain_latex
 {
     sexpr latex;
+    sexpr pdflatex;
 };
 
 struct toolchain_doxygen
 {
     sexpr doxygen;
 };
+
+struct operating_system_generic
+{
+    sexpr diff;
+};
+
+#define IS_32_BIT 0x0001
+#define IS_64_BIT 0x0002
 
 struct toolchain_descriptor
 {
@@ -180,7 +203,45 @@ struct toolchain_descriptor
     int (*test)          (struct target *);
     int (*documentation) (struct target *);
 
-    void *aux;
+    union
+    {
+        struct toolchain_gcc     gcc;
+        struct toolchain_borland borland;
+        struct toolchain_msvc    msvc;
+        struct toolchain_latex   latex;
+        struct toolchain_doxygen doxygen;
+    } meta_toolchain;
+
+    union
+    {
+        struct operating_system_generic generic;
+    } meta_operating_system;
+
+    unsigned long instruction_set_options;
+    unsigned long instruction_set_level;
+};
+
+struct visualiser_raw
+{
+    struct sexpr_io *stdio;
+};
+
+struct visualiser_ice
+{
+    struct io *out;
+};
+
+struct visualiser_descriptor
+{
+    enum visualiser visualiser;
+
+    void (*on_command) (sexpr);
+
+    union
+    {
+        struct visualiser_raw raw;
+        struct visualiser_ice ice;
+    } meta;
 };
 
 struct icemake
@@ -896,6 +957,8 @@ int icemake_prepare_toolchain_borland (struct toolchain_descriptor *td);
 int icemake_prepare_toolchain_msvc    (struct toolchain_descriptor *td);
 int icemake_prepare_toolchain_latex   (struct toolchain_descriptor *td);
 int icemake_prepare_toolchain_doxygen (struct toolchain_descriptor *td);
+
+int icemake_prepare_operating_system_generic (struct toolchain_descriptor *td);
 
 int icemake_prepare_toolchain
     (const char *name,
