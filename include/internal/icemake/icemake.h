@@ -56,23 +56,34 @@ enum toolchain
 {
     tc_gcc,     /*!< GNU GCC */
     tc_borland, /*!< Borland C/C++ Compiler */
-    tc_msvc     /*!< Microsoft Visual C++ */
+    tc_msvc,    /*!< Microsoft Visual C++ */
+    tc_latex,   /*!< TeX (LaTeX distribution) */
+    tc_doxygen  /*!< Doxygen */
 };
 
 /*! \brief Operating System Codes */
 enum operating_system
 {
-    os_unknown, /*!< Unknown Operating System */
-    os_darwin,  /*!< Darwin/MacOSX */
-    os_linux,   /*!< Linux */
-    os_windows  /*!< Windows */
+    os_generic,     /*!< Generic Operating System */
+    os_unknown,     /*!< Unknown Operating System */
+    os_darwin,      /*!< Darwin/MacOSX */
+    os_linux,       /*!< Linux */
+    os_windows,     /*!< Windows */
+    os_freebsd,     /*!< FreeBSD */
+    os_netbsd,      /*!< NetBSD */
+    os_openbsd,     /*!< OpenBSD */
+    os_dragonflybsd /*!< DragonflyBSD */
 };
 
 /*! \brief Instruction Set Codes */
 enum instruction_set
 {
+    is_generic, /*!< Generic Instruction Set */
     is_arm,     /*!< ARM-based Instruction Set */
-    is_generic  /*!< Generic Instruction Set */
+    is_x86,     /*!< X86-based Instruction Set */
+    is_mips,    /*!< MIPS-based Instruction Set */
+    is_powerpc, /*!< PowerPC-based Instruction Set */
+    is_sh       /*!< SH-based Instruction Set */
 };
 
 /*! \brief Filesystem Layout Codes
@@ -147,6 +158,16 @@ struct toolchain_msvc
     sexpr cl;
 };
 
+struct toolchain_latex
+{
+    sexpr latex;
+};
+
+struct toolchain_doxygen
+{
+    sexpr doxygen;
+};
+
 struct toolchain_descriptor
 {
     enum toolchain        toolchain;
@@ -159,12 +180,7 @@ struct toolchain_descriptor
     int (*test)          (struct target *);
     int (*documentation) (struct target *);
 
-    union
-    {
-        struct toolchain_gcc     gcc;
-        struct toolchain_borland borland;
-        struct toolchain_msvc    msvc;
-    } programmes;
+    void *aux;
 };
 
 struct icemake
@@ -874,6 +890,12 @@ void mkdir_p  (sexpr path);
 
 void on_error   (enum icemake_error error, const char *text);
 void on_warning (enum icemake_error error, const char *text);
+
+int icemake_prepare_toolchain_gcc     (struct toolchain_descriptor *td);
+int icemake_prepare_toolchain_borland (struct toolchain_descriptor *td);
+int icemake_prepare_toolchain_msvc    (struct toolchain_descriptor *td);
+int icemake_prepare_toolchain_latex   (struct toolchain_descriptor *td);
+int icemake_prepare_toolchain_doxygen (struct toolchain_descriptor *td);
 
 int icemake_prepare_toolchain
     (const char *name,
