@@ -28,118 +28,34 @@
 
 #include <icemake/icemake.h>
 
-#include <curie/multiplex.h>
-
-static void run_tests_library_common (sexpr name, struct target *t)
+static void run_tests_target (struct target *t)
 {
-    sexpr s = t->test_cases;
+    sexpr cur;
 
-    while (consp (s))
+    if (!falsep(p_diff))
     {
-        sexpr r = cdr(cdr(cdr(car(s))));
-
-        t->icemake->workstack = sx_set_add (t->icemake->workstack, r);
-
-        s = cdr (s);
-    }
-}
-
-static void run_tests_library_gcc     (sexpr name, struct target *t)
-{
-    run_tests_library_common (name, t);
-}
-
-static void run_tests_library_borland (sexpr name, struct target *t)
-{
-    run_tests_library_common (name, t);
-}
-
-static void run_tests_library_msvc    (sexpr name, struct target *t)
-{
-    run_tests_library_common (name, t);
-}
-
-static void run_tests_library (sexpr name, struct target *t)
-{
-    sexpr cur = t->test_reference;
-
-    while (consp (cur))
-    {
-        sexpr r = car (car (cur));
-
-        unlink (sx_string (r));
-
-        cur = cdr (cur);
-    }
-
-    switch (uname_toolchain)
-    {
-        case tc_gcc:
-            run_tests_library_gcc     (name, t); break;
-        case tc_borland:
-            run_tests_library_borland (name, t); break;
-        case tc_msvc:
-            run_tests_library_msvc    (name, t); break;
-    }
-}
-
-static void diff_test_reference_library_common (sexpr name, struct target *t)
-{
-    if (falsep(p_diff))
-    {
-        return;
-    }
-    else
-    {
-        sexpr cur = t->test_reference;
-
-        while (consp (cur))
+        for (cur = t->test_reference; consp (cur); cur = cdr (cur))
         {
             sexpr r = car (cur);
             sexpr o = car (r), g = cdr (r);
 
             t->icemake->workstack = sx_set_add (t->icemake->workstack,
-                              cons (p_diff, cons (o, cons (g, sx_end_of_list))));
-
-            cur = cdr (cur);
+                             cons (p_diff, cons (o, cons (g, sx_end_of_list))));
         }
     }
-}
 
-static void diff_test_reference_library_gcc (sexpr name, struct target *t)
-{
-    diff_test_reference_library_common (name, t);
-}
-
-static void diff_test_reference_library_borland (sexpr name, struct target *t)
-{
-    diff_test_reference_library_common (name, t);
-}
-
-static void diff_test_reference_library_msvc (sexpr name, struct target *t)
-{
-    diff_test_reference_library_common (name, t);
-}
-
-static void diff_test_reference_library (sexpr name, struct target *t)
-{
-    switch (uname_toolchain)
+    for (cur = t->test_reference; consp (cur); cur = cdr (cur))
     {
-        case tc_gcc:
-            diff_test_reference_library_gcc     (name, t); break;
-        case tc_borland:
-            diff_test_reference_library_borland (name, t); break;
-        case tc_msvc:
-            diff_test_reference_library_msvc    (name, t); break;
+        sexpr r = car (car (cur));
+
+        unlink (sx_string (r));
     }
-}
 
-static void do_run_tests_target(struct target *t)
-{
-    if (t->options & ICEMAKE_LIBRARY)
+    for (cur = t->test_cases; consp (cur); cur = cdr (cur))
     {
-        diff_test_reference_library (t->name, t);
-        run_tests_library (t->name, t);
+        t->icemake->workstack =
+            sx_set_add (t->icemake->workstack,
+                        cdr(cdr(cdr(car(cur)))));
     }
 }
 
@@ -157,7 +73,7 @@ int icemake_run_tests (struct icemake *im)
 
         if (node != (struct tree_node *)0)
         {
-            do_run_tests_target (node_get_value(node));
+            run_tests_target (node_get_value(node));
         }
 
         cursor = cdr(cursor);
