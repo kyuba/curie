@@ -28,22 +28,7 @@
 
 #include <icemake/icemake.h>
 
-int icemake_build_documentation (struct icemake *im) { return 0; }
-int icemake_run_tests (struct icemake *im) { return 0; }
-
-int icemake_prepare_toolchain_generic (struct toolchain_descriptor *td)
-{ return 0; }
-int icemake_prepare_toolchain_borland (struct toolchain_descriptor *td)
-{ return 0; }
-int icemake_prepare_toolchain_msvc    (struct toolchain_descriptor *td)
-{ return 0; }
-int icemake_prepare_toolchain_latex   (struct toolchain_descriptor *td)
-{ return 0; }
-int icemake_prepare_toolchain_doxygen (struct toolchain_descriptor *td)
-{ return 0; }
-
-int icemake_prepare_operating_system_generic (struct toolchain_descriptor *td)
-{ return 0; }
-
-void gc_call (sexpr sx) {}
-void initialise_stack () {}
+int icemake_prepare_toolchain_latex (struct toolchain_descriptor *td)
+{
+    return 0;
+}

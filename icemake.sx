@@ -128,7 +128,10 @@
   (libraries "sievert" "syscall")
 
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
-        "icemake-link" "icemake-documentation")
+        "icemake-link" "icemake-documentation"
+        "icemake-tc-generic" "icemake-tc-gcc" "icemake-tc-borland"
+        "icemake-tc-msvc" "icemake-tc-latex" "icemake-tc-doxygen"
+        "icemake-os-generic")
 
   (documentation
         "icemake" "ice" "icemake.sx"))

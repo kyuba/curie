@@ -54,6 +54,7 @@
 /*! \brief Toolchain Codes */
 enum toolchain
 {
+    tc_generic, /*!< Generic Toolchain */
     tc_gcc,     /*!< GNU GCC */
     tc_borland, /*!< Borland C/C++ Compiler */
     tc_msvc,    /*!< Microsoft Visual C++ */
@@ -65,7 +66,6 @@ enum toolchain
 enum operating_system
 {
     os_generic,     /*!< Generic Operating System */
-    os_unknown,     /*!< Unknown Operating System */
     os_darwin,      /*!< Darwin/MacOSX */
     os_linux,       /*!< Linux */
     os_windows,     /*!< Windows */
@@ -952,6 +952,7 @@ void mkdir_p  (sexpr path);
 void on_error   (enum icemake_error error, const char *text);
 void on_warning (enum icemake_error error, const char *text);
 
+int icemake_prepare_toolchain_generic (struct toolchain_descriptor *td);
 int icemake_prepare_toolchain_gcc     (struct toolchain_descriptor *td);
 int icemake_prepare_toolchain_borland (struct toolchain_descriptor *td);
 int icemake_prepare_toolchain_msvc    (struct toolchain_descriptor *td);

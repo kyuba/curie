@@ -55,7 +55,7 @@ char uname_vendor [UNAMELENGTH]        = "unknown";
 
 enum toolchain uname_toolchain;
 enum fs_layout i_fsl                   = fs_afsl;
-enum operating_system i_os             = os_unknown;
+enum operating_system i_os             = os_generic;
 enum instruction_set i_is              = is_generic;
 
 const char *archprefix                 = "generic-unknown-generic-generic";
@@ -1916,7 +1916,6 @@ int icemake_prepare_toolchain
      int (*with_data)(struct toolchain_descriptor *, void *), void *aux)
 {
     struct toolchain_descriptor td;
-    int q;
 
     if (name != (char *)0)
     {
@@ -1960,17 +1959,33 @@ int icemake_prepare_toolchain
         }
 
         name += j;
-/*        if (name[0] == 'g')
+
+        if ((name[0] == 'g') && (name[1] == 'n') && (name[2] == 'u') &&
+            (name[3] == 0))
         {
             uname_toolchain = tc_gcc;
         }
-        else*/ if (name[0] == 'b')
+        else if ((name[0] == 'b') && (name[1] == 'o') && (name[2] == 'r') &&
+                 (name[3] == 'l') && (name[4] == 'a') && (name[5] == 'n') &&
+                 (name[6] == 'd') && (name[7] == 0))
         {
             uname_toolchain = tc_borland;
         }
-        else if (name[0] == 'm')
+        else if ((name[0] == 'm') && (name[1] == 's') && (name[2] == 'v') &&
+                 (name[3] == 'c') && (name[4] == 0))
         {
             uname_toolchain = tc_msvc;
+        }
+        else if ((name[0] == 'l') && (name[1] == 'a') && (name[2] == 't') &&
+                 (name[3] == 'e') && (name[4] == 'x') && (name[5] == 0))
+        {
+            uname_toolchain = tc_msvc;
+        }
+        else if ((name[0] == 'd') && (name[1] == 'o') && (name[2] == 'x') &&
+                 (name[3] == 'y') && (name[4] == 'g') && (name[5] == 'e') &&
+                 (name[6] == 'n') && (name[7] == 0))
+        {
+            uname_toolchain = tc_doxygen;
         }
         else
         {
@@ -2052,15 +2067,36 @@ int icemake_prepare_toolchain
     initialise_toolchain_tex ();
     initialise_toolchain_doxygen ();
 
-    for (q = 0; uname_os[q] && (uname_os[q] == "darwin"[q]); q++);
-    if ((q == 6) && (uname_os[q] == 0)) i_os = os_darwin;
-    for (q = 0; uname_os[q] && (uname_os[q] == "linux"[q]); q++);
-    if ((q == 5) && (uname_os[q] == 0)) i_os = os_linux;
-    for (q = 0; uname_os[q] && (uname_os[q] == "windows"[q]); q++);
-    if (((q == 7) && (uname_os[q] == 0)) || (q == 3)) i_os = os_windows;
+    if ((uname_os[0] == 'd') && (uname_os[1] == 'a') && (uname_os[2] == 'r') &&
+        (uname_os[3] == 'r') && (uname_os[4] == 'w') && (uname_os[5] == 'i') &&
+        (uname_os[6] == 'n') && (uname_os[7] == 0))
+    {
+        i_os = os_darwin;
+    }
+    else if ((uname_os[0] == 'l') && (uname_os[1] == 'i') && (uname_os[2] == 'n') &&
+             (uname_os[3] == 'u') && (uname_os[4] == 'x') && (uname_os[5] == 0))
+    {
+        i_os = os_linux;
+    }
+    else if ((uname_os[0] == 'w') && (uname_os[1] == 'i') && (uname_os[2] == 'n') &&
+             (uname_os[3] == 'd') && (uname_os[4] == 'o') && (uname_os[5] == 'w') &&
+             (uname_os[6] == 's') && (uname_os[7] == 0))
+    {
+        i_os = os_windows;
+    }
+    else
+    {
+        i_os = os_generic;
+    }
 
-    for (q = 0; uname_arch[q] && (uname_arch[q] == "arm"[q]); q++);
-    if ((q == 3) || ((q == 4) && (uname_arch[q] == 0))) i_is = is_arm;
+    if ((uname_os[0] == 'a') && (uname_os[1] == 'r') && (uname_os[2] == 'm'))
+    {
+        i_is = is_arm;
+    }
+    else
+    {
+        i_is = is_generic;
+    }
 
     if (i_os == os_darwin)
     {
@@ -2068,6 +2104,22 @@ int icemake_prepare_toolchain
     }
 
     initialise_libcurie();
+
+    switch (uname_toolchain)
+    {
+        case tc_generic: icemake_prepare_toolchain_generic (&td); break;
+        case tc_gcc:     icemake_prepare_toolchain_gcc     (&td); break;
+        case tc_borland: icemake_prepare_toolchain_borland (&td); break;
+        case tc_msvc:    icemake_prepare_toolchain_msvc    (&td); break;
+        case tc_latex:   icemake_prepare_toolchain_latex   (&td); break;
+        case tc_doxygen: icemake_prepare_toolchain_doxygen (&td); break;
+    }
+
+    switch (i_os)
+    {
+        default:
+        case os_generic: icemake_prepare_operating_system_generic (&td); break;
+    }
 
     return with_data (&td, aux);
 }
