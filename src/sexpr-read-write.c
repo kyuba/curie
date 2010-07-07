@@ -80,36 +80,17 @@ void sx_close_io (struct sexpr_io *io)
     free_pool_mem (io);
 }
 
-static sexpr sx_read_string_long
-        (unsigned int *i, char *buf, unsigned int length)
+static sexpr sx_read_string_escape
+        (char *buf, unsigned int m)
 {
-    unsigned int j = *i, k = 0, m = *i;
-    char *newstring;
-
-    do {
-        if (buf[m] == '"') {
-            m -= j - 3;
-            goto allocate;
-        } else if (buf[m] == '\\') {
-            m++;
-        }
-
-        m++;
-    } while (m < length);
-
-    return sx_nonexistent;
-
-  allocate:
-    newstring = aalloc (m);
+    unsigned int j = 0, k = 0;
+    char *newstring = aalloc (m);
 
     do {
         if (buf[j] == '"') {
             sexpr res;
-            j++;
-            *i = j;
-            newstring[k] = (char)0;
 
-            res = make_string (newstring);
+            res = make_string_l (newstring, k);
             afree (m, newstring);
 
             return res;
@@ -120,7 +101,7 @@ static sexpr sx_read_string_long
         newstring[k] = buf[j];
         k++;
         j++;
-    } while (j < length);
+    } while (1); /* we already know theres no overflow */
 
     return sx_nonexistent;
 }
@@ -128,32 +109,30 @@ static sexpr sx_read_string_long
 static sexpr sx_read_string
         (unsigned int *i, char *buf, unsigned int length)
 {
-    unsigned int j = *i, k = 0;
-    char newstring [SX_MAX_STRING_LENGTH];
+    unsigned int j = *i, jo = j;
+    char had_escapes = (char)0;
 
     do {
         if (buf[j] == '"') {
             /* closing ", end of string */
+
+            unsigned int k = j - jo;
+
             j++;
             *i = j;
-            newstring[k] = (char)0;
+
+            if (had_escapes)
+            {
+                return sx_read_string_escape (buf + jo, k);
+            }
 
             /* return the newly created string */
-            return make_string (newstring);
+            return make_string_l (buf + jo, k);
         } else if (buf[j] == '\\') {
-            /* literal inclusion of the next character... */
+            /* mark the string for reprocessing. this is kind expensive since
+             * we need to make an otherwise useless copy */
+            had_escapes = (char)1;
             j++;
-            if (j >= length) return sx_nonexistent;
-        }
-
-        if (k < (SX_MAX_STRING_LENGTH - 2)) {
-            /* make sure we still have enough room, then add the character */
-            newstring[k] = buf[j];
-            k++;
-        }
-        else
-        {
-            return sx_read_string_long (i, buf, length);
         }
 
         j++;
@@ -167,9 +146,11 @@ static sexpr sx_read_number
 {
     define_symbol (sym_plus,  "+");
     define_symbol (sym_minus, "-");
-    unsigned int j = *i;
+    unsigned int j = *i, jo = j;
     signed long number = 0;
-    char number_is_negative = (char)0, hadnum = (char)0, is_infinity = (char)0;
+    signed int decimal_separator = -1;
+    char number_is_negative = (char)0, hadnum = (char)0, is_infinity = (char)0,
+         is_rational = (char)0;
 
     switch (buf[j])
     {
@@ -183,6 +164,12 @@ static sexpr sx_read_number
     do {
         switch (buf[j])
         {
+            case '.':
+                /* the number is written in decimal notation, so we remember
+                 * where the decimal separator was at so that we can turn it
+                 * into a fraction later */
+                decimal_separator = j - jo + 1;
+                break;
             case '0':
             case '1':
             case '2':
@@ -203,6 +190,7 @@ static sexpr sx_read_number
                 break;
             case '/':
                 /* rational number */
+                is_rational = (char)1;
             default:
                 /* end of number */
                 *i = j;
@@ -218,7 +206,7 @@ static sexpr sx_read_number
                 }
                 else
                 {
-                    if (buf[j] == '/')
+                    if (is_rational)
                     {
                         if ((j + 1) >= length)
                         {
@@ -272,6 +260,25 @@ static sexpr sx_read_number
                                     (number * rval->denominator, denom);
                             }
                         }
+                    }
+
+                    if (decimal_separator >= 0)
+                    {
+                        unsigned int jx = j - jo,
+                                     jd = jx - decimal_separator;
+                        int_pointer_s denom = 1;
+
+                        if (number_is_negative == (char)1) {
+                            denom *= -1;
+                        }
+
+                        while (jd > 0)
+                        {
+                            denom *= 10;
+                            jd--;
+                        }
+
+                        return make_rational (number, denom);
                     }
 
                     if (number_is_negative == (char)1) {

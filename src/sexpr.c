@@ -116,12 +116,11 @@ sexpr make_rational(int_pointer p, int_pointer_s q)
     return (sexpr)rv;
 }
 
-static sexpr make_string_or_symbol (const char *string, char symbol)
+static sexpr make_string_or_symbol_lh
+    (const char *string, char symbol, int_pointer hash, unsigned long len)
 {
     struct sexpr_string_or_symbol *s;
-    unsigned long len;
     unsigned int i;
-    int_pointer hash = str_hash (string, &len);
     struct tree_node *n;
 
     if ((n = tree_get_node ((symbol == (char)1) ? &sx_symbol_tree
@@ -150,14 +149,45 @@ static sexpr make_string_or_symbol (const char *string, char symbol)
     return (sexpr)s;
 }
 
-sexpr make_string(const char *string)
+static sexpr make_string_or_symbol
+    (const char *string, char symbol)
+{
+    unsigned long len;
+    int_pointer hash = str_hash (string, &len);
+
+    return make_string_or_symbol_lh (string, symbol, hash, len);
+}
+
+static sexpr make_string_or_symbol_l
+    (const char *string, char symbol, unsigned long len)
+{
+    int_pointer hash = hash_murmur2_pt (string, len, 0);
+
+    return make_string_or_symbol_lh (string, symbol, hash, len);
+}
+
+sexpr make_string
+    (const char *string)
 {
     return make_string_or_symbol (string, (char)0);
 }
 
-sexpr make_symbol(const char *symbol)
+sexpr make_symbol
+    (const char *symbol)
 {
     return make_string_or_symbol (symbol, (char)1);
+}
+
+sexpr make_string_l
+        (const char *string, unsigned long length)
+{
+    return make_string_or_symbol_l (string, (char)0, length);
+}
+
+sexpr make_symbol_l
+        (const char *symbol, unsigned long length)
+{
+    return make_string_or_symbol_l (symbol, (char)1, length);
 }
 
 void sx_destroy(sexpr sxx)

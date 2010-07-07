@@ -384,6 +384,34 @@ sexpr make_string
 sexpr make_symbol
         (const char *symbol);
 
+/*! \brief Create a new String (with Length)
+ *  \param[in] string The string to use.
+ *  \param[in] length The string's length, in bytes.
+ *  \return The new s-expression, or sx_nonexistent if there's not enough
+ *          memory.
+ *
+ *  This function takes a C string and returns a new s-expression with the
+ *  string as its value. The length as specified to this function is the
+ *  length in bytes of the given string, excluding the trailing 0-byte, if
+ *  present.
+ */
+sexpr make_string_l
+        (const char *string, unsigned long length);
+
+/*! \brief Create a new Symbol (with Length)
+ *  \param[in] symbol The string to use.
+ *  \param[in] length The string's length, in bytes.
+ *  \return The new s-expression, or sx_nonexistent if there's not enough
+ *          memory.
+ *
+ *  This function takes a C string and returns a new symbol-type s-expression
+ *  with the string as its value. The length as specified to this function is
+ *  the length in bytes of the given string, excluding the trailing 0-byte, if
+ *  present.
+ */
+sexpr make_symbol_l
+        (const char *symbol, unsigned long length);
+
 /*! \brief Create a new Rational Number
  *  \param[in] p The numerator.
  *  \param[in] q The denominator.

@@ -117,12 +117,6 @@ extern "C" {
  * nothing more is available just now, or MAX_READ_THRESHOLD is hit. */
 #define SX_MAX_READ_THRESHOLD (128*1024)
 
-/*! \brief Maximum Size for S-Expression Strings
- *
- *  Longer strings are parsed differently and may take somewhat longer to parse.
- */
-#define SX_MAX_STRING_LENGTH 1025
-
 /*! \brief Maximum Size for S-Expression Symbols
  *
  *  Longer symbols are silently truncated.

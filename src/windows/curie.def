@@ -129,3 +129,5 @@ EXPORTS
     gcd                                 @142
     get_mem_recovery                    @143
     resize_mem_recovery                 @144
+    make_string_l                       @145
+    make_symbol_l                       @146
