@@ -28,9 +28,14 @@
 
 #include <icemake/icemake.h>
 
-static void run_tests_target (struct target *t)
+static int run_tests_target (struct target *t)
 {
     sexpr cur;
+
+    if (t->icemake->toolchain->test != (int (*)(struct target *))0)
+    {
+        return t->icemake->toolchain->test (t);
+    }
 
     if (!falsep(p_diff))
     {
@@ -57,6 +62,8 @@ static void run_tests_target (struct target *t)
             sx_set_add (t->icemake->workstack,
                         cdr(cdr(cdr(car(cur)))));
     }
+
+    return 0;
 }
 
 int icemake_run_tests (struct icemake *im)

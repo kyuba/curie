@@ -1699,7 +1699,11 @@ static void spawn_stack_items (struct icemake *im, int *fl)
         if (truep (equalp (sym_install, sca)) ||
             truep (equalp (sym_symlink, sca)))
         {
-            icemake_install_file (im, cdr (spec));
+            if (im->toolchain->install_file !=
+                    (int (*)(struct icemake *, sexpr))0)
+            {
+                im->toolchain->install_file (im, cdr (spec));
+            }
         }
         else
         {
@@ -1915,7 +1919,8 @@ int icemake_prepare_toolchain
     (const char *name,
      int (*with_data)(struct toolchain_descriptor *, void *), void *aux)
 {
-    struct toolchain_descriptor td;
+    struct toolchain_descriptor td =
+        { tc_generic, os_generic, is_generic };
 
     if (name != (char *)0)
     {

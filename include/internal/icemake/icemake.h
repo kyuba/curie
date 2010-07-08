@@ -148,6 +148,7 @@ enum visualiser
 };
 
 struct target;
+struct icemake;
 
 struct toolchain_gcc
 {
@@ -201,7 +202,8 @@ struct toolchain_descriptor
     int (*link)          (struct target *);
     int (*install)       (struct target *);
     int (*test)          (struct target *);
-    int (*documentation) (struct target *);
+
+    int (*install_file)  (struct icemake *im, sexpr spec);
 
     union
     {
@@ -971,9 +973,6 @@ int icemake_prepare
 
 int icemake
     (struct icemake *im);
-
-int icemake_install_file
-    (struct icemake *im, sexpr spec);
 
 #endif
 

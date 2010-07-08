@@ -667,8 +667,13 @@ static void create_special_files (struct target *t)
     io_close   (io);
 }
 
-static void do_build_target (struct target *t)
+static int do_build_target (struct target *t)
 {
+    if (t->icemake->toolchain->build != (int (*)(struct target *))0)
+    {
+        return t->icemake->toolchain->build (t);
+    }
+
     sexpr c = t->code;
 
     t->buildnumber = make_integer (sx_integer (t->buildnumber) + 1);
@@ -693,6 +698,8 @@ static void do_build_target (struct target *t)
             c = cdr (c);
         }
     }
+
+    return 0;
 }
 
 int icemake_build (struct icemake *im)

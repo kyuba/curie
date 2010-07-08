@@ -28,141 +28,7 @@
 
 #include <icemake/icemake.h>
 
-#include <curie/memory.h>
-#include <curie/multiplex.h>
 #include <curie/filesystem.h>
-
-#if defined(_WIN32)
-/* windows comes with dedicated file copy functions, so let's use those... */
-int icemake_install_file
-    (struct icemake *im, sexpr spec)
-{
-    sexpr source = car (spec);
-    sexpr target = cdr (spec);
-    int mode = 0444;
-    struct io *in, *out;
-
-    if (integerp (source))
-    {
-        mode   = sx_integer (source);
-        source = car (target);
-        target = cdr (target);
-    }
-
-    if (truep(equalp(source, sym_symlink))) /* no symlinks on windows */
-    {
-/*        source = car (target);
-        target = cdr (target);
-
-        sx_write (stdio, cons (sym_symlink,
-                  cons (source, cons (target, sx_end_of_list))));
-
-        symlink (sx_string(source), sx_string(target));*/
-    }
-    else if (truep (filep (source)))
-    {
-        sx_write (stdio, cons (sym_install, cons (make_integer (mode),
-                  cons (source, cons (target, sx_end_of_list)))));
-
-        mkdir_pi (target);
-        CopyFile (sx_string (source), sx_string (target), FALSE);
-    }
-
-    return 0;
-}
-
-#else
-
-struct file_metadata
-{
-    struct io      *out;
-    struct icemake *icemake;
-};
-
-static void install_read (struct io *in, void *aux)
-{
-    struct file_metadata *meta = (struct file_metadata *)aux;
-
-    if (((in->length) - (in->position)) > 0)
-    {
-        io_write (meta->out,
-                  (in->buffer) + (in->position),
-                  (in->length) - (in->position));
-
-        in->position = in->length;
-    }
-}
-
-static void install_close (struct io *in, void *aux)
-{
-    struct file_metadata *meta = (struct file_metadata *)aux;
-
-    if (((in->length) - (in->position)) > 0)
-    {
-        io_write (meta->out,
-                  (in->buffer) + (in->position),
-                  (in->length) - (in->position));
-
-        in->position = in->length;
-    }
-
-    (meta->icemake->alive_processes)--;
-
-    free_pool_mem (aux);
-}
-
-int icemake_install_file
-    (struct icemake *im, sexpr spec)
-{
-    sexpr source = car (spec);
-    sexpr target = cdr (spec);
-    int mode = 0444;
-    struct io *in, *out;
-    static struct memory_pool pool =
-        MEMORY_POOL_INITIALISER (sizeof (struct file_metadata));
-    struct file_metadata *meta;
-
-    if (integerp (source))
-    {
-        mode   = sx_integer (source);
-        source = car (target);
-        target = cdr (target);
-    }
-
-    if (truep(equalp(source, sym_symlink)))
-    {
-        source = car (target);
-        target = cdr (target);
-
-        sx_write (stdio, cons (sym_symlink,
-                  cons (source, cons (target, sx_end_of_list))));
-
-        symlink (sx_string(source), sx_string(target));
-    }
-    else if (truep (filep (source)))
-    {
-        sx_write (stdio, cons (sym_install, cons (make_integer (mode),
-                  cons (source, cons (target, sx_end_of_list)))));
-
-        mkdir_pi (target);
-
-        meta = (struct file_metadata *)get_pool_mem (&pool);
-
-        in  = io_open_read   (sx_string (source));
-        out = io_open_create (sx_string (target), mode);
-
-        meta->out     = out;
-        meta->icemake = im;
-
-        (im->alive_processes)++;
-
-        multiplex_add_io (in, install_read, install_close, (void *)meta);
-        multiplex_add_io_no_callback (out);
-    }
-
-    return 0;
-}
-#endif
 
 static sexpr get_library_install_path (struct target *t)
 {
@@ -534,8 +400,13 @@ static void install_programme (sexpr name, struct target *t)
     }
 }
 
-static void do_install_target(struct target *t)
+static int do_install_target(struct target *t)
 {
+    if (t->icemake->toolchain->install != (int (*)(struct target *))0)
+    {
+        return t->icemake->toolchain->install (t);
+    }
+
     if (t->options & ICEMAKE_LIBRARY)
     {
         install_library (t->name, t);
@@ -548,6 +419,8 @@ static void do_install_target(struct target *t)
     install_headers (t->name, t);
     install_support_files (t->name, t);
     install_documentation (t->name, t);
+
+    return 0;
 }
 
 int icemake_install (struct icemake *im)

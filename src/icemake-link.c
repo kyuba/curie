@@ -632,8 +632,13 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
     }
 }
 
-static void do_link_target(struct target *t)
+static int do_link_target(struct target *t)
 {
+    if (t->icemake->toolchain->link != (int (*)(struct target *))0)
+    {
+        return t->icemake->toolchain->link (t);
+    }
+
     switch (uname_toolchain)
     {
         case tc_gcc:
@@ -698,6 +703,8 @@ static void do_link_target(struct target *t)
                 link_programme_msvc_filename    (b, t->name, t->code, t); break;
         }
     }
+
+    return 0;
 }
 
 int icemake_link (struct icemake *im)
