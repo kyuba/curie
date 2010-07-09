@@ -669,12 +669,12 @@ static void create_special_files (struct target *t)
 
 static int do_build_target (struct target *t)
 {
+    sexpr c = t->code;
+
     if (t->icemake->toolchain->build != (int (*)(struct target *))0)
     {
         return t->icemake->toolchain->build (t);
     }
-
-    sexpr c = t->code;
 
     t->buildnumber = make_integer (sx_integer (t->buildnumber) + 1);
 

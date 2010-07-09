@@ -1352,7 +1352,7 @@ static void print_version ()
             ));
 }
  
-static void write_uname_element (char *source, char *target, int tlen)
+static void write_uname_element (const char *source, char *target, int tlen)
 {
     int  i = 0;
     char c = 0;
