@@ -32,6 +32,8 @@
 
 #include <icemake/icemake.h>
 
+#include <curie/regex.h>
+
 #include <curie/main.h>
 
 #include <curie/memory.h>
@@ -94,6 +96,8 @@ sexpr architecture                     = sx_false;
 
 static sexpr i_alternatives            = sx_end_of_list;
 
+struct sexpr_io *stdio;
+
 struct process_data
 {
     sexpr command;
@@ -101,11 +105,90 @@ struct process_data
     int *failures;
 };
 
-struct sexpr_io *stdio;
-
 struct icemake_meta
 {
     sexpr buildtargets;
+};
+
+/* toolchain classification patterns */
+struct toolchain_pattern
+{
+    const char *pattern;
+
+    enum toolchain        toolchain;
+    enum operating_system operating_system;
+    enum instruction_set  instruction_set;
+
+    const char *uname_os;
+    const char *uname_arch;
+    const char *uname_vendor;
+ 
+    unsigned long instruction_set_options;
+    unsigned long instruction_set_level;
+};
+
+static struct toolchain_pattern toolchain_pattern[] =
+{
+    { ".*-gcc",
+        tc_gcc,     os_unknown,      is_unknown,
+        0,              0,       0,
+        0, 0 },
+    { ".*-borland",
+        tc_borland, os_unknown,      is_unknown,
+        0,              0,       0,
+        0, 0 },
+    { ".*-msvc",
+        tc_msvc,    os_windows,      is_unknown,
+        "windows",      0,       "microsoft",
+        0, 0 },
+    { ".*-latex",
+        tc_latex,   os_unknown,      is_unknown,
+        0,              0,       0,
+        0, 0 },
+    { ".*-doxygen",
+        tc_doxygen, os_unknown,      is_unknown,
+        0,              0,       0,
+        0, 0 },
+
+    { ".*-darwin-.*",
+        tc_unknown, os_darwin,       is_unknown,
+        "darwin",       0,       0,
+        0, 0 },
+    { ".*-linux-.*",
+        tc_unknown, os_linux,        is_unknown,
+        "linux",        0,       0,
+        0, 0 },
+    { ".*-windows-.*",
+        tc_unknown, os_windows,      is_unknown,
+        "windows",      0,       "microsoft",
+        0, 0 },
+    { ".*-freebsd-.*",
+        tc_unknown, os_freebsd,      is_unknown,
+        "freebsd",      0,        0,
+        0, 0 },
+    { ".*-netbsd-.*",
+        tc_unknown, os_netbsd,       is_unknown,
+        "netbsd",       0,        0,
+        0, 0 },
+    { ".*-openbsd-.*",
+        tc_unknown, os_openbsd,      is_unknown,
+        "openbsd",      0,        0,
+        0, 0 },
+    { ".*-dragonflybsd-.*",
+        tc_unknown, os_dragonflybsd, is_unknown,
+        "dragonflybsd", 0,        0,
+        0, 0 },
+    
+    { "(x86[-/_]64|amd64)-.*",
+        tc_unknown, os_unknown,       is_x86,
+        0,              "x86-64", 0,
+        IS_64_BIT, 0 },
+    { "(x86[-/_]32|i[3-6]x86)-.*",
+        tc_unknown, os_unknown,       is_x86,
+        0,              "x86-32", 0,
+        IS_32_BIT, 0 },
+
+    { 0 } /* last pattern */
 };
 
 void mkdir_pi (sexpr path)
@@ -1889,6 +1972,72 @@ void on_warning (enum icemake_error error, const char *text)
               cons (sym_warning, cons (make_string (text), sx_end_of_list)));
 }
 
+int icemake_default_architecture
+    (int (*with_data)(const char *, void *), void *aux)
+{
+    char *toolchain = "unknown";
+#if !defined(_WIN32)
+    struct utsname un;
+#endif
+
+    if (!falsep(which(str_cl)))
+    {
+        uname_toolchain = tc_msvc;
+    }
+    else if (!falsep(which(str_bcc32)))
+    {
+        uname_toolchain = tc_borland;
+    }
+    else /* if nothing specific is found, guess it's gcc*/
+    {
+        uname_toolchain = tc_gcc;
+    }
+
+#if !defined(_WIN32)
+    if (uname (&un) >= 0)
+    {
+        write_uname_element(un.sysname, uname_os,   UNAMELENGTH - 1);
+        if ((un.machine[0] == 'i') &&
+            ((un.machine[1] == '3') || (un.machine[1] == '4') ||
+            (un.machine[1] == '5') || (un.machine[1] == '6')) &&
+            (un.machine[2] == '8') && (un.machine[3] == '6'))
+        {
+            write_uname_element("x86-32", uname_arch, UNAMELENGTH - 1);
+        }
+        else
+        {
+            write_uname_element(un.machine, uname_arch, UNAMELENGTH - 1);
+        }
+    }
+#else
+
+    write_uname_element ("windows", uname_os, UNAMELENGTH-1);
+    write_uname_element ("microsoft", uname_vendor, UNAMELENGTH-1);
+
+#if defined(__ia64__) || defined(__ia64) || defined(_M_IA64) || defined(_M_X64)
+    write_uname_element ("x86-64", uname_arch, UNAMELENGTH-1);
+#elif defined(i386) || defined(__i386__) || defined(_X86_) || defined(_M_IX86) || defined(__INTEL__)
+    write_uname_element ("x86-32", uname_arch, UNAMELENGTH-1);
+#endif
+#endif
+
+    switch (uname_toolchain)
+    {
+        case tc_gcc:     toolchain = "gnu";     break;
+        case tc_borland: toolchain = "borland"; break;
+        case tc_msvc:    toolchain = "msvc";    break;
+    }
+
+    architecture = lowercase (sx_join (make_string (uname_arch), str_dash,
+                              sx_join (make_string (uname_vendor), str_dash,
+                              sx_join (make_string (uname_os), str_dash,
+                                       make_string (toolchain)))));
+
+    archprefix = (char *)sx_string (architecture);
+
+    return with_data (archprefix, aux);
+}
+
 int icemake_prepare_toolchain
     (const char *name,
      int (*with_data)(struct toolchain_descriptor *, void *), void *aux)
@@ -1896,145 +2045,80 @@ int icemake_prepare_toolchain
     struct toolchain_descriptor td =
         { tc_generic, os_generic, is_generic };
 
-    if (name != (char *)0)
+    int j = 0;
+
+    archprefix = name;
+
+    for (j = 0; name[j] != 0; j++)
     {
-        int j = 0;
-
-        archprefix = name;
-
-        for (j = 0; name[j] != 0; j++)
+        if (name[j] == '-')
         {
-            if (name[j] == '-')
-            {
-                write_uname_element(name, uname_arch, j);
-                j++;
+            write_uname_element(name, uname_arch, j);
+            j++;
 
-                break;
-            }
+            break;
         }
+    }
 
-        name += j;
-        for (j = 0; name[j] != 0; j++)
+    name += j;
+    for (j = 0; name[j] != 0; j++)
+    {
+        if (name[j] == '-')
         {
-            if (name[j] == '-')
-            {
-                write_uname_element(name, uname_vendor, j);
-                j++;
+            write_uname_element(name, uname_vendor, j);
+            j++;
 
-                break;
-            }
+            break;
         }
+    }
 
-        name += j;
-        for (j = 0; name[j] != 0; j++)
+    name += j;
+    for (j = 0; name[j] != 0; j++)
+    {
+        if (name[j] == '-')
         {
-            if (name[j] == '-')
-            {
-                write_uname_element(name, uname_os, j);
-                j++;
+            write_uname_element(name, uname_os, j);
+            j++;
 
-                break;
-            }
+            break;
         }
+    }
 
-        name += j;
+    name += j;
 
-        if ((name[0] == 'g') && (name[1] == 'n') && (name[2] == 'u') &&
-            (name[3] == 0))
-        {
-            uname_toolchain = tc_gcc;
-        }
-        else if ((name[0] == 'b') && (name[1] == 'o') && (name[2] == 'r') &&
-                 (name[3] == 'l') && (name[4] == 'a') && (name[5] == 'n') &&
-                 (name[6] == 'd') && (name[7] == 0))
-        {
-            uname_toolchain = tc_borland;
-        }
-        else if ((name[0] == 'm') && (name[1] == 's') && (name[2] == 'v') &&
-                 (name[3] == 'c') && (name[4] == 0))
-        {
-            uname_toolchain = tc_msvc;
-        }
-        else if ((name[0] == 'l') && (name[1] == 'a') && (name[2] == 't') &&
-                 (name[3] == 'e') && (name[4] == 'x') && (name[5] == 0))
-        {
-            uname_toolchain = tc_msvc;
-        }
-        else if ((name[0] == 'd') && (name[1] == 'o') && (name[2] == 'x') &&
-                 (name[3] == 'y') && (name[4] == 'g') && (name[5] == 'e') &&
-                 (name[6] == 'n') && (name[7] == 0))
-        {
-            uname_toolchain = tc_doxygen;
-        }
-        else
-        {
-            uname_toolchain = tc_gcc;
-        }
-    
-        architecture = make_string (archprefix);
+    if ((name[0] == 'g') && (name[1] == 'n') && (name[2] == 'u') &&
+        (name[3] == 0))
+    {
+        uname_toolchain = tc_gcc;
+    }
+    else if ((name[0] == 'b') && (name[1] == 'o') && (name[2] == 'r') &&
+             (name[3] == 'l') && (name[4] == 'a') && (name[5] == 'n') &&
+             (name[6] == 'd') && (name[7] == 0))
+    {
+        uname_toolchain = tc_borland;
+    }
+    else if ((name[0] == 'm') && (name[1] == 's') && (name[2] == 'v') &&
+             (name[3] == 'c') && (name[4] == 0))
+    {
+        uname_toolchain = tc_msvc;
+    }
+    else if ((name[0] == 'l') && (name[1] == 'a') && (name[2] == 't') &&
+             (name[3] == 'e') && (name[4] == 'x') && (name[5] == 0))
+    {
+        uname_toolchain = tc_msvc;
+    }
+    else if ((name[0] == 'd') && (name[1] == 'o') && (name[2] == 'x') &&
+             (name[3] == 'y') && (name[4] == 'g') && (name[5] == 'e') &&
+             (name[6] == 'n') && (name[7] == 0))
+    {
+        uname_toolchain = tc_doxygen;
     }
     else
     {
-        char *toolchain = "unknown";
-#if !defined(_WIN32)
-        struct utsname un;
-#endif
-
-        if (!falsep(which(str_cl)))
-        {
-            uname_toolchain = tc_msvc;
-        }
-        else if (!falsep(which(str_bcc32)))
-        {
-            uname_toolchain = tc_borland;
-        }
-        else /* if nothing specific is found, guess it's gcc*/
-        {
-            uname_toolchain = tc_gcc;
-        }
-
-#if !defined(_WIN32)
-        if (uname (&un) >= 0)
-        {
-            write_uname_element(un.sysname, uname_os,   UNAMELENGTH - 1);
-            if ((un.machine[0] == 'i') &&
-                ((un.machine[1] == '3') || (un.machine[1] == '4') ||
-                 (un.machine[1] == '5') || (un.machine[1] == '6')) &&
-                (un.machine[2] == '8') && (un.machine[3] == '6'))
-            {
-                write_uname_element("x86-32", uname_arch, UNAMELENGTH - 1);
-            }
-            else
-            {
-                write_uname_element(un.machine, uname_arch, UNAMELENGTH - 1);
-            }
-        }
-#else
-
-        write_uname_element ("windows", uname_os, UNAMELENGTH-1);
-        write_uname_element ("microsoft", uname_vendor, UNAMELENGTH-1);
-
-#if defined(__ia64__) || defined(__ia64) || defined(_M_IA64) || defined(_M_X64)
-        write_uname_element ("x86-64", uname_arch, UNAMELENGTH-1);
-#elif defined(i386) || defined(__i386__) || defined(_X86_) || defined(_M_IX86) || defined(__INTEL__)
-        write_uname_element ("x86-32", uname_arch, UNAMELENGTH-1);
-#endif
-#endif
-
-        switch (uname_toolchain)
-        {
-            case tc_gcc:     toolchain = "gnu";     break;
-            case tc_borland: toolchain = "borland"; break;
-            case tc_msvc:    toolchain = "msvc";    break;
-        }
-
-        architecture = lowercase (sx_join (make_string (uname_arch), str_dash,
-                                  sx_join (make_string (uname_vendor), str_dash,
-                                  sx_join (make_string (uname_os), str_dash,
-                                           make_string (toolchain)))));
-
-        archprefix = (char *)sx_string (architecture);
+        uname_toolchain = tc_gcc;
     }
+    
+    architecture = make_string (archprefix);
 
     switch (uname_toolchain)
     {
@@ -2243,11 +2327,17 @@ static int with_toolchain (struct toolchain_descriptor *td, void *aux)
     return icemake_prepare
         ((struct icemake *)0, ".", td, with_icemake, (void *)im);
 }
+    
+static int with_architecture (const char *arch, void *aux)
+{
+    return icemake_prepare_toolchain
+        (arch, with_toolchain, aux);
+}
 
 int cmain ()
 {
     int i = 1;
-    char *target_architecture = (char *)c_getenv("CHOST");
+    const char *target_architecture = c_getenv("CHOST");
     struct icemake_meta im = { sx_end_of_list };
 
     stdio = sx_open_stdout ();
@@ -2407,6 +2497,15 @@ int cmain ()
 
     multiplex_add_sexpr (stdio, (void *)0, (void *)0);
 
-    return icemake_prepare_toolchain
-        (target_architecture, with_toolchain, (void *)&im);
+    if (target_architecture != (const char *)0)
+    {
+        return with_architecture
+            (target_architecture, (void *)&im);
+    }
+    else
+    {
+        return icemake_default_architecture
+            (with_architecture,   (void *)&im);
+    }
+
 }

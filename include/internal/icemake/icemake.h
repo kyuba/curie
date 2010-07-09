@@ -54,6 +54,7 @@
 /*! \brief Toolchain Codes */
 enum toolchain
 {
+    tc_unknown, /*!< Unknown Toolchain */
     tc_generic, /*!< Generic Toolchain */
     tc_gcc,     /*!< GNU GCC */
     tc_borland, /*!< Borland C/C++ Compiler */
@@ -65,6 +66,7 @@ enum toolchain
 /*! \brief Operating System Codes */
 enum operating_system
 {
+    os_unknown,     /*!< Unknown Operating system */
     os_generic,     /*!< Generic Operating System */
     os_darwin,      /*!< Darwin/MacOSX */
     os_linux,       /*!< Linux */
@@ -78,6 +80,7 @@ enum operating_system
 /*! \brief Instruction Set Codes */
 enum instruction_set
 {
+    is_unknown, /*!< Unknown Instruction Set */
     is_generic, /*!< Generic Instruction Set */
     is_arm,     /*!< ARM-based Instruction Set */
     is_x86,     /*!< X86-based Instruction Set */
@@ -197,6 +200,10 @@ struct toolchain_descriptor
     enum toolchain        toolchain;
     enum operating_system operating_system;
     enum instruction_set  instruction_set;
+
+    const char           *uname_arch;
+    const char           *uname_os;
+    const char           *uname_vendor;
 
     int (*build)         (struct target *);
     int (*link)          (struct target *);
@@ -973,6 +980,9 @@ int icemake_prepare_toolchain
 int icemake_prepare
     (struct icemake *im, const char *path, struct toolchain_descriptor *td,
      int (*with_data)(struct icemake *, void *), void *aux);
+
+int icemake_default_architecture
+    (int (*with_data)(const char *, void *), void *aux);
 
 int icemake
     (struct icemake *im);
