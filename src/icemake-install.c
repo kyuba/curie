@@ -204,17 +204,6 @@ static void install_library_borland (sexpr name, struct target *t)
     install_library_dynamic_common (name, t);
 }
 
-static void install_library_msvc (sexpr name, struct target *t)
-{
-    t->icemake->workstack = sx_set_add (t->icemake->workstack,
-                cons (sym_install,
-                   cons (get_build_file (t, sx_join (str_lib, name,
-                                                     str_dot_lib)),
-                      get_library_install_path (t))));
-
-    install_library_dynamic_common (name, t);
-}
-
 static void install_programme_common (sexpr name, struct target *t)
 {
     t->icemake->workstack = sx_set_add (t->icemake->workstack,
@@ -231,11 +220,6 @@ static void install_programme_gcc (sexpr name, struct target *t)
 }
 
 static void install_programme_borland (sexpr name, struct target *t)
-{
-    install_programme_common (name, t);
-}
-
-static void install_programme_msvc (sexpr name, struct target *t)
 {
     install_programme_common (name, t);
 }
@@ -263,11 +247,6 @@ static void install_headers_gcc (sexpr name, struct target *t)
 }
 
 static void install_headers_borland (sexpr name, struct target *t)
-{
-    install_headers_common (name, t);
-}
-
-static void install_headers_msvc (sexpr name, struct target *t)
 {
     install_headers_common (name, t);
 }
@@ -315,8 +294,6 @@ static void install_library (sexpr name, struct target *t)
             install_library_gcc     (name, t); break;
         case tc_borland:
             install_library_borland (name, t); break;
-        case tc_msvc:
-            install_library_msvc    (name, t); break;
     }
 }
 
@@ -328,8 +305,6 @@ static void install_headers (sexpr name, struct target *t)
             install_headers_gcc     (name, t); break;
         case tc_borland:
             install_headers_borland (name, t); break;
-        case tc_msvc:
-            install_headers_msvc    (name, t); break;
     }
 }
 
@@ -395,13 +370,14 @@ static void install_programme (sexpr name, struct target *t)
             install_programme_gcc     (name, t); break;
         case tc_borland:
             install_programme_borland (name, t); break;
-        case tc_msvc:
-            install_programme_msvc    (name, t); break;
     }
 }
 
 static int do_install_target(struct target *t)
 {
+    install_support_files (t->name, t);
+    install_documentation (t->name, t);
+
     if (t->icemake->toolchain->install != (int (*)(struct target *))0)
     {
         return t->icemake->toolchain->install (t);
@@ -417,8 +393,6 @@ static int do_install_target(struct target *t)
     }
 
     install_headers (t->name, t);
-    install_support_files (t->name, t);
-    install_documentation (t->name, t);
 
     return 0;
 }

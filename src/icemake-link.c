@@ -102,80 +102,27 @@ static void map_includes (struct tree_node *node, void *psx)
     sexpr *sx = (sexpr *)psx;
     struct target *t = node_get_value (node);
 
-    *sx = cons (sx_join ((uname_toolchain == tc_msvc ? str_sLIBPATHc : str_dL),
-                         get_build_file (t, sx_nil), sx_nil), *sx);
+    *sx = cons (sx_join (str_dL, get_build_file (t, sx_nil), sx_nil), *sx);
 }
 
 static sexpr get_special_linker_options (struct icemake *im, sexpr sx)
 {
     define_string (str_multiply_defined, "-multiply_defined");
     define_string (str_warning,          "warning");
-    define_string (str_smachinec,        "/machine:");
-    define_string (str_x86,              "x86");
-    define_string (str_x64,              "x64");
-    sexpr machine_spec = sx_nil;
-
-    if (uname_toolchain == tc_msvc)
-    {
-        /* parsing for x86 subtypes... gotta remember to do this properly
-         * one of these days */
-        if (((uname_arch[0] == 'x') || (uname_arch[0] == 'X')) &&
-             (uname_arch[1] == '8') && (uname_arch[2] == '6')  &&
-             (uname_arch[3] != 0))
-        {
-            if ((uname_arch[4] == '6') && (uname_arch[5] == '4') &&
-                (uname_arch[6] == 0))
-            {
-                machine_spec = sx_join (str_smachinec, str_x64, sx_nil);
-            }
-            else if ((uname_arch[4] == '3') && (uname_arch[5] == '2') &&
-                     (uname_arch[6] == 0))
-            {
-                machine_spec = sx_join (str_smachinec, str_x86, sx_nil);
-            }
-        }
-
-        if (nilp (machine_spec))
-        {
-            machine_spec =
-                sx_join (str_smachinec, make_string (uname_arch), sx_nil);
-        }
-    }
-        
+ 
     if (stringp (i_destdir))
     {
-        switch (uname_toolchain)
+        switch (i_fsl)
         {
-            case tc_msvc:
-                switch (i_fsl)
-                {
-                    case fs_fhs:
-                    case fs_fhs_binlib:
-                        sx = cons (sx_join (str_sLIBPATHc, i_destdir,
-                                            str_bslib), sx);
-                        break;
-                    case fs_afsl:
-                        sx = cons (sx_join (str_sLIBPATHc, i_destdir,
-                               sx_join (str_backslash, make_string (uname_os),
-                                 sx_join (str_backslash, make_string(uname_arch),
-                                   str_bslib))), sx);
-                        break;
-                }
+            case fs_fhs:
+            case fs_fhs_binlib:
+                sx = cons (sx_join (str_dL, i_destdir, str_slib), sx);
                 break;
-            default:
-                switch (i_fsl)
-                {
-                    case fs_fhs:
-                    case fs_fhs_binlib:
-                        sx = cons (sx_join (str_dL, i_destdir, str_slib), sx);
-                        break;
-                    case fs_afsl:
-                        sx = cons (sx_join (str_dL, i_destdir,
-                              sx_join (str_slash, make_string (uname_os),
-                                sx_join (str_slash, make_string (uname_arch),
-                                  str_slib))), sx);
-                        break;
-                }
+            case fs_afsl:
+                sx = cons (sx_join (str_dL, i_destdir,
+                           sx_join (str_slash, make_string (uname_os),
+                           sx_join (str_slash, make_string (uname_arch),
+                           str_slib))), sx);
                 break;
         }
     }
@@ -185,11 +132,6 @@ static sexpr get_special_linker_options (struct icemake *im, sexpr sx)
     if (i_os == os_darwin)
     {
         sx = cons (str_multiply_defined, cons (str_warning, sx));
-    }
-
-    if (!nilp (machine_spec))
-    {
-        sx = cons (machine_spec, sx);
     }
 
     return prepend_flags_from_environment (sx, "LDFLAGS");
@@ -258,9 +200,6 @@ static sexpr collect_library_link_flags (sexpr sx, struct target *t)
                 sx = cons (sx_join (str_lib, libname, str_dot_lib), sx);
                 mangle_path_borland (buffer);
                 break;
-            case tc_msvc:
-                sx = cons (sx_join (str_lib, libname, str_dot_lib), sx);
-                break;
         }
 
         cur = cdr (cur);
@@ -311,26 +250,6 @@ static void link_programme_borland_filename
 
     t->icemake->workstack = sx_set_add (t->icemake->workstack,
                       cons (p_linker, sx));
-}
-
-static void link_programme_msvc_filename
-    (sexpr ofile, sexpr name, sexpr code, struct target *t)
-{
-    int i;
-    sexpr sx = get_special_linker_options (t->icemake, sx_end_of_list);
-
-    for (i = 0; (i < 6) && (uname_arch[i] == "x86-64"[i]); i++);
-
-    sx = cons (((i == 6) ? str_sINCLUDEcmain : str_sINCLUDEcumain), sx);
-
-    sx = collect_library_link_flags (sx, t);
-
-    sx = cons (str_snologo,
-               cons (sx_join (str_soutc, ofile, sx_nil),
-                     collect_code (sx, code)));
-
-    t->icemake->workstack = sx_set_add (t->icemake->workstack,
-                       cons (p_linker, sx));
 }
 
 static void write_curie_sx (sexpr name, struct target *t)
@@ -547,91 +466,6 @@ static void link_library_borland_dynamic
                                     cons (str_do, cons (b, sx)))))));
 }
 
-static void link_library_msvc (sexpr name, sexpr code, struct target *t)
-{
-    sexpr sx = sx_end_of_list,
-          b = sx_join (str_soutc,
-                       get_build_file (t, sx_join (str_lib, name, str_dot_lib)),
-                       sx_nil);
-
-    write_curie_sx (name, t);
-
-    sx = collect_code (sx, code);
-
-    t->icemake->workstack = sx_set_add (t->icemake->workstack,
-                       cons (p_archiver, cons (str_snologo, cons (b, sx))));
-}
-
-static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
-{
-    sexpr sx = get_special_linker_options (t->icemake, sx_end_of_list), cur,
-          sxx = sx_end_of_list, b, bi;
-
-    if (falsep (t->deffile))
-    {
-        link_library_msvc (name, code, t);
-        return;
-    }
-
-    write_curie_sx (name, t);
-
-    b = get_build_file (t, sx_join (str_lib, name,
-                             sx_join (str_dot, t->dversion, str_dot_dll)));
-
-    /* just collect_code(), because msvc doesn't use extra PIC objects */
-    sx = collect_code (sx, code);
-
-    cur = t->olibraries;
-
-    while (consp (cur))
-    {
-        sexpr libname = car (cur);
-
-        sx = cons (sx_join (str_lib, libname, str_dot_lib), sx);
-
-        cur = cdr (cur);
-    }
-
-    while (consp (sx))
-    {
-/*        sxx = cons (str_plus, cons (car (sx), sxx));*/
-        sxx = cons (car (sx), sxx);
-        sx = cdr (sx);
-    }
-
-    bi = sx_join (str_simplibc,
-                  get_build_file (t, sx_join (str_lib, name, str_dot_lib)),
-                  sx_nil);
-
-    sxx = cons (sx_join (str_sdefc, t->deffile, sx_nil), sxx);
-
-    t->icemake->workstack = sx_set_add (t->icemake->workstack,
-                    cons (p_linker,
-                          cons (str_snologo,
-                            cons (str_sdll,
-                              cons (bi,
-                                cons (sx_join (str_soutc, b, sx_nil), sxx))))));
-
-    if (truep(do_tests))
-    {
-        sexpr s = t->test_cases;
-
-        while (consp (s))
-        {
-            sexpr s1 = car(s);
-            sexpr s2 = cdr(cdr(s1));
-            sexpr s3 = car(s2);
-            sexpr s4 = car(cdr(s2));
-            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3,
-                                  sx_end_of_list))), sx_end_of_list);
-
-            link_programme_msvc_filename (s4, name, s5, t);
-
-            s = cdr (s);
-        }
-    }
-}
-
 static int do_link_target(struct target *t)
 {
     if (t->icemake->toolchain->link != (int (*)(struct target *))0)
@@ -647,25 +481,16 @@ static int do_link_target(struct target *t)
         case tc_borland:
             link_test_cases (t->name, t->code, t,
                              link_programme_borland_filename); break;
-        case tc_msvc:
-            link_test_cases (t->name, t->code, t,
-                             link_programme_msvc_filename);    break;
     }
 
     if (t->options & ICEMAKE_LIBRARY)
     {
-        if ((uname_toolchain != tc_msvc) || falsep(i_dynamic_libraries) ||
-            (t->options & ICEMAKE_NO_SHARED_LIBRARY))
+        switch (uname_toolchain)
         {
-            switch (uname_toolchain)
-            {
-                case tc_gcc:
-                    link_library_gcc     (t->name, t->code, t); break;
-                case tc_borland:
-                    link_library_borland (t->name, t->code, t); break;
-                case tc_msvc:
-                    link_library_msvc    (t->name, t->code, t); break;
-            }
+            case tc_gcc:
+                link_library_gcc     (t->name, t->code, t); break;
+            case tc_borland:
+                link_library_borland (t->name, t->code, t); break;
         }
 
         if (truep(i_dynamic_libraries) &&
@@ -682,8 +507,6 @@ static int do_link_target(struct target *t)
                     break;
                 case tc_borland:
                     link_library_borland_dynamic (t->name, t->code, t); break;
-                case tc_msvc:
-                    link_library_msvc_dynamic    (t->name, t->code, t); break;
             }
         }
     }
@@ -699,8 +522,6 @@ static int do_link_target(struct target *t)
                 link_programme_gcc_filename     (b, t->name, t->code, t); break;
             case tc_borland:
                 link_programme_borland_filename (b, t->name, t->code, t); break;
-            case tc_msvc:
-                link_programme_msvc_filename    (b, t->name, t->code, t); break;
         }
     }
 

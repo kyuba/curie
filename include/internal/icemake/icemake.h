@@ -253,6 +253,7 @@ struct icemake
 
     sexpr buildtargets;
 
+    /*! \brief S-Expression Standard I/O Port */
     struct sexpr_io *stdio;
 
     /*! \brief Build Targets
@@ -318,6 +319,8 @@ struct target {
     /*!\brief Base Path for Build Data */
     sexpr buildbase;
     /*!\brief Toolchain Descriptor */
+    struct toolchain_descriptor *toolchain;
+    /*!\brief Icemake Handle */
     struct icemake *icemake;
 };
 
@@ -973,6 +976,10 @@ int icemake_prepare
 
 int icemake
     (struct icemake *im);
+
+/*! \todo remove these functions from the global scope */
+sexpr icemake_permutate_paths (sexpr p);
+sexpr icemake_which (char *programme);
 
 #endif
 

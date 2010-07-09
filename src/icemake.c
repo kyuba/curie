@@ -884,7 +884,8 @@ static sexpr find_data (struct target *context, sexpr file)
     return r;
 }
 
-static struct target *get_context (struct icemake *im)
+static struct target *get_context
+    (struct icemake *im, struct toolchain_descriptor *td)
 {
     static struct memory_pool pool
         = MEMORY_POOL_INITIALISER (sizeof(struct target));
@@ -905,6 +906,7 @@ static struct target *get_context (struct icemake *im)
     context->documentation    = sx_end_of_list;
     context->buildnumber      = make_integer (0);
     context->options          = 0;
+    context->toolchain        = td;
     context->icemake          = im;
 
     if (i_os == os_windows)
@@ -1161,9 +1163,10 @@ static void process_definition (struct target *context, sexpr definition)
     }
 }
 
-static struct target *create_library (struct icemake *im, sexpr definition)
+static struct target *create_library
+    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
 {
-    struct target *context = get_context(im);
+    struct target *context = get_context (im, td);
 
     context->name = car(definition);
 
@@ -1180,9 +1183,10 @@ static struct target *create_library (struct icemake *im, sexpr definition)
     return context;
 }
 
-static struct target *create_programme (struct icemake *im, sexpr definition)
+static struct target *create_programme
+    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
 {
-    struct target *context = get_context(im);
+    struct target *context = get_context (im, td);
 
     context->name = car(definition);
 
@@ -1193,9 +1197,10 @@ static struct target *create_programme (struct icemake *im, sexpr definition)
     return context;
 }
 
-static struct target *create_documentation (struct icemake *im,sexpr definition)
+static struct target *create_documentation
+    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
 {
-    struct target *context = get_context(im);
+    struct target *context = get_context (im, td);
 
     context->name = car(definition);
 
@@ -1413,6 +1418,11 @@ static sexpr xwhich (char *programme)
     return sx_false;
 }
 
+sexpr icemake_which (char *programme)
+{
+    return xwhich (programme);
+}
+
 static void initialise_toolchain_gcc()
 {
     p_c_compiler = xwhich ("gcc");
@@ -1466,42 +1476,6 @@ static void initialise_toolchain_borland()
     if (falsep(p_archiver))
     {
         on_error (ie_missing_tool, "tlib");
-    }
-
-    p_diff = xwhich ("diff");
-    if (falsep(p_diff))
-    {
-        on_warning (ie_missing_tool, "diff");
-    }
-}
-
-static void initialise_toolchain_msvc()
-{
-    p_c_compiler = xwhich ("cl");
-    if (falsep(p_c_compiler))
-    {
-        on_error (ie_missing_tool, "cl");
-    }
-
-    p_resource_compiler = xwhich ("rc");
-    if (falsep(p_resource_compiler))
-    {
-        on_error (ie_missing_tool, "rc");
-    }
-
-    p_linker = xwhich ("link");
-    if (falsep(p_linker))
-    {
-        on_error (ie_missing_tool, "link");
-    }
-
-    p_assembler = p_c_compiler;
-    p_cpp_compiler = p_c_compiler;
-
-    p_archiver = xwhich ("lib");
-    if (falsep(p_archiver))
-    {
-        on_error (ie_missing_tool, "lib");
     }
 
     p_diff = xwhich ("diff");
@@ -2066,7 +2040,6 @@ int icemake_prepare_toolchain
     {
         case tc_gcc:     initialise_toolchain_gcc();     break;
         case tc_borland: initialise_toolchain_borland(); break;
-        case tc_msvc:    initialise_toolchain_msvc();    break;
     }
 
     initialise_toolchain_tex ();
@@ -2162,15 +2135,15 @@ int icemake_prepare
 
             if (truep(equalp(sxcar, sym_library)))
             {
-                t = create_library (im, cdr (r));
+                t = create_library (im, td, cdr (r));
             }
             else if (truep(equalp(sxcar, sym_programme)))
             {
-                t = create_programme (im, cdr (r));
+                t = create_programme (im, td, cdr (r));
             }
             else if (truep(equalp(sxcar, sym_documentation)))
             {
-                t = create_documentation (im, cdr (r));
+                t = create_documentation (im, td, cdr (r));
             }
         }
 

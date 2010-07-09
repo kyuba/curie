@@ -80,7 +80,7 @@ static sexpr permutate_paths_os (sexpr p, sexpr lis)
     return lis;
 }
 
-static sexpr permutate_paths (sexpr p)
+sexpr icemake_permutate_paths (sexpr p)
 {
     sexpr lis = sx_end_of_list;
 
@@ -93,7 +93,7 @@ static sexpr permutate_paths (sexpr p)
 
 static sexpr prepend_includes_common (struct target *t, sexpr x)
 {
-    sexpr include_paths = permutate_paths (str_include);
+    sexpr include_paths = icemake_permutate_paths (str_include);
     sexpr cur = include_paths;
 
     if (stringp (i_destdir))
@@ -173,39 +173,6 @@ static sexpr prepend_cflags_borland (sexpr x)
 }
 
 static sexpr prepend_cxxflags_borland (sexpr x)
-{
-    return prepend_flags_from_environment (x, "CXXFLAGS");
-}
-
-static sexpr prepend_includes_msvc (struct target *t, sexpr x)
-{
-    sexpr include_paths = permutate_paths (str_include);
-    sexpr cur = include_paths;
-
-    if (stringp (i_destdir))
-    {
-        x = cons (sx_join (str_sI,
-                           get_install_file (t, str_include), sx_nil), x);
-    }
-
-    while (consp (cur))
-    {
-        sexpr sxcar = car(cur);
-
-        x = cons (sx_join (str_sI, sxcar, sx_nil), x);
-
-        cur = cdr (cur);
-    }
-
-    return cons (sx_join (str_sIbuilds, architecture, str_sinclude), x);
-}
-
-static sexpr prepend_cflags_msvc (sexpr x)
-{
-    return prepend_flags_from_environment (x, "CFLAGS");
-}
-
-static sexpr prepend_cxxflags_msvc (sexpr x)
 {
     return prepend_flags_from_environment (x, "CXXFLAGS");
 }
@@ -510,68 +477,6 @@ static void build_object_borland
     }
 }
 
-static void build_object_msvc_generic
-    (const char *source, const char *target, struct target *t)
-{
-    sexpr b = sx_join (str_sFo, make_string (target), sx_nil);
-
-    t->icemake->workstack =
-        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
-                      cons (str_sc,
-                      cons (str_snologo,
-                      cons (str_sTC,
-                        prepend_cflags_msvc (
-                        prepend_includes_msvc (t,
-                          cons (make_string (source),
-                              cons (b, sx_end_of_list)))))))));
-}
-
-static void build_object_msvc_cpp
-    (const char *source, const char *target, struct target *t)
-{
-    sexpr b = sx_join (str_sFo, make_string (target), sx_nil);
-
-    t->icemake->workstack =
-        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
-                      cons (str_sc,
-                      cons (str_snologo,
-                      cons (str_sTP,
-                      cons (str_sEHsc,
-                        prepend_cxxflags_msvc (
-                        prepend_includes_msvc (t,
-                          cons (make_string (source),
-                              cons (b, sx_end_of_list))))))))));
-}
-
-static void build_object_msvc_resource
-    (const char *source, const char *target, struct target *t)
-{
-    sexpr b = sx_join (str_sfo, make_string (target), sx_nil);
-
-    t->icemake->workstack =
-        sx_set_add (t->icemake->workstack, cons (p_resource_compiler,
-                      cons (b, cons (make_string(source), sx_end_of_list))));
-}
-
-static void build_object_msvc
-    (sexpr type, sexpr source, sexpr target, struct target *t)
-{
-    if (truep(equalp(type, sym_link))) return;
-
-    if (truep(equalp(type, sym_resource)))
-    {
-        build_object_msvc_resource (sx_string(source), sx_string(target), t);
-    }
-    else if (truep(equalp(type, sym_cpp)))
-    {
-        build_object_msvc_cpp (sx_string(source), sx_string(target), t);
-    }
-    else
-    {
-        build_object_msvc_generic (sx_string(source), sx_string(target), t);
-    }
-}
-
 static void build_object(sexpr desc, struct target *t)
 {
     sexpr type = car(desc);
@@ -584,8 +489,6 @@ static void build_object(sexpr desc, struct target *t)
             build_object_gcc     (type, source, target, t); break;
         case tc_borland:
             build_object_borland (type, source, target, t); break;
-        case tc_msvc:
-            build_object_msvc    (type, source, target, t); break;
     }
 }
 
@@ -671,14 +574,14 @@ static int do_build_target (struct target *t)
 {
     sexpr c = t->code;
 
+    create_special_files (t);
+
+    t->buildnumber = make_integer (sx_integer (t->buildnumber) + 1);
+
     if (t->icemake->toolchain->build != (int (*)(struct target *))0)
     {
         return t->icemake->toolchain->build (t);
     }
-
-    t->buildnumber = make_integer (sx_integer (t->buildnumber) + 1);
-
-    create_special_files (t);
 
     while (consp (c))
     {
