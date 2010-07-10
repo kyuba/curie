@@ -103,8 +103,9 @@ int icemake_build_documentation (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
 
-    sx_write (stdio, cons (sym_phase, cons (sym_build_documentation,
-                           sx_end_of_list)));
+    im->workstack =
+        cons (cons (sym_phase, cons (sym_build_documentation, sx_end_of_list)),
+              im->workstack);
 
     while (consp(cursor))
     {
@@ -122,6 +123,10 @@ int icemake_build_documentation (struct icemake *im)
     }
 
     build_documentation_doxygen (im);
+    
+    im->workstack =
+        cons (cons (sym_phase, cons (sym_completed, sx_end_of_list)),
+              im->workstack);
 
-    return icemake_loop_processes (im);
+    return 0;
 }

@@ -28,6 +28,9 @@
 
 #include <icemake/icemake.h>
 
+#include <curie/multiplex.h>
+#include <curie/filesystem.h>
+
 static sexpr collect_code (sexpr sx, sexpr code)
 {
     while (consp (code))
@@ -218,7 +221,6 @@ static void map_includes (struct tree_node *node, void *psx)
 
 static sexpr get_special_linker_options (struct icemake *im, sexpr sx)
 {
-    define_string (str_warning,          "warning");
     define_string (str_smachinec,        "/machine:");
     define_string (str_x86,              "x86");
     define_string (str_x64,              "x64");
@@ -420,7 +422,7 @@ static void link_test_cases
     }
 }
 
-static int link    (struct target *t)
+static int do_link (struct target *t)
 {
     if (t->options & ICEMAKE_LIBRARY)
     {
@@ -608,7 +610,7 @@ int icemake_prepare_toolchain_msvc (struct toolchain_descriptor *td)
     td->meta_toolchain.msvc.lib  = icemake_which ("lib");
 
     td->build   = build;
-    td->link    = link;
+    td->link    = do_link;
     td->install = install;
     td->test    = test;
 

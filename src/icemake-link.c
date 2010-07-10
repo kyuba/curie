@@ -531,7 +531,10 @@ static int do_link_target(struct target *t)
 int icemake_link (struct icemake *im)
 {
     sexpr cursor = im->buildtargets;
-    sx_write (stdio, cons (sym_phase, cons (sym_link, sx_end_of_list)));
+
+    im->workstack =
+        cons (cons (sym_phase, cons (sym_link, sx_end_of_list)),
+              im->workstack);
 
     while (consp(cursor))
     {
@@ -547,6 +550,10 @@ int icemake_link (struct icemake *im)
 
         cursor = cdr(cursor);
     }
+    
+    im->workstack =
+        cons (cons (sym_phase, cons (sym_completed, sx_end_of_list)),
+              im->workstack);
 
-    return icemake_loop_processes (im);
+    return 0;
 }

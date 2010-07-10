@@ -405,8 +405,10 @@ int icemake_install (struct icemake *im)
     {
         return 0;
     }
-    
-    sx_write (stdio, cons (sym_phase, cons (sym_install, sx_end_of_list)));
+
+    im->workstack =
+        cons (cons (sym_phase, cons (sym_install, sx_end_of_list)),
+              im->workstack);
 
     while (consp(cursor))
     {
@@ -423,5 +425,9 @@ int icemake_install (struct icemake *im)
         cursor = cdr(cursor);
     }
 
-    return icemake_loop_processes (im);
+    im->workstack =
+        cons (cons (sym_phase, cons (sym_completed, sx_end_of_list)),
+              im->workstack);
+
+    return 0;
 }

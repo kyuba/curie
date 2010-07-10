@@ -335,19 +335,19 @@ struct target {
  *
  *  As reported by uname(), or through the -t flag.
  */
-extern char uname_os     [UNAMELENGTH];
+extern const char *uname_os;
 
 /*! \brief Effective Operating System Architecture
  *
  *  As reported by uname(), or through the -t flag.
  */
-extern char uname_arch   [UNAMELENGTH];
+extern const char *uname_arch;
 
 /*! \brief Effective Operating System Vendor Name
  *
  *  As reported by uname(), or through the -t flag.
  */
-extern char uname_vendor [UNAMELENGTH];
+extern const char *uname_vendor;
 
 /*! \brief Effective Toolchain Code
  *
@@ -381,6 +381,12 @@ extern enum instruction_set i_is;
 extern const char *archprefix;
 
 /*! \brief Effective Architecture Descriptor (S-expression)
+ *
+ *  Derived from the effective OS, architecture, vendor and toolchain.
+ */
+extern sexpr architecture_org;
+
+/*! \brief Effective Architecture Descriptor (Generated, S-expression)
  *
  *  Derived from the effective OS, architecture, vendor and toolchain.
  */
@@ -927,13 +933,6 @@ int icemake_build_documentation (struct icemake *);
  *  the programmes fail, icemake terminates.
  */
 int icemake_loop_processes ( struct icemake *im );
-
-/*! \brief Count Workstack Items
- *
- *  This function will count the number of workstack items and print them to
- *  stdio as "(items-total X)", if there's more than one item.
- */
-int icemake_count_print_items ( struct icemake *im );
 
 /*! \brief Path Name Mangling (Borland)
  *  \return b;

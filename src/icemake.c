@@ -51,9 +51,9 @@
 #include <icemake/version.h>
 #endif
 
-char uname_os     [UNAMELENGTH]        = "generic";
-char uname_arch   [UNAMELENGTH]        = "generic";
-char uname_vendor [UNAMELENGTH]        = "unknown";
+const char *uname_os     = "generic";
+const char *uname_arch   = "generic";
+const char *uname_vendor = "unknown";
 
 enum toolchain uname_toolchain;
 enum fs_layout i_fsl                   = fs_afsl;
@@ -93,6 +93,7 @@ sexpr p_pdflatex                       = sx_false;
 sexpr p_doxygen                        = sx_false;
 
 sexpr architecture                     = sx_false;
+sexpr architecture_org                 = sx_false;
 
 static sexpr i_alternatives            = sx_end_of_list;
 
@@ -1483,13 +1484,13 @@ static sexpr xwhich (char *programme)
     sexpr w, p = make_string (programme);
 
     if ((tcversion != (char *)0) &&
-          ((w = which (sx_join (architecture, str_dash,
+          ((w = which (sx_join (architecture_org, str_dash,
                          sx_join (p, str_dash, make_string (tcversion))))),
            stringp(w)))
     {
         return w;
     }
-    else if ((w = which (sx_join (architecture, str_dash, p))), stringp(w))
+    else if ((w = which (sx_join (architecture_org, str_dash, p))), stringp(w))
     {
         return w;
     }
@@ -1753,8 +1754,14 @@ static void spawn_stack_items (struct icemake *im, int *fl)
         sexpr spec = car (im->workstack);
         sexpr sca  = car (spec);
 
-        if (truep (equalp (sym_install, sca)) ||
-            truep (equalp (sym_symlink, sca)))
+        if (truep (equalp (sym_phase, sca)) ||
+            truep (equalp (sym_completed, sca)) ||
+            truep (equalp (sym_targets, sca)))
+        {
+            sx_write (stdio, spec);
+        }
+        else if (truep (equalp (sym_install, sca)) ||
+                 truep (equalp (sym_symlink, sca)))
         {
             if (im->toolchain->install_file !=
                     (int (*)(struct icemake *, sexpr))0)
@@ -1877,7 +1884,7 @@ static void initialise_libcurie()
     }
 }
 
-int icemake_count_print_items (struct icemake *im )
+static int icemake_count_print_items (struct icemake *im )
 {
     int count = 0;
     sexpr cur;
@@ -1897,6 +1904,8 @@ int icemake_loop_processes (struct icemake *im)
 {
     int failures = 0;
 
+/*    im->workstack = sx_reverse (im->workstack); */
+
     icemake_count_print_items (im);
 
     spawn_stack_items (im, &failures);
@@ -1906,8 +1915,6 @@ int icemake_loop_processes (struct icemake *im)
         multiplex();
         spawn_stack_items (im, &failures);
     }
-
-    sx_write (stdio, cons (sym_phase, cons (sym_completed, sx_end_of_list)));
 
     return failures;
 }
@@ -1980,6 +1987,10 @@ int icemake_default_architecture
     struct utsname un;
 #endif
 
+    char ar_t[UNAMELENGTH];
+    char os_t[UNAMELENGTH];
+    char ve_t[UNAMELENGTH];
+
     if (!falsep(which(str_cl)))
     {
         uname_toolchain = tc_msvc;
@@ -1996,28 +2007,18 @@ int icemake_default_architecture
 #if !defined(_WIN32)
     if (uname (&un) >= 0)
     {
-        write_uname_element(un.sysname, uname_os,   UNAMELENGTH - 1);
-        if ((un.machine[0] == 'i') &&
-            ((un.machine[1] == '3') || (un.machine[1] == '4') ||
-            (un.machine[1] == '5') || (un.machine[1] == '6')) &&
-            (un.machine[2] == '8') && (un.machine[3] == '6'))
-        {
-            write_uname_element("x86-32", uname_arch, UNAMELENGTH - 1);
-        }
-        else
-        {
-            write_uname_element(un.machine, uname_arch, UNAMELENGTH - 1);
-        }
+        write_uname_element(un.sysname, os_t, UNAMELENGTH - 1);
+        write_uname_element(un.machine, ar_t, UNAMELENGTH - 1);
     }
 #else
 
-    write_uname_element ("windows", uname_os, UNAMELENGTH-1);
-    write_uname_element ("microsoft", uname_vendor, UNAMELENGTH-1);
+    write_uname_element ("windows",   os_t, UNAMELENGTH-1);
+    write_uname_element ("microsoft", ve_t, UNAMELENGTH-1);
 
 #if defined(__ia64__) || defined(__ia64) || defined(_M_IA64) || defined(_M_X64)
-    write_uname_element ("x86-64", uname_arch, UNAMELENGTH-1);
+    write_uname_element ("x86-64", ar_t, UNAMELENGTH-1);
 #elif defined(i386) || defined(__i386__) || defined(_X86_) || defined(_M_IX86) || defined(__INTEL__)
-    write_uname_element ("x86-32", uname_arch, UNAMELENGTH-1);
+    write_uname_element ("x86-32", ar_t, UNAMELENGTH-1);
 #endif
 #endif
 
@@ -2028,9 +2029,9 @@ int icemake_default_architecture
         case tc_msvc:    toolchain = "msvc";    break;
     }
 
-    architecture = lowercase (sx_join (make_string (uname_arch), str_dash,
-                              sx_join (make_string (uname_vendor), str_dash,
-                              sx_join (make_string (uname_os), str_dash,
+    architecture = lowercase (sx_join (make_string (ar_t), str_dash,
+                              sx_join (make_string (ve_t), str_dash,
+                              sx_join (make_string (os_t), str_dash,
                                        make_string (toolchain)))));
 
     archprefix = (char *)sx_string (architecture);
@@ -2045,80 +2046,78 @@ int icemake_prepare_toolchain
     struct toolchain_descriptor td =
         { tc_generic, os_generic, is_generic };
 
-    int j = 0;
+    int p;
+    const char *tc;
 
-    archprefix = name;
+    archprefix       = name;
+    architecture_org = make_string (name);
 
-    for (j = 0; name[j] != 0; j++)
+
+    for (p = 0; toolchain_pattern[p].pattern != (const char *)0; p++)
     {
-        if (name[j] == '-')
+        sexpr rx = rx_compile (toolchain_pattern[p].pattern);
+
+        if (truep (rx_match (rx, name)))
         {
-            write_uname_element(name, uname_arch, j);
-            j++;
+            if (toolchain_pattern[p].toolchain != tc_unknown)
+            {
+                uname_toolchain = toolchain_pattern[p].toolchain;
+            }
 
-            break;
+            if (toolchain_pattern[p].operating_system != os_unknown)
+            {
+                i_os = toolchain_pattern[p].operating_system;
+            }
+
+            if (toolchain_pattern[p].instruction_set != is_unknown)
+            {
+                i_is = toolchain_pattern[p].instruction_set;
+            }
+
+            if (toolchain_pattern[p].uname_os != (const char *)0)
+            {
+                uname_os = toolchain_pattern[p].uname_os;
+            }
+
+            if (toolchain_pattern[p].uname_arch != (const char *)0)
+            {
+                uname_arch = toolchain_pattern[p].uname_arch;
+            }
+
+            if (toolchain_pattern[p].uname_vendor != (const char *)0)
+            {
+                uname_vendor = toolchain_pattern[p].uname_vendor;
+            }
+
+            if (toolchain_pattern[p].instruction_set_options != 0)
+            {
+                td.instruction_set_options
+                    |= toolchain_pattern[p].instruction_set_options;
+            }
+
+            if (toolchain_pattern[p].instruction_set_level != 0)
+            {
+                td.instruction_set_level
+                    += toolchain_pattern[p].instruction_set_level;
+            }
         }
-    }
-
-    name += j;
-    for (j = 0; name[j] != 0; j++)
-    {
-        if (name[j] == '-')
-        {
-            write_uname_element(name, uname_vendor, j);
-            j++;
-
-            break;
-        }
-    }
-
-    name += j;
-    for (j = 0; name[j] != 0; j++)
-    {
-        if (name[j] == '-')
-        {
-            write_uname_element(name, uname_os, j);
-            j++;
-
-            break;
-        }
-    }
-
-    name += j;
-
-    if ((name[0] == 'g') && (name[1] == 'n') && (name[2] == 'u') &&
-        (name[3] == 0))
-    {
-        uname_toolchain = tc_gcc;
-    }
-    else if ((name[0] == 'b') && (name[1] == 'o') && (name[2] == 'r') &&
-             (name[3] == 'l') && (name[4] == 'a') && (name[5] == 'n') &&
-             (name[6] == 'd') && (name[7] == 0))
-    {
-        uname_toolchain = tc_borland;
-    }
-    else if ((name[0] == 'm') && (name[1] == 's') && (name[2] == 'v') &&
-             (name[3] == 'c') && (name[4] == 0))
-    {
-        uname_toolchain = tc_msvc;
-    }
-    else if ((name[0] == 'l') && (name[1] == 'a') && (name[2] == 't') &&
-             (name[3] == 'e') && (name[4] == 'x') && (name[5] == 0))
-    {
-        uname_toolchain = tc_msvc;
-    }
-    else if ((name[0] == 'd') && (name[1] == 'o') && (name[2] == 'x') &&
-             (name[3] == 'y') && (name[4] == 'g') && (name[5] == 'e') &&
-             (name[6] == 'n') && (name[7] == 0))
-    {
-        uname_toolchain = tc_doxygen;
-    }
-    else
-    {
-        uname_toolchain = tc_gcc;
     }
     
-    architecture = make_string (archprefix);
+
+    switch (uname_toolchain)
+    {
+        case tc_gcc:     tc = "gcc";   break;
+        case tc_borland: tc = "borland";   break;
+        case tc_msvc:    tc = "msvc";   break;
+        case tc_latex:   tc = "latex";   break;
+        case tc_doxygen: tc = "doxygen"; break;
+        default:         tc = "generic"; break;
+    }
+    
+    architecture =
+        sx_join (make_string (uname_arch), str_dash,
+        sx_join (make_string (uname_vendor), str_dash,
+        sx_join (make_string (uname_os), str_dash, make_string (tc))));
 
     switch (uname_toolchain)
     {
@@ -2128,37 +2127,6 @@ int icemake_prepare_toolchain
 
     initialise_toolchain_tex ();
     initialise_toolchain_doxygen ();
-
-    if ((uname_os[0] == 'd') && (uname_os[1] == 'a') && (uname_os[2] == 'r') &&
-        (uname_os[3] == 'r') && (uname_os[4] == 'w') && (uname_os[5] == 'i') &&
-        (uname_os[6] == 'n') && (uname_os[7] == 0))
-    {
-        i_os = os_darwin;
-    }
-    else if ((uname_os[0] == 'l') && (uname_os[1] == 'i') && (uname_os[2] == 'n') &&
-             (uname_os[3] == 'u') && (uname_os[4] == 'x') && (uname_os[5] == 0))
-    {
-        i_os = os_linux;
-    }
-    else if ((uname_os[0] == 'w') && (uname_os[1] == 'i') && (uname_os[2] == 'n') &&
-             (uname_os[3] == 'd') && (uname_os[4] == 'o') && (uname_os[5] == 'w') &&
-             (uname_os[6] == 's') && (uname_os[7] == 0))
-    {
-        i_os = os_windows;
-    }
-    else
-    {
-        i_os = os_generic;
-    }
-
-    if ((uname_os[0] == 'a') && (uname_os[1] == 'r') && (uname_os[2] == 'm'))
-    {
-        i_is = is_arm;
-    }
-    else
-    {
-        i_is = is_generic;
-    }
 
     if (i_os == os_darwin)
     {
@@ -2264,31 +2232,39 @@ int icemake
         tree_map (&(im->targets), collect_targets, &(im->buildtargets));
     }
 
-    sx_write (stdio, cons (sym_targets, im->buildtargets));
+    im->workstack =cons (cons (sym_targets, im->buildtargets), im->workstack);
 
     failures += icemake_build (im);
+    failures += icemake_loop_processes (im);
     failures += icemake_link  (im);
+    failures += icemake_loop_processes (im);
 
     if (truep (do_build_documentation))
     {
         failures += icemake_build_documentation (im);
+        failures += icemake_loop_processes (im);
     }
 
     if (truep (do_tests))
     {
         failures += icemake_run_tests (im);
+        failures += icemake_loop_processes (im);
     }
 
     if (truep (do_install))
     {
         failures += icemake_install (im);
+        failures += icemake_loop_processes (im);
     }
 
     if (!eolp (im->buildtargets))
     {
-        sx_write
-            (stdio, cons (sym_completed, cons (sym_targets, im->buildtargets)));
+        im->workstack =
+            cons (cons (sym_completed, cons (sym_targets, im->buildtargets)),
+                  im->workstack);
     }
+
+    failures += icemake_loop_processes (im);
 
     save_metadata (im);
 
