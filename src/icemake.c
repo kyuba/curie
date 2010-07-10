@@ -130,6 +130,13 @@ struct toolchain_pattern
 
 static struct toolchain_pattern toolchain_pattern[] =
 {
+    { ".*-([Dd]arwin|[Ll]inux|.*[Bb][Ss][Dd]).*",
+        /* default to gcc on BSDs, Darwin and Linux */
+        tc_gcc,     os_unknown,      is_unknown,
+        0,              0,       0,
+        0, 0 },
+
+    /* toolchains */
     { ".*-(gcc|gnu)",
         tc_gcc,     os_unknown,      is_unknown,
         0,              0,       0,
@@ -151,6 +158,7 @@ static struct toolchain_pattern toolchain_pattern[] =
         0,              0,       0,
         0, 0 },
 
+    /* operating systems */
     { ".*-[Dd]arwin.*",
         tc_unknown, os_darwin,       is_unknown,
         "darwin",       0,       0,
@@ -179,7 +187,8 @@ static struct toolchain_pattern toolchain_pattern[] =
         tc_unknown, os_dragonflybsd, is_unknown,
         "dragonflybsd", 0,        0,
         0, 0 },
-    
+
+    /* CPU architectures */
     { "(x86[-/_]64|amd64)-.*",
         tc_unknown, os_unknown,       is_x86,
         0,              "x86-64", 0,
@@ -188,6 +197,14 @@ static struct toolchain_pattern toolchain_pattern[] =
         tc_unknown, os_unknown,       is_x86,
         0,              "x86-32", 0,
         IS_32_BIT, 0 },
+    { "([Pp]ower(pc| [Mm]acintosh)|ppc(-?32)?)-.*",
+        tc_unknown, os_unknown,       is_powerpc,
+        0,              "ppc-32", 0,
+        IS_32_BIT, 0 },
+    { "(p(ower)?pc-?64)-.*",
+        tc_unknown, os_unknown,       is_powerpc,
+        0,              "ppc-64", 0,
+        IS_64_BIT, 0 },
 
     { 0 } /* last pattern */
 };
@@ -2102,11 +2119,6 @@ int icemake_prepare_toolchain
                     = toolchain_pattern[p].instruction_set_level;
             }
         }
-    }
-
-    if (uname_toolchain == tc_generic)
-    {
-        uname_toolchain = tc_gcc;
     }
 
     switch (uname_toolchain)
