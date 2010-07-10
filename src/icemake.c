@@ -130,7 +130,7 @@ struct toolchain_pattern
 
 static struct toolchain_pattern toolchain_pattern[] =
 {
-    { ".*-gcc",
+    { ".*-(gcc|gnu)",
         tc_gcc,     os_unknown,      is_unknown,
         0,              0,       0,
         0, 0 },
@@ -151,31 +151,31 @@ static struct toolchain_pattern toolchain_pattern[] =
         0,              0,       0,
         0, 0 },
 
-    { ".*-darwin-.*",
+    { ".*-[Dd]arwin.*",
         tc_unknown, os_darwin,       is_unknown,
         "darwin",       0,       0,
         0, 0 },
-    { ".*-linux-.*",
+    { ".*-[Ll]inux.*",
         tc_unknown, os_linux,        is_unknown,
         "linux",        0,       0,
         0, 0 },
-    { ".*-windows-.*",
+    { ".*-[Ww]indows.*",
         tc_unknown, os_windows,      is_unknown,
         "windows",      0,       "microsoft",
         0, 0 },
-    { ".*-freebsd-.*",
+    { ".*-[Ff]ree[Bb][Ss][Dd].*",
         tc_unknown, os_freebsd,      is_unknown,
         "freebsd",      0,        0,
         0, 0 },
-    { ".*-netbsd-.*",
+    { ".*-[Nn]et[Bb][Ss][Dd].*",
         tc_unknown, os_netbsd,       is_unknown,
         "netbsd",       0,        0,
         0, 0 },
-    { ".*-openbsd-.*",
+    { ".*-[Oo]pen[Bb][Ss][Dd].*",
         tc_unknown, os_openbsd,      is_unknown,
         "openbsd",      0,        0,
         0, 0 },
-    { ".*-dragonflybsd-.*",
+    { ".*-[Dd]ragonfly[Bb][Ss][Dd].*",
         tc_unknown, os_dragonflybsd, is_unknown,
         "dragonflybsd", 0,        0,
         0, 0 },
@@ -2052,6 +2052,7 @@ int icemake_prepare_toolchain
     archprefix       = name;
     architecture_org = make_string (name);
 
+    uname_toolchain  = tc_generic;
 
     for (p = 0; toolchain_pattern[p].pattern != (const char *)0; p++)
     {
@@ -2098,17 +2099,21 @@ int icemake_prepare_toolchain
             if (toolchain_pattern[p].instruction_set_level != 0)
             {
                 td.instruction_set_level
-                    += toolchain_pattern[p].instruction_set_level;
+                    = toolchain_pattern[p].instruction_set_level;
             }
         }
     }
-    
+
+    if (uname_toolchain == tc_generic)
+    {
+        uname_toolchain = tc_gcc;
+    }
 
     switch (uname_toolchain)
     {
-        case tc_gcc:     tc = "gcc";   break;
-        case tc_borland: tc = "borland";   break;
-        case tc_msvc:    tc = "msvc";   break;
+        case tc_gcc:     tc = "gcc";     break;
+        case tc_borland: tc = "borland"; break;
+        case tc_msvc:    tc = "msvc";    break;
         case tc_latex:   tc = "latex";   break;
         case tc_doxygen: tc = "doxygen"; break;
         default:         tc = "generic"; break;
