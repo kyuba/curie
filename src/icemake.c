@@ -65,8 +65,6 @@ char *tcversion                        = (char *)0;
 
 static unsigned int max_processes      = 1;
 
-sexpr co_freestanding                  = sx_false;
-
 sexpr i_optimise_linking               = sx_false;
 sexpr i_combine                        = sx_false;
 sexpr i_static                         = sx_true;
@@ -1040,7 +1038,8 @@ static struct target *get_context
     return context;
 }
 
-static void process_definition (struct target *context, sexpr definition)
+static void process_definition
+    (struct icemake *im, struct target *context, sexpr definition)
 {
     sexpr sx;
     
@@ -1055,11 +1054,11 @@ static void process_definition (struct target *context, sexpr definition)
         {
             if (truep (equalp (r, sym_freestanding)))
             {
-                co_freestanding = sx_true;
+                im->options |= ICEMAKE_OPTION_FREESTANDING;
             }
             else if (truep (equalp (r, sym_hosted)))
             {
-                co_freestanding = sx_false;
+                im->options &= ~ICEMAKE_OPTION_FREESTANDING;
                     
                 if (i_os != os_windows)
                 {
@@ -1070,7 +1069,8 @@ static void process_definition (struct target *context, sexpr definition)
 
         sx_close_io (in);
 
-        if (nilp (in_dynamic_libraries) && truep(co_freestanding))
+        if (nilp (in_dynamic_libraries) &&
+            (im->options & ICEMAKE_OPTION_FREESTANDING))
         {
             i_dynamic_libraries = sx_true;
         }
@@ -1292,7 +1292,7 @@ static struct target *create_library
 
     context->options |= ICEMAKE_LIBRARY;
 
-    process_definition (context, cdr(definition));
+    process_definition (im, context, cdr(definition));
 
     if (falsep(equalp(str_curie, context->name)))
     {
@@ -1312,7 +1312,7 @@ static struct target *create_programme
 
     context->options |= ICEMAKE_PROGRAMME;
 
-    process_definition (context, cdr(definition));
+    process_definition (im, context, cdr(definition));
 
     return context;
 }
@@ -1324,7 +1324,7 @@ static struct target *create_documentation
 
     context->name = car(definition);
 
-    process_definition (context, cdr(definition));
+    process_definition (im, context, cdr(definition));
 
     return context;
 }
@@ -1822,7 +1822,7 @@ enum signal_callback_result cb_on_bad_signal(enum signal s, void *p)
     return scr_keep;
 }
 
-static sexpr initialise_libcurie_filename (sexpr f)
+static sexpr initialise_libcurie_filename (struct icemake *im, sexpr f)
 {
     struct sexpr_io *io;
     sexpr r;
@@ -1836,11 +1836,11 @@ static sexpr initialise_libcurie_filename (sexpr f)
     {
         if (truep(equalp(r, sym_freestanding)))
         {
-            co_freestanding = sx_true;
+            im->options |= ICEMAKE_OPTION_FREESTANDING;
         }
         else if (truep(equalp(r, sym_hosted)))
         {
-            co_freestanding = sx_false;
+            im->options &= ~ICEMAKE_OPTION_FREESTANDING;
 
             if (i_os != os_windows)
             {
@@ -1854,12 +1854,12 @@ static sexpr initialise_libcurie_filename (sexpr f)
     return sx_true;
 }
 
-static void initialise_libcurie()
+static void initialise_libcurie (struct icemake *im)
 {
     if (!falsep(i_destdir))
     {
         if (truep (initialise_libcurie_filename
-                       (sx_join (i_destdir, str_slash,
+                       (im, sx_join (i_destdir, str_slash,
                           sx_join (i_destlibdir, str_slibcuriedsx, sx_nil)))))
         {
             return;
@@ -1870,7 +1870,7 @@ static void initialise_libcurie()
             case fs_fhs:
             case fs_fhs_binlib:
                 if (truep (initialise_libcurie_filename
-                               (sx_join (i_destdir, str_susrs,
+                               (im, sx_join (i_destdir, str_susrs,
                                   sx_join (i_destlibdir, str_slibcuriedsx,
                                            sx_nil)))))
                 {
@@ -1879,7 +1879,7 @@ static void initialise_libcurie()
                 break;
             case fs_afsl:
                 if (truep (initialise_libcurie_filename
-                     (sx_join (i_destdir, str_slash,
+                     (im, sx_join (i_destdir, str_slash,
                         sx_join (make_string (uname_os), str_slash,
                           sx_join (make_string (uname_arch),
                             str_slibslibcuriedsx, sx_nil))))))
@@ -1890,7 +1890,7 @@ static void initialise_libcurie()
     }
 
     if (truep (initialise_libcurie_filename
-                   (sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
+                   (im, sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
     {
         return;
     }
@@ -1900,19 +1900,19 @@ static void initialise_libcurie()
         case fs_fhs:
         case fs_fhs_binlib:
             if (truep (initialise_libcurie_filename
-                 (sx_join (str_susrs, i_destlibdir, str_slibcuriedsx))))
+                 (im, sx_join (str_susrs, i_destlibdir, str_slibcuriedsx))))
             {
                 return;
             }
             if (truep (initialise_libcurie_filename
-                 (sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
+                 (im, sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
             {
                 return;
             }
             break;
         case fs_afsl:
             if (truep (initialise_libcurie_filename
-                 (sx_join (str_slash, make_string (uname_os),
+                 (im, sx_join (str_slash, make_string (uname_os),
                     sx_join (str_slash, make_string (uname_arch),
                         str_slibslibcuriedsx)))))
             {
@@ -2169,8 +2169,6 @@ int icemake_prepare_toolchain
         in_dynamic_libraries = sx_false;
     }
 
-    initialise_libcurie();
-
     switch (uname_toolchain)
     {
         case tc_generic: icemake_prepare_toolchain_generic (&td); break;
@@ -2196,7 +2194,7 @@ int icemake_prepare
 {
     struct icemake iml =
         { on_error, on_warning, sx_end_of_list, stdio, TREE_INITIALISER, td,
-          0, sx_end_of_list };
+          0, 0, sx_end_of_list };
     sexpr icemake_sx_path = make_string (path);
     struct sexpr_io *io;
     sexpr r;
@@ -2206,6 +2204,24 @@ int icemake_prepare
     if (im == (struct icemake *)0)
     {
         im = &iml;
+    }
+ 
+    initialise_libcurie (im);
+
+    if (nilp(in_dynamic_libraries))
+    {
+        if (i_os == os_windows)
+        {
+            i_dynamic_libraries = sx_true;
+        }
+        else if (!(im->options & ICEMAKE_OPTION_FREESTANDING))
+        {
+            i_dynamic_libraries = sx_false;
+        }
+    }
+    else
+    {
+        i_dynamic_libraries = in_dynamic_libraries;
     }
 
     icemake_sx_path = sx_join (icemake_sx_path, str_sicemakedsx, sx_nil);
@@ -2319,22 +2335,6 @@ static int with_icemake (struct icemake *im, void *aux)
 static int with_toolchain (struct toolchain_descriptor *td, void *aux)
 {
     struct icemake_meta *im = (struct icemake_meta *)aux;
-
-    if (nilp(in_dynamic_libraries))
-    {
-        if (i_os == os_windows)
-        {
-            i_dynamic_libraries = sx_true;
-        }
-        else if (falsep(co_freestanding))
-        {
-            i_dynamic_libraries = sx_false;
-        }
-    }
-    else
-    {
-        i_dynamic_libraries = in_dynamic_libraries;
-    }
 
     return icemake_prepare
         ((struct icemake *)0, ".", td, with_icemake, (void *)im);

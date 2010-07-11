@@ -119,9 +119,9 @@ static sexpr prepend_includes_gcc (struct target *t, sexpr x)
     return prepend_includes_common (t, x);
 }
 
-static sexpr prepend_ccflags_gcc (sexpr x)
+static sexpr prepend_ccflags_gcc (struct icemake *im, sexpr x)
 {
-    if (truep(co_freestanding))
+    if (im->options & ICEMAKE_OPTION_FREESTANDING)
     {
         switch (i_os)
         {
@@ -136,18 +136,18 @@ static sexpr prepend_ccflags_gcc (sexpr x)
     return x;
 }
 
-static sexpr prepend_cflags_gcc (sexpr x)
+static sexpr prepend_cflags_gcc (struct icemake *im, sexpr x)
 {
     define_string (str_ffreestanding, "-ffreestanding");
 
     x = prepend_flags_from_environment (x, "CFLAGS");
 
-    if (truep (co_freestanding))
+    if (im->options & ICEMAKE_OPTION_FREESTANDING)
     {
         x = cons (str_ffreestanding, x);
     }
 
-    return prepend_ccflags_gcc(x);
+    return prepend_ccflags_gcc(im, x);
 }
 
 static sexpr prepend_cxxflags_gcc (struct target *t, sexpr x)
@@ -159,7 +159,7 @@ static sexpr prepend_cxxflags_gcc (struct target *t, sexpr x)
 
     x = cons (str_dfno_rtti, cons (str_dfno_exceptions, x));
 
-    return prepend_ccflags_gcc(x);
+    return prepend_ccflags_gcc(t->icemake, x);
 }
 
 static sexpr prepend_includes_borland (struct target *t, sexpr x)
@@ -208,7 +208,7 @@ static void build_object_gcc_c
                   cons (str_stdc99,
                     cons (str_wall,
                       cons (str_pedantic,
-                        prepend_cflags_gcc (
+                        prepend_cflags_gcc (t->icemake,
                         prepend_includes_gcc (t,
                           cons (str_dc,
                             cons (make_string (source),
@@ -224,7 +224,7 @@ static void build_object_gcc_c_combine
                    cons (str_stdc99,
                      cons (str_wall,
                        cons (str_pedantic,
-                         prepend_cflags_gcc (
+                         prepend_cflags_gcc (t->icemake,
                          prepend_includes_gcc (t,
                            cons (str_do,
                              cons (make_string (target), sx_end_of_list))))))));
@@ -299,7 +299,7 @@ static void build_object_gcc_c_pic
                   cons (str_stdc99,
                     cons (str_wall,
                       cons (str_pedantic,
-                        prepend_cflags_gcc (
+                        prepend_cflags_gcc (t->icemake,
                         prepend_includes_gcc (t,
                           cons (str_dc,
                             cons (make_string (source),
@@ -315,7 +315,7 @@ static void build_object_gcc_c_pic_combine
                    cons (str_stdc99,
                      cons (str_wall,
                        cons (str_pedantic,
-                         prepend_cflags_gcc (
+                         prepend_cflags_gcc (t->icemake,
                          prepend_includes_gcc (t,
                            cons (str_do,
                              cons (make_string (target), sx_end_of_list))))))));

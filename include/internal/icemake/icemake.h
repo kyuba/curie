@@ -255,6 +255,8 @@ struct visualiser_descriptor
     } meta;
 };
 
+#define ICEMAKE_OPTION_FREESTANDING (1 << 0x0)
+
 struct icemake
 {
     void (*on_error)   (enum icemake_error error, const char *text);
@@ -274,6 +276,8 @@ struct icemake
     struct toolchain_descriptor *toolchain;
 
     int alive_processes;
+
+    long int options;
 
     /*! \brief List: Queued tasks */
     sexpr workstack;
@@ -402,9 +406,6 @@ extern sexpr i_combine;
 
 /*! \brief Boolean: Create Shared Objects for Libraries */
 extern sexpr i_dynamic_libraries;
-
-/*! \brief Boolean: A freestanding Version of Curie is available */
-extern sexpr co_freestanding;
 
 /*! \brief Destination Directory
  *
