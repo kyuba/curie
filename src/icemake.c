@@ -82,7 +82,6 @@ sexpr do_build_documentation           = sx_false;
 
 sexpr p_c_compiler                     = sx_false;
 sexpr p_cpp_compiler                   = sx_false;
-sexpr p_resource_compiler              = sx_false;
 sexpr p_assembler                      = sx_false;
 sexpr p_linker                         = sx_false;
 sexpr p_archiver                       = sx_false;
@@ -93,7 +92,6 @@ sexpr p_pdflatex                       = sx_false;
 sexpr p_doxygen                        = sx_false;
 
 sexpr architecture                     = sx_false;
-sexpr architecture_org                 = sx_false;
 
 static sexpr i_alternatives            = sx_end_of_list;
 
@@ -205,6 +203,10 @@ static struct toolchain_pattern toolchain_pattern[] =
         tc_unknown, os_unknown,       is_powerpc,
         0,              "ppc-64", 0,
         IS_64_BIT, 0 },
+    { "(arm-?(e[bl]|32)?)-.*",
+        tc_unknown, os_unknown,       is_arm,
+        0,              "arm-32", 0,
+        IS_32_BIT, 0 },
 
     { 0 } /* last pattern */
 };
@@ -376,7 +378,8 @@ static sexpr find_in_permutations_vendor (sexpr p, sexpr file)
 {
     sexpr r;
 
-    if ((r = find_actual_file (sx_string_dir_prefix_c (uname_vendor, p), file)), stringp(r))
+    if ((r = find_actual_file (sx_string_dir_prefix_c (uname_vendor, p), file)),
+        stringp(r))
     {
         return r;
     }
@@ -395,19 +398,25 @@ static sexpr find_in_permutations_toolchain (sexpr p, sexpr file)
     switch (uname_toolchain)
     {
         case tc_gcc:
-            if ((r = find_in_permutations_vendor (sx_string_dir_prefix_c ("gnu", p), file)), stringp(r))
+            if ((r = find_in_permutations_vendor
+                        (sx_string_dir_prefix_c ("gnu", p), file)),
+                stringp(r))
             {
                 return r;
             }
             break;
         case tc_borland:
-            if ((r = find_in_permutations_vendor (sx_string_dir_prefix_c ("borland", p), file)), stringp(r))
+            if ((r = find_in_permutations_vendor
+                        (sx_string_dir_prefix_c ("borland", p), file)),
+                stringp(r))
             {
                 return r;
             }
             break;
         case tc_msvc:
-            if ((r = find_in_permutations_vendor (sx_string_dir_prefix_c ("msvc", p), file)), stringp(r))
+            if ((r = find_in_permutations_vendor
+                        (sx_string_dir_prefix_c ("msvc", p), file)),
+                stringp(r))
             {
                 return r;
             }
@@ -426,7 +435,9 @@ static sexpr find_in_permutations_arch (sexpr p, sexpr file)
 {
     sexpr r;
 
-    if ((r = find_in_permutations_toolchain (sx_string_dir_prefix_c (uname_arch, p), file)), stringp(r))
+    if ((r = find_in_permutations_toolchain
+                (sx_string_dir_prefix_c (uname_arch, p), file)),
+        stringp(r))
     {
         return r;
     }
@@ -442,19 +453,27 @@ static sexpr find_in_permutations_os (sexpr p, sexpr file)
 {
     sexpr r;
 
-    if ((r = find_in_permutations_arch (sx_string_dir_prefix_c (uname_os, p), file)), stringp(r))
+    if ((r = find_in_permutations_arch
+                (sx_string_dir_prefix_c (uname_os, p), file)),
+        stringp(r))
     {
         return r;
     }
-    else if ((r = find_in_permutations_arch (sx_string_dir_prefix_c ("posix", p), file)), stringp(r))
+    else if ((r = find_in_permutations_arch
+                (sx_string_dir_prefix_c ("posix", p), file)),
+             stringp(r))
     {
         return r;
     }
-    else if ((r = find_in_permutations_arch (sx_string_dir_prefix_c ("ansi", p), file)), stringp(r))
+    else if ((r = find_in_permutations_arch
+                (sx_string_dir_prefix_c ("ansi", p), file)),
+             stringp(r))
     {
         return r;
     }
-    else if ((r = find_in_permutations_arch (sx_string_dir_prefix_c ("generic", p), file)), stringp(r))
+    else if ((r = find_in_permutations_arch
+                (sx_string_dir_prefix_c ("generic", p), file)),
+             stringp(r))
     {
         return r;
     }
@@ -470,7 +489,9 @@ static sexpr find_in_permutations (sexpr p, sexpr file)
 {
     sexpr r;
 
-    if ((r = find_in_permutations_os (sx_string_dir_prefix_c ("internal", p), file)), stringp(r))
+    if ((r = find_in_permutations_os
+            (sx_string_dir_prefix_c ("internal", p), file)),
+        stringp(r))
     {
         return r;
     }
@@ -759,57 +780,54 @@ static void find_code (struct target *context, sexpr file)
         }
     }
 
-    if (truep (co_freestanding))
+    if ((r = find_code_S (file)), stringp(r))
     {
-        if ((r = find_code_S (file)), stringp(r))
+        primus =
+            cons(sym_preproc_assembly, cons (r,
+              cons (generate_object_file_name (file, context),
+                sx_end_of_list)));
+
+        if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+            !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
-            primus =
-                cons(sym_preproc_assembly, cons (r,
-                  cons (generate_object_file_name (file, context),
-                    sx_end_of_list)));
-
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
-                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
-            {
-                secundus =
-                    cons(sym_preproc_assembly_pic,
-                      cons (find_code_pic_S (file),
-                        cons (generate_pic_object_file_name
-                                (file, context), sx_end_of_list)));
-            }
-
-            tertius = find_code_highlevel (context, file);
-
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
-                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
-            {
-                quartus = find_code_highlevel_pic (context, file);
-            }
+            secundus =
+                cons(sym_preproc_assembly_pic,
+                  cons (find_code_pic_S (file),
+                    cons (generate_pic_object_file_name
+                            (file, context), sx_end_of_list)));
         }
-        else if ((r = find_code_s (file)), stringp(r))
+
+        tertius = find_code_highlevel (context, file);
+
+        if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+            !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
-            primus =
-                cons(sym_assembly, cons (r,
-                  cons (generate_object_file_name (file, context),
-                    sx_end_of_list)));
+            quartus = find_code_highlevel_pic (context, file);
+        }
+    }
+    else if ((r = find_code_s (file)), stringp(r))
+    {
+        primus =
+            cons(sym_assembly, cons (r,
+              cons (generate_object_file_name (file, context),
+                sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
-                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
-            {
-                secundus =
-                    cons(sym_assembly_pic,
-                      cons (find_code_pic_s (file),
-                        cons (generate_pic_object_file_name
-                                (file, context), sx_end_of_list)));
-            }
+        if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+            !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
+        {
+            secundus =
+                cons(sym_assembly_pic,
+                  cons (find_code_pic_s (file),
+                    cons (generate_pic_object_file_name
+                            (file, context), sx_end_of_list)));
+        }
 
-            tertius = find_code_highlevel (context, file);
+        tertius = find_code_highlevel (context, file);
 
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
-                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
-            {
-                quartus = find_code_highlevel_pic (context, file);
-            }
+        if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+            !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
+        {
+            quartus = find_code_highlevel_pic (context, file);
         }
     }
 
@@ -1025,6 +1043,38 @@ static struct target *get_context
 static void process_definition (struct target *context, sexpr definition)
 {
     sexpr sx;
+    
+    /* find extra options to process first */
+    if ((sx = find_code_sx(context->name)), stringp(sx))
+    {
+        const char *s = sx_string (sx);
+        struct sexpr_io *in = sx_open_i (io_open_read(s));
+        sexpr r;
+
+        while (!eofp ((r = sx_read (in))))
+        {
+            if (truep (equalp (r, sym_freestanding)))
+            {
+                co_freestanding = sx_true;
+            }
+            else if (truep (equalp (r, sym_hosted)))
+            {
+                co_freestanding = sx_false;
+                    
+                if (i_os != os_windows)
+                {
+                    i_dynamic_libraries = sx_false;
+                }
+            }
+        }
+
+        sx_close_io (in);
+
+        if (nilp (in_dynamic_libraries) && truep(co_freestanding))
+        {
+            i_dynamic_libraries = sx_true;
+        }
+    }
 
     while (consp(definition))
     {
@@ -1166,37 +1216,6 @@ static void process_definition (struct target *context, sexpr definition)
         }
 
         definition = cdr (definition);
-    }
-
-    if ((sx = find_code_sx(context->name)), stringp(sx))
-    {
-        const char *s = sx_string (sx);
-        struct sexpr_io *in = sx_open_i (io_open_read(s));
-        sexpr r;
-
-        while (!eofp ((r = sx_read (in))))
-        {
-            if (truep (equalp (r, sym_freestanding)))
-            {
-                co_freestanding = sx_true;
-            }
-            else if (truep (equalp (r, sym_hosted)))
-            {
-                co_freestanding = sx_false;
-                    
-                if (i_os != os_windows)
-                {
-                    i_dynamic_libraries = sx_false;
-                }
-            }
-        }
-
-        sx_close_io (in);
-
-        if (nilp (in_dynamic_libraries) && truep(co_freestanding))
-        {
-            i_dynamic_libraries = sx_true;
-        }
     }
 
     mkdir_p (get_build_file (context, sx_nil));
@@ -1496,18 +1515,19 @@ static void write_uname_element (const char *source, char *target, int tlen)
     target[i] = 0;
 }
 
-static sexpr xwhich (char *programme)
+static sexpr xwhich (const struct toolchain_descriptor *td, char *programme)
 {
     sexpr w, p = make_string (programme);
 
     if ((tcversion != (char *)0) &&
-          ((w = which (sx_join (architecture_org, str_dash,
+          ((w = which (sx_join (td->original_toolchain, str_dash,
                          sx_join (p, str_dash, make_string (tcversion))))),
            stringp(w)))
     {
         return w;
     }
-    else if ((w = which (sx_join (architecture_org, str_dash, p))), stringp(w))
+    else if ((w = which (sx_join (td->original_toolchain, str_dash, p))),
+             stringp(w))
     {
         return w;
     }
@@ -1519,15 +1539,15 @@ static sexpr xwhich (char *programme)
     return sx_false;
 }
 
-sexpr icemake_which (char *programme)
+sexpr icemake_which (const struct toolchain_descriptor *td, char *programme)
 {
-    return xwhich (programme);
+    return xwhich (td, programme);
 }
 
-static void initialise_toolchain_gcc()
+static void initialise_toolchain_gcc (struct toolchain_descriptor *td)
 {
-    p_c_compiler = xwhich ("gcc");
-    if (falsep(p_c_compiler)) { p_c_compiler = xwhich ("cc"); }
+    p_c_compiler = xwhich (td, "gcc");
+    if (falsep(p_c_compiler)) { p_c_compiler = xwhich (td, "cc"); }
     if (falsep(p_c_compiler))
     {
         on_error (ie_missing_tool, "gcc");
@@ -1536,34 +1556,34 @@ static void initialise_toolchain_gcc()
     p_linker = p_c_compiler;
 /*    p_assembler = p_c_compiler;*/
 
-    p_cpp_compiler = xwhich ("g++");
+    p_cpp_compiler = xwhich (td, "g++");
     if (falsep(p_cpp_compiler))
     {
         on_error (ie_missing_tool, "g++");
     }
 
-    p_assembler = xwhich ("as");
+    p_assembler = xwhich (td, "as");
     if (falsep(p_assembler))
     {
         on_error (ie_missing_tool, "as");
     }
 
-    p_archiver = xwhich ("ar");
+    p_archiver = xwhich (td, "ar");
     if (falsep(p_archiver))
     {
         on_error (ie_missing_tool, "ar");
     }
 
-    p_diff = xwhich ("diff");
+    p_diff = xwhich (td, "diff");
     if (falsep(p_diff))
     {
         on_warning (ie_missing_tool, "diff");
     }
 }
 
-static void initialise_toolchain_borland()
+static void initialise_toolchain_borland (struct toolchain_descriptor *td)
 {
-    p_c_compiler = xwhich ("bcc32");
+    p_c_compiler = xwhich (td, "bcc32");
     if (falsep(p_c_compiler))
     {
         on_error (ie_missing_tool, "bcc32");
@@ -1573,37 +1593,37 @@ static void initialise_toolchain_borland()
     p_assembler = p_c_compiler;
     p_cpp_compiler = p_c_compiler;
 
-    p_archiver = xwhich ("tlib");
+    p_archiver = xwhich (td, "tlib");
     if (falsep(p_archiver))
     {
         on_error (ie_missing_tool, "tlib");
     }
 
-    p_diff = xwhich ("diff");
+    p_diff = xwhich (td, "diff");
     if (falsep(p_diff))
     {
         on_warning (ie_missing_tool, "diff");
     }
 }
 
-static void initialise_toolchain_tex()
+static void initialise_toolchain_tex (struct toolchain_descriptor *td)
 {
-    p_latex = xwhich ("latex");
+    p_latex = xwhich (td, "latex");
     if (falsep(p_latex))
     {
         on_warning (ie_missing_tool, "latex");
     }
 
-    p_pdflatex = xwhich ("pdflatex");
+    p_pdflatex = xwhich (td, "pdflatex");
     if (falsep(p_pdflatex))
     {
         on_warning (ie_missing_tool, "pdflatex");
     }
 }
 
-static void initialise_toolchain_doxygen()
+static void initialise_toolchain_doxygen (struct toolchain_descriptor *td)
 {
-    p_doxygen = xwhich ("doxygen");
+    p_doxygen = xwhich (td, "doxygen");
     if (falsep(p_doxygen))
     {
         on_warning (ie_missing_tool, "doxygen");
@@ -2061,13 +2081,12 @@ int icemake_prepare_toolchain
      int (*with_data)(struct toolchain_descriptor *, void *), void *aux)
 {
     struct toolchain_descriptor td =
-        { tc_generic, os_generic, is_generic };
+        { tc_generic, os_generic, is_generic, make_string(name) };
 
     int p;
     const char *tc;
 
     archprefix       = name;
-    architecture_org = make_string (name);
 
     uname_toolchain  = tc_generic;
 
@@ -2138,12 +2157,12 @@ int icemake_prepare_toolchain
 
     switch (uname_toolchain)
     {
-        case tc_gcc:     initialise_toolchain_gcc();     break;
-        case tc_borland: initialise_toolchain_borland(); break;
+        case tc_gcc:     initialise_toolchain_gcc(&td);     break;
+        case tc_borland: initialise_toolchain_borland(&td); break;
     }
 
-    initialise_toolchain_tex ();
-    initialise_toolchain_doxygen ();
+    initialise_toolchain_tex (&td);
+    initialise_toolchain_doxygen (&td);
 
     if (i_os == os_darwin)
     {

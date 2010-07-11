@@ -201,6 +201,8 @@ struct toolchain_descriptor
     enum operating_system operating_system;
     enum instruction_set  instruction_set;
 
+    sexpr                 original_toolchain;
+
     const char           *uname_arch;
     const char           *uname_os;
     const char           *uname_vendor;
@@ -380,12 +382,6 @@ extern enum instruction_set i_is;
  */
 extern const char *archprefix;
 
-/*! \brief Effective Architecture Descriptor (S-expression)
- *
- *  Derived from the effective OS, architecture, vendor and toolchain.
- */
-extern sexpr architecture_org;
-
 /*! \brief Effective Architecture Descriptor (Generated, S-expression)
  *
  *  Derived from the effective OS, architecture, vendor and toolchain.
@@ -463,12 +459,6 @@ extern sexpr p_c_compiler;
  *  Automatically searched in the PATH according to the toolchain type.
  */
 extern sexpr p_cpp_compiler;
-
-/*! \brief Resource Compiler Binary
- *
- *  Automatically searched in the PATH according to the toolchain type.
- */
-extern sexpr p_resource_compiler;
 
 /*! \brief Assembler Binary
  *
@@ -988,7 +978,7 @@ int icemake
 
 /*! \todo remove these functions from the global scope */
 sexpr icemake_permutate_paths (sexpr p);
-sexpr icemake_which (char *programme);
+sexpr icemake_which (const struct toolchain_descriptor *td, char *programme);
 
 #endif
 
