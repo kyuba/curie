@@ -51,12 +51,10 @@
 #include <icemake/version.h>
 #endif
 
-const char *uname_os     = "generic";
 const char *uname_arch   = "generic";
 const char *uname_vendor = "unknown";
 
 enum toolchain uname_toolchain;
-enum fs_layout i_fsl                   = fs_afsl;
 enum operating_system i_os             = os_generic;
 enum instruction_set i_is              = is_generic;
 
@@ -105,6 +103,7 @@ struct process_data
 struct icemake_meta
 {
     sexpr buildtargets;
+    enum fs_layout filesystem_layout;
 };
 
 /* toolchain classification patterns */
@@ -119,6 +118,7 @@ struct toolchain_pattern
     const char *uname_os;
     const char *uname_arch;
     const char *uname_vendor;
+    const char *uname_toolchain;
  
     unsigned long instruction_set_options;
     unsigned long instruction_set_level;
@@ -126,84 +126,90 @@ struct toolchain_pattern
 
 static struct toolchain_pattern toolchain_pattern[] =
 {
+    { ".*",
+        /* defaults */
+        tc_generic, os_generic,      is_generic,
+        "generic",      "generic", "generic",   "generic",
+        0, 0 },
+
     { ".*-([Dd]arwin|[Ll]inux|.*[Bb][Ss][Dd]).*",
         /* default to gcc on BSDs, Darwin and Linux */
         tc_gcc,     os_unknown,      is_unknown,
-        0,              0,       0,
+        0,              0,         0,           "gnu",
         0, 0 },
 
     /* toolchains */
     { ".*-(gcc|gnu)",
         tc_gcc,     os_unknown,      is_unknown,
-        0,              0,       0,
+        0,              0,         0,           "gnu",
         0, 0 },
     { ".*-borland",
         tc_borland, os_unknown,      is_unknown,
-        0,              0,       0,
+        0,              0,         0,           "borland",
         0, 0 },
     { ".*-msvc",
         tc_msvc,    os_windows,      is_unknown,
-        "windows",      0,       "microsoft",
+        "windows",      0,         "microsoft", "msvc",
         0, 0 },
     { ".*-latex",
         tc_latex,   os_unknown,      is_unknown,
-        0,              0,       0,
+        0,              0,         0,           "latex",
         0, 0 },
     { ".*-doxygen",
         tc_doxygen, os_unknown,      is_unknown,
-        0,              0,       0,
+        0,              0,         0,           "doxygen",
         0, 0 },
 
     /* operating systems */
     { ".*-[Dd]arwin.*",
         tc_unknown, os_darwin,       is_unknown,
-        "darwin",       0,       0,
+        "darwin",       0,         0,           0,
         0, 0 },
     { ".*-[Ll]inux.*",
         tc_unknown, os_linux,        is_unknown,
-        "linux",        0,       0,
+        "linux",        0,         0,           0,
         0, 0 },
     { ".*-[Ww]indows.*",
         tc_unknown, os_windows,      is_unknown,
-        "windows",      0,       "microsoft",
+        "windows",      0,         "microsoft", 0,
         0, 0 },
     { ".*-[Ff]ree[Bb][Ss][Dd].*",
         tc_unknown, os_freebsd,      is_unknown,
-        "freebsd",      0,        0,
+        "freebsd",      0,          0,          0,
         0, 0 },
     { ".*-[Nn]et[Bb][Ss][Dd].*",
         tc_unknown, os_netbsd,       is_unknown,
-        "netbsd",       0,        0,
+        "netbsd",       0,          0,          0,
         0, 0 },
     { ".*-[Oo]pen[Bb][Ss][Dd].*",
         tc_unknown, os_openbsd,      is_unknown,
-        "openbsd",      0,        0,
+        "openbsd",      0,          0,          0,
         0, 0 },
     { ".*-[Dd]ragonfly[Bb][Ss][Dd].*",
         tc_unknown, os_dragonflybsd, is_unknown,
-        "dragonflybsd", 0,        0,
+        "dragonflybsd", 0,          0,          0,
         0, 0 },
 
     /* CPU architectures */
     { "(x86[-/_]64|amd64)-.*",
         tc_unknown, os_unknown,       is_x86,
-        0,              "x86-64", 0,
+        0,              "x86-64",   0,          0,
         IS_64_BIT, 0 },
     { "(x86[-/_]32|i[3-6]x86)-.*",
         tc_unknown, os_unknown,       is_x86,
-        0,              "x86-32", 0,
+        0,              "x86-32",   0,          0,
         IS_32_BIT, 0 },
     { "([Pp]ower(pc| [Mm]acintosh)|ppc(-?32)?)-.*",
         tc_unknown, os_unknown,       is_powerpc,
-        0,              "ppc-32", 0,
+        0,              "ppc-32",   0,          0,
         IS_32_BIT, 0 },
     { "(p(ower)?pc-?64)-.*",
         tc_unknown, os_unknown,       is_powerpc,
-        0,              "ppc-64", 0,
+        0,              "ppc-64",   0,          0,
         IS_64_BIT, 0 },
     { "(arm-?(e[bl]|32)?)-.*",
         tc_unknown, os_unknown,       is_arm,
-        0,              "arm-32", 0,
+        0,              "arm-32",   0,          0,
         IS_32_BIT, 0 },
 
     { 0 } /* last pattern */
@@ -447,12 +453,13 @@ static sexpr find_in_permutations_arch (sexpr p, sexpr file)
     return sx_false;
 }
 
-static sexpr find_in_permutations_os (sexpr p, sexpr file)
+static sexpr find_in_permutations_os
+    (struct toolchain_descriptor *td, sexpr p, sexpr file)
 {
     sexpr r;
 
     if ((r = find_in_permutations_arch
-                (sx_string_dir_prefix_c (uname_os, p), file)),
+                (sx_string_dir_prefix_c (td->uname_os, p), file)),
         stringp(r))
     {
         return r;
@@ -483,17 +490,18 @@ static sexpr find_in_permutations_os (sexpr p, sexpr file)
     return sx_false;
 }
 
-static sexpr find_in_permutations (sexpr p, sexpr file)
+static sexpr find_in_permutations
+    (struct toolchain_descriptor *td, sexpr p, sexpr file)
 {
     sexpr r;
 
     if ((r = find_in_permutations_os
-            (sx_string_dir_prefix_c ("internal", p), file)),
+            (td, sx_string_dir_prefix_c ("internal", p), file)),
         stringp(r))
     {
         return r;
     }
-    else if ((r = find_in_permutations_os (p, file)), stringp(r))
+    else if ((r = find_in_permutations_os (td, p, file)), stringp(r))
     {
         return r;
     }
@@ -501,89 +509,104 @@ static sexpr find_in_permutations (sexpr p, sexpr file)
     return sx_false;
 }
 
-static sexpr find_code_with_suffix (sexpr file, char *s)
+static sexpr find_code_with_suffix
+    (struct toolchain_descriptor *td, sexpr file, char *s)
 {
     return find_in_permutations
-        (str_src,
+        (td, str_src,
          sx_join (file, make_string (s), sx_nil));
 }
 
-static sexpr find_test_case_with_suffix (sexpr file, char *s)
+static sexpr find_test_case_with_suffix
+    (struct toolchain_descriptor *td, sexpr file, char *s)
 {
     return find_in_permutations
-        (str_tests,
+        (td, str_tests,
          sx_join (file, make_string (s), sx_nil));
 }
 
-static sexpr find_code_sx (sexpr file)
+static sexpr find_code_sx
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    return find_code_with_suffix (file, ".sx");
+    return find_code_with_suffix (td, file, ".sx");
 }
 
-static sexpr find_code_c (sexpr file)
+static sexpr find_code_c
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    return find_code_with_suffix (file, ".c");
+    return find_code_with_suffix (td, file, ".c");
 }
 
-static sexpr find_code_cpp (sexpr file)
+static sexpr find_code_cpp
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    return find_code_with_suffix (file, ".c++");
+    return find_code_with_suffix (td, file, ".c++");
 }
 
-static sexpr find_code_s (sexpr file)
+static sexpr find_code_s
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    return find_code_with_suffix (file, ".s");
+    return find_code_with_suffix (td, file, ".s");
 }
 
-static sexpr find_code_pic_s (sexpr file)
+static sexpr find_code_pic_s
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    sexpr r = find_code_with_suffix (file, ".pic.s");
+    sexpr r = find_code_with_suffix (td, file, ".pic.s");
 
-    return (falsep(r) ? find_code_s (file) : r);
+    return (falsep(r) ? find_code_s (td, file) : r);
 }
 
-static sexpr find_code_S (sexpr file)
+static sexpr find_code_S
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    return find_code_with_suffix (file, ".S");
+    return find_code_with_suffix (td, file, ".S");
 }
 
-static sexpr find_code_pic_S (sexpr file)
+static sexpr find_code_pic_S
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    sexpr r = find_code_with_suffix (file, ".pic.S");
+    sexpr r = find_code_with_suffix (td, file, ".pic.S");
 
-    return (falsep(r) ? find_code_S (file) : r);
+    return (falsep(r) ? find_code_S (td, file) : r);
 }
 
-static sexpr find_code_def (sexpr file)
+static sexpr find_code_def
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    return find_code_with_suffix (file, ".def");
+    return find_code_with_suffix (td, file, ".def");
 }
 
-static sexpr find_code_rc (sexpr file)
+static sexpr find_code_rc
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    return find_code_with_suffix (file, ".rc");
+    return find_code_with_suffix (td, file, ".rc");
 }
 
-static sexpr find_test_case_c (sexpr file)
+static sexpr find_test_case_c
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    return find_test_case_with_suffix (file, ".c");
+    return find_test_case_with_suffix (td, file, ".c");
 }
 
-static sexpr find_test_case_cpp (sexpr file)
+static sexpr find_test_case_cpp
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    return find_test_case_with_suffix (file, ".c++");
+    return find_test_case_with_suffix (td, file, ".c++");
 }
 
-static sexpr find_header_with_suffix (sexpr name, sexpr file, char *s)
+static sexpr find_header_with_suffix
+    (struct toolchain_descriptor *td, sexpr name, sexpr file, char *s) 
 {
     return find_in_permutations
-        (str_include,
+        (td, str_include,
          sx_join (name, str_slash, sx_join (file, make_string (s), sx_nil)));
 }
 
-static sexpr find_header_h (sexpr name, sexpr file)
+static sexpr find_header_h
+    (struct toolchain_descriptor *td, sexpr name, sexpr file)
 {
-    return find_header_with_suffix (name, file, ".h");
+    return find_header_with_suffix (td, name, file, ".h");
 }
 
 sexpr get_build_file (struct target *t, sexpr file)
@@ -612,7 +635,7 @@ sexpr get_build_file (struct target *t, sexpr file)
 
 sexpr get_install_file (struct target *t, sexpr file)
 {
-    switch (i_fsl)
+    switch (t->icemake->filesystem_layout)
     {
         case fs_fhs:
         case fs_fhs_binlib:
@@ -630,12 +653,14 @@ sexpr get_install_file (struct target *t, sexpr file)
                 case tc_msvc:
                 case tc_borland:
                     return sx_join (i_destdir, str_backslash,
-                             sx_join (make_string (uname_os), str_backslash,
+                             sx_join (make_string (t->toolchain->uname_os),
+                               str_backslash,
                                sx_join (make_string (uname_arch), str_backslash,
                                         file)));
                 case tc_gcc:
                     return sx_join (i_destdir, str_slash,
-                             sx_join (make_string (uname_os), str_slash,
+                             sx_join (make_string (t->toolchain->uname_os),
+                               str_slash,
                                sx_join (make_string (uname_arch), str_slash,
                                         file)));
             }
@@ -689,7 +714,7 @@ static sexpr find_code_highlevel (struct target *context, sexpr file)
 {
     sexpr r, subfile = sx_join (file, str_dhighlevel, sx_nil);
 
-    if (((r = find_code_cpp (subfile)), stringp(r)))
+    if (((r = find_code_cpp (context->toolchain, subfile)), stringp(r)))
     {
         context->options |= ICEMAKE_HAVE_CPP;
 
@@ -698,7 +723,7 @@ static sexpr find_code_highlevel (struct target *context, sexpr file)
                    sx_end_of_list)));
 
     }
-    else if (((r = find_code_c (subfile)), stringp(r)))
+    else if (((r = find_code_c (context->toolchain, subfile)), stringp(r)))
     {
         return cons(sym_c, cons (r,
                  cons (generate_object_file_name (subfile, context),
@@ -712,7 +737,7 @@ static sexpr find_code_highlevel_pic (struct target *context, sexpr file)
 {
     sexpr r, subfile = sx_join (file, str_dhighlevel, sx_nil);
 
-    if (((r = find_code_cpp (subfile)), stringp(r)))
+    if (((r = find_code_cpp (context->toolchain, subfile)), stringp(r)))
     {
         context->options |= ICEMAKE_HAVE_CPP;
 
@@ -720,7 +745,7 @@ static sexpr find_code_highlevel_pic (struct target *context, sexpr file)
                  cons (generate_pic_object_file_name (subfile, context),
                    sx_end_of_list)));
     }
-    else if (((r = find_code_c (subfile)), stringp(r)))
+    else if (((r = find_code_c (context->toolchain, subfile)), stringp(r)))
     {
         return cons(sym_c_pic, cons (r,
                  cons (generate_pic_object_file_name (subfile, context),
@@ -778,7 +803,7 @@ static void find_code (struct target *context, sexpr file)
         }
     }
 
-    if ((r = find_code_S (file)), stringp(r))
+    if ((r = find_code_S (context->toolchain, file)), stringp(r))
     {
         primus =
             cons(sym_preproc_assembly, cons (r,
@@ -790,7 +815,7 @@ static void find_code (struct target *context, sexpr file)
         {
             secundus =
                 cons(sym_preproc_assembly_pic,
-                  cons (find_code_pic_S (file),
+                  cons (find_code_pic_S (context->toolchain, file),
                     cons (generate_pic_object_file_name
                             (file, context), sx_end_of_list)));
         }
@@ -803,7 +828,7 @@ static void find_code (struct target *context, sexpr file)
             quartus = find_code_highlevel_pic (context, file);
         }
     }
-    else if ((r = find_code_s (file)), stringp(r))
+    else if ((r = find_code_s (context->toolchain, file)), stringp(r))
     {
         primus =
             cons(sym_assembly, cons (r,
@@ -815,7 +840,7 @@ static void find_code (struct target *context, sexpr file)
         {
             secundus =
                 cons(sym_assembly_pic,
-                  cons (find_code_pic_s (file),
+                  cons (find_code_pic_s (context->toolchain, file),
                     cons (generate_pic_object_file_name
                             (file, context), sx_end_of_list)));
         }
@@ -831,7 +856,7 @@ static void find_code (struct target *context, sexpr file)
 
     if (falsep(primus))
     {
-        if (((r = find_code_cpp (file)), stringp(r)))
+        if (((r = find_code_cpp (context->toolchain, file)), stringp(r)))
         {
             context->options |= ICEMAKE_HAVE_CPP;
 
@@ -847,7 +872,7 @@ static void find_code (struct target *context, sexpr file)
                                      (file, context), sx_end_of_list)));
             }
         }
-        else if (((r = find_code_c (file)), stringp(r)))
+        else if (((r = find_code_c (context->toolchain, file)), stringp(r)))
         {
             primus = cons(sym_c, cons (r,
                        cons (generate_object_file_name (file, context),
@@ -887,14 +912,14 @@ static void find_test_case (struct target *context, sexpr file)
     sexpr r;
     sexpr primus   = sx_false;
 
-    if (((r = find_test_case_cpp (file)), stringp(r)))
+    if (((r = find_test_case_cpp (context->toolchain, file)), stringp(r)))
     {
         primus = cons(sym_cpp, cons (r,
                    cons (generate_test_object_file_name (file, context),
                      cons (generate_test_executable_file_name (file, context),
                        sx_end_of_list))));
     }
-    else if (((r = find_test_case_c (file)), stringp(r)))
+    else if (((r = find_test_case_c (context->toolchain, file)), stringp(r)))
     {
         primus = cons(sym_c, cons (r,
                    cons (generate_test_object_file_name (file, context),
@@ -913,7 +938,8 @@ static void find_header (struct target *context, sexpr file)
 {
     sexpr r;
 
-    if ((r = find_header_h (context->name, file)), stringp(r))
+    if ((r = find_header_h (context->toolchain, context->name, file)),
+        stringp(r))
     {
         context->headers = cons (cons(file, cons (r, sx_end_of_list)), context->headers);
     }
@@ -923,15 +949,17 @@ static void find_header (struct target *context, sexpr file)
     }
 }
 
-static sexpr find_documentation_with_suffix (sexpr file, char *s)
+static sexpr find_documentation_with_suffix
+    (struct toolchain_descriptor *td, sexpr file, char *s)
 {
     return find_in_permutations
-        (str_documentation, sx_join (file, make_string (s), sx_nil));
+        (td, str_documentation, sx_join (file, make_string (s), sx_nil));
 }
 
-static sexpr find_documentation_tex (sexpr file)
+static sexpr find_documentation_tex
+    (struct toolchain_descriptor *td, sexpr file)
 {
-    return find_documentation_with_suffix (file, ".tex");
+    return find_documentation_with_suffix (td, file, ".tex");
 }
 
 static void find_documentation (struct target *context, sexpr file)
@@ -947,41 +975,50 @@ static void find_documentation (struct target *context, sexpr file)
 
     sexpr r;
 
-    if ((r = find_documentation_tex (file)), stringp(r))
+    if ((r = find_documentation_tex (context->toolchain, file)), stringp(r))
     {
-        context->documentation = cons(cons(sym_tex, cons (file, r)), context->documentation);
+        context->documentation
+            = cons(cons(sym_tex, cons (file, r)), context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (file, ".1")), stringp(r))
+    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".1")), stringp(r))
     {
-        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man1, sx_end_of_list)))), context->documentation);
+        context->documentation
+            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man1, sx_end_of_list)))), context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (file, ".2")), stringp(r))
+    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".2")), stringp(r))
     {
-        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man2, sx_end_of_list)))), context->documentation);
+        context->documentation
+            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man2, sx_end_of_list)))), context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (file, ".3")), stringp(r))
+    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".3")), stringp(r))
     {
-        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man3, sx_end_of_list)))), context->documentation);
+        context->documentation
+            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man3, sx_end_of_list)))), context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (file, ".4")), stringp(r))
+    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".4")), stringp(r))
     {
-        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man4, sx_end_of_list)))), context->documentation);
+        context->documentation
+            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man4, sx_end_of_list)))), context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (file, ".5")), stringp(r))
+    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".5")), stringp(r))
     {
-        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man5, sx_end_of_list)))), context->documentation);
+        context->documentation
+            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man5, sx_end_of_list)))), context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (file, ".6")), stringp(r))
+    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".6")), stringp(r))
     {
-        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man6, sx_end_of_list)))), context->documentation);
+        context->documentation
+            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man6, sx_end_of_list)))), context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (file, ".7")), stringp(r))
+    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".7")), stringp(r))
     {
-        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man7, sx_end_of_list)))), context->documentation);
+        context->documentation
+            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man7, sx_end_of_list)))), context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (file, ".8")), stringp(r))
+    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".8")), stringp(r))
     {
-        context->documentation = cons(cons(sym_man, cons (file, cons(r, cons (sym_man8, sx_end_of_list)))), context->documentation);
+        context->documentation
+            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man8, sx_end_of_list)))), context->documentation);
     }
     else
     {
@@ -993,7 +1030,8 @@ static sexpr find_data (struct target *context, sexpr file)
 {
     sexpr r;
 
-    if ((r = find_in_permutations (str_data, file)), !stringp(r))
+    if ((r = find_in_permutations (context->toolchain, str_data, file)),
+        !stringp(r))
     {
         on_error (ie_missing_data, sx_string (file));
     }
@@ -1044,7 +1082,7 @@ static void process_definition
     sexpr sx;
     
     /* find extra options to process first */
-    if ((sx = find_code_sx(context->name)), stringp(sx))
+    if ((sx = find_code_sx (context->toolchain, context->name)), stringp(sx))
     {
         const char *s = sx_string (sx);
         struct sexpr_io *in = sx_open_i (io_open_read(s));
@@ -1122,7 +1160,7 @@ static void process_definition
 
             if ((i_os == os_windows) && (uname_toolchain == tc_msvc))
             {
-                sexpr r = find_code_rc (context->name);
+                sexpr r = find_code_rc (context->toolchain, context->name);
 
                 if (stringp (r))
                 {
@@ -1298,7 +1336,7 @@ static struct target *create_library
     {
         context->libraries = cons (context->name, context->libraries);
     }
-    context->deffile = find_code_def (context->name);
+    context->deffile = find_code_def (td, context->name);
 
     return context;
 }
@@ -1865,7 +1903,7 @@ static void initialise_libcurie (struct icemake *im)
             return;
         }
 
-        switch (i_fsl)
+        switch (im->filesystem_layout)
         {
             case fs_fhs:
             case fs_fhs_binlib:
@@ -1880,7 +1918,8 @@ static void initialise_libcurie (struct icemake *im)
             case fs_afsl:
                 if (truep (initialise_libcurie_filename
                      (im, sx_join (i_destdir, str_slash,
-                        sx_join (make_string (uname_os), str_slash,
+                        sx_join (make_string (im->toolchain->uname_os),
+                          str_slash,
                           sx_join (make_string (uname_arch),
                             str_slibslibcuriedsx, sx_nil))))))
                 {
@@ -1895,7 +1934,7 @@ static void initialise_libcurie (struct icemake *im)
         return;
     }
 
-    switch (i_fsl)
+    switch (im->filesystem_layout)
     {
         case fs_fhs:
         case fs_fhs_binlib:
@@ -1912,7 +1951,7 @@ static void initialise_libcurie (struct icemake *im)
             break;
         case fs_afsl:
             if (truep (initialise_libcurie_filename
-                 (im, sx_join (str_slash, make_string (uname_os),
+                 (im, sx_join (str_slash, make_string (im->toolchain->uname_os),
                     sx_join (str_slash, make_string (uname_arch),
                         str_slibslibcuriedsx)))))
             {
@@ -2113,7 +2152,7 @@ int icemake_prepare_toolchain
 
             if (toolchain_pattern[p].uname_os != (const char *)0)
             {
-                uname_os = toolchain_pattern[p].uname_os;
+                td.uname_os = toolchain_pattern[p].uname_os;
             }
 
             if (toolchain_pattern[p].uname_arch != (const char *)0)
@@ -2124,6 +2163,11 @@ int icemake_prepare_toolchain
             if (toolchain_pattern[p].uname_vendor != (const char *)0)
             {
                 uname_vendor = toolchain_pattern[p].uname_vendor;
+            }
+
+            if (toolchain_pattern[p].uname_toolchain != (const char *)0)
+            {
+                td.uname_toolchain = toolchain_pattern[p].uname_toolchain;
             }
 
             if (toolchain_pattern[p].instruction_set_options != 0)
@@ -2139,21 +2183,12 @@ int icemake_prepare_toolchain
             }
         }
     }
-
-    switch (uname_toolchain)
-    {
-        case tc_gcc:     tc = "gcc";     break;
-        case tc_borland: tc = "borland"; break;
-        case tc_msvc:    tc = "msvc";    break;
-        case tc_latex:   tc = "latex";   break;
-        case tc_doxygen: tc = "doxygen"; break;
-        default:         tc = "generic"; break;
-    }
     
     architecture =
         sx_join (make_string (uname_arch), str_dash,
         sx_join (make_string (uname_vendor), str_dash,
-        sx_join (make_string (uname_os), str_dash, make_string (tc))));
+        sx_join (make_string (td.uname_os), str_dash,
+                 make_string (td.uname_toolchain))));
 
     switch (uname_toolchain)
     {
@@ -2193,7 +2228,8 @@ int icemake_prepare
      int (*with_data)(struct icemake *, void *), void *aux)
 {
     struct icemake iml =
-        { on_error, on_warning, sx_end_of_list, stdio, TREE_INITIALISER, td,
+        { fs_afsl,
+          on_error, on_warning, sx_end_of_list, stdio, TREE_INITIALISER, td,
           0, 0, sx_end_of_list };
     sexpr icemake_sx_path = make_string (path);
     struct sexpr_io *io;
@@ -2327,7 +2363,8 @@ static int with_icemake (struct icemake *im, void *aux)
 {
     struct icemake_meta *imc = (struct icemake_meta *)aux;
 
-    im->buildtargets = imc->buildtargets;
+    im->filesystem_layout = imc->filesystem_layout;
+    im->buildtargets      = imc->buildtargets;
 
     return icemake (im);
 }
@@ -2350,7 +2387,7 @@ int cmain ()
 {
     int i = 1;
     const char *target_architecture = c_getenv("CHOST");
-    struct icemake_meta im = { sx_end_of_list };
+    struct icemake_meta im = { sx_end_of_list, fs_afsl };
 
     stdio = sx_open_stdout ();
 
@@ -2413,7 +2450,7 @@ int cmain ()
                         do_build_documentation = sx_true;
                         break;
                     case 'f':
-                        i_fsl = fs_fhs;
+                        im.filesystem_layout = fs_fhs;
                         break;
                     case 'o':
                         in_dynamic_libraries = sx_false;
@@ -2422,10 +2459,10 @@ int cmain ()
                         in_dynamic_libraries = sx_true;
                         break;
                     case 's':
-                        i_fsl = fs_afsl;
+                        im.filesystem_layout = fs_afsl;
                         break;
                     case 'b':
-                        i_fsl = fs_fhs_binlib;
+                        im.filesystem_layout = fs_fhs_binlib;
                         if (curie_argv[xn])
                         {
                             i_pname = make_string(curie_argv[xn]);

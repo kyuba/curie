@@ -69,9 +69,10 @@ static sexpr permutate_paths_arch (sexpr p, sexpr lis)
     return lis;
 }
 
-static sexpr permutate_paths_os (sexpr p, sexpr lis)
+static sexpr permutate_paths_os
+    (struct toolchain_descriptor *td, sexpr p, sexpr lis)
 {
-    lis = permutate_paths_arch (sx_string_dir_prefix_c (uname_os, p), lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c (td->uname_os, p), lis);
     lis = permutate_paths_arch (p, lis);
     lis = permutate_paths_arch (sx_string_dir_prefix_c ("posix", p), lis);
     lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
@@ -80,20 +81,21 @@ static sexpr permutate_paths_os (sexpr p, sexpr lis)
     return lis;
 }
 
-sexpr icemake_permutate_paths (sexpr p)
+sexpr icemake_permutate_paths
+    (struct toolchain_descriptor *td, sexpr p)
 {
     sexpr lis = sx_end_of_list;
 
-    lis = permutate_paths_os (p, lis);
-    lis = permutate_paths_os (sx_string_dir_prefix_c ("internal", p), lis);
-    lis = permutate_paths_os (sx_string_dir_prefix_c ("debug", p), lis);
+    lis = permutate_paths_os (td, p, lis);
+    lis = permutate_paths_os (td, sx_string_dir_prefix_c ("internal", p), lis);
+    lis = permutate_paths_os (td, sx_string_dir_prefix_c ("debug", p), lis);
 
     return lis;
 }
 
 static sexpr prepend_includes_common (struct target *t, sexpr x)
 {
-    sexpr include_paths = icemake_permutate_paths (str_include);
+    sexpr include_paths = icemake_permutate_paths (t->toolchain, str_include);
     sexpr cur = include_paths;
 
     if (stringp (i_destdir))

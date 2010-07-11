@@ -206,6 +206,7 @@ struct toolchain_descriptor
     const char           *uname_arch;
     const char           *uname_os;
     const char           *uname_vendor;
+    const char           *uname_toolchain;
 
     int (*build)         (struct target *);
     int (*link)          (struct target *);
@@ -255,10 +256,12 @@ struct visualiser_descriptor
     } meta;
 };
 
-#define ICEMAKE_OPTION_FREESTANDING (1 << 0x0)
+#define ICEMAKE_OPTION_FREESTANDING    (1 << 0x0)
 
 struct icemake
 {
+    enum fs_layout filesystem_layout;
+
     void (*on_error)   (enum icemake_error error, const char *text);
     void (*on_warning) (enum icemake_error error, const char *text);
 
@@ -283,12 +286,12 @@ struct icemake
     sexpr workstack;
 };
 
-#define ICEMAKE_PROGRAMME         (1 << 0x0)
-#define ICEMAKE_LIBRARY           (1 << 0x1)
-#define ICEMAKE_HAVE_CPP          (1 << 0x2)
-#define ICEMAKE_HOSTED            (1 << 0x3)
-#define ICEMAKE_USE_CURIE         (1 << 0x4)
-#define ICEMAKE_NO_SHARED_LIBRARY (1 << 0x5)
+#define ICEMAKE_PROGRAMME              (1 << 0x0)
+#define ICEMAKE_LIBRARY                (1 << 0x1)
+#define ICEMAKE_HAVE_CPP               (1 << 0x2)
+#define ICEMAKE_HOSTED                 (1 << 0x3)
+#define ICEMAKE_USE_CURIE              (1 << 0x4)
+#define ICEMAKE_NO_SHARED_LIBRARY      (1 << 0x5)
 
 /*! \brief Icemake Target
  *
@@ -337,12 +340,6 @@ struct target {
     struct icemake *icemake;
 };
 
-/*! \brief Effective Operating System Name
- *
- *  As reported by uname(), or through the -t flag.
- */
-extern const char *uname_os;
-
 /*! \brief Effective Operating System Architecture
  *
  *  As reported by uname(), or through the -t flag.
@@ -361,12 +358,6 @@ extern const char *uname_vendor;
  *  available C compilers.
  */
 extern enum toolchain uname_toolchain;
-
-/*! \brief Effective Filesystem Layout
- *
- *  Modified through programme flags.
- */
-extern enum fs_layout i_fsl;
 
 /*! \brief Effective Operating System Code
  *
@@ -978,7 +969,7 @@ int icemake
     (struct icemake *im);
 
 /*! \todo remove these functions from the global scope */
-sexpr icemake_permutate_paths (sexpr p);
+sexpr icemake_permutate_paths (struct toolchain_descriptor *td, sexpr p);
 sexpr icemake_which (const struct toolchain_descriptor *td, char *programme);
 
 #endif

@@ -105,14 +105,14 @@ static void map_includes (struct tree_node *node, void *psx)
     *sx = cons (sx_join (str_dL, get_build_file (t, sx_nil), sx_nil), *sx);
 }
 
-static sexpr get_special_linker_options (struct icemake *im, sexpr sx)
+static sexpr get_special_linker_options (struct target *t, sexpr sx)
 {
     define_string (str_multiply_defined, "-multiply_defined");
     define_string (str_warning,          "warning");
  
     if (stringp (i_destdir))
     {
-        switch (i_fsl)
+        switch (t->icemake->filesystem_layout)
         {
             case fs_fhs:
             case fs_fhs_binlib:
@@ -120,14 +120,15 @@ static sexpr get_special_linker_options (struct icemake *im, sexpr sx)
                 break;
             case fs_afsl:
                 sx = cons (sx_join (str_dL, i_destdir,
-                           sx_join (str_slash, make_string (uname_os),
+                           sx_join (str_slash,
+                                    make_string (t->toolchain->uname_os),
                            sx_join (str_slash, make_string (uname_arch),
                            str_slib))), sx);
                 break;
         }
     }
 
-    tree_map (&(im->targets), map_includes, (void *)&sx);
+    tree_map (&(t->icemake->targets), map_includes, (void *)&sx);
 
     if (i_os == os_darwin)
     {
@@ -226,7 +227,7 @@ static void link_programme_gcc_filename
     }
 
     sx = (get_libc_linker_options_gcc (t,
-              get_special_linker_options (t->icemake,
+              get_special_linker_options (t,
                   cons (str_do,
                       cons (ofile,
                             collect_code (sx, code))))));
@@ -243,7 +244,7 @@ static void link_programme_borland_filename
     sx = collect_library_link_flags (sx, t);
 
     sx = cons (str_dq,
-               get_special_linker_options (t->icemake,
+               get_special_linker_options (t,
                     cons (str_do,
                         cons (ofile,
                               collect_code (sx, code)))));
@@ -337,13 +338,11 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
             cur = cdr (cur);
         }
-        sx = get_special_linker_options
-            (t->icemake, cons (str_dstart_group, sx));
+        sx = get_special_linker_options (t, cons (str_dstart_group, sx));
     }
     else
     {
-        sx = get_special_linker_options
-            (t->icemake, sx);
+        sx = get_special_linker_options (t, sx);
     }
 
     switch (i_os)
@@ -443,7 +442,7 @@ static void link_library_borland_dynamic
         cur = cdr (cur);
     }
 
-    sx = get_special_linker_options (t->icemake, sx);
+    sx = get_special_linker_options (t, sx);
 
     b = get_build_file (t, sx_join (str_lib, name,
                              sx_join (str_dot, t->dversion, str_dot_dll)));
@@ -454,7 +453,7 @@ static void link_library_borland_dynamic
     t->icemake->workstack = sx_set_add (t->icemake->workstack,
                     cons (p_linker,
                           cons (str_dq, cons (str_dWD,
-                                get_special_linker_options (t->icemake,
+                                get_special_linker_options (t,
                                     cons (str_do, cons (b, sx)))))));
 
     b = get_build_file (t, sx_join (str_lib, name, str_dot_dll));
@@ -462,7 +461,7 @@ static void link_library_borland_dynamic
     t->icemake->workstack = sx_set_add (t->icemake->workstack,
                     cons (p_linker,
                           cons (str_dq, cons (str_dWD,
-                                get_special_linker_options (t->icemake,
+                                get_special_linker_options (t,
                                     cons (str_do, cons (b, sx)))))));
 }
 

@@ -69,7 +69,7 @@ static sexpr get_documentation_install_path
     (struct target *t, sexpr name, sexpr file, sexpr version,
      const char *suffix)
 {
-    switch (i_fsl)
+    switch (t->icemake->filesystem_layout)
     {
         case fs_fhs:
         case fs_fhs_binlib:
@@ -92,7 +92,7 @@ static sexpr get_documentation_man_install_path
 {
     const char *s = sx_symbol (section);
 
-    switch (i_fsl)
+    switch (t->icemake->filesystem_layout)
     {
         case fs_fhs:
         case fs_fhs_binlib:
@@ -119,7 +119,7 @@ static sexpr get_header_install_path
 static sexpr get_data_install_path
     (struct target *t, sexpr name, sexpr file)
 {
-    switch (i_fsl)
+    switch (t->icemake->filesystem_layout)
     {
         case fs_fhs:
         case fs_fhs_binlib:

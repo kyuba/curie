@@ -78,7 +78,7 @@ static void write_curie_sx (sexpr name, struct target *t)
 
 static sexpr prepend_includes_msvc (struct target *t, sexpr x)
 {
-    sexpr include_paths = icemake_permutate_paths (str_include);
+    sexpr include_paths = icemake_permutate_paths (t->toolchain, str_include);
     sexpr cur = include_paths;
 
     if (stringp (i_destdir))
@@ -219,7 +219,7 @@ static void map_includes (struct tree_node *node, void *psx)
                          get_build_file (t, sx_nil), sx_nil), *sx);
 }
 
-static sexpr get_special_linker_options (struct icemake *im, sexpr sx)
+static sexpr get_special_linker_options (struct target *t, sexpr sx)
 {
     define_string (str_smachinec,        "/machine:");
     define_string (str_x86,              "x86");
@@ -252,7 +252,7 @@ static sexpr get_special_linker_options (struct icemake *im, sexpr sx)
         
     if (stringp (i_destdir))
     {
-        switch (i_fsl)
+        switch (t->icemake->filesystem_layout)
         {
             case fs_fhs:
             case fs_fhs_binlib:
@@ -261,14 +261,15 @@ static sexpr get_special_linker_options (struct icemake *im, sexpr sx)
                 break;
             case fs_afsl:
                 sx = cons (sx_join (str_sLIBPATHc, i_destdir,
-                           sx_join (str_backslash, make_string (uname_os),
+                           sx_join (str_backslash,
+                                    make_string (t->toolchain->uname_os),
                            sx_join (str_backslash, make_string(uname_arch),
                            str_bslib))), sx);
                 break;
         }
     }
 
-    tree_map (&(im->targets), map_includes, (void *)&sx);
+    tree_map (&(t->icemake->targets), map_includes, (void *)&sx);
         
     sx = cons (machine_spec, sx);
 
@@ -296,7 +297,7 @@ static void link_programme_msvc_filename
     (sexpr ofile, sexpr name, sexpr code, struct target *t)
 {
     int i;
-    sexpr sx = get_special_linker_options (t->icemake, sx_end_of_list);
+    sexpr sx = get_special_linker_options (t, sx_end_of_list);
 
     for (i = 0; (i < 6) && (uname_arch[i] == "x86-64"[i]); i++);
 
@@ -330,7 +331,7 @@ static void link_library_msvc (sexpr name, sexpr code, struct target *t)
 
 static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
 {
-    sexpr sx = get_special_linker_options (t->icemake, sx_end_of_list), cur,
+    sexpr sx = get_special_linker_options (t, sx_end_of_list), cur,
           sxx = sx_end_of_list, b, bi;
 
     if (falsep (t->deffile))
@@ -490,7 +491,7 @@ static sexpr get_header_install_path
 static sexpr get_data_install_path
     (struct target *t, sexpr name, sexpr file)
 {
-    switch (i_fsl)
+    switch (t->icemake->filesystem_layout)
     {
         case fs_fhs:
         case fs_fhs_binlib:
