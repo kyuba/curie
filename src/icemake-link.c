@@ -72,7 +72,7 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
             }
 
         }
-        else if (t->icemake->options & ICEMAKE_OPTION_FREESTANDING)
+        else if (t->toolchain->options & ICEMAKE_OPTION_FREESTANDING)
         {
             if (truep(i_static))
             {
@@ -262,7 +262,7 @@ static void write_curie_sx (sexpr name, struct target *t)
 
         io = sx_open_o (io_open_create (sx_string (b), 0644));
 
-        if (t->icemake->options & ICEMAKE_OPTION_FREESTANDING)
+        if (t->toolchain->options & ICEMAKE_OPTION_FREESTANDING)
         {
             sx_write (io, sym_freestanding);
         }

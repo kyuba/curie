@@ -63,7 +63,7 @@ static void write_curie_sx (sexpr name, struct target *t)
 
         io = sx_open_o (io_open_create (sx_string (b), 0644));
 
-        if (t->icemake->options & ICEMAKE_OPTION_FREESTANDING)
+        if (t->toolchain->options & ICEMAKE_OPTION_FREESTANDING)
         {
             sx_write (io, sym_freestanding);
         }

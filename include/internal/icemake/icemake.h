@@ -231,6 +231,8 @@ struct toolchain_descriptor
 
     unsigned long instruction_set_options;
     unsigned long instruction_set_level;
+ 
+    unsigned long options;
 };
 
 struct visualiser_raw
@@ -280,7 +282,7 @@ struct icemake
 
     int alive_processes;
 
-    long int options;
+    unsigned long options;
 
     /*! \brief List: Queued tasks */
     sexpr workstack;
