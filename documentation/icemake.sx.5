@@ -221,7 +221,6 @@ way, icemake will
 search for the files in a path like this:
 
 .IB prefix /
-.IB internal-or-debug /
 .IB os /
 .IB arch /
 .IB toolchain /
@@ -230,9 +229,6 @@ search for the files in a path like this:
 .I prefix
 is the base directory, as described for each of the options in the last section,
 i.e. "src" for code files.
-.I internal-or-debug
-is either "internal", which is mostly of use for header files, or with the the
--D flag to icemake it may also be "debug".
 .I os
 is the short name of the operationg system or the general class of operating
 system, for example "windows", "linux", "posix", "ansi" or "generic".

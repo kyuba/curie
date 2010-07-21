@@ -156,7 +156,7 @@ static void build_object_msvc_resource
 }
 
 static void build_object_msvc
-    (sexpr type, sexpr source, sexpr target, struct target *t)
+    (struct target *t, sexpr type, sexpr source, sexpr target)
 {
     if (truep(equalp(type, sym_link))) return;
 
@@ -172,42 +172,6 @@ static void build_object_msvc
     {
         build_object_msvc_generic (sx_string(source), sx_string(target), t);
     }
-}
-
-static void build_object
-    (sexpr desc, struct target *t)
-{
-    sexpr type   = car(desc);
-    sexpr source = car(cdr(desc));
-    sexpr target = car(cdr(cdr(desc)));
-
-    build_object_msvc (type, source, target, t);
-}
-
-static int build   (struct target *t)
-{
-    sexpr c = t->code;
-
-    while (consp (c))
-    {
-        build_object(car(c), t);
-
-        c = cdr (c);
-    }
-
-    if (truep(do_tests))
-    {
-        c = t->test_cases;
-
-        while (consp (c))
-        {
-            build_object(car(c), t);
-
-            c = cdr (c);
-        }
-    }
-
-    return 0;
 }
 
 static void map_includes (struct tree_node *node, void *psx)
@@ -610,10 +574,10 @@ int icemake_prepare_toolchain_msvc (struct toolchain_descriptor *td)
     td->meta_toolchain.msvc.link = icemake_which (td, "link");
     td->meta_toolchain.msvc.lib  = icemake_which (td, "lib");
 
-    td->build   = build;
-    td->link    = do_link;
-    td->install = install;
-    td->test    = test;
+    td->build_object = build_object_msvc;
+    td->link         = do_link;
+    td->install      = install;
+    td->test         = test;
 
     return (falsep (td->meta_toolchain.msvc.cl)   ? 1 : 0) + 
            (falsep (td->meta_toolchain.msvc.rc)   ? 1 : 0) + 

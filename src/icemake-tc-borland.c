@@ -28,7 +28,103 @@
 
 #include <icemake/icemake.h>
 
+static sexpr prepend_includes_common (struct target *t, sexpr x)
+{
+    sexpr include_paths = icemake_permutate_paths (t->toolchain, str_include);
+    sexpr cur = include_paths;
+
+    if (stringp (i_destdir))
+    {
+        x = cons (sx_join (str_dI,
+                           get_install_file (t, str_include), sx_nil), x);
+    }
+
+    while (consp (cur))
+    {
+        sexpr sxcar = car(cur);
+
+        x = cons (sx_join (str_dI, sxcar, sx_nil), x);
+
+        cur = cdr (cur);
+    }
+        
+    return cons (sx_join (str_dIbuilds, architecture, str_sinclude), x);
+}
+
+static sexpr prepend_includes_borland (struct target *t, sexpr x)
+{
+    return prepend_includes_common (t, x);
+}
+
+static sexpr prepend_cflags_borland (sexpr x)
+{
+    return prepend_flags_from_environment (x, "CFLAGS");
+}
+
+static sexpr prepend_cxxflags_borland (sexpr x)
+{
+    return prepend_flags_from_environment (x, "CXXFLAGS");
+}
+
+static void build_object_borland_generic
+    (const char *source, const char *target, struct target *t)
+{
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
+                  cons (str_dAT,
+                  cons (str_dq,
+                    cons (str_dw,
+                      prepend_cflags_borland (
+                      prepend_includes_borland (t,
+                        cons (str_do,
+                          cons (make_string (target),
+                            cons (str_dc,
+                              cons (make_string(source), sx_end_of_list)))))))))));
+}
+
+static void build_object_borland_cpp
+    (const char *source, const char *target, struct target *t)
+{
+    t->icemake->workstack =
+        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
+                  cons (str_dAT,
+                  cons (str_dq,
+                  cons (str_dP,
+                    cons (str_dw,
+                      prepend_cxxflags_borland (
+                      prepend_includes_borland (t,
+                        cons (str_do,
+                          cons (make_string (target),
+                            cons (str_dc,
+                              cons (make_string(source), sx_end_of_list))))))))))));
+}
+
+static void build_object_borland
+    (struct target *t, sexpr type, sexpr source, sexpr target)
+{
+    if (truep(equalp(type, sym_link))) return;
+
+    if (truep(equalp(type, sym_resource)))
+    {
+        /* STUB */
+    }
+    else if (truep(equalp(type, sym_cpp)))
+    {
+        build_object_borland_cpp (sx_string(source), sx_string(target), t);
+    }
+    else
+    {
+        build_object_borland_generic (sx_string(source), sx_string(target), t);
+    }
+}
+
 int icemake_prepare_toolchain_borland (struct toolchain_descriptor *td)
 {
-    return 0;
+    td->meta_toolchain.borland.bcc32 = icemake_which (td, "bcc32");
+    td->meta_toolchain.borland.tlib  = icemake_which (td, "tlib");
+
+    td->build_object = build_object_borland;
+
+    return (falsep (td->meta_toolchain.borland.bcc32) ? 1 : 0) + 
+           (falsep (td->meta_toolchain.borland.tlib)  ? 1 : 0);
 }

@@ -78,7 +78,6 @@ sexpr do_build_documentation           = sx_false;
 
 sexpr p_c_compiler                     = sx_false;
 sexpr p_cpp_compiler                   = sx_false;
-sexpr p_assembler                      = sx_false;
 sexpr p_linker                         = sx_false;
 sexpr p_archiver                       = sx_false;
 sexpr p_diff                           = sx_false;
@@ -495,13 +494,7 @@ static sexpr find_in_permutations
 {
     sexpr r;
 
-    if ((r = find_in_permutations_os
-            (td, sx_string_dir_prefix_c ("internal", p), file)),
-        stringp(r))
-    {
-        return r;
-    }
-    else if ((r = find_in_permutations_os (td, p, file)), stringp(r))
+    if ((r = find_in_permutations_os (td, p, file)), stringp(r))
     {
         return r;
     }
@@ -1592,18 +1585,11 @@ static void initialise_toolchain_gcc (struct toolchain_descriptor *td)
     }
 
     p_linker = p_c_compiler;
-/*    p_assembler = p_c_compiler;*/
 
     p_cpp_compiler = xwhich (td, "g++");
     if (falsep(p_cpp_compiler))
     {
         on_error (ie_missing_tool, "g++");
-    }
-
-    p_assembler = xwhich (td, "as");
-    if (falsep(p_assembler))
-    {
-        on_error (ie_missing_tool, "as");
     }
 
     p_archiver = xwhich (td, "ar");
@@ -1628,7 +1614,6 @@ static void initialise_toolchain_borland (struct toolchain_descriptor *td)
     }
 
     p_linker = p_c_compiler;
-    p_assembler = p_c_compiler;
     p_cpp_compiler = p_c_compiler;
 
     p_archiver = xwhich (td, "tlib");
@@ -2244,7 +2229,7 @@ int icemake_prepare
         im = &iml;
     }
  
-    initialise_libcurie (im, &td);
+    initialise_libcurie (im, td);
  
     if (nilp(in_dynamic_libraries))
     {

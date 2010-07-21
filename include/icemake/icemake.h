@@ -213,6 +213,8 @@ struct toolchain_descriptor
     int (*install)       (struct target *);
     int (*test)          (struct target *);
 
+    int (*build_object)  (struct target *, sexpr type, sexpr src, sexpr target);
+
     int (*install_file)  (struct icemake *im, sexpr spec);
 
     union
@@ -453,12 +455,6 @@ extern sexpr p_c_compiler;
  *  Automatically searched in the PATH according to the toolchain type.
  */
 extern sexpr p_cpp_compiler;
-
-/*! \brief Assembler Binary
- *
- *  Automatically searched in the PATH according to the toolchain type.
- */
-extern sexpr p_assembler;
 
 /*! \brief Linker Binary
  *
