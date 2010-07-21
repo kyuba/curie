@@ -29,68 +29,6 @@
 #include <curie/filesystem.h>
 #include <icemake/icemake.h>
 
-static sexpr f_exist_add (sexpr f, sexpr lis)
-{
-    return truep (filep (f)) ? cons (f, lis) : lis;
-}
-
-static sexpr permutate_paths_vendor (sexpr p, sexpr lis)
-{
-    lis = f_exist_add (sx_string_dir_prefix_c (uname_vendor, p), lis);
-    lis = f_exist_add (p, lis);
-
-    return lis;
-}
-
-static sexpr permutate_paths_toolchain (sexpr p, sexpr lis)
-{
-    switch (uname_toolchain)
-    {
-        case tc_gcc:
-            lis = permutate_paths_vendor (sx_string_dir_prefix_c ("gnu", p), lis);
-            break;
-        case tc_borland:
-            lis = permutate_paths_vendor (sx_string_dir_prefix_c ("borland", p), lis);
-            break;
-        case tc_msvc:
-            lis = permutate_paths_vendor (sx_string_dir_prefix_c ("msvc", p), lis);
-            break;
-    }
-    lis = permutate_paths_vendor (p, lis);
-
-    return lis;
-}
-
-static sexpr permutate_paths_arch (sexpr p, sexpr lis)
-{
-    lis = permutate_paths_toolchain (sx_string_dir_prefix_c (uname_arch, p), lis);
-    lis = permutate_paths_toolchain (p, lis);
-
-    return lis;
-}
-
-static sexpr permutate_paths_os
-    (struct toolchain_descriptor *td, sexpr p, sexpr lis)
-{
-    lis = permutate_paths_arch (sx_string_dir_prefix_c (td->uname_os, p), lis);
-    lis = permutate_paths_arch (p, lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("posix", p), lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("generic", p), lis);
-
-    return lis;
-}
-
-sexpr icemake_permutate_paths
-    (struct toolchain_descriptor *td, sexpr p)
-{
-    sexpr lis = sx_end_of_list;
-
-    lis = permutate_paths_os (td, p, lis);
-
-    return lis;
-}
-
 static sexpr prepend_includes_common (struct target *t, sexpr x)
 {
     sexpr include_paths = icemake_permutate_paths (t->toolchain, str_include);

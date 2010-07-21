@@ -214,6 +214,68 @@ static struct toolchain_pattern toolchain_pattern[] =
     { 0 } /* last pattern */
 };
 
+static sexpr f_exist_add (sexpr f, sexpr lis)
+{
+    return truep (filep (f)) ? cons (f, lis) : lis;
+}
+
+static sexpr permutate_paths_vendor (sexpr p, sexpr lis)
+{
+    lis = f_exist_add (sx_string_dir_prefix_c (uname_vendor, p), lis);
+    lis = f_exist_add (p, lis);
+
+    return lis;
+}
+
+static sexpr permutate_paths_toolchain (sexpr p, sexpr lis)
+{
+    switch (uname_toolchain)
+    {
+        case tc_gcc:
+            lis = permutate_paths_vendor (sx_string_dir_prefix_c ("gnu", p), lis);
+            break;
+        case tc_borland:
+            lis = permutate_paths_vendor (sx_string_dir_prefix_c ("borland", p), lis);
+            break;
+        case tc_msvc:
+            lis = permutate_paths_vendor (sx_string_dir_prefix_c ("msvc", p), lis);
+            break;
+    }
+    lis = permutate_paths_vendor (p, lis);
+
+    return lis;
+}
+
+static sexpr permutate_paths_arch (sexpr p, sexpr lis)
+{
+    lis = permutate_paths_toolchain (sx_string_dir_prefix_c (uname_arch, p), lis);
+    lis = permutate_paths_toolchain (p, lis);
+
+    return lis;
+}
+
+static sexpr permutate_paths_os
+    (struct toolchain_descriptor *td, sexpr p, sexpr lis)
+{
+    lis = permutate_paths_arch (sx_string_dir_prefix_c (td->uname_os, p), lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c ("posix", p), lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
+    lis = permutate_paths_arch (sx_string_dir_prefix_c ("generic", p), lis);
+    lis = permutate_paths_arch (p, lis);
+
+    return lis;
+}
+
+sexpr icemake_permutate_paths
+    (struct toolchain_descriptor *td, sexpr p)
+{
+    sexpr lis = sx_end_of_list;
+
+    lis = permutate_paths_os (td, p, lis);
+
+    return lis;
+}
+
 void mkdir_pi (sexpr path)
 {
     char buffer[BUFFERSIZE];
@@ -365,138 +427,23 @@ sexpr sx_string_dir_prefix_c (const char *f, sexpr p)
     return sx_join (p, str_slash, make_string (f));
 }
 
-static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
-{
-    return sx_string_dir_prefix_c (sx_string(f), p);
-}
-
-static sexpr find_actual_file (sexpr p, sexpr file)
-{
-    sexpr r = sx_string_dir_prefix (file, p);
-
-    return (truep(filep (r)) ? r : sx_false);
-}
-
-static sexpr find_in_permutations_vendor (sexpr p, sexpr file)
-{
-    sexpr r;
-
-    if ((r = find_actual_file (sx_string_dir_prefix_c (uname_vendor, p), file)),
-        stringp(r))
-    {
-        return r;
-    }
-    else if ((r = find_actual_file (p, file)), stringp(r))
-    {
-        return r;
-    }
-
-    return sx_false;
-}
-
-static sexpr find_in_permutations_toolchain (sexpr p, sexpr file)
-{
-    sexpr r;
-
-    switch (uname_toolchain)
-    {
-        case tc_gcc:
-            if ((r = find_in_permutations_vendor
-                        (sx_string_dir_prefix_c ("gnu", p), file)),
-                stringp(r))
-            {
-                return r;
-            }
-            break;
-        case tc_borland:
-            if ((r = find_in_permutations_vendor
-                        (sx_string_dir_prefix_c ("borland", p), file)),
-                stringp(r))
-            {
-                return r;
-            }
-            break;
-        case tc_msvc:
-            if ((r = find_in_permutations_vendor
-                        (sx_string_dir_prefix_c ("msvc", p), file)),
-                stringp(r))
-            {
-                return r;
-            }
-            break;
-    }
-
-    if ((r = find_in_permutations_vendor (p, file)), stringp(r))
-    {
-        return r;
-    }
-
-    return sx_false;
-}
-
-static sexpr find_in_permutations_arch (sexpr p, sexpr file)
-{
-    sexpr r;
-
-    if ((r = find_in_permutations_toolchain
-                (sx_string_dir_prefix_c (uname_arch, p), file)),
-        stringp(r))
-    {
-        return r;
-    }
-    else if ((r = find_in_permutations_toolchain (p, file)), stringp(r))
-    {
-        return r;
-    }
-
-    return sx_false;
-}
-
-static sexpr find_in_permutations_os
-    (struct toolchain_descriptor *td, sexpr p, sexpr file)
-{
-    sexpr r;
-
-    if ((r = find_in_permutations_arch
-                (sx_string_dir_prefix_c (td->uname_os, p), file)),
-        stringp(r))
-    {
-        return r;
-    }
-    else if ((r = find_in_permutations_arch
-                (sx_string_dir_prefix_c ("posix", p), file)),
-             stringp(r))
-    {
-        return r;
-    }
-    else if ((r = find_in_permutations_arch
-                (sx_string_dir_prefix_c ("ansi", p), file)),
-             stringp(r))
-    {
-        return r;
-    }
-    else if ((r = find_in_permutations_arch
-                (sx_string_dir_prefix_c ("generic", p), file)),
-             stringp(r))
-    {
-        return r;
-    }
-    else if ((r = find_in_permutations_arch (p, file)), stringp(r))
-    {
-        return r;
-    }
-
-    return sx_false;
-}
-
 static sexpr find_in_permutations
     (struct toolchain_descriptor *td, sexpr p, sexpr file)
 {
-    sexpr r;
+    sexpr cur = sx_reverse (icemake_permutate_paths (td, p));
+    sexpr r, q;
 
-    if ((r = find_in_permutations_os (td, p, file)), stringp(r))
+    while (consp (cur))
     {
-        return r;
+        q = car (cur);
+        r = sx_join (q, str_slash, file);
+
+        if (truep (filep (r)))
+        {
+            return r;
+        }
+
+        cur = cdr (cur);
     }
 
     return sx_false;
@@ -1550,19 +1497,23 @@ static sexpr xwhich (const struct toolchain_descriptor *td, char *programme)
 {
     sexpr w, p = make_string (programme);
 
-    if ((tcversion != (char *)0) &&
-          ((w = which (sx_join (td->original_toolchain, str_dash,
-                         sx_join (p, str_dash, make_string (tcversion))))),
-           stringp(w)))
+    if (td != (struct toolchain_descriptor *)0)
     {
-        return w;
+        if ((tcversion != (char *)0) &&
+              ((w = which (sx_join (td->original_toolchain, str_dash,
+                             sx_join (p, str_dash, make_string (tcversion))))),
+               stringp(w)))
+        {
+            return w;
+        }
+        else if ((w = which (sx_join (td->original_toolchain, str_dash, p))),
+                 stringp(w))
+        {
+            return w;
+        }
     }
-    else if ((w = which (sx_join (td->original_toolchain, str_dash, p))),
-             stringp(w))
-    {
-        return w;
-    }
-    else if ((w = which (make_string (programme))), stringp(w))
+    
+    if ((w = which (make_string (programme))), stringp(w))
     {
         return w;
     }
@@ -1597,12 +1548,6 @@ static void initialise_toolchain_gcc (struct toolchain_descriptor *td)
     {
         on_error (ie_missing_tool, "ar");
     }
-
-    p_diff = xwhich (td, "diff");
-    if (falsep(p_diff))
-    {
-        on_warning (ie_missing_tool, "diff");
-    }
 }
 
 static void initialise_toolchain_borland (struct toolchain_descriptor *td)
@@ -1620,12 +1565,6 @@ static void initialise_toolchain_borland (struct toolchain_descriptor *td)
     if (falsep(p_archiver))
     {
         on_error (ie_missing_tool, "tlib");
-    }
-
-    p_diff = xwhich (td, "diff");
-    if (falsep(p_diff))
-    {
-        on_warning (ie_missing_tool, "diff");
     }
 }
 
@@ -2532,6 +2471,8 @@ int cmain ()
     multiplex_add_signal (sig_bus,  cb_on_bad_signal, (void *)0);
 
     multiplex_add_sexpr (stdio, (void *)0, (void *)0);
+
+    p_diff = xwhich ((void *)0, "diff");
 
     if (target_architecture != (const char *)0)
     {
