@@ -354,7 +354,6 @@ static void build_object_gcc
     }
 }
 
-
 int icemake_prepare_toolchain_gcc (struct toolchain_descriptor *td)
 {
     td->meta_toolchain.gcc.gcc = icemake_which (td, "gcc");

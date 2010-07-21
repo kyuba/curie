@@ -29,29 +29,6 @@
 #include <curie/filesystem.h>
 #include <icemake/icemake.h>
 
-static sexpr prepend_includes_common (struct target *t, sexpr x)
-{
-    sexpr include_paths = icemake_permutate_paths (t->toolchain, str_include);
-    sexpr cur = include_paths;
-
-    if (stringp (i_destdir))
-    {
-        x = cons (sx_join (str_dI,
-                           get_install_file (t, str_include), sx_nil), x);
-    }
-
-    while (consp (cur))
-    {
-        sexpr sxcar = car(cur);
-
-        x = cons (sx_join (str_dI, sxcar, sx_nil), x);
-
-        cur = cdr (cur);
-    }
-        
-    return cons (sx_join (str_dIbuilds, architecture, str_sinclude), x);
-}
-
 static int build_object(sexpr desc, struct target *t)
 {
     sexpr type = car(desc);

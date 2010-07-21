@@ -874,13 +874,6 @@ define_string (str_space,               " ");
  */
 sexpr prepend_flags_from_environment (sexpr x, const char *var);
 
-/*! \brief Prefix with a C String
- *  \param[in] f The C string to add a prefix to.
- *  \param[in] p The prefix to add.
- *  \return The prefixed directory.
- */
-sexpr sx_string_dir_prefix_c (const char *f, sexpr p);
-
 /*! \brief Build Targets
  *  \param[in] icemake Icemake handle.
  */

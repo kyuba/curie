@@ -214,6 +214,21 @@ static struct toolchain_pattern toolchain_pattern[] =
     { 0 } /* last pattern */
 };
 
+static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
+{
+    if (i_os == os_windows)
+    {
+        return sx_join (p, str_backslash, f);
+    }
+
+    return sx_join (p, str_slash, f);
+}
+
+static sexpr sx_string_dir_prefix_c (const char *f, sexpr p)
+{
+    return sx_string_dir_prefix (make_string (f), p);
+}
+
 static sexpr f_exist_add (sexpr f, sexpr lis)
 {
     return truep (filep (f)) ? cons (f, lis) : lis;
@@ -227,29 +242,25 @@ static sexpr permutate_paths_vendor (sexpr p, sexpr lis)
     return lis;
 }
 
-static sexpr permutate_paths_toolchain (sexpr p, sexpr lis)
+static sexpr permutate_paths_toolchain
+    (struct toolchain_descriptor *td, sexpr p, sexpr lis)
 {
-    switch (uname_toolchain)
+    if (td->uname_toolchain != (const char *)0)
     {
-        case tc_gcc:
-            lis = permutate_paths_vendor (sx_string_dir_prefix_c ("gnu", p), lis);
-            break;
-        case tc_borland:
-            lis = permutate_paths_vendor (sx_string_dir_prefix_c ("borland", p), lis);
-            break;
-        case tc_msvc:
-            lis = permutate_paths_vendor (sx_string_dir_prefix_c ("msvc", p), lis);
-            break;
+        lis = permutate_paths_vendor
+            (sx_string_dir_prefix_c (td->uname_toolchain, p), lis);
     }
     lis = permutate_paths_vendor (p, lis);
 
     return lis;
 }
 
-static sexpr permutate_paths_arch (sexpr p, sexpr lis)
+static sexpr permutate_paths_arch
+    (struct toolchain_descriptor *td, sexpr p, sexpr lis)
 {
-    lis = permutate_paths_toolchain (sx_string_dir_prefix_c (uname_arch, p), lis);
-    lis = permutate_paths_toolchain (p, lis);
+    lis = permutate_paths_toolchain
+        (td, sx_string_dir_prefix_c (uname_arch, p), lis);
+    lis = permutate_paths_toolchain (td, p, lis);
 
     return lis;
 }
@@ -257,11 +268,12 @@ static sexpr permutate_paths_arch (sexpr p, sexpr lis)
 static sexpr permutate_paths_os
     (struct toolchain_descriptor *td, sexpr p, sexpr lis)
 {
-    lis = permutate_paths_arch (sx_string_dir_prefix_c (td->uname_os, p), lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("posix", p), lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("ansi", p), lis);
-    lis = permutate_paths_arch (sx_string_dir_prefix_c ("generic", p), lis);
-    lis = permutate_paths_arch (p, lis);
+    lis = permutate_paths_arch
+        (td, sx_string_dir_prefix_c (td->uname_os, p), lis);
+    lis = permutate_paths_arch (td, sx_string_dir_prefix_c ("posix", p), lis);
+    lis = permutate_paths_arch (td, sx_string_dir_prefix_c ("ansi", p), lis);
+    lis = permutate_paths_arch (td, sx_string_dir_prefix_c ("generic", p), lis);
+    lis = permutate_paths_arch (td, p, lis);
 
     return lis;
 }
@@ -417,16 +429,6 @@ sexpr lowercase (sexpr s)
     return make_string (buffer);
 }
 
-sexpr sx_string_dir_prefix_c (const char *f, sexpr p)
-{
-    if (i_os == os_windows)
-    {
-        return sx_join (p, str_backslash, make_string (f));
-    }
-
-    return sx_join (p, str_slash, make_string (f));
-}
-
 static sexpr find_in_permutations
     (struct toolchain_descriptor *td, sexpr p, sexpr file)
 {
@@ -436,7 +438,7 @@ static sexpr find_in_permutations
     while (consp (cur))
     {
         q = car (cur);
-        r = sx_join (q, str_slash, file);
+        r = sx_string_dir_prefix (file, q);
 
         if (truep (filep (r)))
         {
