@@ -70,7 +70,8 @@ static void build_object_borland_generic
     (const char *source, const char *target, struct target *t)
 {
     t->icemake->workstack =
-        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
+        sx_set_add (t->icemake->workstack,
+            cons (t->toolchain->meta_toolchain.borland.bcc32,
                   cons (str_dAT,
                   cons (str_dq,
                     cons (str_dw,
@@ -86,7 +87,8 @@ static void build_object_borland_cpp
     (const char *source, const char *target, struct target *t)
 {
     t->icemake->workstack =
-        sx_set_add (t->icemake->workstack, cons (p_c_compiler,
+        sx_set_add (t->icemake->workstack,
+            cons (t->toolchain->meta_toolchain.borland.bcc32,
                   cons (str_dAT,
                   cons (str_dq,
                   cons (str_dP,
