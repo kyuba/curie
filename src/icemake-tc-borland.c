@@ -28,6 +28,9 @@
 
 #include <icemake/icemake.h>
 
+#include <curie/multiplex.h>
+#include <curie/filesystem.h>
+
 static sexpr prepend_includes_common (struct target *t, sexpr x)
 {
     sexpr include_paths = icemake_permutate_paths (t->toolchain, str_include);
@@ -48,7 +51,7 @@ static sexpr prepend_includes_common (struct target *t, sexpr x)
         cur = cdr (cur);
     }
         
-    return cons (sx_join (str_dIbuilds, architecture, str_sinclude), x);
+    return cons (sx_join (str_dIbuilds, t->toolchain->uname, str_sinclude), x);
 }
 
 static sexpr prepend_includes_borland (struct target *t, sexpr x)
@@ -101,11 +104,9 @@ static void build_object_borland_cpp
                               cons (make_string(source), sx_end_of_list))))))))))));
 }
 
-static void build_object_borland
+static int build_object_borland
     (struct target *t, sexpr type, sexpr source, sexpr target)
 {
-    if (truep(equalp(type, sym_link))) return;
-
     if (truep(equalp(type, sym_resource)))
     {
         /* STUB */
@@ -118,6 +119,8 @@ static void build_object_borland
     {
         build_object_borland_generic (sx_string(source), sx_string(target), t);
     }
+
+    return 0;
 }
 
 static void map_includes (struct tree_node *node, void *psx)
@@ -130,15 +133,11 @@ static void map_includes (struct tree_node *node, void *psx)
 
 static sexpr get_special_linker_options (struct target *t, sexpr sx)
 {
-    define_string (str_multiply_defined, "-multiply_defined");
-    define_string (str_warning,          "warning");
- 
     if (stringp (i_destdir))
     {
         switch (t->icemake->filesystem_layout)
         {
             case fs_fhs:
-            case fs_fhs_binlib:
                 sx = cons (sx_join (str_dL, i_destdir, str_slib), sx);
                 break;
             case fs_afsl:
@@ -152,11 +151,6 @@ static sexpr get_special_linker_options (struct target *t, sexpr sx)
     }
 
     tree_map (&(t->icemake->targets), map_includes, (void *)&sx);
-
-    if (i_os == os_darwin)
-    {
-        sx = cons (str_multiply_defined, cons (str_warning, sx));
-    }
 
     return prepend_flags_from_environment (sx, "LDFLAGS");
 }
@@ -349,10 +343,104 @@ static int do_link (struct target *t)
     else if (t->options & ICEMAKE_PROGRAMME)
     {
         sexpr b = get_build_file
-            (t, (i_os == os_windows) ? sx_join (t->name, str_dot_exe, sx_nil)
-                                     : t->name);
+            (t, sx_join (t->name, str_dot_exe, sx_nil));
 
         link_programme_borland_filename (b, t->name, t->code, t);
+    }
+
+    return 0;
+}
+
+static sexpr get_library_install_path (struct target *t)
+{
+    return get_install_file
+        (t, sx_join (i_destlibdir, str_slash,
+              sx_join (str_lib, t->name,
+                       (t->toolchain->toolchain == tc_gcc) ? str_dot_a
+                                                           : str_dot_lib)));
+}
+
+static sexpr get_so_library_install_path (struct target *t)
+{
+    return get_install_file
+        (t, sx_join (((i_os == os_windows) ? str_bin : i_destlibdir), str_slash,
+              sx_join (str_lib, t->name,
+                       (i_os == os_windows)
+                         ? sx_join (str_dot, t->dversion, str_dot_dll)
+                         : sx_join (str_dot_so_dot, t->dversion, sx_nil))));
+}
+
+static sexpr get_so_library_symlink_path (struct target *t)
+{
+    return get_install_file
+        (t, sx_join (((i_os == os_windows) ? str_bin : i_destlibdir), str_slash,
+              sx_join (str_lib, t->name,
+                       (i_os == os_windows) ? str_dot_dll : str_dot_so)));
+}
+
+static sexpr get_programme_install_path (struct target *t)
+{
+    return get_install_file
+        (t, sx_join (str_bin, str_slash,
+              sx_join (t->name, str_dot_exe, sx_nil)));
+}
+
+static void install_library_dynamic_common (sexpr name, struct target *t)
+{
+    if (truep (i_dynamic_libraries) &&
+        !(t->options & ICEMAKE_NO_SHARED_LIBRARY) &&
+        (!(t->options & ICEMAKE_HAVE_CPP)))
+    {
+        sexpr fname = get_build_file
+                          (t, sx_join (str_lib, name,
+                                sx_join (str_dot, t->dversion, str_dot_dll)));
+
+        if (truep(filep(fname)))
+        {
+            t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                        cons (sym_install,
+                            cons (make_integer(0555),
+                                cons (fname, get_so_library_install_path(t)))));
+
+            t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                        cons (sym_install,
+                            cons (get_build_file
+                              (t, sx_join (str_lib, name,
+                                           str_dot_dll)),
+                            get_so_library_symlink_path (t))));
+        }
+    }
+}
+
+static void install_library_borland (sexpr name, struct target *t)
+{
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                cons (sym_install,
+                   cons (get_build_file (t, sx_join (str_lib, name,
+                                                     str_dot_lib)),
+                      get_library_install_path (t))));
+
+    install_library_dynamic_common (name, t);
+}
+
+static void install_programme_borland (sexpr name, struct target *t)
+{
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+         cons (sym_install, cons (make_integer (0555),
+               cons (get_build_file (t, sx_join (name, str_dot_exe, sx_nil)),
+                     get_programme_install_path(t)))));
+}
+
+
+static int install (struct target *t)
+{
+    if (t->options & ICEMAKE_LIBRARY)
+    {
+        install_library_borland (t->name, t);
+    }
+    else if (t->options & ICEMAKE_PROGRAMME)
+    {
+        install_programme_borland (t->name, t);
     }
 
     return 0;
@@ -365,6 +453,7 @@ int icemake_prepare_toolchain_borland (struct toolchain_descriptor *td)
 
     td->build_object = build_object_borland;
     td->link         = do_link;
+    td->install      = install;
 
     return (falsep (td->meta_toolchain.borland.bcc32) ? 1 : 0) + 
            (falsep (td->meta_toolchain.borland.tlib)  ? 1 : 0);

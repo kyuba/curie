@@ -66,7 +66,6 @@ sexpr i_optimise_linking               = sx_false;
 sexpr i_combine                        = sx_false;
 sexpr i_static                         = sx_true;
 sexpr i_destdir                        = sx_false;
-sexpr i_pname                          = sx_false;
 sexpr i_destlibdir                     = sx_false;
 sexpr i_dynamic_libraries              = sx_true;
 static sexpr in_dynamic_libraries      = sx_nil;
@@ -80,8 +79,6 @@ sexpr p_diff                           = sx_false;
 sexpr p_latex                          = sx_false;
 sexpr p_pdflatex                       = sx_false;
 sexpr p_doxygen                        = sx_false;
-
-sexpr architecture                     = sx_false;
 
 static sexpr i_alternatives            = sx_end_of_list;
 
@@ -551,18 +548,19 @@ sexpr get_build_file (struct target *t, sexpr file)
     switch (t->toolchain->toolchain)
     {
         case tc_msvc:
-            return sx_join (t->buildbase, architecture,
+            return sx_join (t->buildbase, t->toolchain->uname,
                    sx_join (str_backslash, t->name,
                      (nilp (file) ? sx_nil
                                   : sx_join (str_backslash, file, sx_nil))));
         case tc_borland:
             return mangle_path_borland_sx
-                     (sx_join (t->buildbase, architecture,
+                     (sx_join (t->buildbase, t->toolchain->uname,
                       sx_join (str_backslash, t->name,
                       (nilp (file) ? sx_nil
                                    : sx_join (str_backslash, file, sx_nil)))));
+        default:
         case tc_gcc:
-            return sx_join (t->buildbase, architecture,
+            return sx_join (t->buildbase, t->toolchain->uname,
                    sx_join (str_slash, t->name,
                    sx_join (str_slash, file, sx_nil)));
     }
@@ -575,12 +573,12 @@ sexpr get_install_file (struct target *t, sexpr file)
     switch (t->icemake->filesystem_layout)
     {
         case fs_fhs:
-        case fs_fhs_binlib:
             switch (t->toolchain->toolchain)
             {
                 case tc_msvc:
                 case tc_borland:
                     return sx_join (i_destdir, str_backslash, file);
+                default:
                 case tc_gcc:
                     return sx_join (i_destdir, str_slash, file);
             }
@@ -594,6 +592,7 @@ sexpr get_install_file (struct target *t, sexpr file)
                                str_backslash,
                                sx_join (make_string (uname_arch), str_backslash,
                                         file)));
+                default:
                 case tc_gcc:
                     return sx_join (i_destdir, str_slash,
                              sx_join (make_string (t->toolchain->uname_os),
@@ -1203,14 +1202,15 @@ static void process_definition
 
     mkdir_p (get_build_file (context, sx_nil));
 
-    mkdir_p (sx_join (context->buildbase, architecture, str_sinclude));
+    mkdir_p (sx_join (context->buildbase, context->toolchain->uname,
+                      str_sinclude));
 
-    mkdir_p (sx_join (context->buildbase, architecture,
+    mkdir_p (sx_join (context->buildbase, context->toolchain->uname,
                       sx_join (str_sincludes, context->name, sx_nil)));
 
     context->headers =
         cons (cons (str_version,
-                    cons (sx_join (context->buildbase, architecture,
+                    cons (sx_join (context->buildbase,context->toolchain->uname,
                                    sx_join (str_sincludes, context->name,
                                             str_sversiondh)),
                           sx_end_of_list)),
@@ -1432,7 +1432,6 @@ static void print_help ()
         " -i           Install resulting binaries\n"
         " -r           Execute runtime tests\n"
         " -f           Use the FHS layout for installation\n"
-        " -b <pname>   Use a modified FHS layout (lib/<pname>/bin/ vs. bin/)\n"
         " -l <libdir>  Use <libdir> instead of 'lib' when installing\n"
         " -s           Use the default FS layout for installation\n"
         " -L           Optimise linking.\n"
@@ -1723,10 +1722,10 @@ static void spawn_stack_items (struct icemake *im, int *fl)
         else if (truep (equalp (sym_install, sca)) ||
                  truep (equalp (sym_symlink, sca)))
         {
-            if (im->toolchain->install_file !=
+            if (im->install_file !=
                     (int (*)(struct icemake *, sexpr))0)
             {
-                im->toolchain->install_file (im, cdr (spec));
+                im->install_file (im, cdr (spec));
             }
         }
         else
@@ -1743,108 +1742,6 @@ enum signal_callback_result cb_on_bad_signal(enum signal s, void *p)
     on_error (ie_problematic_signal, (const char *)0);
 
     return scr_keep;
-}
-
-static sexpr initialise_libcurie_filename
-    (struct toolchain_descriptor *td, sexpr f)
-{
-    struct sexpr_io *io;
-    sexpr r;
-    const char *filename = sx_string (f);
-
-    if (falsep (filep (f))) return sx_false;
-
-    io = sx_open_i (io_open_read(filename));
-
-    while (!eofp(r = sx_read (io)))
-    {
-        if (truep(equalp(r, sym_freestanding)))
-        {
-            td->options |= ICEMAKE_OPTION_FREESTANDING;
-        }
-        else if (truep(equalp(r, sym_hosted)))
-        {
-            td->options &= ~ICEMAKE_OPTION_FREESTANDING;
-
-            if (i_os != os_windows)
-            {
-                i_dynamic_libraries = sx_false;
-            }
-        }
-    }
-
-    sx_close_io (io);
-
-    return sx_true;
-}
-
-static void initialise_libcurie
-    (struct icemake *im, struct toolchain_descriptor *td)
-{
-    if (!falsep(i_destdir))
-    {
-        if (truep (initialise_libcurie_filename
-                       (td, sx_join (i_destdir, str_slash,
-                          sx_join (i_destlibdir, str_slibcuriedsx, sx_nil)))))
-        {
-            return;
-        }
-
-        switch (im->filesystem_layout)
-        {
-            case fs_fhs:
-            case fs_fhs_binlib:
-                if (truep (initialise_libcurie_filename
-                               (td, sx_join (i_destdir, str_susrs,
-                                  sx_join (i_destlibdir, str_slibcuriedsx,
-                                           sx_nil)))))
-                {
-                    return;
-                }
-                break;
-            case fs_afsl:
-                if (truep (initialise_libcurie_filename
-                     (td, sx_join (i_destdir, str_slash,
-                        sx_join (make_string (im->toolchain->uname_os),
-                          str_slash,
-                          sx_join (make_string (uname_arch),
-                            str_slibslibcuriedsx, sx_nil))))))
-                {
-                    return;
-                }
-        }
-    }
-
-    if (truep (initialise_libcurie_filename
-                   (td, sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
-    {
-        return;
-    }
-
-    switch (im->filesystem_layout)
-    {
-        case fs_fhs:
-        case fs_fhs_binlib:
-            if (truep (initialise_libcurie_filename
-                 (td, sx_join (str_susrs, i_destlibdir, str_slibcuriedsx))))
-            {
-                return;
-            }
-            if (truep (initialise_libcurie_filename
-                 (td, sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
-            {
-                return;
-            }
-            break;
-        case fs_afsl:
-            if (truep (initialise_libcurie_filename
-                 (td, sx_join (str_slash, make_string (im->toolchain->uname_os),
-                    sx_join (str_slash, make_string (uname_arch),
-                        str_slibslibcuriedsx)))))
-            {
-                return;
-            }
-    }
 }
 
 static int icemake_count_print_items (struct icemake *im )
@@ -1945,14 +1842,15 @@ void on_warning (enum icemake_error error, const char *text)
 int icemake_default_architecture
     (int (*with_data)(const char *, void *), void *aux)
 {
-    char *toolchain = "unknown";
+    const char *toolchain = "unknown";
 #if !defined(_WIN32)
     struct utsname un;
 #endif
 
-    char ar_t[UNAMELENGTH];
-    char os_t[UNAMELENGTH];
-    char ve_t[UNAMELENGTH];
+    char ar_t[UNAMELENGTH] = "generic";
+    char os_t[UNAMELENGTH] = "generic";
+    char ve_t[UNAMELENGTH] = "unknown";
+    sexpr uname_t = sx_false;
 
     if (!falsep(which(str_cl)))
     {
@@ -1985,14 +1883,12 @@ int icemake_default_architecture
 #endif
 #endif
 
-    architecture = lowercase (sx_join (make_string (ar_t), str_dash,
-                              sx_join (make_string (ve_t), str_dash,
-                              sx_join (make_string (os_t), str_dash,
-                                       make_string (toolchain)))));
+    uname_t = lowercase (sx_join (make_string (ar_t), str_dash,
+                         sx_join (make_string (ve_t), str_dash,
+                         sx_join (make_string (os_t), str_dash,
+                                  make_string (toolchain)))));
 
-    archprefix = (char *)sx_string (architecture);
-
-    return with_data (archprefix, aux);
+    return with_data ((char *)sx_string(uname_t), aux);
 }
 
 int icemake_prepare_toolchain
@@ -2004,7 +1900,9 @@ int icemake_prepare_toolchain
 
     int p;
 
-    archprefix       = name;
+    archprefix    = name;
+
+    sx_write (stdio, make_string (name));
 
     td.toolchain  = tc_generic;
 
@@ -2063,7 +1961,7 @@ int icemake_prepare_toolchain
         }
     }
     
-    architecture =
+    td.uname =
         sx_join (make_string (uname_arch), str_dash,
         sx_join (make_string (uname_vendor), str_dash,
         sx_join (make_string (td.uname_os), str_dash,
@@ -2090,7 +1988,9 @@ int icemake_prepare_toolchain
     switch (i_os)
     {
         default:
-        case os_generic: icemake_prepare_operating_system_generic (&td); break;
+        case os_generic:
+            icemake_prepare_operating_system_generic (0, &td);
+            break;
     }
 
     return with_data (&td, aux);
@@ -2102,7 +2002,8 @@ int icemake_prepare
 {
     struct icemake iml =
         { fs_afsl,
-          on_error, on_warning, sx_end_of_list, stdio, TREE_INITIALISER, td,
+          on_error, on_warning, sx_end_of_list, stdio, TREE_INITIALISER,
+          (int (*)(struct icemake *, sexpr))0,
           0, 0, sx_end_of_list };
     sexpr icemake_sx_path = make_string (path);
     struct sexpr_io *io;
@@ -2115,7 +2016,7 @@ int icemake_prepare
         im = &iml;
     }
  
-    initialise_libcurie (im, td);
+    icemake_prepare_operating_system_generic (im, td);
  
     if (nilp(in_dynamic_libraries))
     {
@@ -2334,13 +2235,6 @@ int cmain ()
                     case 's':
                         im.filesystem_layout = fs_afsl;
                         break;
-                    case 'b':
-                        im.filesystem_layout = fs_fhs_binlib;
-                        if (curie_argv[xn])
-                        {
-                            i_pname = make_string(curie_argv[xn]);
-                            xn++;
-                        }
                     case 'l':
                         if (curie_argv[xn])
                         {

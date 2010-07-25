@@ -50,7 +50,7 @@ static void create_special_files (struct target *t)
     int i = 0;
     struct io *io;
     char c;
-    sexpr b = sx_join (t->buildbase, architecture,
+    sexpr b = sx_join (t->buildbase, t->toolchain->uname,
                 sx_join (str_sincludes, t->name, str_sversiondh)),
           n, o;
     const char *nx = sx_string (t->name), *ox;
@@ -130,9 +130,9 @@ static int do_build_target (struct target *t)
 
     t->buildnumber = make_integer (sx_integer (t->buildnumber) + 1);
 
-    if (t->icemake->toolchain->build != (int (*)(struct target *))0)
+    if (t->toolchain->build != (int (*)(struct target *))0)
     {
-        return t->icemake->toolchain->build (t);
+        return t->toolchain->build (t);
     }
 
     while (consp (c))

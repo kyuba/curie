@@ -109,13 +109,6 @@ enum fs_layout
      *  This uses the AFSL, see the papers on kyuba.org for details.
      */
     fs_afsl,
-
-    /*! \brief FHS Layout, binaries to /lib
-     *
-     *  This is a slightly modified FHS layout that installs binaries into
-     *  $destdir/lib/$programme/bin instead of $destdir/bin.
-     */
-    fs_fhs_binlib
 };
 
 enum icemake_error
@@ -216,14 +209,14 @@ struct toolchain_descriptor
     const char           *uname_vendor;
     const char           *uname_toolchain;
 
+    sexpr                 uname;
+
     int (*build)         (struct target *);
     int (*link)          (struct target *);
     int (*install)       (struct target *);
     int (*test)          (struct target *);
 
     int (*build_object)  (struct target *, sexpr type, sexpr src, sexpr target);
-
-    int (*install_file)  (struct icemake *im, sexpr spec);
 
     union
     {
@@ -288,7 +281,7 @@ struct icemake
      */
     struct tree targets;
 
-    struct toolchain_descriptor *toolchain;
+    int (*install_file) (struct icemake *im, sexpr spec);
 
     int alive_processes;
 
@@ -381,12 +374,6 @@ extern enum instruction_set i_is;
  *  Derived from the effective OS, architecture, vendor and toolchain.
  */
 extern const char *archprefix;
-
-/*! \brief Effective Architecture Descriptor (Generated, S-expression)
- *
- *  Derived from the effective OS, architecture, vendor and toolchain.
- */
-extern sexpr architecture;
 
 /*! \brief Toolchain Version
  *
@@ -920,7 +907,8 @@ int icemake_prepare_toolchain_msvc    (struct toolchain_descriptor *td);
 int icemake_prepare_toolchain_latex   (struct toolchain_descriptor *td);
 int icemake_prepare_toolchain_doxygen (struct toolchain_descriptor *td);
 
-int icemake_prepare_operating_system_generic (struct toolchain_descriptor *td);
+int icemake_prepare_operating_system_generic
+    (struct icemake *im, struct toolchain_descriptor *td);
 
 int icemake_prepare_toolchain
     (const char *name,

@@ -28,6 +28,9 @@
 
 #include <icemake/icemake.h>
 
+#include <curie/multiplex.h>
+#include <curie/filesystem.h>
+
 static sexpr prepend_includes_common (struct target *t, sexpr x)
 {
     sexpr include_paths = icemake_permutate_paths (t->toolchain, str_include);
@@ -48,7 +51,7 @@ static sexpr prepend_includes_common (struct target *t, sexpr x)
         cur = cdr (cur);
     }
         
-    return cons (sx_join (str_dIbuilds, architecture, str_sinclude), x);
+    return cons (sx_join (str_dIbuilds, t->toolchain->uname, str_sinclude), x);
 }
 
 static sexpr prepend_includes_gcc (struct target *t, sexpr x)
@@ -285,11 +288,9 @@ static void build_object_gcc_cpp_pic
                             cons (make_string(target), sx_end_of_list))))))))));
 }
 
-static void build_object_gcc
+static int build_object_gcc
     (struct target *t, sexpr type, sexpr source, sexpr target)
 {
-    if (truep(equalp(type, sym_link))) return;
-
     if (truep(equalp(type, sym_resource)))
     {
         /* STUB */
@@ -352,6 +353,8 @@ static void build_object_gcc
     {
         on_error (ie_unknown_code_file_type, sx_symbol (type));
     }
+
+    return 0;
 }
 
 static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
@@ -439,7 +442,6 @@ static sexpr get_special_linker_options (struct target *t, sexpr sx)
         switch (t->icemake->filesystem_layout)
         {
             case fs_fhs:
-            case fs_fhs_binlib:
                 sx = cons (sx_join (str_dL, i_destdir, str_slib), sx);
                 break;
             case fs_afsl:
@@ -729,6 +731,126 @@ static int do_link (struct target *t)
     return 0;
 }
 
+static sexpr get_library_install_path (struct target *t)
+{
+    return get_install_file
+        (t, sx_join (i_destlibdir, str_slash,
+              sx_join (str_lib, t->name,
+                       (t->toolchain->toolchain == tc_gcc) ? str_dot_a
+                                                           : str_dot_lib)));
+}
+
+static sexpr get_so_library_install_path (struct target *t)
+{
+    return get_install_file
+        (t, sx_join (((i_os == os_windows) ? str_bin : i_destlibdir), str_slash,
+              sx_join (str_lib, t->name,
+                       (i_os == os_windows)
+                         ? sx_join (str_dot, t->dversion, str_dot_dll)
+                         : sx_join (str_dot_so_dot, t->dversion, sx_nil))));
+}
+
+static sexpr get_so_library_symlink_path (struct target *t)
+{
+    return get_install_file
+        (t, sx_join (((i_os == os_windows) ? str_bin : i_destlibdir), str_slash,
+              sx_join (str_lib, t->name,
+                       (i_os == os_windows) ? str_dot_dll : str_dot_so)));
+}
+
+static sexpr get_programme_install_path (struct target *t)
+{
+    return get_install_file
+        (t, sx_join (str_bin, str_slash,
+              sx_join (t->name,
+                       (i_os == os_windows) ? str_dot_exe : sx_nil,
+                       sx_nil)));
+}
+
+static void install_library_dynamic_common (sexpr name, struct target *t)
+{
+    if (truep (i_dynamic_libraries) &&
+        !(t->options & ICEMAKE_NO_SHARED_LIBRARY) &&
+        (!(t->options & ICEMAKE_HAVE_CPP) || (i_os != os_darwin)))
+    {
+        sexpr fname;
+
+        switch (i_os)
+        {
+            case os_windows:
+                fname = get_build_file
+                          (t, sx_join (str_lib, name,
+                                sx_join (str_dot, t->dversion, str_dot_dll)));
+                break;
+            default:
+                fname = get_build_file
+                          (t, sx_join (str_lib, name,
+                                sx_join (str_dot_so_dot, t->dversion, sx_nil)));
+        }
+
+        if (truep(filep(fname)))
+        {
+            t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                        cons (sym_install,
+                            cons (make_integer(0555),
+                                cons (fname, get_so_library_install_path(t)))));
+
+            switch (i_os)
+            {
+                case os_windows:
+                    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                                cons (sym_install,
+                                  cons (get_build_file
+                                    (t, sx_join (str_lib, name,
+                                                 str_dot_dll)),
+                                  get_so_library_symlink_path (t))));
+                    break;
+                default:
+                    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                                cons (sym_symlink,
+                                      cons (sx_join (str_lib, name,
+                                            sx_join (str_dot_so_dot,
+                                                     t->dversion, sx_nil)),
+                                            get_so_library_symlink_path (t))));
+            }
+        }
+    }
+}
+
+static void install_library_gcc (sexpr name, struct target *t)
+{
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+                cons (sym_install,
+                   cons (get_build_file (t, sx_join (str_lib, name, str_dot_a)),
+                      get_library_install_path (t))));
+
+    install_library_dynamic_common (name, t);
+}
+
+static void install_programme_gcc (sexpr name, struct target *t)
+{
+    t->icemake->workstack = sx_set_add (t->icemake->workstack,
+         cons (sym_install, cons (make_integer (0555),
+               cons (get_build_file (t, sx_join (name, (i_os == os_windows 
+                                                         ? str_dot_exe
+                                                         : sx_nil), sx_nil)),
+                     get_programme_install_path(t)))));
+}
+
+static int install (struct target *t)
+{
+    if (t->options & ICEMAKE_LIBRARY)
+    {
+        install_library_gcc (t->name, t);
+    }
+    else if (t->options & ICEMAKE_PROGRAMME)
+    {
+        install_programme_gcc (t->name, t);
+    }
+
+    return 0;
+}
+
 int icemake_prepare_toolchain_gcc (struct toolchain_descriptor *td)
 {
     td->meta_toolchain.gcc.gcc = icemake_which (td, "gcc");
@@ -739,6 +861,7 @@ int icemake_prepare_toolchain_gcc (struct toolchain_descriptor *td)
 
     td->build_object = build_object_gcc;
     td->link         = do_link;
+    td->install      = install;
 
     return (falsep (td->meta_toolchain.gcc.gcc) ? 1 : 0) + 
            (falsep (td->meta_toolchain.gcc.ld)  ? 1 : 0) + 

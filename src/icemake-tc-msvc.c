@@ -96,7 +96,7 @@ static sexpr prepend_includes_msvc (struct target *t, sexpr x)
         cur = cdr (cur);
     }
 
-    return cons (sx_join (str_sIbuilds, architecture, str_sinclude), x);
+    return cons (sx_join (str_sIbuilds, t->toolchain->uname, str_sinclude), x);
 }
 
 static sexpr prepend_cflags_msvc (sexpr x)
@@ -155,11 +155,9 @@ static void build_object_msvc_resource
                       cons (b, cons (make_string(source), sx_end_of_list))));
 }
 
-static void build_object_msvc
+static int build_object_msvc
     (struct target *t, sexpr type, sexpr source, sexpr target)
 {
-    if (truep(equalp(type, sym_link))) return;
-
     if (truep(equalp(type, sym_resource)))
     {
         build_object_msvc_resource (sx_string(source), sx_string(target), t);
@@ -172,6 +170,8 @@ static void build_object_msvc
     {
         build_object_msvc_generic (sx_string(source), sx_string(target), t);
     }
+
+    return 0;
 }
 
 static void map_includes (struct tree_node *node, void *psx)
@@ -219,7 +219,6 @@ static sexpr get_special_linker_options (struct target *t, sexpr sx)
         switch (t->icemake->filesystem_layout)
         {
             case fs_fhs:
-            case fs_fhs_binlib:
                 sx = cons (sx_join (str_sLIBPATHc, i_destdir,
                                     str_bslib), sx);
                 break;
@@ -419,14 +418,6 @@ static sexpr get_programme_install_path (struct target *t)
               sx_join (t->name, str_dot_exe, sx_nil)));
 }
 
-static sexpr get_header_install_path
-    (struct target *t, sexpr file)
-{
-    return get_install_file
-        (t, sx_join (str_includes, t->name,
-              sx_join (str_slash, file, str_dot_h)));
-}
-
 static void install_library_msvc (sexpr name, struct target *t)
 {
     t->icemake->workstack = sx_set_add (t->icemake->workstack,
@@ -471,23 +462,6 @@ static void install_programme_msvc (sexpr name, struct target *t)
                      get_programme_install_path(t)))));
 }
 
-static void install_headers_msvc (sexpr name, struct target *t)
-{
-    sexpr c = t->headers;
-
-    while (consp (c))
-    {
-        sexpr c2 = car(c);
-        sexpr c3 = car(c2);
-        sexpr c4 = car(cdr(c2));
-
-        t->icemake->workstack = sx_set_add (t->icemake->workstack,
-             cons (sym_install, cons (c4, get_header_install_path (t, c3))));
-
-        c = cdr (c);
-    }
-}
-
 static int install (struct target *t)
 {
     if (t->options & ICEMAKE_LIBRARY)
@@ -497,29 +471,6 @@ static int install (struct target *t)
     else if (t->options & ICEMAKE_PROGRAMME)
     {
         install_programme_msvc (t->name, t);
-    }
-
-    install_headers_msvc (t->name, t);
-
-    return 0;
-}
-
-static int test    (struct target *t)
-{
-    sexpr cur;
-
-    for (cur = t->test_reference; consp (cur); cur = cdr (cur))
-    {
-        sexpr r = car (car (cur));
-
-        unlink (sx_string (r));
-    }
-
-    for (cur = t->test_cases; consp (cur); cur = cdr (cur))
-    {
-        t->icemake->workstack =
-            sx_set_add (t->icemake->workstack,
-                        cdr(cdr(cdr(car(cur)))));
     }
 
     return 0;
@@ -535,7 +486,6 @@ int icemake_prepare_toolchain_msvc (struct toolchain_descriptor *td)
     td->build_object = build_object_msvc;
     td->link         = do_link;
     td->install      = install;
-    td->test         = test;
 
     return (falsep (td->meta_toolchain.msvc.cl)   ? 1 : 0) + 
            (falsep (td->meta_toolchain.msvc.rc)   ? 1 : 0) + 

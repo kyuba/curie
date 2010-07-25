@@ -32,9 +32,9 @@ static int run_tests_target (struct target *t)
 {
     sexpr cur;
 
-    if (t->icemake->toolchain->test != (int (*)(struct target *))0)
+    if (t->toolchain->test != (int (*)(struct target *))0)
     {
-        return t->icemake->toolchain->test (t);
+        return t->toolchain->test (t);
     }
 
     if (!falsep(p_diff))

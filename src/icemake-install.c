@@ -30,42 +30,6 @@
 
 #include <curie/filesystem.h>
 
-static sexpr get_library_install_path (struct target *t)
-{
-    return get_install_file
-        (t, sx_join (i_destlibdir, str_slash,
-              sx_join (str_lib, t->name,
-                       (t->toolchain->toolchain == tc_gcc) ? str_dot_a
-                                                           : str_dot_lib)));
-}
-
-static sexpr get_so_library_install_path (struct target *t)
-{
-    return get_install_file
-        (t, sx_join (((i_os == os_windows) ? str_bin : i_destlibdir), str_slash,
-              sx_join (str_lib, t->name,
-                       (i_os == os_windows)
-                         ? sx_join (str_dot, t->dversion, str_dot_dll)
-                         : sx_join (str_dot_so_dot, t->dversion, sx_nil))));
-}
-
-static sexpr get_so_library_symlink_path (struct target *t)
-{
-    return get_install_file
-        (t, sx_join (((i_os == os_windows) ? str_bin : i_destlibdir), str_slash,
-              sx_join (str_lib, t->name,
-                       (i_os == os_windows) ? str_dot_dll : str_dot_so)));
-}
-
-static sexpr get_programme_install_path (struct target *t)
-{
-    return get_install_file
-        (t, sx_join (str_bin, str_slash,
-              sx_join (t->name,
-                       (i_os == os_windows) ? str_dot_exe : sx_nil,
-                       sx_nil)));
-}
-
 static sexpr get_documentation_install_path
     (struct target *t, sexpr name, sexpr file, sexpr version,
      const char *suffix)
@@ -73,7 +37,6 @@ static sexpr get_documentation_install_path
     switch (t->icemake->filesystem_layout)
     {
         case fs_fhs:
-        case fs_fhs_binlib:
             return sx_join (i_destdir, str_ssharesdocs,
                      sx_join (name, str_dash,
                        sx_join (version, str_slash,
@@ -96,7 +59,6 @@ static sexpr get_documentation_man_install_path
     switch (t->icemake->filesystem_layout)
     {
         case fs_fhs:
-        case fs_fhs_binlib:
             return sx_join (i_destdir, str_ssharesmans,
                      sx_join (make_string (s), str_slash,
                        sx_join (file, str_dot, make_string (s + 3))));
@@ -117,115 +79,7 @@ static sexpr get_header_install_path
               sx_join (str_slash, file, str_dot_h)));
 }
 
-static sexpr get_data_install_path
-    (struct target *t, sexpr name, sexpr file)
-{
-    switch (t->icemake->filesystem_layout)
-    {
-        case fs_fhs:
-        case fs_fhs_binlib:
-            return sx_join (i_destdir, str_setcs,
-                     sx_join (name, str_slash, file));
-        case fs_afsl:
-            return sx_join (i_destdir, str_sgenericsconfigurations,
-                     sx_join (name, str_slash, file));
-    }
-
-    return sx_false;
-}
-
-static void install_library_dynamic_common (sexpr name, struct target *t)
-{
-    if (truep (i_dynamic_libraries) &&
-        !(t->options & ICEMAKE_NO_SHARED_LIBRARY) &&
-        (!(t->options & ICEMAKE_HAVE_CPP) || (i_os != os_darwin)))
-    {
-        sexpr fname;
-
-        switch (i_os)
-        {
-            case os_windows:
-                fname = get_build_file
-                          (t, sx_join (str_lib, name,
-                                sx_join (str_dot, t->dversion, str_dot_dll)));
-                break;
-            default:
-                fname = get_build_file
-                          (t, sx_join (str_lib, name,
-                                sx_join (str_dot_so_dot, t->dversion, sx_nil)));
-        }
-
-        if (truep(filep(fname)))
-        {
-            t->icemake->workstack = sx_set_add (t->icemake->workstack,
-                        cons (sym_install,
-                            cons (make_integer(0555),
-                                cons (fname, get_so_library_install_path(t)))));
-
-            switch (i_os)
-            {
-                case os_windows:
-                    t->icemake->workstack = sx_set_add (t->icemake->workstack,
-                                cons (sym_install,
-                                  cons (get_build_file
-                                    (t, sx_join (str_lib, name,
-                                                 str_dot_dll)),
-                                  get_so_library_symlink_path (t))));
-                    break;
-                default:
-                    t->icemake->workstack = sx_set_add (t->icemake->workstack,
-                                cons (sym_symlink,
-                                      cons (sx_join (str_lib, name,
-                                            sx_join (str_dot_so_dot,
-                                                     t->dversion, sx_nil)),
-                                            get_so_library_symlink_path (t))));
-            }
-        }
-    }
-}
-
-static void install_library_gcc (sexpr name, struct target *t)
-{
-    t->icemake->workstack = sx_set_add (t->icemake->workstack,
-                cons (sym_install,
-                   cons (get_build_file (t, sx_join (str_lib, name, str_dot_a)),
-                      get_library_install_path (t))));
-
-    install_library_dynamic_common (name, t);
-}
-
-static void install_library_borland (sexpr name, struct target *t)
-{
-    t->icemake->workstack = sx_set_add (t->icemake->workstack,
-                cons (sym_install,
-                   cons (get_build_file (t, sx_join (str_lib, name,
-                                                     str_dot_lib)),
-                      get_library_install_path (t))));
-
-    install_library_dynamic_common (name, t);
-}
-
-static void install_programme_common (sexpr name, struct target *t)
-{
-    t->icemake->workstack = sx_set_add (t->icemake->workstack,
-         cons (sym_install, cons (make_integer (0555),
-               cons (get_build_file (t, sx_join (name, (i_os == os_windows 
-                                                         ? str_dot_exe
-                                                         : sx_nil), sx_nil)),
-                     get_programme_install_path(t)))));
-}
-
-static void install_programme_gcc (sexpr name, struct target *t)
-{
-    install_programme_common (name, t);
-}
-
-static void install_programme_borland (sexpr name, struct target *t)
-{
-    install_programme_common (name, t);
-}
-
-static void install_headers_common (sexpr name, struct target *t)
+static void install_headers (sexpr name, struct target *t)
 {
     sexpr c = t->headers;
 
@@ -242,14 +96,20 @@ static void install_headers_common (sexpr name, struct target *t)
     }
 }
 
-static void install_headers_gcc (sexpr name, struct target *t)
+static sexpr get_data_install_path
+    (struct target *t, sexpr name, sexpr file)
 {
-    install_headers_common (name, t);
-}
+    switch (t->icemake->filesystem_layout)
+    {
+        case fs_fhs:
+            return sx_join (i_destdir, str_setcs,
+                     sx_join (name, str_slash, file));
+        case fs_afsl:
+            return sx_join (i_destdir, str_sgenericsconfigurations,
+                     sx_join (name, str_slash, file));
+    }
 
-static void install_headers_borland (sexpr name, struct target *t)
-{
-    install_headers_common (name, t);
+    return sx_false;
 }
 
 static void install_support_files (sexpr name, struct target *t)
@@ -284,28 +144,6 @@ static void install_support_files (sexpr name, struct target *t)
         }
 
         cur = cdr (cur);
-    }
-}
-
-static void install_library (sexpr name, struct target *t)
-{
-    switch (t->toolchain->toolchain)
-    {
-        case tc_gcc:
-            install_library_gcc     (name, t); break;
-        case tc_borland:
-            install_library_borland (name, t); break;
-    }
-}
-
-static void install_headers (sexpr name, struct target *t)
-{
-    switch (t->toolchain->toolchain)
-    {
-        case tc_gcc:
-            install_headers_gcc     (name, t); break;
-        case tc_borland:
-            install_headers_borland (name, t); break;
     }
 }
 
@@ -363,37 +201,16 @@ static void install_documentation (sexpr name, struct target *t)
     }
 }
 
-static void install_programme (sexpr name, struct target *t)
-{
-    switch (t->toolchain->toolchain)
-    {
-        case tc_gcc:
-            install_programme_gcc     (name, t); break;
-        case tc_borland:
-            install_programme_borland (name, t); break;
-    }
-}
-
 static int do_install_target(struct target *t)
 {
     install_support_files (t->name, t);
     install_documentation (t->name, t);
+    install_headers       (t->name, t);
 
-    if (t->icemake->toolchain->install != (int (*)(struct target *))0)
+    if (t->toolchain->install != (int (*)(struct target *))0)
     {
-        return t->icemake->toolchain->install (t);
+        return t->toolchain->install (t);
     }
-
-    if (t->options & ICEMAKE_LIBRARY)
-    {
-        install_library (t->name, t);
-    }
-    else if (t->options & ICEMAKE_PROGRAMME)
-    {
-        install_programme (t->name, t);
-    }
-
-    install_headers (t->name, t);
 
     return 0;
 }

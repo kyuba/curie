@@ -164,8 +164,118 @@ static int install_file
 }
 #endif
 
-int icemake_prepare_operating_system_generic (struct toolchain_descriptor *td)
+static sexpr initialise_libcurie_filename
+    (struct toolchain_descriptor *td, sexpr f)
 {
-    td->install_file = install_file;
+    struct sexpr_io *io;
+    sexpr r;
+    const char *filename = sx_string (f);
+
+    if (falsep (filep (f))) return sx_false;
+
+    io = sx_open_i (io_open_read(filename));
+
+    while (!eofp(r = sx_read (io)))
+    {
+        if (truep(equalp(r, sym_freestanding)))
+        {
+            td->options |= ICEMAKE_OPTION_FREESTANDING;
+        }
+        else if (truep(equalp(r, sym_hosted)))
+        {
+            td->options &= ~ICEMAKE_OPTION_FREESTANDING;
+
+            if (i_os != os_windows)
+            {
+                i_dynamic_libraries = sx_false;
+            }
+        }
+    }
+
+    sx_close_io (io);
+
+    return sx_true;
+}
+
+static void initialise_libcurie
+    (struct icemake *im, struct toolchain_descriptor *td)
+{
+    if (!falsep(i_destdir))
+    {
+        if (truep (initialise_libcurie_filename
+                       (td, sx_join (i_destdir, str_slash,
+                          sx_join (i_destlibdir, str_slibcuriedsx, sx_nil)))))
+        {
+            return;
+        }
+
+        switch (im->filesystem_layout)
+        {
+            case fs_fhs:
+                if (truep (initialise_libcurie_filename
+                               (td, sx_join (i_destdir, str_susrs,
+                                  sx_join (i_destlibdir, str_slibcuriedsx,
+                                           sx_nil)))))
+                {
+                    return;
+                }
+                break;
+            case fs_afsl:
+                if (truep (initialise_libcurie_filename
+                     (td, sx_join (i_destdir, str_slash,
+                        sx_join (make_string (td->uname_os),
+                          str_slash,
+                          sx_join (make_string (uname_arch),
+                            str_slibslibcuriedsx, sx_nil))))))
+                {
+                    return;
+                }
+        }
+    }
+
+    if (truep (initialise_libcurie_filename
+                   (td, sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
+    {
+        return;
+    }
+
+    switch (im->filesystem_layout)
+    {
+        case fs_fhs:
+            if (truep (initialise_libcurie_filename
+                 (td, sx_join (str_susrs, i_destlibdir, str_slibcuriedsx))))
+            {
+                return;
+            }
+            if (truep (initialise_libcurie_filename
+                 (td, sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
+            {
+                return;
+            }
+            break;
+        case fs_afsl:
+            if (truep (initialise_libcurie_filename
+                 (td, sx_join (str_slash, make_string (td->uname_os),
+                    sx_join (str_slash, make_string (uname_arch),
+                        str_slibslibcuriedsx)))))
+            {
+                return;
+            }
+    }
+}
+
+int icemake_prepare_operating_system_generic
+    (struct icemake *im, struct toolchain_descriptor *td)
+{
+    if (im != (struct icemake *)0)
+    {
+        if (im->install_file == (int (*)(struct icemake *, sexpr))0)
+        {
+            im->install_file = install_file;
+        }
+
+        initialise_libcurie (im, td);
+    }
+
     return 0;
 }
