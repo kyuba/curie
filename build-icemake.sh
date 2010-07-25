@@ -10,7 +10,7 @@ if [ ! -n "${TOOLCHAINTYPE}" ]; then TOOLCHAINTYPE='gcc'; fi
 if [ ! -d build ]; then mkdir build/; fi
 
 gcc_buildfile() {
-    COMMAND="${CC} ${CFLAGS} ${CCFLAGS} -DNOVERSION -o build/${2}.o -c ${1} -Iinclude/ -Iinclude/generic/  -Iinclude/internal/ -Wall -pedantic --std=c99"
+    COMMAND="${CC} ${CFLAGS} ${CCFLAGS} -DNOVERSION -o build/${2}.o -c ${1} -Iinclude/ -Wall -pedantic --std=c99"
 
     echo ${COMMAND}
 
