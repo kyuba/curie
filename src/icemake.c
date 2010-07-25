@@ -2077,37 +2077,31 @@ int icemake
                                 : remove_test_targets),
               &(im->buildtargets));
 
-    im->workstack =cons (cons (sym_targets, im->buildtargets), im->workstack);
+    im->workstack =
+        cons (cons (sym_completed, cons (sym_targets, im->buildtargets)),
+              im->workstack);
 
-    failures += icemake_build (im);
-    failures += icemake_loop_processes (im);
-    failures += icemake_link  (im);
-    failures += icemake_loop_processes (im);
-
-    if (truep (do_build_documentation))
+    if (truep (do_install))
     {
-        failures += icemake_build_documentation (im);
-        failures += icemake_loop_processes (im);
+        failures += icemake_install (im);
     }
 
     if (truep (do_tests))
     {
         failures += icemake_run_tests (im);
-        failures += icemake_loop_processes (im);
     }
 
-    if (truep (do_install))
+    if (truep (do_build_documentation))
     {
-        failures += icemake_install (im);
-        failures += icemake_loop_processes (im);
+        failures += icemake_build_documentation (im);
     }
 
-    if (!eolp (im->buildtargets))
-    {
-        im->workstack =
-            cons (cons (sym_completed, cons (sym_targets, im->buildtargets)),
-                  im->workstack);
-    }
+    failures += icemake_link  (im);
+    failures += icemake_build (im);
+
+    im->workstack =cons (cons (sym_targets, im->buildtargets), im->workstack);
+
+    im->buildtargets = sx_reverse (im->buildtargets);
 
     failures += icemake_loop_processes (im);
 

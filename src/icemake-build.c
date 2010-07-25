@@ -150,7 +150,7 @@ int icemake_build (struct icemake *im)
     sexpr cursor = im->buildtargets;
 
     im->workstack =
-        cons (cons (sym_phase, cons (sym_build, sx_end_of_list)),
+        cons (cons (sym_phase, cons (sym_completed, sx_end_of_list)),
               im->workstack);
 
     while (consp(cursor))
@@ -167,9 +167,9 @@ int icemake_build (struct icemake *im)
 
         cursor = cdr(cursor);
     }
-    
+
     im->workstack =
-        cons (cons (sym_phase, cons (sym_completed, sx_end_of_list)),
+        cons (cons (sym_phase, cons (sym_build, sx_end_of_list)),
               im->workstack);
 
     return 0;

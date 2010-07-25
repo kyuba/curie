@@ -137,7 +137,11 @@ static void icemake_read (sexpr sx, struct sexpr_io *io, void *aux)
         else if (truep(equalp (c, sym_phase)))
         {
             sexpr r = car (cdr(sx));
-            phase = r;
+
+            if (falsep (equalp (r, sym_completed)))
+            {
+                phase = r;
+            }
         }
         else if (truep(equalp (c, sym_completed)))
         {

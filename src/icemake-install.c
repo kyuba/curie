@@ -228,7 +228,7 @@ int icemake_install (struct icemake *im)
     }
 
     im->workstack =
-        cons (cons (sym_phase, cons (sym_install, sx_end_of_list)),
+        cons (cons (sym_phase, cons (sym_completed, sx_end_of_list)),
               im->workstack);
 
     while (consp(cursor))
@@ -247,7 +247,7 @@ int icemake_install (struct icemake *im)
     }
 
     im->workstack =
-        cons (cons (sym_phase, cons (sym_completed, sx_end_of_list)),
+        cons (cons (sym_phase, cons (sym_install, sx_end_of_list)),
               im->workstack);
 
     return 0;

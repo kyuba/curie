@@ -36,7 +36,7 @@ int icemake_link (struct icemake *im)
     sexpr cursor = im->buildtargets;
 
     im->workstack =
-        cons (cons (sym_phase, cons (sym_link, sx_end_of_list)),
+        cons (cons (sym_phase, cons (sym_completed, sx_end_of_list)),
               im->workstack);
 
     while (consp(cursor))
@@ -61,9 +61,9 @@ int icemake_link (struct icemake *im)
 
         cursor = cdr(cursor);
     }
-    
+ 
     im->workstack =
-        cons (cons (sym_phase, cons (sym_completed, sx_end_of_list)),
+        cons (cons (sym_phase, cons (sym_link, sx_end_of_list)),
               im->workstack);
 
     return rv;
