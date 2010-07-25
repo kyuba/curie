@@ -84,6 +84,9 @@ static sexpr i_alternatives            = sx_end_of_list;
 
 struct sexpr_io *stdio;
 
+static void parse_add_definition
+    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition);
+
 struct process_data
 {
     sexpr command;
@@ -451,14 +454,6 @@ static sexpr find_code_with_suffix
          sx_join (file, make_string (s), sx_nil));
 }
 
-static sexpr find_test_case_with_suffix
-    (struct toolchain_descriptor *td, sexpr file, char *s)
-{
-    return find_in_permutations
-        (td, str_tests,
-         sx_join (file, make_string (s), sx_nil));
-}
-
 static sexpr find_code_sx
     (struct toolchain_descriptor *td, sexpr file)
 {
@@ -515,18 +510,6 @@ static sexpr find_code_rc
     (struct toolchain_descriptor *td, sexpr file)
 {
     return find_code_with_suffix (td, file, ".rc");
-}
-
-static sexpr find_test_case_c
-    (struct toolchain_descriptor *td, sexpr file)
-{
-    return find_test_case_with_suffix (td, file, ".c");
-}
-
-static sexpr find_test_case_cpp
-    (struct toolchain_descriptor *td, sexpr file)
-{
-    return find_test_case_with_suffix (td, file, ".c++");
 }
 
 static sexpr find_header_with_suffix
@@ -626,25 +609,6 @@ static sexpr generate_resource_file_name (struct target *t)
 static sexpr generate_pic_object_file_name (sexpr file, struct target *t)
 {
     return generate_file_name_with_suffix (file, t, str_dot_pic_o);
-}
-
-static sexpr generate_test_object_file_name (sexpr file, struct target *t)
-{
-    if (t->toolchain->toolchain == tc_gcc)
-    {
-        return generate_file_name_with_suffix
-            (sx_join (str_test_dash, file, sx_nil), t, str_dot_o);
-    }
-
-    return generate_file_name_with_suffix
-        (sx_join (str_test_dash, file, sx_nil), t, str_dot_obj);
-}
-
-static sexpr generate_test_executable_file_name (sexpr file, struct target *t)
-{
-    return generate_file_name_with_suffix
-        (sx_join (str_test_dash, file, sx_nil), t,
-                  ((i_os == os_windows ? str_dot_exe : sx_nil)));
 }
 
 static sexpr find_code_highlevel (struct target *context, sexpr file)
@@ -850,33 +814,6 @@ static void find_code (struct target *context, sexpr file)
     }
 }
 
-static void find_test_case (struct target *context, sexpr file)
-{
-    sexpr r;
-    sexpr primus   = sx_false;
-
-    if (((r = find_test_case_cpp (context->toolchain, file)), stringp(r)))
-    {
-        primus = cons(sym_cpp, cons (r,
-                   cons (generate_test_object_file_name (file, context),
-                     cons (generate_test_executable_file_name (file, context),
-                       sx_end_of_list))));
-    }
-    else if (((r = find_test_case_c (context->toolchain, file)), stringp(r)))
-    {
-        primus = cons(sym_c, cons (r,
-                   cons (generate_test_object_file_name (file, context),
-                     cons (generate_test_executable_file_name (file, context),
-                       sx_end_of_list))));
-    }
-    else
-    {
-        on_error (ie_missing_test_case, sx_string (file));
-    }
-
-    context->test_cases = cons (primus, context->test_cases);
-}
-
 static void find_header (struct target *context, sexpr file)
 {
     sexpr r;
@@ -993,7 +930,6 @@ static struct target *get_context
     context->deffile          = sx_false;
     context->olibraries       = sx_end_of_list;
     context->code             = sx_end_of_list;
-    context->test_cases       = sx_end_of_list;
     context->test_reference   = sx_end_of_list;
     context->headers          = sx_end_of_list;
     context->data             = sx_end_of_list;
@@ -1124,17 +1060,6 @@ static void process_definition
             {
                 context->libraries = cons (car (sxc), context->libraries);
                 context->olibraries = cons (car (sxc), context->olibraries);
-
-                sxc = cdr (sxc);
-            }
-        }
-        else if (truep(equalp(sxcaar, sym_test_cases)))
-        {
-            sexpr sxc = cdr (sxcar);
-
-            while (consp (sxc))
-            {
-                find_test_case (context, car (sxc));
 
                 sxc = cdr (sxc);
             }
@@ -1294,6 +1219,23 @@ static struct target *create_programme
     context->name = car(definition);
 
     context->options |= ICEMAKE_PROGRAMME;
+
+    process_definition (context, cdr(definition));
+
+    return context;
+}
+
+static struct target *create_test_case
+    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
+{
+    struct target *context = get_context (im, td);
+
+    context->name        = car(definition);
+    context->dname       = str_test_case;
+    context->description = str_test_case;
+    context->dversion    = str_1;
+
+    context->options |= ICEMAKE_PROGRAMME | ICEMAKE_TEST_CASE;
 
     process_definition (context, cdr(definition));
 
@@ -1983,6 +1925,7 @@ int icemake_prepare_toolchain
         case tc_msvc:    icemake_prepare_toolchain_msvc    (&td); break;
         case tc_latex:   icemake_prepare_toolchain_latex   (&td); break;
         case tc_doxygen: icemake_prepare_toolchain_doxygen (&td); break;
+        case tc_unknown: break;
     }
 
     switch (i_os)
@@ -1996,13 +1939,45 @@ int icemake_prepare_toolchain
     return with_data (&td, aux);
 }
 
+static void parse_add_definition
+    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
+{
+    struct target *t = (struct target *)0;
+    sexpr sxcar = car (definition);
+
+    if (truep(equalp(sxcar, sym_library)))
+    {
+        t = create_library (im, td, cdr (definition));
+    }
+    else if (truep(equalp(sxcar, sym_programme)))
+    {
+        t = create_programme (im, td, cdr (definition));
+    }
+    else if (truep(equalp(sxcar, sym_test_case)))
+    {
+        t = create_test_case (im, td, cdr (definition));
+    }
+    else if (truep(equalp(sxcar, sym_documentation)))
+    {
+        t = create_documentation (im, td, cdr (definition));
+    }
+
+    if (t != (struct target *)0)
+    {
+        tree_add_node_string_value
+            (&(im->targets), (char *)sx_string(t->name), t);
+    }
+}
+
 int icemake_prepare
     (struct icemake *im, const char *path, struct toolchain_descriptor *td,
      int (*with_data)(struct icemake *, void *), void *aux)
 {
     struct icemake iml =
         { fs_afsl,
-          on_error, on_warning, sx_end_of_list, stdio, TREE_INITIALISER,
+          on_error, on_warning,
+          sx_end_of_list,
+          stdio, TREE_INITIALISER,
           (int (*)(struct icemake *, sexpr))0,
           0, 0, sx_end_of_list };
     sexpr icemake_sx_path = make_string (path);
@@ -2040,31 +2015,10 @@ int icemake_prepare
 
     while (!eofp(r = sx_read (io)))
     {
-        struct target *t = (struct target *)0;
-
         if (nexp(r)) continue;
         if (consp(r))
         {
-            sexpr sxcar = car (r);
-
-            if (truep(equalp(sxcar, sym_library)))
-            {
-                t = create_library (im, td, cdr (r));
-            }
-            else if (truep(equalp(sxcar, sym_programme)))
-            {
-                t = create_programme (im, td, cdr (r));
-            }
-            else if (truep(equalp(sxcar, sym_documentation)))
-            {
-                t = create_documentation (im, td, cdr (r));
-            }
-        }
-
-        if (t != (struct target *)0)
-        {
-            tree_add_node_string_value
-                (&(im->targets), (char *)sx_string(t->name), t);
+            parse_add_definition (im, td, r);
         }
     }
 
@@ -2081,6 +2035,30 @@ static void collect_targets (struct tree_node *n, void *aux)
     *targets = sx_set_add (*targets, make_string (key));
 }
 
+static void collect_test_targets (struct tree_node *n, void *aux)
+{
+    sexpr *targets = (sexpr *)aux;
+    const char *key = (const char *)n->key;
+    struct target *t = (struct target *)node_get_value (n);
+
+    if (t->options & ICEMAKE_TEST_CASE)
+    {
+        *targets = sx_set_add (*targets, make_string (key));
+    }
+}
+
+static void remove_test_targets (struct tree_node *n, void *aux)
+{
+    sexpr *targets = (sexpr *)aux;
+    const char *key = (const char *)n->key;
+    struct target *t = (struct target *)node_get_value (n);
+
+    if (t->options & ICEMAKE_TEST_CASE)
+    {
+        *targets = sx_set_remove (*targets, make_string (key));
+    }
+}
+
 int icemake
     (struct icemake *im)
 {
@@ -2093,6 +2071,11 @@ int icemake
     {
         tree_map (&(im->targets), collect_targets, &(im->buildtargets));
     }
+
+    tree_map (&(im->targets),
+              (truep (do_tests) ? collect_test_targets
+                                : remove_test_targets),
+              &(im->buildtargets));
 
     im->workstack =cons (cons (sym_targets, im->buildtargets), im->workstack);
 

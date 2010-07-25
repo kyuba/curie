@@ -63,6 +63,13 @@ Documentation files, usually you'd use this if you'd just like to wrap a few
 bits of documentation together without building a programme, or if you intended
 to make the documentation for a project a separate build target.
 
+.IP test-case
+Test suite programmes are written with this type. The type is quite similar to
+the programme type, the main difference being that the programmes are not
+installed automatically and that they are expected to return 0 when being run
+to indicate a successful run of the test case. Non-zero return values indicate
+that the test failed.
+
 .SH Options
 Options look like this:
 
@@ -123,17 +130,6 @@ include/ (with the typical rules for directory names).
 Afterwards, the same is done with "target-name/bar.h". The install path also
 includes the target-name parameter; this allows (and enforces) a clean
 separation of headers for libraries.
-
-.IP test-cases
-This is quite similar to the code option, with the same lookup rules (except
-this time under tests/ instead of src/ and only for .c++ and .c files). The code
-files need to present, and upon execution of a programme built from them, they
-are expected to return 0 for a successful test and any nonzero value for a
-failed test. This latter, non-zero return value should be distinct for each
-possible issue that the test case uncovers, thus aiding in pinpointing a
-particular problem that the test case is designed to uncover.
-
-Example: (test-cases "foo" "bar")
 
 .IP test-case-reference
 For use with test cases. This lists file pairs that should be equal after the

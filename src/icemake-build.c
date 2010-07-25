@@ -142,18 +142,6 @@ static int do_build_target (struct target *t)
         c = cdr (c);
     }
 
-    if (truep(do_tests))
-    {
-        c = t->test_cases;
-
-        while (consp (c))
-        {
-            build_object(car(c), t);
-
-            c = cdr (c);
-        }
-    }
-
     return 0;
 }
 

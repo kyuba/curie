@@ -203,13 +203,16 @@ static void install_documentation (sexpr name, struct target *t)
 
 static int do_install_target(struct target *t)
 {
-    install_support_files (t->name, t);
-    install_documentation (t->name, t);
-    install_headers       (t->name, t);
-
-    if (t->toolchain->install != (int (*)(struct target *))0)
+    if (!(t->options & ICEMAKE_TEST_CASE))
     {
-        return t->toolchain->install (t);
+        install_support_files (t->name, t);
+        install_documentation (t->name, t);
+        install_headers       (t->name, t);
+
+        if (t->toolchain->install != (int (*)(struct target *))0)
+        {
+            return t->toolchain->install (t);
+        }
     }
 
     return 0;

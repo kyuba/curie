@@ -293,10 +293,11 @@ struct icemake
 
 #define ICEMAKE_PROGRAMME              (1 << 0x0)
 #define ICEMAKE_LIBRARY                (1 << 0x1)
-#define ICEMAKE_HAVE_CPP               (1 << 0x2)
-#define ICEMAKE_HOSTED                 (1 << 0x3)
-#define ICEMAKE_USE_CURIE              (1 << 0x4)
-#define ICEMAKE_NO_SHARED_LIBRARY      (1 << 0x5)
+#define ICEMAKE_TEST_CASE              (1 << 0x2)
+#define ICEMAKE_HAVE_CPP               (1 << 0x3)
+#define ICEMAKE_HOSTED                 (1 << 0x4)
+#define ICEMAKE_USE_CURIE              (1 << 0x5)
+#define ICEMAKE_NO_SHARED_LIBRARY      (1 << 0x6)
 
 /*! \brief Icemake Target
  *
@@ -315,8 +316,6 @@ struct target {
     sexpr olibraries;
     /*!\brief List with all Code Files */
     sexpr code;
-    /*!\brief List with all Test Cases */
-    sexpr test_cases;
     /*!\brief List with all Test Case Reference Files */
     sexpr test_reference;
     /*!\brief List with all Header Files */
@@ -464,7 +463,7 @@ define_symbol (sym_library,             "library");
 /*! \brief Predefined Symbol */
 define_symbol (sym_libraries,           "libraries");
 /*! \brief Predefined Symbol */
-define_symbol (sym_test_cases,          "test-cases");
+define_symbol (sym_test_case,           "test-case");
 /*! \brief Predefined Symbol */
 define_symbol (sym_test_case_reference, "test-case-reference");
 /*! \brief Predefined Symbol */
@@ -824,6 +823,10 @@ define_string (str_ubuild_number_s,     "_build_number_s");
 define_string (str_uversion_long,       "_version_long");
 /*! \brief Predefined String */
 define_string (str_space,               " ");
+/*! \brief Predefined String */
+define_string (str_test_case,           "test case");
+/*! \brief Predefined String */
+define_string (str_1,                   "1");
 
 /*! \brief Prefix List with Elements from an Environment Variable
  *  \param[in] x   The original list.

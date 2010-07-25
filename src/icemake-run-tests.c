@@ -28,6 +28,22 @@
 
 #include <icemake/icemake.h>
 
+static int prepare_target (struct target *t)
+{
+    if (t->options & ICEMAKE_TEST_CASE)
+    {
+        t->icemake->workstack =
+            cons (cons (get_build_file
+                          (t, sx_join (t->name,
+                            (i_os == os_windows ? str_dot_exe
+                                                : sx_nil), sx_nil)),
+                        sx_end_of_list),
+                  t->icemake->workstack);
+    }
+
+    return 0;
+}
+
 static int run_tests_target (struct target *t)
 {
     sexpr cur;
@@ -37,30 +53,15 @@ static int run_tests_target (struct target *t)
         return t->toolchain->test (t);
     }
 
-    if (!falsep(p_diff))
-    {
-        for (cur = t->test_reference; consp (cur); cur = cdr (cur))
-        {
-            sexpr r = car (cur);
-            sexpr o = car (r), g = cdr (r);
-
-            t->icemake->workstack = sx_set_add (t->icemake->workstack,
-                             cons (p_diff, cons (o, cons (g, sx_end_of_list))));
-        }
-    }
-
-    for (cur = t->test_reference; consp (cur); cur = cdr (cur))
-    {
-        sexpr r = car (car (cur));
-
-        unlink (sx_string (r));
-    }
-
-    for (cur = t->test_cases; consp (cur); cur = cdr (cur))
+    if (t->options & ICEMAKE_TEST_CASE)
     {
         t->icemake->workstack =
-            sx_set_add (t->icemake->workstack,
-                        cdr(cdr(cdr(car(cur)))));
+            cons (cons (get_build_file
+                          (t, sx_join (t->name,
+                            (i_os == os_windows ? str_dot_exe
+                                                : sx_nil), sx_nil)),
+                        sx_end_of_list),
+                  t->icemake->workstack);
     }
 
     return 0;
@@ -73,6 +74,21 @@ int icemake_run_tests (struct icemake *im)
     im->workstack =
         cons (cons (sym_phase, cons (sym_run_tests, sx_end_of_list)),
               im->workstack);
+
+    while (consp(cursor))
+    {
+        sexpr sxcar = car(cursor);
+        const char *target = sx_string (sxcar);
+        struct tree_node *node =
+            tree_get_node_string (&(im->targets), (char *)target);
+
+        if (node != (struct tree_node *)0)
+        {
+            prepare_target (node_get_value(node));
+        }
+
+        cursor = cdr(cursor);
+    }
 
     while (consp(cursor))
     {

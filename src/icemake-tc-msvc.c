@@ -340,25 +340,6 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
                             cons (str_sdll,
                               cons (bi,
                                 cons (sx_join (str_soutc, b, sx_nil), sxx))))));
-
-    if (truep(do_tests))
-    {
-        sexpr s = t->test_cases;
-
-        while (consp (s))
-        {
-            sexpr s1 = car(s);
-            sexpr s2 = cdr(cdr(s1));
-            sexpr s3 = car(s2);
-            sexpr s4 = car(cdr(s2));
-            sexpr s5 = cons(cons (car (s1), cons (s3, cons(s3,
-                                  sx_end_of_list))), sx_end_of_list);
-
-            link_programme_msvc_filename (s4, name, s5, t);
-
-            s = cdr (s);
-        }
-    }
 }
 
 static int do_link (struct target *t)

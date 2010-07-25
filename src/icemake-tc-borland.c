@@ -235,32 +235,6 @@ static void write_curie_sx (sexpr name, struct target *t)
     }
 }
 
-
-static void link_test_cases
-    (sexpr name, sexpr code, struct target *t,
-     void (*f) (sexpr, sexpr, sexpr, struct target *))
-{
-    if (truep(do_tests))
-    {
-        sexpr s = t->test_cases;
-
-        while (consp (s))
-        {
-            sexpr s1 = car(s);
-            sexpr s2 = cdr(cdr(s1));
-            sexpr s3 = car(s2);
-            sexpr s4 = car(cdr(s2));
-            sexpr s5 = cons(cons (car (s1),
-                            cons (s3, cons(s3, sx_end_of_list))),
-                                 sx_end_of_list);
-
-            f (s4, name, s5, t);
-
-            s = cdr (s);
-        }
-    }
-}
-
 static void link_library_borland (sexpr name, sexpr code, struct target *t)
 {
     sexpr sx = sx_end_of_list, sxx = sx_end_of_list,
@@ -327,9 +301,6 @@ static void link_library_borland_dynamic
 
 static int do_link (struct target *t)
 {
-    link_test_cases (t->name, t->code, t,
-                     link_programme_borland_filename);
-
     if (t->options & ICEMAKE_LIBRARY)
     {
         link_library_borland (t->name, t->code, t);
