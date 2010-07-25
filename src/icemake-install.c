@@ -35,7 +35,8 @@ static sexpr get_library_install_path (struct target *t)
     return get_install_file
         (t, sx_join (i_destlibdir, str_slash,
               sx_join (str_lib, t->name,
-                       (uname_toolchain == tc_gcc) ? str_dot_a : str_dot_lib)));
+                       (t->toolchain->toolchain == tc_gcc) ? str_dot_a
+                                                           : str_dot_lib)));
 }
 
 static sexpr get_so_library_install_path (struct target *t)
@@ -288,7 +289,7 @@ static void install_support_files (sexpr name, struct target *t)
 
 static void install_library (sexpr name, struct target *t)
 {
-    switch (uname_toolchain)
+    switch (t->toolchain->toolchain)
     {
         case tc_gcc:
             install_library_gcc     (name, t); break;
@@ -299,7 +300,7 @@ static void install_library (sexpr name, struct target *t)
 
 static void install_headers (sexpr name, struct target *t)
 {
-    switch (uname_toolchain)
+    switch (t->toolchain->toolchain)
     {
         case tc_gcc:
             install_headers_gcc     (name, t); break;
@@ -364,7 +365,7 @@ static void install_documentation (sexpr name, struct target *t)
 
 static void install_programme (sexpr name, struct target *t)
 {
-    switch (uname_toolchain)
+    switch (t->toolchain->toolchain)
     {
         case tc_gcc:
             install_programme_gcc     (name, t); break;

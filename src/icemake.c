@@ -54,7 +54,6 @@
 const char *uname_arch   = "generic";
 const char *uname_vendor = "unknown";
 
-enum toolchain uname_toolchain;
 enum operating_system i_os             = os_generic;
 enum instruction_set i_is              = is_generic;
 
@@ -549,7 +548,7 @@ static sexpr find_header_h
 
 sexpr get_build_file (struct target *t, sexpr file)
 {
-    switch (uname_toolchain)
+    switch (t->toolchain->toolchain)
     {
         case tc_msvc:
             return sx_join (t->buildbase, architecture,
@@ -577,7 +576,7 @@ sexpr get_install_file (struct target *t, sexpr file)
     {
         case fs_fhs:
         case fs_fhs_binlib:
-            switch (uname_toolchain)
+            switch (t->toolchain->toolchain)
             {
                 case tc_msvc:
                 case tc_borland:
@@ -586,7 +585,7 @@ sexpr get_install_file (struct target *t, sexpr file)
                     return sx_join (i_destdir, str_slash, file);
             }
         case fs_afsl:
-            switch (uname_toolchain)
+            switch (t->toolchain->toolchain)
             {
                 case tc_msvc:
                 case tc_borland:
@@ -616,7 +615,8 @@ static sexpr generate_file_name_with_suffix
 static sexpr generate_object_file_name (sexpr file, struct target *t)
 {
     return generate_file_name_with_suffix
-        (file, t, ((uname_toolchain == tc_gcc) ? str_dot_o : str_dot_obj));
+        (file, t, ((t->toolchain->toolchain == tc_gcc) ? str_dot_o
+                                                       : str_dot_obj));
 }
 
 static sexpr generate_resource_file_name (struct target *t)
@@ -631,7 +631,7 @@ static sexpr generate_pic_object_file_name (sexpr file, struct target *t)
 
 static sexpr generate_test_object_file_name (sexpr file, struct target *t)
 {
-    if (uname_toolchain == tc_gcc)
+    if (t->toolchain->toolchain == tc_gcc)
     {
         return generate_file_name_with_suffix
             (sx_join (str_test_dash, file, sx_nil), t, str_dot_o);
@@ -748,7 +748,8 @@ static void find_code (struct target *context, sexpr file)
               cons (generate_object_file_name (file, context),
                 sx_end_of_list)));
 
-        if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+        if (truep(i_dynamic_libraries) &&
+            (context->toolchain->toolchain == tc_gcc) &&
             !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
             secundus =
@@ -760,7 +761,8 @@ static void find_code (struct target *context, sexpr file)
 
         tertius = find_code_highlevel (context, file);
 
-        if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+        if (truep(i_dynamic_libraries) &&
+            (context->toolchain->toolchain == tc_gcc) &&
             !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
             quartus = find_code_highlevel_pic (context, file);
@@ -773,7 +775,8 @@ static void find_code (struct target *context, sexpr file)
               cons (generate_object_file_name (file, context),
                 sx_end_of_list)));
 
-        if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+        if (truep(i_dynamic_libraries) &&
+            (context->toolchain->toolchain == tc_gcc) &&
             !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
             secundus =
@@ -785,7 +788,8 @@ static void find_code (struct target *context, sexpr file)
 
         tertius = find_code_highlevel (context, file);
 
-        if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+        if (truep(i_dynamic_libraries) &&
+            (context->toolchain->toolchain == tc_gcc) &&
             !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
             quartus = find_code_highlevel_pic (context, file);
@@ -802,7 +806,8 @@ static void find_code (struct target *context, sexpr file)
                        cons (generate_object_file_name (file, context),
                          sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+            if (truep(i_dynamic_libraries) &&
+                (context->toolchain->toolchain == tc_gcc) &&
                 !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
                 secundus = cons(sym_cpp_pic, cons (r,
@@ -816,7 +821,8 @@ static void find_code (struct target *context, sexpr file)
                        cons (generate_object_file_name (file, context),
                          sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries) && (uname_toolchain == tc_gcc) &&
+            if (truep(i_dynamic_libraries) &&
+                (context->toolchain->toolchain == tc_gcc) &&
                 !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
                 secundus = cons (sym_c_pic, cons (r,
@@ -1096,7 +1102,8 @@ static void process_definition
                 sxc = cdr (sxc);
             }
 
-            if ((i_os == os_windows) && (uname_toolchain == tc_msvc))
+            if ((i_os == os_windows) &&
+                (context->toolchain->toolchain == tc_msvc))
             {
                 sexpr r = find_code_rc (context->toolchain, context->name);
 
@@ -1209,7 +1216,7 @@ static void process_definition
                           sx_end_of_list)),
               context->headers);
 
-    if (uname_toolchain == tc_gcc)
+    if (context->toolchain->toolchain == tc_gcc)
     {
         if ((context->options & ICEMAKE_HAVE_CPP) &&
              (context->options & ICEMAKE_HOSTED))
@@ -1389,7 +1396,8 @@ static void target_map_combine (struct tree_node *node, void *u)
 {
     struct target *context = (struct target *)node_get_value(node);
 
-    if ((uname_toolchain == tc_gcc) && truep(i_combine) && consp(context->code))
+    if (truep(i_combine) && consp(context->code) &&
+        (context->toolchain->toolchain == tc_gcc))
     {
         combine_code (context, sym_c,
                       generate_object_file_name
@@ -1998,7 +2006,7 @@ int icemake_prepare_toolchain
 
     archprefix       = name;
 
-    uname_toolchain  = tc_generic;
+    td.toolchain  = tc_generic;
 
     for (p = 0; toolchain_pattern[p].pattern != (const char *)0; p++)
     {
@@ -2008,7 +2016,7 @@ int icemake_prepare_toolchain
         {
             if (toolchain_pattern[p].toolchain != tc_unknown)
             {
-                uname_toolchain = toolchain_pattern[p].toolchain;
+                td.toolchain = toolchain_pattern[p].toolchain;
             }
 
             if (toolchain_pattern[p].operating_system != os_unknown)
@@ -2069,7 +2077,7 @@ int icemake_prepare_toolchain
         in_dynamic_libraries = sx_false;
     }
 
-    switch (uname_toolchain)
+    switch (td.toolchain)
     {
         case tc_generic: icemake_prepare_toolchain_generic (&td); break;
         case tc_gcc:     icemake_prepare_toolchain_gcc     (&td); break;

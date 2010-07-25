@@ -81,17 +81,17 @@
         "sexpr-sort"
         "string-set" "string-set-regex"
         "shell"
-        "cpio" "ar"
+        "cpio"
         "time-unix"
         "io-mmap"
         "metadata-path" "metadata-unix")
 
   (headers
-        "immutable" "tree" "sexpr" "string" "shell" "cpio" "ar" "time" "io")
+        "immutable" "tree" "sexpr" "string" "shell" "cpio" "time" "io")
 
   (test-cases
         "immutable" "directory" "string-set" "sexpr-set" "sexpr-sort"
-        "cpio" "ar")
+        "cpio")
 
   (test-case-reference
         ("build/to-sexpr-sort" . "tests/reference/sexpr-sort")))

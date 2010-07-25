@@ -364,13 +364,6 @@ extern const char *uname_arch;
  */
 extern const char *uname_vendor;
 
-/*! \brief Effective Toolchain Code
- *
- *  Derived through the -t flag, or guessed based on the uname data and the
- *  available C compilers.
- */
-extern enum toolchain uname_toolchain;
-
 /*! \brief Effective Operating System Code
  *
  *  Derived from uname_os.
