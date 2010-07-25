@@ -242,7 +242,6 @@ static sexpr get_special_linker_options (struct target *t, sexpr sx)
 
 static sexpr collect_library_link_flags (sexpr sx, struct target *t)
 {
-    char buffer[BUFFERSIZE];
     sexpr cur = t->libraries;
 
     while (consp (cur))
@@ -363,30 +362,6 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
     }
 }
 
-static void link_test_cases
-    (sexpr name, sexpr code, struct target *t)
-{
-    if (truep(do_tests))
-    {
-        sexpr s = t->test_cases;
-
-        while (consp (s))
-        {
-            sexpr s1 = car(s);
-            sexpr s2 = cdr(cdr(s1));
-            sexpr s3 = car(s2);
-            sexpr s4 = car(cdr(s2));
-            sexpr s5 = cons(cons (car (s1),
-                            cons (s3, cons(s3, sx_end_of_list))),
-                                 sx_end_of_list);
-
-            link_programme_msvc_filename (s4, name, s5, t);
-
-            s = cdr (s);
-        }
-    }
-}
-
 static int do_link (struct target *t)
 {
     if (t->options & ICEMAKE_LIBRARY)
@@ -450,23 +425,6 @@ static sexpr get_header_install_path
     return get_install_file
         (t, sx_join (str_includes, t->name,
               sx_join (str_slash, file, str_dot_h)));
-}
-
-static sexpr get_data_install_path
-    (struct target *t, sexpr name, sexpr file)
-{
-    switch (t->icemake->filesystem_layout)
-    {
-        case fs_fhs:
-        case fs_fhs_binlib:
-            return sx_join (i_destdir, str_setcs,
-                     sx_join (name, str_slash, file));
-        case fs_afsl:
-            return sx_join (i_destdir, str_sgenericsconfigurations,
-                     sx_join (name, str_slash, file));
-    }
-
-    return sx_false;
 }
 
 static void install_library_msvc (sexpr name, struct target *t)

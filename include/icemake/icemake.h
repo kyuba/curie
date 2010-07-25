@@ -192,6 +192,14 @@ struct operating_system_generic
     sexpr diff;
 };
 
+enum link_type
+{
+    lt_library,
+    lt_programme,
+    lt_documentation,
+    lt_other
+};
+
 #define IS_32_BIT 0x0001
 #define IS_64_BIT 0x0002
 
@@ -443,30 +451,6 @@ extern sexpr do_install;
  *  Set with the -x flag.
  */
 extern sexpr do_build_documentation;
-
-/*! \brief C Compiler Binary
- *
- *  Automatically searched in the PATH according to the toolchain type.
- */
-extern sexpr p_c_compiler;
-
-/*! \brief C++ Compiler Binary
- *
- *  Automatically searched in the PATH according to the toolchain type.
- */
-extern sexpr p_cpp_compiler;
-
-/*! \brief Linker Binary
- *
- *  Automatically searched in the PATH according to the toolchain type.
- */
-extern sexpr p_linker;
-
-/*! \brief Archiver Binary
- *
- *  Automatically searched in the PATH according to the toolchain type.
- */
-extern sexpr p_archiver;
 
 /*! \brief Diff Binary
  *

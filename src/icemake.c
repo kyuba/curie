@@ -76,10 +76,6 @@ sexpr do_tests                         = sx_false;
 sexpr do_install                       = sx_false;
 sexpr do_build_documentation           = sx_false;
 
-sexpr p_c_compiler                     = sx_false;
-sexpr p_cpp_compiler                   = sx_false;
-sexpr p_linker                         = sx_false;
-sexpr p_archiver                       = sx_false;
 sexpr p_diff                           = sx_false;
 
 sexpr p_latex                          = sx_false;
@@ -1515,59 +1511,14 @@ static sexpr xwhich (const struct toolchain_descriptor *td, char *programme)
         }
     }
     
-    if ((w = which (make_string (programme))), stringp(w))
-    {
-        return w;
-    }
+    w = which (p);
 
-    return sx_false;
+    return w;
 }
 
 sexpr icemake_which (const struct toolchain_descriptor *td, char *programme)
 {
     return xwhich (td, programme);
-}
-
-static void initialise_toolchain_gcc (struct toolchain_descriptor *td)
-{
-    p_c_compiler = xwhich (td, "gcc");
-    if (falsep(p_c_compiler)) { p_c_compiler = xwhich (td, "cc"); }
-    if (falsep(p_c_compiler))
-    {
-        on_error (ie_missing_tool, "gcc");
-    }
-
-    p_linker = p_c_compiler;
-
-    p_cpp_compiler = xwhich (td, "g++");
-    if (falsep(p_cpp_compiler))
-    {
-        on_error (ie_missing_tool, "g++");
-    }
-
-    p_archiver = xwhich (td, "ar");
-    if (falsep(p_archiver))
-    {
-        on_error (ie_missing_tool, "ar");
-    }
-}
-
-static void initialise_toolchain_borland (struct toolchain_descriptor *td)
-{
-    p_c_compiler = xwhich (td, "bcc32");
-    if (falsep(p_c_compiler))
-    {
-        on_error (ie_missing_tool, "bcc32");
-    }
-
-    p_linker = p_c_compiler;
-    p_cpp_compiler = p_c_compiler;
-
-    p_archiver = xwhich (td, "tlib");
-    if (falsep(p_archiver))
-    {
-        on_error (ie_missing_tool, "tlib");
-    }
 }
 
 static void initialise_toolchain_tex (struct toolchain_descriptor *td)
@@ -1997,15 +1948,15 @@ int icemake_default_architecture
 
     if (!falsep(which(str_cl)))
     {
-        uname_toolchain = tc_msvc;
+        toolchain = "msvc";
     }
     else if (!falsep(which(str_bcc32)))
     {
-        uname_toolchain = tc_borland;
+        toolchain = "borland";
     }
     else /* if nothing specific is found, guess it's gcc*/
     {
-        uname_toolchain = tc_gcc;
+        toolchain = "gnu";
     }
 
 #if !defined(_WIN32)
@@ -2026,13 +1977,6 @@ int icemake_default_architecture
 #endif
 #endif
 
-    switch (uname_toolchain)
-    {
-        case tc_gcc:     toolchain = "gnu";     break;
-        case tc_borland: toolchain = "borland"; break;
-        case tc_msvc:    toolchain = "msvc";    break;
-    }
-
     architecture = lowercase (sx_join (make_string (ar_t), str_dash,
                               sx_join (make_string (ve_t), str_dash,
                               sx_join (make_string (os_t), str_dash,
@@ -2051,7 +1995,6 @@ int icemake_prepare_toolchain
         { tc_generic, os_generic, is_generic, make_string(name) };
 
     int p;
-    const char *tc;
 
     archprefix       = name;
 
@@ -2117,12 +2060,6 @@ int icemake_prepare_toolchain
         sx_join (make_string (uname_vendor), str_dash,
         sx_join (make_string (td.uname_os), str_dash,
                  make_string (td.uname_toolchain))));
-
-    switch (uname_toolchain)
-    {
-        case tc_gcc:     initialise_toolchain_gcc(&td);     break;
-        case tc_borland: initialise_toolchain_borland(&td); break;
-    }
 
     initialise_toolchain_tex (&td);
     initialise_toolchain_doxygen (&td);

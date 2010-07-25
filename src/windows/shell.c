@@ -54,7 +54,10 @@ sexpr ewhich (char **environment, sexpr programme)
         }
     }
 
-    if (x == (char *)0) x = "\\bin;\\sbin";
+    if (x == (char *)0)
+    {
+        x = "\\bin;\\sbin";
+    }
 
     y = buffer;
 
@@ -70,14 +73,14 @@ sexpr ewhich (char **environment, sexpr programme)
                 b = make_string (buffer);
                 f = sx_join (b, str_slash, programme);
 
-                if (truep (linkp (f)))
+                if (truep (filep (f)))
                 {
                     return f;
                 }
 
                 f = sx_join (f, str_dot_exe, sx_nil);
 
-                if (truep (linkp (f)))
+                if (truep (filep (f)))
                 {
                     return f;
                 }

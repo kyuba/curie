@@ -48,7 +48,10 @@ sexpr ewhich (char **environment, sexpr programme)
         }
     }
 
-    if (x == (char *)0) x = "/bin:/sbin";
+    if (x == (char *)0)
+    {
+        x = "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin";
+    }
 
     y = buffer;
 
@@ -63,7 +66,7 @@ sexpr ewhich (char **environment, sexpr programme)
                 sexpr b = make_string (buffer);
                 sexpr f = sx_join (b, str_slash, programme);
 
-                if (truep (linkp (f)))
+                if (truep (filep (f)))
                 {
                     return f;
                 }
