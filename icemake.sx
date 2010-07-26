@@ -170,6 +170,6 @@
   (description "Pretty-printing tool for icemake")
   (version "2")
 
-  (libraries "sievert")
+  (libraries "sievert" "syscall")
 
   (code "ice"))

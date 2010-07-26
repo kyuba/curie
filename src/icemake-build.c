@@ -28,6 +28,64 @@
 
 #include <curie/filesystem.h>
 #include <icemake/icemake.h>
+#include <sievert/metadata.h>
+
+struct newerp_data
+{
+    const char *b;
+    int newest;
+    
+    int res;
+};
+
+static void with_metadata_n_b (struct metadata *md, void *aux)
+{
+    struct newerp_data *d = (struct newerp_data *)aux;
+    enum metadata_classification_unix classification;
+    int uid, gid, mode, device, attributes;
+    long atime = 0, mtime = 0, ctime = 0, size;
+
+    metadata_to_unix
+        (md, &classification, &uid, &gid, &mode, &atime, &mtime, &ctime, &size,
+         &device, &attributes);
+
+    if ((atime >= d->newest) || (mtime >= d->newest) || (ctime >= d->newest))
+    {
+        d->res = 0;
+    }
+}
+
+static void with_metadata_n_a (struct metadata *md, void *aux)
+{
+    struct newerp_data *d = (struct newerp_data *)aux;
+    enum metadata_classification_unix classification;
+    int uid, gid, mode, device, attributes;
+    long atime = 0, mtime = 0, ctime = 0, size;
+
+    metadata_to_unix
+        (md, &classification, &uid, &gid, &mode, &atime, &mtime, &ctime, &size,
+         &device, &attributes);
+
+    if (atime > d->newest) { d->newest = atime; }
+    if (mtime > d->newest) { d->newest = mtime; }
+    if (ctime > d->newest) { d->newest = ctime; }
+
+    if (d->newest == 0)
+    {
+        return;
+    }
+
+    metadata_from_path (d->b, with_metadata_n_b, d);
+}
+
+static int newer_thanp (const char *a, const char *b)
+{
+    struct newerp_data d = { b, 0, 1 };
+
+    metadata_from_path (a, with_metadata_n_a, &d);
+
+    return d.res;
+}
 
 static int build_object(sexpr desc, struct target *t)
 {
@@ -35,8 +93,9 @@ static int build_object(sexpr desc, struct target *t)
     sexpr source = car(cdr(desc));
     sexpr target = car(cdr(cdr(desc)));
 
-    if (t->toolchain->build_object !=
-            (int (*)(struct target *, sexpr, sexpr, sexpr))0)
+    if (newer_thanp (sx_string (source), sx_string (target)) &&
+        (t->toolchain->build_object !=
+            (int (*)(struct target *, sexpr, sexpr, sexpr))0))
     {
         return t->toolchain->build_object (t, type, source, target);
     }

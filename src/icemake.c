@@ -1769,8 +1769,11 @@ static void save_metadata ( struct icemake *im )
 
 void on_error (enum icemake_error error, const char *text)
 {
-    sx_write (stdio,
-              cons (sym_error, cons (make_string (text), sx_end_of_list)));
+    if (error != ie_problematic_signal)
+    {
+        sx_write (stdio,
+                  cons (sym_error, cons (make_string (text), sx_end_of_list)));
+    }
 
     cexit (error);
 }
@@ -2068,7 +2071,7 @@ static sexpr dependency_sort (sexpr a, sexpr b, void *aux)
         (&(im->targets), (char *)sx_string (b));
     
     if ((an != (struct tree_node *)0) &&
-        (bn != (struct tree_ndoe *)0))
+        (bn != (struct tree_node *)0))
     {
         struct target *at = (struct target *)node_get_value (an);
         struct target *bt = (struct target *)node_get_value (bn);

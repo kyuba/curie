@@ -99,5 +99,56 @@ void metadata_to_unix
      int *uid, int *gid, int *mode, long *atime, long *mtime, long *ctime,
      long *size, int *device, int *attributes)
 {
+    int i;
+
+    for (i = 0; i < metadata->datetime_count; i++)
+    {
+        switch (metadata->datetime[i].purpose)
+        {
+            case mdp_last_access:
+                *atime = (long)dt_to_unix (&(metadata->datetime[i].datetime));
+                break;
+            case mdp_last_modification:
+                *mtime = (long)dt_to_unix (&(metadata->datetime[i].datetime));
+                break;
+            case mdp_last_status_change:
+                *ctime = (long)dt_to_unix (&(metadata->datetime[i].datetime));
+                break;
+            default: break;
+        }
+    }
+
+    for (i = 0; i < metadata->relation_count; i++)
+    {
+    }
+
+    for (i = 0; i < metadata->acl_count; i++)
+    {
+    }
+
+    if (metadata->classification != (struct metadata_classification **)0)
+    {
+        for (i = 0; metadata->classification[i] !=
+                        (struct metadata_classification *)0; i++)
+        {
+        }
+    }
+
+    if (metadata->attribute != (struct metadata_attribute **)0)
+    {
+        for (i = 0; metadata->attribute[i] !=
+                        (struct metadata_attribute *)0; i++)
+        {
+        }
+    }
+
+    if (metadata->signature != (struct metadata_signature **)0)
+    {
+        for (i = 0; metadata->signature[i] !=
+                        (struct metadata_signature *)0; i++)
+        {
+        }
+    }
+
 #pragma message("metadata_to_unix() incomplete")
 }
