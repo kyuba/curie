@@ -2059,6 +2059,30 @@ static void remove_test_targets (struct tree_node *n, void *aux)
     }
 }
 
+static sexpr dependency_sort (sexpr a, sexpr b, void *aux)
+{
+    struct icemake *im = (struct icemake *)aux;
+    struct tree_node *an = tree_get_node_string
+        (&(im->targets), (char *)sx_string (a));
+    struct tree_node *bn = tree_get_node_string
+        (&(im->targets), (char *)sx_string (b));
+    
+    if ((an != (struct tree_node *)0) &&
+        (bn != (struct tree_ndoe *)0))
+    {
+        struct target *at = (struct target *)node_get_value (an);
+        struct target *bt = (struct target *)node_get_value (bn);
+
+        if (truep (sx_set_memberp (bt->libraries, at->name)) ||
+            truep (sx_set_memberp (bt->olibraries, at->name)))
+        {
+            return sx_true;
+        }
+    }
+
+    return sx_false;
+}
+
 int icemake
     (struct icemake *im)
 {
@@ -2076,6 +2100,9 @@ int icemake
               (truep (do_tests) ? collect_test_targets
                                 : remove_test_targets),
               &(im->buildtargets));
+
+    im->buildtargets = sx_set_sort_merge
+        (im->buildtargets, dependency_sort, (void *)im);
 
     im->workstack =
         cons (cons (sym_completed, cons (sym_targets, im->buildtargets)),
