@@ -173,3 +173,10 @@
   (libraries "sievert" "syscall")
 
   (code "ice"))
+
+(programme "example-sx-stdio" libcurie
+  (name "example-sx-stdio")
+  (description "STDIO S-Expression Example")
+  (version "1")
+
+  (code "example-sx-stdio"))

@@ -46,12 +46,23 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out)
     rv->in = in;
     rv->out = out;
 
+    rv->options = 0;
+
     if ((in != (struct io *)0) &&
         (in->type != iot_read) &&
         (in->type != iot_special_read) &&
         (in->type != iot_special_write))
     {
         in->type = iot_read;
+
+#if !defined(SX_MAX_READ_THRESHOLD)
+        rv->options |= SX_FORCE_READ;
+        if ((in->status != io_unrecoverable_error) &&
+            (in->status != io_end_of_file))
+        {
+            in->status = io_no_change;
+        }
+#endif
     }
 
     if ((out != (struct io *)0) &&
@@ -61,6 +72,7 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out)
     {
         out->type = iot_write;
     }
+
 
     return rv;
 }
@@ -303,6 +315,7 @@ static sexpr sx_read_symbol
     do {
         switch (buf[j]) {
             case '\n':
+            case '\r':
             case '\t':
             case '\v':
             case ' ':
@@ -390,6 +403,7 @@ static sexpr sx_read_cons
 
         switch (buf[j]) {
             case '\n':
+            case '\r':
             case '\t':
             case '\v':
             case ' ':
@@ -524,18 +538,42 @@ sexpr sx_read(struct sexpr_io *io) {
         sexpr result = sx_nonexistent;
         char comment = (char)0;
 
+#if defined(SX_MAX_READ_THRESHOLD)
         do {
             r = io_read (io->in);
             i = io->in->position;
             length = io->in->length;
         } while ((r == io_changes) && (length < SX_MAX_READ_THRESHOLD));
+#else
+        if (io->options & SX_FORCE_READ)
+        {
+            if ((io->in->type == iot_read) && (io->in->status == io_no_change))
+            {
+                r = io_read (io->in);
+                if ((io->in->status != io_unrecoverable_error) &&
+                    (io->in->status != io_end_of_file))
+                {
+                    io->in->status = io_no_change;
+                }
+            }
 
-        if (length == 0) {
-            return sx_nonexistent;
+            io->options ^= SX_FORCE_READ;
+        }
+
+        i = io->in->position;
+        length = io->in->length;
+#endif
+
+        if ((i == length) || (length == 0))
+        {
+            goto no_data;
         }
 
         buf = io->in->buffer;
-        if (buf == (char *)0) return sx_nonexistent;
+        if (buf == (char *)0)
+        {
+            return sx_nonexistent;
+        }
 
         /* remove leading whitespace */
         do {
@@ -549,6 +587,7 @@ sexpr sx_read(struct sexpr_io *io) {
 
             switch (buf[i]) {
                 case '\n':
+                case '\r':
                 case '\t':
                 case '\v':
                 case ' ':
@@ -572,6 +611,7 @@ sexpr sx_read(struct sexpr_io *io) {
 
         /* check that there actually /is/ something to parse, bail if not */
         if (i == length) {
+            no_data:
             io->in->length = 0;
             io->in->position = 0;
 
@@ -580,6 +620,13 @@ sexpr sx_read(struct sexpr_io *io) {
                 case io_unrecoverable_error:
                     return sx_end_of_file;
                 default:
+#if !defined(SX_MAX_READ_THRESHOLD)
+                    if (io->in->type == iot_read)
+                    {
+                        io->options |= SX_FORCE_READ;
+                        io->in->status = io_no_change;
+                    }
+#endif
                     return sx_nonexistent;
             }
         }
@@ -589,6 +636,22 @@ sexpr sx_read(struct sexpr_io *io) {
         if (result != sx_nonexistent) {
             io->in->position = i;
         }
+
+#if !defined(SX_MAX_READ_THRESHOLD)
+        if (result == sx_nonexistent)
+        {
+            if ((io->in->status == io_unrecoverable_error) ||
+                (io->in->status == io_end_of_file))
+            {
+                result = sx_end_of_file;
+            }
+            else if (io->in->type == iot_read)
+            {
+                io->options |= SX_FORCE_READ;
+                io->in->status = io_no_change;
+            }
+        }
+#endif
 
         return result;
     }
