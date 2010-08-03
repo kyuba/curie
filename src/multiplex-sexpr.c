@@ -54,6 +54,12 @@ static void mx_on_read (struct io *r, void *d)
 
     while (sx != sx_nonexistent) {
         element->on_read (sx, element->io, element->data);
+
+        if (sx == sx_end_of_file)
+        {
+            return;
+        }
+
         sx = sx_read (element->io);
     }
 }

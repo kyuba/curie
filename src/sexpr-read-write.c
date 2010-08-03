@@ -58,7 +58,8 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out)
 #if !defined(SX_MAX_READ_THRESHOLD)
         rv->options |= SX_FORCE_READ;
         if ((in->status != io_unrecoverable_error) &&
-            (in->status != io_end_of_file))
+            (in->status != io_end_of_file) &&
+            (in->status != io_finalising))
         {
             in->status = io_no_change;
         }
@@ -551,7 +552,8 @@ sexpr sx_read(struct sexpr_io *io) {
             {
                 r = io_read (io->in);
                 if ((io->in->status != io_unrecoverable_error) &&
-                    (io->in->status != io_end_of_file))
+                    (io->in->status != io_end_of_file) &&
+                    (io->in->status != io_finalising))
                 {
                     io->in->status = io_no_change;
                 }
@@ -641,7 +643,8 @@ sexpr sx_read(struct sexpr_io *io) {
         if (result == sx_nonexistent)
         {
             if ((io->in->status == io_unrecoverable_error) ||
-                (io->in->status == io_end_of_file))
+                (io->in->status == io_end_of_file) ||
+                (io->in->status == io_finalising))
             {
                 result = sx_end_of_file;
             }
