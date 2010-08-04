@@ -117,12 +117,12 @@
   (test-case-reference
         ("build/to-sexpr-sort" . "tests/reference/sexpr-sort")))
 
-(test-case "immutable"  libcurie (libraries "sievert") (code "test-immutable"))
-(test-case "directory"  libcurie (libraries "sievert") (code "test-directory"))
-(test-case "string-set" libcurie (libraries "sievert") (code "test-string-set"))
-(test-case "sexpr-set"  libcurie (libraries "sievert") (code "test-sexpr-set"))
-(test-case "sexpr-sort" libcurie (libraries "sievert") (code "test-sexpr-sort"))
-(test-case "cpio"       libcurie (libraries "sievert") (code "test-cpio"))
+(test-case "immutable"  libcurie (libraries "sievert" "syscall") (code "test-immutable"))
+(test-case "directory"  libcurie (libraries "sievert" "syscall") (code "test-directory"))
+(test-case "string-set" libcurie (libraries "sievert" "syscall") (code "test-string-set"))
+(test-case "sexpr-set"  libcurie (libraries "sievert" "syscall") (code "test-sexpr-set"))
+(test-case "sexpr-sort" libcurie (libraries "sievert" "syscall") (code "test-sexpr-sort"))
+(test-case "cpio"       libcurie (libraries "sievert" "syscall") (code "test-cpio"))
 
 (library "curie++" libcurie
   (name "Curie++")
