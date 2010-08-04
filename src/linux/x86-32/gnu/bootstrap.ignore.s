@@ -53,13 +53,13 @@ _start:
 
         movl    %esp, %ecx
         addl    $0x04, %ecx
-        movl    %ecx, $curie_argv
+        movl    %ecx, curie_argv
 
         movl    (%esp), %esi
         incl    %esi
         imull   $0x04, %esi, %esi
         addl    %esi, %ecx
-        movl    %ecx, $curie_environment
+        movl    %ecx, curie_environment
 
         call    initialise_stack
         call    cmain

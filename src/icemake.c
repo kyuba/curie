@@ -189,7 +189,7 @@ static struct toolchain_pattern toolchain_pattern[] =
         tc_unknown, os_unknown,       is_x86,
         0,              "x86-64",   0,          0,
         IS_64_BIT, 0 },
-    { "(x86[-/_]32|i[3-6]x86)-.*",
+    { "(x86[-/_]32|i[3-6]86)-.*",
         tc_unknown, os_unknown,       is_x86,
         0,              "x86-32",   0,          0,
         IS_32_BIT, 0 },

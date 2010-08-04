@@ -56,7 +56,7 @@ static void on_new_file
     }
 
     if (truep (equalp (n, str_test_data)) &&
-        falsep (equalp (sx_nonexistent, sx_read(sxio))))
+        falsep (equalp (sx_end_of_file, sx_read(sxio))))
     {
         cexit (3);
     }
