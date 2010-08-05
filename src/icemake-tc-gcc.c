@@ -826,11 +826,11 @@ static int install (struct target *t)
 
 int icemake_prepare_toolchain_gcc (struct toolchain_descriptor *td)
 {
-    td->meta_toolchain.gcc.gcc = icemake_which (td, "gcc");
-    td->meta_toolchain.gcc.ld  = icemake_which (td, "ld");
-    td->meta_toolchain.gcc.gpp = icemake_which (td, "g++");
-    td->meta_toolchain.gcc.as  = icemake_which (td, "as");
-    td->meta_toolchain.gcc.ar  = icemake_which (td, "ar");
+    td->meta_toolchain.gcc.gcc = icemake_which (td, "gcc", "CC");
+    td->meta_toolchain.gcc.ld  = icemake_which (td, "ld",  "LD");
+    td->meta_toolchain.gcc.gpp = icemake_which (td, "g++", "GXX");
+    td->meta_toolchain.gcc.as  = icemake_which (td, "as",  "AS");
+    td->meta_toolchain.gcc.ar  = icemake_which (td, "ar",  "AR");
 
     td->build_object = build_object_gcc;
     td->link         = do_link;

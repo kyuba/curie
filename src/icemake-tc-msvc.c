@@ -459,10 +459,10 @@ static int install (struct target *t)
 
 int icemake_prepare_toolchain_msvc (struct toolchain_descriptor *td)
 {
-    td->meta_toolchain.msvc.cl   = icemake_which (td, "cl");
-    td->meta_toolchain.msvc.rc   = icemake_which (td, "rc");
-    td->meta_toolchain.msvc.link = icemake_which (td, "link");
-    td->meta_toolchain.msvc.lib  = icemake_which (td, "lib");
+    td->meta_toolchain.msvc.cl   = icemake_which (td, "cl",   "CL");
+    td->meta_toolchain.msvc.rc   = icemake_which (td, "rc",   "RC");
+    td->meta_toolchain.msvc.link = icemake_which (td, "link", "LINK");
+    td->meta_toolchain.msvc.lib  = icemake_which (td, "lib",  "LIB");
 
     td->build_object = build_object_msvc;
     td->link         = do_link;

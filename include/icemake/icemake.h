@@ -368,18 +368,6 @@ extern enum operating_system i_os;
  */
 extern enum instruction_set i_is;
 
-/*! \brief Effective Architecture Descriptor
- *
- *  Derived from the effective OS, architecture, vendor and toolchain.
- */
-extern const char *archprefix;
-
-/*! \brief Toolchain Version
- *
- *  Used to find specific toolchain binaries.
- */
-extern char *tcversion;
-
 /*! \brief Boolean: Optimise Linking */
 extern sexpr i_optimise_linking;
 
@@ -929,7 +917,9 @@ int icemake
 
 /*! \todo remove these functions from the global scope */
 sexpr icemake_permutate_paths (struct toolchain_descriptor *td, sexpr p);
-sexpr icemake_which (const struct toolchain_descriptor *td, char *programme);
+sexpr icemake_which
+    (const struct toolchain_descriptor *td, const char *programme,
+     const char *env);
 
 #endif
 

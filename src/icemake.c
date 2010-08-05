@@ -57,9 +57,6 @@ const char *uname_vendor = "unknown";
 enum operating_system i_os             = os_generic;
 enum instruction_set i_is              = is_generic;
 
-const char *archprefix                 = "generic-unknown-generic-generic";
-char *tcversion                        = (char *)0;
-
 static unsigned int max_processes      = 1;
 
 sexpr i_optimise_linking               = sx_false;
@@ -1369,7 +1366,6 @@ static void print_help ()
         " -h           Print help (this text) and exit.\n"
         " -v           Print version and exit.\n\n"
         " -t <chost>   Specify target CHOST\n"
-        " -z <version> Specify target toolchain version\n"
         " -d <destdir> Specify the directory to install to.\n"
         " -i           Install resulting binaries\n"
         " -r           Execute runtime tests\n"
@@ -1440,21 +1436,41 @@ static void write_uname_element (const char *source, char *target, int tlen)
     target[i] = 0;
 }
 
-static sexpr xwhich (const struct toolchain_descriptor *td, char *programme)
+sexpr icemake_which
+    (const struct toolchain_descriptor *td, const char *programme,
+     const char *env)
 {
     sexpr w, p = make_string (programme);
 
-    if (td != (struct toolchain_descriptor *)0)
+    if (programme[0] == '/')
     {
-        if ((tcversion != (char *)0) &&
-              ((w = which (sx_join (td->original_toolchain, str_dash,
-                             sx_join (p, str_dash, make_string (tcversion))))),
-               stringp(w)))
+        w = make_string (programme);
+
+        if (truep (filep (w)))
         {
             return w;
         }
-        else if ((w = which (sx_join (td->original_toolchain, str_dash, p))),
-                 stringp(w))
+    }
+
+    if (env != (const char *)0)
+    {
+        env = c_getenv (env);
+
+        if (env != (const char *)0)
+        {
+            w = icemake_which (td, env, 0);
+
+            if (stringp (w))
+            {
+                return w;
+            }
+        }
+    }
+
+    if (td != (struct toolchain_descriptor *)0)
+    {
+        if ((w = which (sx_join (td->original_toolchain, str_dash, p))),
+            stringp(w))
         {
             return w;
         }
@@ -1465,20 +1481,15 @@ static sexpr xwhich (const struct toolchain_descriptor *td, char *programme)
     return w;
 }
 
-sexpr icemake_which (const struct toolchain_descriptor *td, char *programme)
-{
-    return xwhich (td, programme);
-}
-
 static void initialise_toolchain_tex (struct toolchain_descriptor *td)
 {
-    p_latex = xwhich (td, "latex");
+    p_latex = icemake_which (td, "latex", "LATEX");
     if (falsep(p_latex))
     {
         on_warning (ie_missing_tool, "latex");
     }
 
-    p_pdflatex = xwhich (td, "pdflatex");
+    p_pdflatex = icemake_which (td, "pdflatex", "PDFLATEX");
     if (falsep(p_pdflatex))
     {
         on_warning (ie_missing_tool, "pdflatex");
@@ -1487,7 +1498,7 @@ static void initialise_toolchain_tex (struct toolchain_descriptor *td)
 
 static void initialise_toolchain_doxygen (struct toolchain_descriptor *td)
 {
-    p_doxygen = xwhich (td, "doxygen");
+    p_doxygen = icemake_which (td, "doxygen", "DOXYGEN");
     if (falsep(p_doxygen))
     {
         on_warning (ie_missing_tool, "doxygen");
@@ -1730,8 +1741,6 @@ static void read_metadata ( struct icemake *im )
     {
         struct target *t = (struct target *)0;
 
-        sx_write (stdio, r);
-
         if (consp(r)) {
             sexpr sxcar = car (r);
             struct tree_node *node =
@@ -1844,8 +1853,6 @@ int icemake_prepare_toolchain
         { tc_generic, os_generic, is_generic, make_string(name) };
 
     int p;
-
-    archprefix    = name;
 
     sx_write (stdio, make_string (name));
 
@@ -2198,13 +2205,6 @@ int cmain ()
                             xn++;
                         }
                         break;
-                    case 'z':
-                        if (curie_argv[xn])
-                        {
-                            tcversion = curie_argv[xn];
-                            xn++;
-                        }
-                        break;
                     case 'd':
                         if (curie_argv[xn])
                         {
@@ -2320,7 +2320,7 @@ int cmain ()
 
     multiplex_add_sexpr (stdio, (void *)0, (void *)0);
 
-    p_diff = xwhich ((void *)0, "diff");
+    p_diff = icemake_which ((void *)0, "diff", "DIFF");
 
     if (target_architecture != (const char *)0)
     {

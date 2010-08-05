@@ -419,8 +419,8 @@ static int install (struct target *t)
 
 int icemake_prepare_toolchain_borland (struct toolchain_descriptor *td)
 {
-    td->meta_toolchain.borland.bcc32 = icemake_which (td, "bcc32");
-    td->meta_toolchain.borland.tlib  = icemake_which (td, "tlib");
+    td->meta_toolchain.borland.bcc32 = icemake_which (td, "bcc32", "BCC32");
+    td->meta_toolchain.borland.tlib  = icemake_which (td, "tlib",  "TLIB");
 
     td->build_object = build_object_borland;
     td->link         = do_link;

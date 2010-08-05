@@ -1,4 +1,4 @@
-.TH ICEMAKE 1 "NOVEMBER 2009" Curie "Curie Developers Manual"
+.TH ICEMAKE 1 "AUGUST 2010" Curie "Curie Developers Manual"
 
 .SH NAME
 icemake \- curie build and installation tool
@@ -8,7 +8,7 @@ icemake \- curie build and installation tool
 .B icemake -v
 
 
-.BI "icemake [-cDfiLorRsSx] [-t " chost "] [-z " version "]"
+.BI "icemake [-cDfiLorRsSx] [-t " chost "] "
 .BI "[-d " destdir "] [-b " name "] [-l "
 .IB libdir "] [-j " num "] [-a " selector
 .IB choice "] [" targets "]"
@@ -92,12 +92,6 @@ is built from the information obtained by
 , otherwise this string is used. This influences the search for appropriate
 compiler binaries.
 
-.IP "-z version"
-Similar to the
-.B -t
-option, this specifies the version of the toolchain to use, if more than one is
-installed and the toolchain binaries are suffixed with the version.
-
 .IP "-d destdir"
 Tell icemake where to install the resulting binaries to.
 
@@ -152,6 +146,39 @@ Note that for gcc, ld is not invoked directly but instead gcc is being invoked,
 so that the LDFLAGS may need to use the
 .B -Wl,
 switch for exotic linker flags.
+
+The following environment variables may be used to override the regular binary
+names used in the compiler calls. If the variable are set and the value starts
+with a '/', the value is assumed to be absolute if the corresponding file is
+present. (This rule doesn't necessarily apply on architectures that do not use a
+single, unified directory tree, such as Windows.)
+
+.IP CC
+.IP LD
+.IP GXX
+.IP AS
+.IP AR
+Used to override or specify the gcc, ld, gpp, as and ar programmes in GCC
+toolchains.
+
+.IP BCC32
+.IP TLIB
+Used to override or specify the bcc32 and tlib programmes in Borland toolchains.
+
+.IP CL
+.IP RC
+.IP LINK
+.IP LIB
+Used to override or specify the cl, rc, link and lib programmes in Microsoft
+Visual Studio toolchains.
+
+.IP LATEX
+.IP PDFLATEX
+Used to override or specify the latex and pdflatex programmes in LaTeX
+toolchains.
+
+.IP DOXYGEN
+Used to override or specify the doxygen programme in Doxygen toolchains.
 
 .SH DIAGNOSTICS
 The following issues are known:
@@ -210,7 +237,7 @@ being put.
 .RE
 
 .SH AUTHOR
-Magnus Deininger <magnus.deininger@student.uni-tuebingen.de>
+Magnus Deininger <deininge@informatik.uni-tuebingen.de>
 
 .SH SEE ALSO
 .BR ice (1),
