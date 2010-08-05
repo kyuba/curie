@@ -2250,7 +2250,7 @@ int cmain ()
                         }
                         break;
                     case 'a':
-                        if (curie_argv[(xn + 1)])
+                        if (curie_argv[xn] && curie_argv[(xn + 1)])
                         {
                             i_alternatives
                                     = cons (cons
