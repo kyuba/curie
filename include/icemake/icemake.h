@@ -880,16 +880,10 @@ char *mangle_path_borland (char *b);
  */
 sexpr mangle_path_borland_sx (sexpr b);
 
-sexpr lowercase (sexpr s);
-
 sexpr get_build_file   (struct target *t, sexpr file);
 sexpr get_install_file (struct target *t, sexpr file);
 
 void mkdir_pi (sexpr path);
-void mkdir_p  (sexpr path);
-
-void on_error   (enum icemake_error error, const char *text);
-void on_warning (enum icemake_error error, const char *text);
 
 int icemake_prepare_toolchain_generic (struct toolchain_descriptor *td);
 int icemake_prepare_toolchain_gcc     (struct toolchain_descriptor *td);

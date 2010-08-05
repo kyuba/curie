@@ -84,6 +84,9 @@ struct sexpr_io *stdio;
 static void parse_add_definition
     (struct icemake *im, struct toolchain_descriptor *td, sexpr definition);
 
+static void on_warning (enum icemake_error error, const char *text);
+static void on_error   (enum icemake_error error, const char *text);
+
 struct process_data
 {
     sexpr command;
@@ -303,7 +306,7 @@ void mkdir_pi (sexpr path)
     }
 }
 
-void mkdir_p (sexpr path)
+static void mkdir_p (sexpr path)
 {
     mkdir_pi (path);
     mkdir (sx_string (path), 0755);
@@ -402,7 +405,7 @@ sexpr mangle_path_borland_sx (sexpr b)
     return make_string (mangle_path_borland (buffer));
 }
 
-sexpr lowercase (sexpr s)
+static sexpr lowercase (sexpr s)
 {
     char buffer[BUFFERSIZE], c;
     int i;
@@ -687,7 +690,8 @@ static void find_code (struct target *context, sexpr file)
 
                 if (consp (file))
                 {
-                    on_error (ie_invalid_choice, sx_string (file));
+                    context->icemake->on_error
+                        (ie_invalid_choice, sx_string (file));
                 }
 
                 break;
@@ -793,7 +797,8 @@ static void find_code (struct target *context, sexpr file)
         }
         else
         {
-            on_error (ie_missing_code_file, sx_string (file));
+            context->icemake->on_error
+                (ie_missing_code_file, sx_string (file));
         }
     }
 
@@ -823,7 +828,7 @@ static void find_header (struct target *context, sexpr file)
     }
     else
     {
-        on_error (ie_missing_header, sx_string (file));
+        context->icemake->on_error (ie_missing_header, sx_string (file));
     }
 }
 
@@ -900,7 +905,7 @@ static void find_documentation (struct target *context, sexpr file)
     }
     else
     {
-        on_error (ie_missing_documentation, sx_string (file));
+        context->icemake->on_error (ie_missing_documentation, sx_string (file));
     }
 }
 
@@ -911,7 +916,7 @@ static sexpr find_data (struct target *context, sexpr file)
     if ((r = find_in_permutations (context->toolchain, str_data, file)),
         !stringp(r))
     {
-        on_error (ie_missing_data, sx_string (file));
+        context->icemake->on_error (ie_missing_data, sx_string (file));
     }
 
     return r;
@@ -1647,12 +1652,11 @@ static void spawn_item
     pd->icemake  = im;
     pd->failures = fl;
 
-
     switch (context->pid)
     {
-        case -1: on_error (ie_failed_to_spawn_subprocess, "");
+        case -1: im->on_error (ie_failed_to_spawn_subprocess, "");
                  break;
-        case 0:  on_error (ie_failed_to_execute_binary_image, "");
+        case 0:  im->on_error (ie_failed_to_execute_binary_image, "");
                  break;
         default: (im->alive_processes)++;
                  multiplex_add_process (context, f, (void *)pd);
@@ -1693,7 +1697,7 @@ static void spawn_stack_items (struct icemake *im, int *fl)
 
 enum signal_callback_result cb_on_bad_signal(enum signal s, void *p)
 {
-    on_error (ie_problematic_signal, (const char *)0);
+    cexit (-1);
 
     return scr_keep;
 }
@@ -1776,8 +1780,7 @@ static void save_metadata ( struct icemake *im )
     sx_close_io (io);
 }
 
-
-void on_error (enum icemake_error error, const char *text)
+static void on_error (enum icemake_error error, const char *text)
 {
     if (error != ie_problematic_signal)
     {
@@ -1788,7 +1791,7 @@ void on_error (enum icemake_error error, const char *text)
     cexit (error);
 }
 
-void on_warning (enum icemake_error error, const char *text)
+static void on_warning (enum icemake_error error, const char *text)
 {
     sx_write (stdio,
               cons (sym_warning, cons (make_string (text), sx_end_of_list)));
@@ -2022,6 +2025,11 @@ int icemake_prepare
 
     icemake_sx_path = sx_join (icemake_sx_path, str_sicemakedsx, sx_nil);
 
+    if (falsep (filep (icemake_sx_path)))
+    {
+        iml.on_error (ie_missing_description_file, "");
+    }
+
     io = sx_open_i (io_open_read (sx_string (icemake_sx_path)));
 
     while (!eofp(r = sx_read (io)))
@@ -2180,11 +2188,6 @@ int cmain ()
     struct icemake_meta im = { sx_end_of_list, fs_afsl, 0 };
 
     stdio = sx_open_stdout ();
-
-    if (falsep (filep (make_string ("icemake.sx"))))
-    {
-        on_error (ie_missing_description_file, "");
-    }
 
     mkdir ("build", 0755);
 
