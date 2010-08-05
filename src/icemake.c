@@ -95,6 +95,7 @@ struct icemake_meta
 {
     sexpr buildtargets;
     enum fs_layout filesystem_layout;
+    unsigned long options;
 };
 
 /* toolchain classification patterns */
@@ -2151,8 +2152,9 @@ static int with_icemake (struct icemake *im, void *aux)
 {
     struct icemake_meta *imc = (struct icemake_meta *)aux;
 
-    im->filesystem_layout = imc->filesystem_layout;
-    im->buildtargets      = imc->buildtargets;
+    im->filesystem_layout  = imc->filesystem_layout;
+    im->buildtargets       = imc->buildtargets;
+    im->options           |= imc->options;
 
     return icemake (im);
 }
@@ -2175,7 +2177,7 @@ int cmain ()
 {
     int i = 1;
     const char *target_architecture = c_getenv("CHOST");
-    struct icemake_meta im = { sx_end_of_list, fs_afsl };
+    struct icemake_meta im = { sx_end_of_list, fs_afsl, 0 };
 
     stdio = sx_open_stdout ();
 
