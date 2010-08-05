@@ -151,6 +151,11 @@ so that the LDFLAGS may need to use the
 .B -Wl,
 switch for exotic linker flags.
 
+.IP CHOST
+The value of this variable, if present, is used as the default toolchain
+identifier (that string that is otherwise specified with the -t flag). The -t
+flag will still override this.
+
 The following environment variables may be used to override the regular binary
 names used in the compiler calls. If the variable are set and the value starts
 with a '/', the value is assumed to be absolute if the corresponding file is
