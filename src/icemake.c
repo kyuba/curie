@@ -54,8 +54,6 @@
 const char *uname_arch   = "generic";
 const char *uname_vendor = "unknown";
 
-enum instruction_set i_is              = is_generic;
-
 static unsigned int max_processes      = 1;
 
 sexpr i_destdir                        = sx_false;
@@ -1841,7 +1839,7 @@ int icemake_prepare_toolchain
 
             if (toolchain_pattern[p].instruction_set != is_unknown)
             {
-                i_is = toolchain_pattern[p].instruction_set;
+                td.instruction_set = toolchain_pattern[p].instruction_set;
             }
 
             if (toolchain_pattern[p].uname_os != (const char *)0)

@@ -362,12 +362,6 @@ extern const char *uname_arch;
  */
 extern const char *uname_vendor;
 
-/*! \brief Effective Instruction Set Code
- *
- *  Derived from uname_arch.
- */
-extern enum instruction_set i_is;
-
 /*! \brief Destination Directory
  *
  *  Set with the -d flag.
