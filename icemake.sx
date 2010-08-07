@@ -46,40 +46,70 @@
   (documentation
         "description"))
 
-(test-case "bad-allocation"          libcurie (code "test-bad-allocation"))
-(test-case "bad-resize"              libcurie (code "test-bad-resize"))
-(test-case "curie-main"              libcurie (code "test-curie-main"))
-(test-case "environment"             libcurie (code "test-environment"))
-(test-case "execute-fork"            libcurie (code "test-execute-fork"))
-(test-case "execute-fork-purge"      libcurie (code "test-execute-fork-purge"))
-(test-case "exit"                    libcurie (code "test-exit"))
-(test-case "filesystem"              libcurie (code "test-filesystem"))
-(test-case "graph"                   libcurie (code "test-graph"))
-(test-case "io"                      libcurie (code "test-io"))
-(test-case "memory-allocator"        libcurie (code "test-memory-allocator"))
-(test-case "memory-pool"             libcurie (code "test-memory-pool"))
-(test-case "memory-primitives"       libcurie (code "test-memory-primitives"))
-(test-case "multiplex-all-processes" libcurie
+(test-case "test-bad-allocation"           libcurie
+  (code "test-bad-allocation"))
+(test-case "test-bad-resize"               libcurie
+  (code "test-bad-resize"))
+(test-case "test-curie-main"               libcurie
+  (code "test-curie-main"))
+(test-case "test-environment"              libcurie
+  (code "test-environment"))
+(test-case "test-execute-fork"             libcurie
+  (code "test-execute-fork"))
+(test-case "test-execute-fork-purge"       libcurie
+  (code "test-execute-fork-purge"))
+(test-case "test-exit"                     libcurie
+  (code "test-exit"))
+(test-case "test-filesystem"               libcurie
+  (code "test-filesystem"))
+(test-case "test-graph"                    libcurie
+  (code "test-graph"))
+(test-case "test-io"                       libcurie
+  (code "test-io"))
+(test-case "test-memory-allocator"         libcurie
+  (code "test-memory-allocator"))
+(test-case "test-memory-pool"              libcurie
+  (code "test-memory-pool"))
+(test-case "test-memory-primitives"        libcurie
+  (code "test-memory-primitives"))
+(test-case "test-multiplex-all-processes"  libcurie
   (code "test-multiplex-all-processes"))
-(test-case "multiplex-io"            libcurie (code "test-multiplex-io"))
-(test-case "multiplex-network"       libcurie (code "test-multiplex-network"))
-(test-case "multiplex-process"       libcurie (code "test-multiplex-process"))
-(test-case "multiplex-sexpr"         libcurie (code "test-multiplex-sexpr"))
-(test-case "network-loop"            libcurie (code "test-network-loop"))
-(test-case "read-write"              libcurie (code "test-read-write"))
-(test-case "sexpr-read"              libcurie (code "test-sexpr-read"))
-(test-case "sexpr-write"             libcurie (code "test-sexpr-write"))
-(test-case "tree-node-removal"       libcurie (code "test-tree-node-removal"))
-(test-case "tree-plain"              libcurie (code "test-tree-plain"))
-(test-case "tree-random"             libcurie (code "test-tree-random"))
-(test-case "tree-random-node-removal" libcurie
+(test-case "test-multiplex-io"             libcurie
+  (code "test-multiplex-io"))
+(test-case "test-multiplex-network"        libcurie
+  (code "test-multiplex-network"))
+(test-case "test-multiplex-process"        libcurie
+  (code "test-multiplex-process"))
+(test-case "test-multiplex-sexpr"          libcurie
+  (code "test-multiplex-sexpr"))
+(test-case "test-network-loop"             libcurie
+  (code "test-network-loop"))
+(test-case "test-read-write"               libcurie
+  (code "test-read-write"))
+(test-case "test-sexpr-read"               libcurie
+  (code "test-sexpr-read"))
+(test-case "test-sexpr-write"              libcurie
+  (code "test-sexpr-write"))
+(test-case "test-tree-node-removal"        libcurie
+  (code "test-tree-node-removal"))
+(test-case "test-tree-plain"               libcurie
+  (code "test-tree-plain"))
+(test-case "test-tree-random"              libcurie
+  (code "test-tree-random"))
+(test-case "test-tree-random-node-removal" libcurie
   (code "test-tree-random-node-removal"))
-(test-case "tree-value"              libcurie (code "test-tree-value"))
-(test-case "regex"                   libcurie (code "test-regex"))
-(test-case "io-special"              libcurie (code "test-io-special"))
-(test-case "gc"                      libcurie (code "test-gc"))
-(test-case "sexpr-custom"            libcurie (code "test-sexpr-custom"))
-(test-case "time"                    libcurie (code "test-time"))
+(test-case "test-tree-value"               libcurie
+  (code "test-tree-value"))
+(test-case "test-regex"                    libcurie
+  (code "test-regex"))
+(test-case "test-io-special"               libcurie
+  (code "test-io-special"))
+(test-case "test-gc"                       libcurie
+  (code "test-gc"))
+(test-case "test-sexpr-custom"             libcurie
+  (code "test-sexpr-custom"))
+(test-case "test-time"                     libcurie
+  (code "test-time"))
 
 (library "syscall" libcurie
   (name "libsyscall")
@@ -117,12 +147,18 @@
   (test-case-reference
         ("build/to-sexpr-sort" . "tests/reference/sexpr-sort")))
 
-(test-case "immutable"  libcurie (libraries "sievert" "syscall") (code "test-immutable"))
-(test-case "directory"  libcurie (libraries "sievert" "syscall") (code "test-directory"))
-(test-case "string-set" libcurie (libraries "sievert" "syscall") (code "test-string-set"))
-(test-case "sexpr-set"  libcurie (libraries "sievert" "syscall") (code "test-sexpr-set"))
-(test-case "sexpr-sort" libcurie (libraries "sievert" "syscall") (code "test-sexpr-sort"))
-(test-case "cpio"       libcurie (libraries "sievert" "syscall") (code "test-cpio"))
+(test-case "test-immutable"  libcurie
+  (libraries "sievert" "syscall") (code "test-immutable"))
+(test-case "test-directory"  libcurie
+  (libraries "sievert" "syscall") (code "test-directory"))
+(test-case "test-string-set" libcurie
+  (libraries "sievert" "syscall") (code "test-string-set"))
+(test-case "test-sexpr-set"  libcurie
+  (libraries "sievert" "syscall") (code "test-sexpr-set"))
+(test-case "test-sexpr-sort" libcurie
+  (libraries "sievert" "syscall") (code "test-sexpr-sort"))
+(test-case "test-cpio"       libcurie
+  (libraries "sievert" "syscall") (code "test-cpio"))
 
 (library "curie++" libcurie
   (name "Curie++")
@@ -135,7 +171,8 @@
   (headers
         "int" "io" "multiplex" "sexpr" "main"))
 
-(test-case "objects" libcurie (libraries "curie++") (code "test-objects"))
+(test-case "test-objects" libcurie (libraries "curie++")
+  (code "test-objects"))
 
 (library "curie-math" libcurie
   (name "Curie-math")

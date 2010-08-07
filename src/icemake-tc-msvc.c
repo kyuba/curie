@@ -346,13 +346,13 @@ static int do_link (struct target *t)
 {
     if (t->options & ICEMAKE_LIBRARY)
     {
-        if (falsep(i_dynamic_libraries) ||
+        if (!(t->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) ||
             (t->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
             link_library_msvc (t->name, t->code, t);
         }
 
-        if (truep(i_dynamic_libraries) &&
+        if ((t->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
             !(t->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
             link_library_msvc_dynamic (t->name, t->code, t);
@@ -407,7 +407,7 @@ static void install_library_msvc (sexpr name, struct target *t)
                                                      str_dot_lib)),
                       get_library_install_path (t))));
 
-    if (truep (i_dynamic_libraries) &&
+    if ((t->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
         !(t->options & ICEMAKE_NO_SHARED_LIBRARY))
     {
         sexpr fname;

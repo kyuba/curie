@@ -305,7 +305,7 @@ static int do_link (struct target *t)
     {
         link_library_borland (t->name, t->code, t);
 
-        if (truep(i_dynamic_libraries) &&
+        if ((t->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
             !(t->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
            link_library_borland_dynamic (t->name, t->code, t);
@@ -358,7 +358,7 @@ static sexpr get_programme_install_path (struct target *t)
 
 static void install_library_dynamic_common (sexpr name, struct target *t)
 {
-    if (truep (i_dynamic_libraries) &&
+    if ((t->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
         !(t->options & ICEMAKE_NO_SHARED_LIBRARY) &&
         (!(t->options & ICEMAKE_HAVE_CPP)))
     {

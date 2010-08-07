@@ -369,7 +369,7 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
     define_string (str_Wlgcsections,     "-Wl,--gc-sections");
     define_string (str_Wlsortcommon,     "-Wl,--sort-common");
 
-    if (truep(i_optimise_linking))
+    if (t->icemake->options & ICEMAKE_OPTION_OPTIMISE_LINKING)
     {
         sx = cons (str_Wlx, sx);
 
@@ -401,7 +401,7 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
         }
         else if (t->toolchain->options & ICEMAKE_OPTION_FREESTANDING)
         {
-            if (truep(i_static))
+            if (t->icemake->options & ICEMAKE_OPTION_STATIC)
             {
                 sx = cons (str_static, sx);
             }
@@ -682,7 +682,7 @@ static int do_link (struct target *t)
     {
         link_library_gcc (t->name, t->code, t);
 
-        if (truep(i_dynamic_libraries) &&
+        if ((t->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
             !(t->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
             if ((i_os != os_windows) ||
@@ -742,7 +742,7 @@ static sexpr get_programme_install_path (struct target *t)
 
 static void install_library_dynamic_common (sexpr name, struct target *t)
 {
-    if (truep (i_dynamic_libraries) &&
+    if ((t->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
         !(t->options & ICEMAKE_NO_SHARED_LIBRARY) &&
         (!(t->options & ICEMAKE_HAVE_CPP) || (i_os != os_darwin)))
     {

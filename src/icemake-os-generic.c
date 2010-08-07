@@ -165,7 +165,7 @@ static int install_file
 #endif
 
 static sexpr initialise_libcurie_filename
-    (struct toolchain_descriptor *td, sexpr f)
+    (struct toolchain_descriptor *td, struct icemake *im, sexpr f)
 {
     struct sexpr_io *io;
     sexpr r;
@@ -187,7 +187,7 @@ static sexpr initialise_libcurie_filename
 
             if (i_os != os_windows)
             {
-                i_dynamic_libraries = sx_false;
+                im->options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
             }
         }
     }
@@ -203,7 +203,7 @@ static void initialise_libcurie
     if (!falsep(i_destdir))
     {
         if (truep (initialise_libcurie_filename
-                       (td, sx_join (i_destdir, str_slash,
+                       (td, im, sx_join (i_destdir, str_slash,
                           sx_join (i_destlibdir, str_slibcuriedsx, sx_nil)))))
         {
             return;
@@ -213,7 +213,7 @@ static void initialise_libcurie
         {
             case fs_fhs:
                 if (truep (initialise_libcurie_filename
-                               (td, sx_join (i_destdir, str_susrs,
+                               (td, im, sx_join (i_destdir, str_susrs,
                                   sx_join (i_destlibdir, str_slibcuriedsx,
                                            sx_nil)))))
                 {
@@ -222,7 +222,7 @@ static void initialise_libcurie
                 break;
             case fs_afsl:
                 if (truep (initialise_libcurie_filename
-                     (td, sx_join (i_destdir, str_slash,
+                     (td, im, sx_join (i_destdir, str_slash,
                         sx_join (make_string (td->uname_os),
                           str_slash,
                           sx_join (make_string (uname_arch),
@@ -234,7 +234,8 @@ static void initialise_libcurie
     }
 
     if (truep (initialise_libcurie_filename
-                   (td, sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
+                   (td, im,
+                    sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
     {
         return;
     }
@@ -243,19 +244,19 @@ static void initialise_libcurie
     {
         case fs_fhs:
             if (truep (initialise_libcurie_filename
-                 (td, sx_join (str_susrs, i_destlibdir, str_slibcuriedsx))))
+                 (td, im, sx_join (str_susrs, i_destlibdir, str_slibcuriedsx))))
             {
                 return;
             }
             if (truep (initialise_libcurie_filename
-                 (td, sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
+                 (td, im, sx_join (str_slash, i_destlibdir, str_slibcuriedsx))))
             {
                 return;
             }
             break;
         case fs_afsl:
             if (truep (initialise_libcurie_filename
-                 (td, sx_join (str_slash, make_string (td->uname_os),
+                 (td, im, sx_join (str_slash, make_string (td->uname_os),
                     sx_join (str_slash, make_string (uname_arch),
                         str_slibslibcuriedsx)))))
             {

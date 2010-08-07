@@ -261,7 +261,13 @@ struct visualiser_descriptor
     } meta;
 };
 
-#define ICEMAKE_OPTION_FREESTANDING    (1 << 0x0)
+#define ICEMAKE_OPTION_FREESTANDING     (1 << 0x0)
+#define ICEMAKE_OPTION_STATIC           (1 << 0x1)
+#define ICEMAKE_OPTION_INSTALL          (1 << 0x2)
+#define ICEMAKE_OPTION_TESTS            (1 << 0x3)
+#define ICEMAKE_OPTION_OPTIMISE_LINKING (1 << 0x4)
+#define ICEMAKE_OPTION_COMBINE          (1 << 0x5)
+#define ICEMAKE_OPTION_DYNAMIC_LINKING  (1 << 0x6)
 
 struct icemake
 {
@@ -368,15 +374,6 @@ extern enum operating_system i_os;
  */
 extern enum instruction_set i_is;
 
-/*! \brief Boolean: Optimise Linking */
-extern sexpr i_optimise_linking;
-
-/*! \brief Boolean: Combine C Code Files (for Optimisations) */
-extern sexpr i_combine;
-
-/*! \brief Boolean: Create Shared Objects for Libraries */
-extern sexpr i_dynamic_libraries;
-
 /*! \brief Destination Directory
  *
  *  Set with the -d flag.
@@ -389,29 +386,11 @@ extern sexpr i_destdir;
  */
 extern sexpr i_pname;
 
-/*! \brief Boolean: Enforce Static Link
- *
- *  Set with the -S and -R flags.
- */
-extern sexpr i_static;
-
 /*! \brief (FHS) Library Directory
  *
  *  Used to decide between lib, lib32 and lib64.
  */
 extern sexpr i_destlibdir;
-
-/*! \brief Boolean: Run Test Cases
- *
- *  Set with the -r flag.
- */
-extern sexpr do_tests;
-
-/*! \brief Boolean: Install Binaries
- *
- *  Set with the -i flag.
- */
-extern sexpr do_install;
 
 /*! \brief Boolean: Build Documentation
  *

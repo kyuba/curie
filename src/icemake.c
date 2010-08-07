@@ -59,16 +59,10 @@ enum instruction_set i_is              = is_generic;
 
 static unsigned int max_processes      = 1;
 
-sexpr i_optimise_linking               = sx_false;
-sexpr i_combine                        = sx_false;
-sexpr i_static                         = sx_true;
 sexpr i_destdir                        = sx_false;
 sexpr i_destlibdir                     = sx_false;
-sexpr i_dynamic_libraries              = sx_true;
 static sexpr in_dynamic_libraries      = sx_nil;
 
-sexpr do_tests                         = sx_false;
-sexpr do_install                       = sx_false;
 sexpr do_build_documentation           = sx_false;
 
 sexpr p_diff                           = sx_false;
@@ -713,7 +707,7 @@ static void find_code (struct target *context, sexpr file)
               cons (generate_object_file_name (file, context),
                 sx_end_of_list)));
 
-        if (truep(i_dynamic_libraries) &&
+        if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
             (context->toolchain->toolchain == tc_gcc) &&
             !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
@@ -726,7 +720,7 @@ static void find_code (struct target *context, sexpr file)
 
         tertius = find_code_highlevel (context, file);
 
-        if (truep(i_dynamic_libraries) &&
+        if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
             (context->toolchain->toolchain == tc_gcc) &&
             !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
@@ -740,7 +734,7 @@ static void find_code (struct target *context, sexpr file)
               cons (generate_object_file_name (file, context),
                 sx_end_of_list)));
 
-        if (truep(i_dynamic_libraries) &&
+        if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
             (context->toolchain->toolchain == tc_gcc) &&
             !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
@@ -753,7 +747,7 @@ static void find_code (struct target *context, sexpr file)
 
         tertius = find_code_highlevel (context, file);
 
-        if (truep(i_dynamic_libraries) &&
+        if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
             (context->toolchain->toolchain == tc_gcc) &&
             !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
@@ -771,7 +765,7 @@ static void find_code (struct target *context, sexpr file)
                        cons (generate_object_file_name (file, context),
                          sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries) &&
+            if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
                 (context->toolchain->toolchain == tc_gcc) &&
                 !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
@@ -786,7 +780,7 @@ static void find_code (struct target *context, sexpr file)
                        cons (generate_object_file_name (file, context),
                          sx_end_of_list)));
 
-            if (truep(i_dynamic_libraries) &&
+            if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
                 (context->toolchain->toolchain == tc_gcc) &&
                 !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
@@ -982,7 +976,8 @@ static void process_definition
                     
                 if (i_os != os_windows)
                 {
-                    i_dynamic_libraries = sx_false;
+                    context->icemake->options &=
+                        ~ICEMAKE_OPTION_DYNAMIC_LINKING;
                 }
             }
         }
@@ -992,7 +987,7 @@ static void process_definition
         if (nilp (in_dynamic_libraries) &&
             (context->toolchain->options & ICEMAKE_OPTION_FREESTANDING))
         {
-            i_dynamic_libraries = sx_true;
+            context->icemake->options |= ICEMAKE_OPTION_DYNAMIC_LINKING;
         }
     }
 
@@ -1341,7 +1336,8 @@ static void target_map_combine (struct tree_node *node, void *u)
 {
     struct target *context = (struct target *)node_get_value(node);
 
-    if (truep(i_combine) && consp(context->code) &&
+    if ((context->icemake->options & ICEMAKE_OPTION_COMBINE) &&
+        consp(context->code) &&
         (context->toolchain->toolchain == tc_gcc))
     {
         combine_code (context, sym_c,
@@ -1634,7 +1630,7 @@ static void spawn_item
     {
         char *tenv[3];
         sexpr s = sx_join (str_PATHe, make_string (c_getenv ("PATH")), sx_nil);
-            
+
         tenv[0] = (char *)sx_string (rsx);
         tenv[1] = (char *)sx_string (s);;
         tenv[2] = (char *)0;
@@ -2011,16 +2007,17 @@ int icemake_prepare
     {
         if (i_os == os_windows)
         {
-            i_dynamic_libraries = sx_true;
+            im->options |= ICEMAKE_OPTION_DYNAMIC_LINKING;
         }
         else if (!(td->options & ICEMAKE_OPTION_FREESTANDING))
         {
-            i_dynamic_libraries = sx_false;
+            im->options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
         }
     }
     else
     {
-        i_dynamic_libraries = in_dynamic_libraries;
+        im->options |= (truep (in_dynamic_libraries) ?
+                         ICEMAKE_OPTION_DYNAMIC_LINKING : 0);
     }
 
     icemake_sx_path = sx_join (icemake_sx_path, str_sicemakedsx, sx_nil);
@@ -2116,8 +2113,8 @@ int icemake
     }
 
     tree_map (&(im->targets),
-              (truep (do_tests) ? collect_test_targets
-                                : remove_test_targets),
+              ((im->options & ICEMAKE_OPTION_TESTS) ? collect_test_targets
+                                                    : remove_test_targets),
               &(im->buildtargets));
 
     im->buildtargets = sx_set_sort_merge
@@ -2127,12 +2124,12 @@ int icemake
         cons (cons (sym_completed, cons (sym_targets, im->buildtargets)),
               im->workstack);
 
-    if (truep (do_install))
+    if (im->options & ICEMAKE_OPTION_INSTALL)
     {
         failures += icemake_install (im);
     }
 
-    if (truep (do_tests))
+    if (im->options & ICEMAKE_OPTION_TESTS)
     {
         failures += icemake_run_tests (im);
     }
@@ -2185,7 +2182,9 @@ int cmain ()
 {
     int i = 1;
     const char *target_architecture = c_getenv("CHOST");
-    struct icemake_meta im = { sx_end_of_list, fs_afsl, 0 };
+    struct icemake_meta im =
+        { sx_end_of_list, fs_afsl,
+          ICEMAKE_OPTION_STATIC | ICEMAKE_OPTION_DYNAMIC_LINKING };
 
     stdio = sx_open_stdout ();
 
@@ -2218,19 +2217,19 @@ int cmain ()
                         }
                         break;
                     case 'i':
-                        do_install = sx_true;
+                        im.options |=  ICEMAKE_OPTION_INSTALL;
                         break;
                     case 'L':
-                        i_optimise_linking = sx_true;
+                        im.options |=  ICEMAKE_OPTION_OPTIMISE_LINKING;
                         break;
                     case 'c':
-                        i_combine = sx_true;
+                        im.options |=  ICEMAKE_OPTION_COMBINE;
                         break;
                     case 'S':
-                        i_static = sx_true;
+                        im.options |=  ICEMAKE_OPTION_STATIC;
                         break;
                     case 'R':
-                        i_static = sx_false;
+                        im.options &= ~ICEMAKE_OPTION_STATIC;
                         break;
                     case 'x':
                         do_build_documentation = sx_true;
@@ -2288,7 +2287,7 @@ int cmain ()
                         }
                         break;
                     case 'r':
-                        do_tests = sx_true;
+                        im.options |=  ICEMAKE_OPTION_TESTS;
                         break;
                     case 'v':
                         print_version ();
