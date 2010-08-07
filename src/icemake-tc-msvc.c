@@ -361,8 +361,7 @@ static int do_link (struct target *t)
     else if (t->options & ICEMAKE_PROGRAMME)
     {
         sexpr b = get_build_file
-            (t, (i_os == os_windows) ? sx_join (t->name, str_dot_exe, sx_nil)
-                                     : t->name);
+            (t, sx_join (t->name, str_dot_exe, sx_nil));
 
         link_programme_msvc_filename (b, t->name, t->code, t);
     }
@@ -437,9 +436,7 @@ static void install_programme_msvc (sexpr name, struct target *t)
 {
     t->icemake->workstack = sx_set_add (t->icemake->workstack,
          cons (sym_install, cons (make_integer (0555),
-               cons (get_build_file (t, sx_join (name, (i_os == os_windows 
-                                                         ? str_dot_exe
-                                                         : sx_nil), sx_nil)),
+               cons (get_build_file (t, sx_join (name, str_dot_exe, sx_nil)),
                      get_programme_install_path(t)))));
 }
 

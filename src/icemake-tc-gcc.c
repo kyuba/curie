@@ -63,7 +63,7 @@ static sexpr prepend_ccflags_gcc (struct toolchain_descriptor *td, sexpr x)
 {
     if (td->options & ICEMAKE_OPTION_FREESTANDING)
     {
-        switch (i_os)
+        switch (td->operating_system)
         {
             case os_darwin:
                 x = cons (str_static, x);
@@ -373,7 +373,7 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
     {
         sx = cons (str_Wlx, sx);
 
-        switch (i_os)
+        switch (t->toolchain->operating_system)
         {
             case os_linux:
                 sx = cons (str_Wls, cons (str_Wlznoexecstack,
@@ -387,9 +387,14 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
 
     if (t->options & ICEMAKE_USE_CURIE)
     {
+        if (t->options & ICEMAKE_TEST_CASE)
+        {
+            sx = cons (str_static, sx);
+        }
+
         if (t->options & ICEMAKE_HOSTED)
         {
-            switch (i_os)
+            switch (t->toolchain->operating_system)
             {
                 case os_darwin:
                     break;
@@ -401,12 +406,13 @@ static sexpr get_libc_linker_options_gcc (struct target *t, sexpr sx)
         }
         else if (t->toolchain->options & ICEMAKE_OPTION_FREESTANDING)
         {
-            if (t->icemake->options & ICEMAKE_OPTION_STATIC)
+            if ((t->icemake->options & ICEMAKE_OPTION_STATIC) &&
+                !(t->options & ICEMAKE_TEST_CASE))
             {
                 sx = cons (str_static, sx);
             }
 
-            switch (i_os)
+            switch (t->toolchain->operating_system)
             {
                 case os_darwin:
                     sx = cons (str_e, cons (str_start, sx));
@@ -456,7 +462,7 @@ static sexpr get_special_linker_options (struct target *t, sexpr sx)
 
     tree_map (&(t->icemake->targets), map_includes, (void *)&sx);
 
-    if (i_os == os_darwin)
+    if (t->toolchain->operating_system == os_darwin)
     {
         sx = cons (str_multiply_defined, cons (str_warning, sx));
     }
@@ -530,14 +536,14 @@ static void link_programme_gcc_filename
 {
     sexpr sx = sx_end_of_list;
 
-    if (i_os != os_darwin)
+    if (t->toolchain->operating_system != os_darwin)
     {
         sx = cons (str_dend_group, sx);
     }
 
     sx = collect_library_link_flags (sx, t);
 
-    if (i_os != os_darwin)
+    if (t->toolchain->operating_system != os_darwin)
     {
         sx = cons (str_dstart_group, sx);
     }
@@ -595,7 +601,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
     write_curie_sx (name, t);
 
-    if (i_os == os_windows)
+    if (t->toolchain->operating_system == os_windows)
     {
         cur = cons (str_kernel32, cons (str_mingw32, cons (str_coldname,
                     cons (str_mingwex, cons (str_msvcrt, t->libraries)))));
@@ -619,7 +625,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
         sx = get_special_linker_options (t, sx);
     }
 
-    switch (i_os)
+    switch (t->toolchain->operating_system)
     {
         case os_windows:
             lshort = sx_join (str_lib, name,
@@ -647,7 +653,7 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
         cur = cdr (cur);
     }
 
-    if (i_os == os_linux)
+    if (t->toolchain->operating_system == os_linux)
     {
         sx = cons (sx_join (str_dWlcdsonameclib, name,
                      sx_join (str_dot_so_dot, t->dversion, sx_nil)), sx);
@@ -662,12 +668,13 @@ static void link_library_gcc_dynamic (sexpr name, sexpr code, struct target *t)
 
     t->icemake->workstack = sx_set_add (t->icemake->workstack,
                     cons (t->toolchain->meta_toolchain.gcc.gcc,
-                          cons (((i_os == os_darwin) ? str_ddynamiclib :
+                          cons (((t->toolchain->operating_system
+                                       == os_darwin) ? str_ddynamiclib :
                                                        str_dshared),
                                 cons (str_dfpic,
                           cons (str_do, cons (lshort, sx))))));
 
-    if (i_os == os_windows)
+    if (t->toolchain->operating_system == os_windows)
     {
         t->icemake->workstack = sx_set_add (t->icemake->workstack,
                         cons (t->toolchain->meta_toolchain.gcc.gcc,
@@ -685,7 +692,7 @@ static int do_link (struct target *t)
         if ((t->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
             !(t->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
-            if ((i_os != os_windows) ||
+            if ((t->toolchain->operating_system != os_windows) ||
                 !(t->options & ICEMAKE_HAVE_CPP))
             {
                 link_library_gcc_dynamic (t->name, t->code, t);
@@ -695,7 +702,8 @@ static int do_link (struct target *t)
     else if (t->options & ICEMAKE_PROGRAMME)
     {
         sexpr b = get_build_file
-            (t, (i_os == os_windows) ? sx_join (t->name, str_dot_exe, sx_nil)
+            (t, (t->toolchain->operating_system == os_windows)
+                                     ? sx_join (t->name, str_dot_exe, sx_nil)
                                      : t->name);
 
         link_programme_gcc_filename (b, t->name, t->code, t);
@@ -716,9 +724,10 @@ static sexpr get_library_install_path (struct target *t)
 static sexpr get_so_library_install_path (struct target *t)
 {
     return get_install_file
-        (t, sx_join (((i_os == os_windows) ? str_bin : i_destlibdir), str_slash,
+        (t, sx_join (((t->toolchain->operating_system == os_windows)
+                         ? str_bin : i_destlibdir), str_slash,
               sx_join (str_lib, t->name,
-                       (i_os == os_windows)
+                       (t->toolchain->operating_system == os_windows)
                          ? sx_join (str_dot, t->dversion, str_dot_dll)
                          : sx_join (str_dot_so_dot, t->dversion, sx_nil))));
 }
@@ -726,9 +735,11 @@ static sexpr get_so_library_install_path (struct target *t)
 static sexpr get_so_library_symlink_path (struct target *t)
 {
     return get_install_file
-        (t, sx_join (((i_os == os_windows) ? str_bin : i_destlibdir), str_slash,
+        (t, sx_join (((t->toolchain->operating_system == os_windows)
+                         ? str_bin : i_destlibdir), str_slash,
               sx_join (str_lib, t->name,
-                       (i_os == os_windows) ? str_dot_dll : str_dot_so)));
+                       (t->toolchain->operating_system == os_windows)
+                         ? str_dot_dll : str_dot_so)));
 }
 
 static sexpr get_programme_install_path (struct target *t)
@@ -736,7 +747,8 @@ static sexpr get_programme_install_path (struct target *t)
     return get_install_file
         (t, sx_join (str_bin, str_slash,
               sx_join (t->name,
-                       (i_os == os_windows) ? str_dot_exe : sx_nil,
+                       (t->toolchain->operating_system == os_windows)
+                         ? str_dot_exe : sx_nil,
                        sx_nil)));
 }
 
@@ -744,11 +756,12 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
 {
     if ((t->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
         !(t->options & ICEMAKE_NO_SHARED_LIBRARY) &&
-        (!(t->options & ICEMAKE_HAVE_CPP) || (i_os != os_darwin)))
+        (!(t->options & ICEMAKE_HAVE_CPP) ||
+         (t->toolchain->operating_system != os_darwin)))
     {
         sexpr fname;
 
-        switch (i_os)
+        switch (t->toolchain->operating_system)
         {
             case os_windows:
                 fname = get_build_file
@@ -768,7 +781,7 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
                             cons (make_integer(0555),
                                 cons (fname, get_so_library_install_path(t)))));
 
-            switch (i_os)
+            switch (t->toolchain->operating_system)
             {
                 case os_windows:
                     t->icemake->workstack = sx_set_add (t->icemake->workstack,
@@ -804,8 +817,9 @@ static void install_programme_gcc (sexpr name, struct target *t)
 {
     t->icemake->workstack = sx_set_add (t->icemake->workstack,
          cons (sym_install, cons (make_integer (0555),
-               cons (get_build_file (t, sx_join (name, (i_os == os_windows 
-                                                         ? str_dot_exe
+               cons (get_build_file (t,
+                       sx_join (name, (t->toolchain->operating_system
+                                           == os_windows ? str_dot_exe
                                                          : sx_nil), sx_nil)),
                      get_programme_install_path(t)))));
 }

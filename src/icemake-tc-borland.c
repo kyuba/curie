@@ -334,9 +334,10 @@ static sexpr get_library_install_path (struct target *t)
 static sexpr get_so_library_install_path (struct target *t)
 {
     return get_install_file
-        (t, sx_join (((i_os == os_windows) ? str_bin : i_destlibdir), str_slash,
+        (t, sx_join (((t->toolchain->operating_system == os_windows)
+                         ? str_bin : i_destlibdir), str_slash,
               sx_join (str_lib, t->name,
-                       (i_os == os_windows)
+                       (t->toolchain->operating_system == os_windows)
                          ? sx_join (str_dot, t->dversion, str_dot_dll)
                          : sx_join (str_dot_so_dot, t->dversion, sx_nil))));
 }
@@ -344,9 +345,11 @@ static sexpr get_so_library_install_path (struct target *t)
 static sexpr get_so_library_symlink_path (struct target *t)
 {
     return get_install_file
-        (t, sx_join (((i_os == os_windows) ? str_bin : i_destlibdir), str_slash,
+        (t, sx_join (((t->toolchain->operating_system == os_windows)
+                         ? str_bin : i_destlibdir), str_slash,
               sx_join (str_lib, t->name,
-                       (i_os == os_windows) ? str_dot_dll : str_dot_so)));
+                       (t->toolchain->operating_system == os_windows)
+                         ? str_dot_dll : str_dot_so)));
 }
 
 static sexpr get_programme_install_path (struct target *t)

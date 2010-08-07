@@ -185,7 +185,7 @@ static sexpr initialise_libcurie_filename
         {
             td->options &= ~ICEMAKE_OPTION_FREESTANDING;
 
-            if (i_os != os_windows)
+            if (td->operating_system != os_windows)
             {
                 im->options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
             }

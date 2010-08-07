@@ -54,7 +54,6 @@
 const char *uname_arch   = "generic";
 const char *uname_vendor = "unknown";
 
-enum operating_system i_os             = os_generic;
 enum instruction_set i_is              = is_generic;
 
 static unsigned int max_processes      = 1;
@@ -204,9 +203,10 @@ static struct toolchain_pattern toolchain_pattern[] =
     { 0 } /* last pattern */
 };
 
-static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
+static sexpr sx_string_dir_prefix
+    (struct toolchain_descriptor *td, sexpr f, sexpr p)
 {
-    if (i_os == os_windows)
+    if (td->operating_system == os_windows)
     {
         return sx_join (p, str_backslash, f);
     }
@@ -214,9 +214,10 @@ static sexpr sx_string_dir_prefix (sexpr f, sexpr p)
     return sx_join (p, str_slash, f);
 }
 
-static sexpr sx_string_dir_prefix_c (const char *f, sexpr p)
+static sexpr sx_string_dir_prefix_c
+    (struct toolchain_descriptor *td, const char *f, sexpr p)
 {
-    return sx_string_dir_prefix (make_string (f), p);
+    return sx_string_dir_prefix (td, make_string (f), p);
 }
 
 static sexpr f_exist_add (sexpr f, sexpr lis)
@@ -224,9 +225,10 @@ static sexpr f_exist_add (sexpr f, sexpr lis)
     return truep (filep (f)) ? cons (f, lis) : lis;
 }
 
-static sexpr permutate_paths_vendor (sexpr p, sexpr lis)
+static sexpr permutate_paths_vendor
+    (struct toolchain_descriptor *td, sexpr p, sexpr lis)
 {
-    lis = f_exist_add (sx_string_dir_prefix_c (uname_vendor, p), lis);
+    lis = f_exist_add (sx_string_dir_prefix_c (td, uname_vendor, p), lis);
     lis = f_exist_add (p, lis);
 
     return lis;
@@ -238,9 +240,9 @@ static sexpr permutate_paths_toolchain
     if (td->uname_toolchain != (const char *)0)
     {
         lis = permutate_paths_vendor
-            (sx_string_dir_prefix_c (td->uname_toolchain, p), lis);
+            (td, sx_string_dir_prefix_c (td, td->uname_toolchain, p), lis);
     }
-    lis = permutate_paths_vendor (p, lis);
+    lis = permutate_paths_vendor (td, p, lis);
 
     return lis;
 }
@@ -249,7 +251,7 @@ static sexpr permutate_paths_arch
     (struct toolchain_descriptor *td, sexpr p, sexpr lis)
 {
     lis = permutate_paths_toolchain
-        (td, sx_string_dir_prefix_c (uname_arch, p), lis);
+        (td, sx_string_dir_prefix_c (td, uname_arch, p), lis);
     lis = permutate_paths_toolchain (td, p, lis);
 
     return lis;
@@ -259,11 +261,15 @@ static sexpr permutate_paths_os
     (struct toolchain_descriptor *td, sexpr p, sexpr lis)
 {
     lis = permutate_paths_arch
-        (td, sx_string_dir_prefix_c (td->uname_os, p), lis);
-    lis = permutate_paths_arch (td, sx_string_dir_prefix_c ("posix", p), lis);
-    lis = permutate_paths_arch (td, sx_string_dir_prefix_c ("ansi", p), lis);
-    lis = permutate_paths_arch (td, sx_string_dir_prefix_c ("generic", p), lis);
-    lis = permutate_paths_arch (td, p, lis);
+        (td, sx_string_dir_prefix_c (td, td->uname_os, p), lis);
+    lis = permutate_paths_arch
+        (td, sx_string_dir_prefix_c (td, "posix", p), lis);
+    lis = permutate_paths_arch
+        (td, sx_string_dir_prefix_c (td, "ansi", p), lis);
+    lis = permutate_paths_arch
+        (td, sx_string_dir_prefix_c (td, "generic", p), lis);
+    lis = permutate_paths_arch
+        (td, p, lis);
 
     return lis;
 }
@@ -428,7 +434,7 @@ static sexpr find_in_permutations
     while (consp (cur))
     {
         q = car (cur);
-        r = sx_string_dir_prefix (file, q);
+        r = sx_string_dir_prefix (td, file, q);
 
         if (truep (filep (r)))
         {
@@ -940,7 +946,7 @@ static struct target *get_context
     context->toolchain        = td;
     context->icemake          = im;
 
-    if (i_os == os_windows)
+    if (td->operating_system == os_windows)
     {
         context->buildbase    = str_build_backslash;
     }
@@ -974,7 +980,7 @@ static void process_definition
             {
                 context->toolchain->options &= ~ICEMAKE_OPTION_FREESTANDING;
                     
-                if (i_os != os_windows)
+                if (context->toolchain->operating_system != os_windows)
                 {
                     context->icemake->options &=
                         ~ICEMAKE_OPTION_DYNAMIC_LINKING;
@@ -1035,7 +1041,7 @@ static void process_definition
                 sxc = cdr (sxc);
             }
 
-            if ((i_os == os_windows) &&
+            if ((context->toolchain->operating_system == os_windows) &&
                 (context->toolchain->toolchain == tc_msvc))
             {
                 sexpr r = find_code_rc (context->toolchain, context->name);
@@ -1145,7 +1151,7 @@ static void process_definition
              (context->options & ICEMAKE_HOSTED))
         {
             context->libraries = cons (str_supcpp, context->libraries);
-            if (i_os == os_darwin)
+            if (context->toolchain->operating_system == os_darwin)
             {
                 context->libraries = cons (str_gcc_eh, context->libraries);
             }
@@ -1158,7 +1164,7 @@ static void process_definition
         if ((context->options & ICEMAKE_HOSTED) &&
             !(context->options & ICEMAKE_HAVE_CPP))
         {
-            switch (i_os)
+            switch (context->toolchain->operating_system)
             {
                 case os_windows:
                     context->libraries = cons (str_kernel32, context->libraries);
@@ -1541,30 +1547,6 @@ static void process_on_death
     free_pool_mem (p);
 }
 
-static void map_environ (struct tree_node *node, void *psx)
-{
-    sexpr *sx = (sexpr *)psx;
-    struct target *t = node_get_value (node);
-
-    if (falsep (*sx))
-    {
-        switch (i_os)
-        {
-            case os_darwin:
-                *sx = sx_join (str_DYLIB_LIBRARY_PATHe,
-                               get_build_file (t, sx_nil), sx_nil);
-                break;
-            default:
-                *sx = sx_join (str_LD_LIBRARY_PATHe,
-                               get_build_file (t, sx_nil), sx_nil);
-        }
-    }
-    else
-    {
-        *sx = sx_join (*sx, str_colon, get_build_file (t, sx_nil));
-    }
-}
-
 static void spawn_item
     (sexpr sx, void (*f)(struct exec_context *, void *), struct icemake *im,
      int *fl)
@@ -1575,12 +1557,9 @@ static void spawn_item
     char odir[BUFFERSIZE];
     int c = 0, exsize;
     char **ex;
-    sexpr rsx = sx_false;
     static struct memory_pool pool =
         MEMORY_POOL_INITIALISER(sizeof (struct process_data));
     struct process_data *pd;
-
-    tree_map (&(im->targets), map_environ, (void *)&rsx);
 
     sx_write (stdio, cons (sym_execute, sx));
 
@@ -1620,23 +1599,9 @@ static void spawn_item
         chdir (wdir);
     }
 
-    if ((i_os == os_windows) || falsep (rsx))
-        /* dynamic linker overrides are useless on win32*/
-    {
-        context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex,
-                           curie_environment);
-    }
-    else
-    {
-        char *tenv[3];
-        sexpr s = sx_join (str_PATHe, make_string (c_getenv ("PATH")), sx_nil);
+    context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex,
+                       curie_environment);
 
-        tenv[0] = (char *)sx_string (rsx);
-        tenv[1] = (char *)sx_string (s);;
-        tenv[2] = (char *)0;
-
-        context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex, tenv);
-    }
     if (wdir != (const char *)0)
     {
         chdir (odir);
@@ -1871,7 +1836,7 @@ int icemake_prepare_toolchain
 
             if (toolchain_pattern[p].operating_system != os_unknown)
             {
-                i_os = toolchain_pattern[p].operating_system;
+                td.operating_system = toolchain_pattern[p].operating_system;
             }
 
             if (toolchain_pattern[p].instruction_set != is_unknown)
@@ -1922,7 +1887,7 @@ int icemake_prepare_toolchain
     initialise_toolchain_tex (&td);
     initialise_toolchain_doxygen (&td);
 
-    if (i_os == os_darwin)
+    if (td.operating_system == os_darwin)
     {
         in_dynamic_libraries = sx_false;
     }
@@ -1938,7 +1903,7 @@ int icemake_prepare_toolchain
         case tc_unknown: break;
     }
 
-    switch (i_os)
+    switch (td.operating_system)
     {
         default:
         case os_generic:
@@ -2005,7 +1970,7 @@ int icemake_prepare
  
     if (nilp(in_dynamic_libraries))
     {
-        if (i_os == os_windows)
+        if (td->operating_system == os_windows)
         {
             im->options |= ICEMAKE_OPTION_DYNAMIC_LINKING;
         }

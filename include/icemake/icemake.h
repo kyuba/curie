@@ -362,12 +362,6 @@ extern const char *uname_arch;
  */
 extern const char *uname_vendor;
 
-/*! \brief Effective Operating System Code
- *
- *  Derived from uname_os.
- */
-extern enum operating_system i_os;
-
 /*! \brief Effective Instruction Set Code
  *
  *  Derived from uname_arch.
