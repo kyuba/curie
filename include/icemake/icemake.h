@@ -368,12 +368,6 @@ extern const char *uname_vendor;
  */
 extern sexpr i_destdir;
 
-/*! \brief Programme Name
- *
- *  Set with the -b flag, used for the modified FHS layout.
- */
-extern sexpr i_pname;
-
 /*! \brief (FHS) Library Directory
  *
  *  Used to decide between lib, lib32 and lib64.
