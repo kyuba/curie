@@ -225,7 +225,7 @@ static void initialise_libcurie
                      (td, im, sx_join (i_destdir, str_slash,
                         sx_join (make_string (td->uname_os),
                           str_slash,
-                          sx_join (make_string (uname_arch),
+                          sx_join (make_string (td->uname_arch),
                             str_slibslibcuriedsx, sx_nil))))))
                 {
                     return;
@@ -257,7 +257,7 @@ static void initialise_libcurie
         case fs_afsl:
             if (truep (initialise_libcurie_filename
                  (td, im, sx_join (str_slash, make_string (td->uname_os),
-                    sx_join (str_slash, make_string (uname_arch),
+                    sx_join (str_slash, make_string (td->uname_arch),
                         str_slibslibcuriedsx)))))
             {
                 return;

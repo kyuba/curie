@@ -454,8 +454,9 @@ static sexpr get_special_linker_options (struct target *t, sexpr sx)
                 sx = cons (sx_join (str_dL, i_destdir,
                            sx_join (str_slash,
                                     make_string (t->toolchain->uname_os),
-                           sx_join (str_slash, make_string (uname_arch),
-                           str_slib))), sx);
+                           sx_join (str_slash,
+                                    make_string (t->toolchain->uname_arch),
+                                    str_slib))), sx);
                 break;
         }
     }

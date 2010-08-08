@@ -51,9 +51,6 @@
 #include <icemake/version.h>
 #endif
 
-const char *uname_arch   = "generic";
-const char *uname_vendor = "unknown";
-
 static unsigned int max_processes      = 1;
 
 sexpr i_destdir                        = sx_false;
@@ -226,7 +223,7 @@ static sexpr f_exist_add (sexpr f, sexpr lis)
 static sexpr permutate_paths_vendor
     (struct toolchain_descriptor *td, sexpr p, sexpr lis)
 {
-    lis = f_exist_add (sx_string_dir_prefix_c (td, uname_vendor, p), lis);
+    lis = f_exist_add (sx_string_dir_prefix_c (td, td->uname_vendor, p), lis);
     lis = f_exist_add (p, lis);
 
     return lis;
@@ -249,7 +246,7 @@ static sexpr permutate_paths_arch
     (struct toolchain_descriptor *td, sexpr p, sexpr lis)
 {
     lis = permutate_paths_toolchain
-        (td, sx_string_dir_prefix_c (td, uname_arch, p), lis);
+        (td, sx_string_dir_prefix_c (td, td->uname_arch, p), lis);
     lis = permutate_paths_toolchain (td, p, lis);
 
     return lis;
@@ -572,14 +569,16 @@ sexpr get_install_file (struct target *t, sexpr file)
                     return sx_join (i_destdir, str_backslash,
                              sx_join (make_string (t->toolchain->uname_os),
                                str_backslash,
-                               sx_join (make_string (uname_arch), str_backslash,
+                               sx_join (make_string (t->toolchain->uname_arch),
+                                        str_backslash,
                                         file)));
                 default:
                 case tc_gcc:
                     return sx_join (i_destdir, str_slash,
                              sx_join (make_string (t->toolchain->uname_os),
                                str_slash,
-                               sx_join (make_string (uname_arch), str_slash,
+                               sx_join (make_string (t->toolchain->uname_arch),
+                                        str_slash,
                                         file)));
             }
     }
@@ -1849,12 +1848,12 @@ int icemake_prepare_toolchain
 
             if (toolchain_pattern[p].uname_arch != (const char *)0)
             {
-                uname_arch = toolchain_pattern[p].uname_arch;
+                td.uname_arch = toolchain_pattern[p].uname_arch;
             }
 
             if (toolchain_pattern[p].uname_vendor != (const char *)0)
             {
-                uname_vendor = toolchain_pattern[p].uname_vendor;
+                td.uname_vendor = toolchain_pattern[p].uname_vendor;
             }
 
             if (toolchain_pattern[p].uname_toolchain != (const char *)0)
@@ -1877,8 +1876,8 @@ int icemake_prepare_toolchain
     }
     
     td.uname =
-        sx_join (make_string (uname_arch), str_dash,
-        sx_join (make_string (uname_vendor), str_dash,
+        sx_join (make_string (td.uname_arch), str_dash,
+        sx_join (make_string (td.uname_vendor), str_dash,
         sx_join (make_string (td.uname_os), str_dash,
                  make_string (td.uname_toolchain))));
 

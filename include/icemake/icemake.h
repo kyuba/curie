@@ -350,18 +350,6 @@ struct target {
     struct icemake *icemake;
 };
 
-/*! \brief Effective Operating System Architecture
- *
- *  As reported by uname(), or through the -t flag.
- */
-extern const char *uname_arch;
-
-/*! \brief Effective Operating System Vendor Name
- *
- *  As reported by uname(), or through the -t flag.
- */
-extern const char *uname_vendor;
-
 /*! \brief Destination Directory
  *
  *  Set with the -d flag.

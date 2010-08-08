@@ -190,28 +190,24 @@ static sexpr get_special_linker_options (struct target *t, sexpr sx)
     define_string (str_x64,              "x64");
     sexpr machine_spec = sx_nil;
 
-    /* parsing for x86 subtypes... gotta remember to do this properly one of
-     * these days */
-    if (((uname_arch[0] == 'x') || (uname_arch[0] == 'X')) &&
-         (uname_arch[1] == '8') && (uname_arch[2] == '6')  &&
-         (uname_arch[3] != 0))
+    if (t->toolchain->instruction_set == is_x86)
     {
-        if ((uname_arch[4] == '6') && (uname_arch[5] == '4') &&
-            (uname_arch[6] == 0))
-        {
-            machine_spec = sx_join (str_smachinec, str_x64, sx_nil);
-        }
-        else if ((uname_arch[4] == '3') && (uname_arch[5] == '2') &&
-                 (uname_arch[6] == 0))
+        if (t->toolchain->instruction_set_options & IS_32_BIT)
         {
             machine_spec = sx_join (str_smachinec, str_x86, sx_nil);
+        }
+        else if (t->toolchain->instruction_set_options & IS_64_BIT)
+        {
+            machine_spec = sx_join (str_smachinec, str_x64, sx_nil);
         }
     }
 
     if (nilp (machine_spec))
     {
         machine_spec =
-            sx_join (str_smachinec, make_string (uname_arch), sx_nil);
+            sx_join (str_smachinec,
+                     make_string (t->toolchain->uname_arch),
+                     sx_nil);
     }
         
     if (stringp (i_destdir))
@@ -226,8 +222,9 @@ static sexpr get_special_linker_options (struct target *t, sexpr sx)
                 sx = cons (sx_join (str_sLIBPATHc, i_destdir,
                            sx_join (str_backslash,
                                     make_string (t->toolchain->uname_os),
-                           sx_join (str_backslash, make_string(uname_arch),
-                           str_bslib))), sx);
+                           sx_join (str_backslash,
+                                    make_string(t->toolchain->uname_arch),
+                                    str_bslib))), sx);
                 break;
         }
     }
@@ -261,9 +258,9 @@ static void link_programme_msvc_filename
     int i;
     sexpr sx = get_special_linker_options (t, sx_end_of_list);
 
-    for (i = 0; (i < 6) && (uname_arch[i] == "x86-64"[i]); i++);
-
-    sx = cons (((i == 6) ? str_sINCLUDEcmain : str_sINCLUDEcumain), sx);
+    sx = cons ((((t->toolchain->instruction_set == is_x86) &&
+                 (t->toolchain->instruction_set_options & IS_64_BIT)) ?
+                str_sINCLUDEcmain : str_sINCLUDEcumain), sx);
 
     sx = collect_library_link_flags (sx, t);
 
