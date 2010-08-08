@@ -185,12 +185,25 @@ struct operating_system_generic
     sexpr diff;
 };
 
-enum link_type
+enum file_type
 {
-    lt_library,
-    lt_programme,
-    lt_documentation,
-    lt_other
+    ft_static_library,
+    ft_shared_library,
+    ft_shared_library_full,
+    ft_library_options,
+    ft_programme,
+    ft_documentation,
+    ft_data,
+    ft_configuration,
+    ft_header,
+    ft_other
+};
+
+enum file_expansion_type
+{
+    fet_decorate_only,
+    fet_install_file,
+    fet_build_file
 };
 
 #define IS_32_BIT 0x0001
@@ -764,6 +777,8 @@ define_string (str_space,               " ");
 define_string (str_test_case,           "test case");
 /*! \brief Predefined String */
 define_string (str_1,                   "1");
+/*! \brief Predefined String */
+define_string (str_blank,               "");
 
 /*! \brief Prefix List with Elements from an Environment Variable
  *  \param[in] x   The original list.
@@ -830,7 +845,6 @@ char *mangle_path_borland (char *b);
 sexpr mangle_path_borland_sx (sexpr b);
 
 sexpr get_build_file   (struct target *t, sexpr file);
-sexpr get_install_file (struct target *t, sexpr file);
 
 void mkdir_pi (sexpr path);
 
@@ -863,6 +877,10 @@ sexpr icemake_permutate_paths (struct toolchain_descriptor *td, sexpr p);
 sexpr icemake_which
     (const struct toolchain_descriptor *td, const char *programme,
      const char *env);
+
+sexpr icemake_decorate_file
+    (struct target *t, enum file_type ft, enum file_expansion_type fet,
+     sexpr file);
 
 #endif
 

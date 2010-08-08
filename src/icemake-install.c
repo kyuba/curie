@@ -74,9 +74,7 @@ static sexpr get_documentation_man_install_path
 static sexpr get_header_install_path
     (struct target *t, sexpr file)
 {
-    return get_install_file
-        (t, sx_join (str_includes, t->name,
-              sx_join (str_slash, file, str_dot_h)));
+    return icemake_decorate_file (t, ft_header, fet_install_file, file);
 }
 
 static void install_headers (sexpr name, struct target *t)
@@ -121,8 +119,9 @@ static void install_support_files (sexpr name, struct target *t)
         t->icemake->workstack = sx_set_add (t->icemake->workstack,
                            cons (sym_install,
                              cons (get_build_file (t, str_libcuriedsx),
-                                get_install_file (t, sx_join (i_destlibdir,
-                                                  str_slibcuriedsx, sx_nil)))));
+                                icemake_decorate_file
+                                    (t, ft_library_options, fet_install_file,
+                                     t->name))));
     }
 
     while (consp (cur))

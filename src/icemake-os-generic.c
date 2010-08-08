@@ -265,6 +265,131 @@ static void initialise_libcurie
     }
 }
 
+sexpr icemake_decorate_file
+    (struct target *t, enum file_type ft, enum file_expansion_type fet,
+     sexpr file)
+{
+    define_string (str_share, "share");
+
+    sexpr g;
+
+    switch (t->toolchain->operating_system)
+    {
+        case os_windows: g = str_backslash; break;
+        default:         g = str_slash;     break;
+    }
+
+    if (!stringp (file))
+    {
+        file = str_blank;
+    }
+    else switch (ft)
+    {
+        case ft_programme:
+            switch (t->toolchain->operating_system)
+            {
+                case os_windows:
+                    file = sx_join (file, str_dot_exe, sx_nil);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case ft_static_library:
+            switch (t->toolchain->toolchain)
+            {
+                case tc_msvc:
+                case tc_borland:
+                    file = sx_join (str_lib, file, str_dot_lib);
+                    break;
+                default:
+                    file = sx_join (str_lib, file, str_dot_a);
+                    break;
+            }
+            break;
+        case ft_shared_library:
+            switch (t->toolchain->operating_system)
+            {
+                case os_windows:
+                    file = sx_join (str_lib, file, str_dot_dll);
+                    break;
+                default:
+                    file = sx_join (str_lib, file, str_dot_so);
+                    break;
+            }
+        case ft_shared_library_full:
+            switch (t->toolchain->operating_system)
+            {
+                case os_windows:
+                    file = sx_join (str_lib, file,
+                           sx_join (str_dot, t->dversion, str_dot_dll));
+                    break;
+                default:
+                    file = sx_join (str_lib, file,
+                           sx_join (str_dot_so_dot, t->dversion, sx_nil));
+                    break;
+            }
+        case ft_library_options:
+            file = sx_join (str_lib, file, str_dot_sx);
+        case ft_header:
+            file = sx_join (t->name, g, sx_join (file, str_dot_h, sx_nil));
+            break;
+        default:
+            break;
+    }
+
+    switch (fet)
+    {
+        case fet_install_file:
+            switch (ft)
+            {
+                case ft_programme:
+                    file = sx_join (str_bin, g, file);
+                    break;
+                case ft_static_library:
+                case ft_library_options:
+                    file = sx_join (i_destlibdir, g, file);
+                    break;
+                case ft_shared_library:
+                case ft_shared_library_full:
+                    switch (t->toolchain->operating_system)
+                    {
+                        case os_windows:
+                            file = sx_join (str_bin, g, file);
+                            break;
+                        default:
+                            file = sx_join (i_destlibdir, g, file);
+                            break;
+                    }
+                    break;
+                case ft_header:
+                    file = sx_join (str_include, g, file);
+                    break;
+                default:
+                    file = sx_join (str_share, g, sx_join (t->name, g, file));
+                    break;
+            }
+
+            switch (t->icemake->filesystem_layout)
+            {
+                case fs_fhs:
+                     file = sx_join (i_destdir, g, file);
+                     break;
+                case fs_afsl:
+                     file = sx_join (i_destdir, g,
+                            sx_join (make_string (t->toolchain->uname_os), g,
+                            sx_join (make_string (t->toolchain->uname_arch), g,
+                                     file)));
+                     break;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return file;
+}
+
 int icemake_prepare_operating_system_generic
     (struct icemake *im, struct toolchain_descriptor *td)
 {

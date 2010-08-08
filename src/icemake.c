@@ -547,45 +547,6 @@ sexpr get_build_file (struct target *t, sexpr file)
     return sx_false;
 }
 
-sexpr get_install_file (struct target *t, sexpr file)
-{
-    switch (t->icemake->filesystem_layout)
-    {
-        case fs_fhs:
-            switch (t->toolchain->toolchain)
-            {
-                case tc_msvc:
-                case tc_borland:
-                    return sx_join (i_destdir, str_backslash, file);
-                default:
-                case tc_gcc:
-                    return sx_join (i_destdir, str_slash, file);
-            }
-        case fs_afsl:
-            switch (t->toolchain->toolchain)
-            {
-                case tc_msvc:
-                case tc_borland:
-                    return sx_join (i_destdir, str_backslash,
-                             sx_join (make_string (t->toolchain->uname_os),
-                               str_backslash,
-                               sx_join (make_string (t->toolchain->uname_arch),
-                                        str_backslash,
-                                        file)));
-                default:
-                case tc_gcc:
-                    return sx_join (i_destdir, str_slash,
-                             sx_join (make_string (t->toolchain->uname_os),
-                               str_slash,
-                               sx_join (make_string (t->toolchain->uname_arch),
-                                        str_slash,
-                                        file)));
-            }
-    }
-
-    return sx_false;
-}
-
 static sexpr generate_file_name_with_suffix
     (sexpr file, struct target *t, sexpr suffix)
 {

@@ -39,7 +39,9 @@ static sexpr prepend_includes_common (struct target *t, sexpr x)
     if (stringp (i_destdir))
     {
         x = cons (sx_join (str_dI,
-                           get_install_file (t, str_include), sx_nil), x);
+                           icemake_decorate_file
+                               (t, ft_header, fet_install_file, sx_nil),
+                           sx_nil), x);
     }
 
     while (consp (cur))
@@ -713,46 +715,6 @@ static int do_link (struct target *t)
     return 0;
 }
 
-static sexpr get_library_install_path (struct target *t)
-{
-    return get_install_file
-        (t, sx_join (i_destlibdir, str_slash,
-              sx_join (str_lib, t->name,
-                       (t->toolchain->toolchain == tc_gcc) ? str_dot_a
-                                                           : str_dot_lib)));
-}
-
-static sexpr get_so_library_install_path (struct target *t)
-{
-    return get_install_file
-        (t, sx_join (((t->toolchain->operating_system == os_windows)
-                         ? str_bin : i_destlibdir), str_slash,
-              sx_join (str_lib, t->name,
-                       (t->toolchain->operating_system == os_windows)
-                         ? sx_join (str_dot, t->dversion, str_dot_dll)
-                         : sx_join (str_dot_so_dot, t->dversion, sx_nil))));
-}
-
-static sexpr get_so_library_symlink_path (struct target *t)
-{
-    return get_install_file
-        (t, sx_join (((t->toolchain->operating_system == os_windows)
-                         ? str_bin : i_destlibdir), str_slash,
-              sx_join (str_lib, t->name,
-                       (t->toolchain->operating_system == os_windows)
-                         ? str_dot_dll : str_dot_so)));
-}
-
-static sexpr get_programme_install_path (struct target *t)
-{
-    return get_install_file
-        (t, sx_join (str_bin, str_slash,
-              sx_join (t->name,
-                       (t->toolchain->operating_system == os_windows)
-                         ? str_dot_exe : sx_nil,
-                       sx_nil)));
-}
-
 static void install_library_dynamic_common (sexpr name, struct target *t)
 {
     if ((t->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
@@ -780,7 +742,10 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
             t->icemake->workstack = sx_set_add (t->icemake->workstack,
                         cons (sym_install,
                             cons (make_integer(0555),
-                                cons (fname, get_so_library_install_path(t)))));
+                                cons (fname, 
+                                   icemake_decorate_file
+                                       (t, ft_shared_library_full,
+                                        fet_install_file, t->name)))));
 
             switch (t->toolchain->operating_system)
             {
@@ -790,7 +755,9 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
                                   cons (get_build_file
                                     (t, sx_join (str_lib, name,
                                                  str_dot_dll)),
-                                  get_so_library_symlink_path (t))));
+                                  icemake_decorate_file
+                                      (t, ft_shared_library,
+                                       fet_install_file, t->name))));
                     break;
                 default:
                     t->icemake->workstack = sx_set_add (t->icemake->workstack,
@@ -798,7 +765,9 @@ static void install_library_dynamic_common (sexpr name, struct target *t)
                                       cons (sx_join (str_lib, name,
                                             sx_join (str_dot_so_dot,
                                                      t->dversion, sx_nil)),
-                                            get_so_library_symlink_path (t))));
+                                            icemake_decorate_file
+                                                (t, ft_shared_library,
+                                                 fet_install_file, t->name))));
             }
         }
     }
@@ -809,7 +778,8 @@ static void install_library_gcc (sexpr name, struct target *t)
     t->icemake->workstack = sx_set_add (t->icemake->workstack,
                 cons (sym_install,
                    cons (get_build_file (t, sx_join (str_lib, name, str_dot_a)),
-                      get_library_install_path (t))));
+                      icemake_decorate_file
+                        (t, ft_static_library, fet_install_file, t->name))));
 
     install_library_dynamic_common (name, t);
 }
@@ -822,7 +792,8 @@ static void install_programme_gcc (sexpr name, struct target *t)
                        sx_join (name, (t->toolchain->operating_system
                                            == os_windows ? str_dot_exe
                                                          : sx_nil), sx_nil)),
-                     get_programme_install_path(t)))));
+                     icemake_decorate_file
+                         (t, ft_programme, fet_install_file, t->name)))));
 }
 
 static int install (struct target *t)
