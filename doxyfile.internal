@@ -1,5 +1,6 @@
 @INCLUDE = doxyfile
 
 INTERNAL_DOCS          = YES
-INPUT                  = src/
+INPUT                  = include/ \
+                         src/
 
