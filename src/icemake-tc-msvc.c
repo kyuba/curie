@@ -58,7 +58,8 @@ static void write_curie_sx (sexpr name, struct target *t)
 {
     if (truep(equalp(name, str_curie)))
     {
-        sexpr b = get_build_file (t, sx_join (str_lib, name, str_dot_sx));
+        sexpr b = icemake_decorate_file
+                      (t, ft_library_options, fet_build_file, name);
         struct sexpr_io *io;
 
         io = sx_open_o (io_open_create (sx_string (b), 0644));
@@ -181,8 +182,8 @@ static void map_includes (struct tree_node *node, void *psx)
     sexpr *sx = (sexpr *)psx;
     struct target *t = node_get_value (node);
 
-    *sx = cons (sx_join (str_sLIBPATHc,
-                         get_build_file (t, sx_nil), sx_nil), *sx);
+    *sx = cons (sx_join (str_sLIBPATHc, icemake_decorate_file
+                      (t, ft_other, fet_build_file, sx_nil), sx_nil), *sx);
 }
 
 static sexpr get_special_linker_options (struct target *t, sexpr sx)
@@ -257,7 +258,6 @@ static sexpr collect_library_link_flags (sexpr sx, struct target *t)
 static void link_programme_msvc_filename
     (sexpr ofile, sexpr name, sexpr code, struct target *t)
 {
-    int i;
     sexpr sx = get_special_linker_options (t, sx_end_of_list);
 
     sx = cons ((((t->toolchain->instruction_set == is_x86) &&
@@ -278,7 +278,8 @@ static void link_library_msvc (sexpr name, sexpr code, struct target *t)
 {
     sexpr sx = sx_end_of_list,
           b = sx_join (str_soutc,
-                       get_build_file (t, sx_join (str_lib, name, str_dot_lib)),
+                       icemake_decorate_file (t, ft_static_library,
+                                              fet_build_file, name),
                        sx_nil);
 
     write_curie_sx (name, t);
@@ -303,8 +304,7 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
 
     write_curie_sx (name, t);
 
-    b = get_build_file (t, sx_join (str_lib, name,
-                             sx_join (str_dot, t->dversion, str_dot_dll)));
+    b = icemake_decorate_file (t, ft_shared_library_full, fet_build_file, name);
 
     /* just collect_code(), because msvc doesn't use extra PIC objects */
     sx = collect_code (sx, code);
@@ -328,7 +328,8 @@ static void link_library_msvc_dynamic (sexpr name, sexpr code, struct target *t)
     }
 
     bi = sx_join (str_simplibc,
-                  get_build_file (t, sx_join (str_lib, name, str_dot_lib)),
+                  icemake_decorate_file (t, ft_static_library,
+                                         fet_build_file, name),
                   sx_nil);
 
     sxx = cons (sx_join (str_sdefc, t->deffile, sx_nil), sxx);
@@ -359,8 +360,8 @@ static int do_link (struct target *t)
     }
     else if (t->options & ICEMAKE_PROGRAMME)
     {
-        sexpr b = get_build_file
-            (t, sx_join (t->name, str_dot_exe, sx_nil));
+        sexpr b = icemake_decorate_file (t, ft_programme, fet_build_file,
+                                         t->name);
 
         link_programme_msvc_filename (b, t->name, t->code, t);
     }
@@ -372,19 +373,16 @@ static void install_library_msvc (sexpr name, struct target *t)
 {
     t->icemake->workstack = sx_set_add (t->icemake->workstack,
                 cons (sym_install,
-                   cons (get_build_file (t, sx_join (str_lib, name,
-                                                     str_dot_lib)),
+                   cons (icemake_decorate_file
+                        (t, ft_static_library, fet_build_file, name),
                       icemake_decorate_file
-                        (t, ft_static_library, fet_install_file, t->name))));
+                        (t, ft_static_library, fet_install_file, name))));
 
     if ((t->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
         !(t->options & ICEMAKE_NO_SHARED_LIBRARY))
     {
-        sexpr fname;
-
-        fname = get_build_file
-                  (t, sx_join (str_lib, name,
-                        sx_join (str_dot, t->dversion, str_dot_dll)));
+        sexpr fname = icemake_decorate_file
+                        (t, ft_shared_library_full, fet_build_file, name);
 
         if (truep(filep(fname)))
         {
@@ -398,12 +396,12 @@ static void install_library_msvc (sexpr name, struct target *t)
 
             t->icemake->workstack = sx_set_add (t->icemake->workstack,
                         cons (sym_install,
-                          cons (get_build_file
-                            (t, sx_join (str_lib, name,
-                                         str_dot_dll)),
+                          cons (icemake_decorate_file
+                            (t, ft_shared_library, fet_build_file,
+                             name),
                           icemake_decorate_file
                             (t, ft_shared_library, fet_install_file,
-                             t->name))));
+                             name))));
         }
     }
 }
@@ -412,9 +410,10 @@ static void install_programme_msvc (sexpr name, struct target *t)
 {
     t->icemake->workstack = sx_set_add (t->icemake->workstack,
          cons (sym_install, cons (make_integer (0555),
-               cons (get_build_file (t, sx_join (name, str_dot_exe, sx_nil)),
+               cons (icemake_decorate_file
+                       (t, ft_programme, fet_build_file, name),
                      icemake_decorate_file
-                       (t, ft_programme, fet_install_file, t->name)))));
+                       (t, ft_programme, fet_install_file, name)))));
 }
 
 static int install (struct target *t)

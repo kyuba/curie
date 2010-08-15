@@ -118,7 +118,9 @@ static void install_support_files (sexpr name, struct target *t)
     {
         t->icemake->workstack = sx_set_add (t->icemake->workstack,
                            cons (sym_install,
-                             cons (get_build_file (t, str_libcuriedsx),
+                             cons (icemake_decorate_file
+                                    (t, ft_library_options, fet_build_file,
+                                     t->name),
                                 icemake_decorate_file
                                     (t, ft_library_options, fet_install_file,
                                      t->name))));
@@ -149,7 +151,9 @@ static void install_support_files (sexpr name, struct target *t)
 static void install_documentation_with_suffix
     (sexpr name, struct target *t, sexpr c4, const char *suffix)
 {
-    sexpr fn = get_build_file (t, sx_join (c4, str_dot, make_string (suffix)));
+    sexpr fn = icemake_decorate_file
+        (t, ft_other, fet_build_file,
+         sx_join (c4, str_dot, make_string (suffix)));
 
     if (truep(filep(fn)))
     {

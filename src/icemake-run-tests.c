@@ -33,11 +33,8 @@ static int prepare_target (struct target *t)
     if (t->options & ICEMAKE_TEST_CASE)
     {
         t->icemake->workstack =
-            cons (cons (get_build_file
-                          (t, sx_join (t->name,
-                            (t->toolchain->operating_system == os_windows
-                                                ? str_dot_exe
-                                                : sx_nil), sx_nil)),
+            cons (cons (icemake_decorate_file (t, ft_programme,
+                                               fet_build_file, t->name),
                         sx_end_of_list),
                   t->icemake->workstack);
     }
@@ -57,11 +54,8 @@ static int run_tests_target (struct target *t)
     if (t->options & ICEMAKE_TEST_CASE)
     {
         t->icemake->workstack =
-            cons (cons (get_build_file
-                          (t, sx_join (t->name,
-                            (t->toolchain->operating_system == os_windows
-                                                ? str_dot_exe
-                                                : sx_nil), sx_nil)),
+            cons (cons (icemake_decorate_file (t, ft_programme,
+                                               fet_build_file, t->name),
                         sx_end_of_list),
                   t->icemake->workstack);
     }

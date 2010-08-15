@@ -59,8 +59,6 @@ static sexpr in_dynamic_libraries      = sx_nil;
 
 sexpr do_build_documentation           = sx_false;
 
-sexpr p_diff                           = sx_false;
-
 sexpr p_latex                          = sx_false;
 sexpr p_pdflatex                       = sx_false;
 sexpr p_doxygen                        = sx_false;
@@ -522,52 +520,19 @@ static sexpr find_header_h
     return find_header_with_suffix (td, name, file, ".h");
 }
 
-sexpr get_build_file (struct target *t, sexpr file)
-{
-    switch (t->toolchain->toolchain)
-    {
-        case tc_msvc:
-            return sx_join (t->buildbase, t->toolchain->uname,
-                   sx_join (str_backslash, t->name,
-                     (nilp (file) ? sx_nil
-                                  : sx_join (str_backslash, file, sx_nil))));
-        case tc_borland:
-            return mangle_path_borland_sx
-                     (sx_join (t->buildbase, t->toolchain->uname,
-                      sx_join (str_backslash, t->name,
-                      (nilp (file) ? sx_nil
-                                   : sx_join (str_backslash, file, sx_nil)))));
-        default:
-        case tc_gcc:
-            return sx_join (t->buildbase, t->toolchain->uname,
-                   sx_join (str_slash, t->name,
-                   sx_join (str_slash, file, sx_nil)));
-    }
-
-    return sx_false;
-}
-
-static sexpr generate_file_name_with_suffix
-    (sexpr file, struct target *t, sexpr suffix)
-{
-    return get_build_file (t, sx_join (file, suffix, sx_nil));
-}
-
 static sexpr generate_object_file_name (sexpr file, struct target *t)
 {
-    return generate_file_name_with_suffix
-        (file, t, ((t->toolchain->toolchain == tc_gcc) ? str_dot_o
-                                                       : str_dot_obj));
+    return icemake_decorate_file (t, ft_object, fet_build_file, file);
 }
 
 static sexpr generate_resource_file_name (struct target *t)
 {
-    return generate_file_name_with_suffix (t->name, t, str_dot_res);
+    return icemake_decorate_file (t, ft_resource, fet_build_file, t->name);
 }
 
 static sexpr generate_pic_object_file_name (sexpr file, struct target *t)
 {
-    return generate_file_name_with_suffix (file, t, str_dot_pic_o);
+    return icemake_decorate_file (t, ft_object_pic, fet_build_file, file);
 }
 
 static sexpr find_code_highlevel (struct target *context, sexpr file)
@@ -1087,7 +1052,7 @@ static void process_definition
         definition = cdr (definition);
     }
 
-    mkdir_p (get_build_file (context, sx_nil));
+    mkdir_p (icemake_decorate_file (context, ft_other, fet_build_file, sx_nil));
 
     mkdir_p (sx_join (context->buildbase, context->toolchain->uname,
                       str_sinclude));
@@ -2246,8 +2211,6 @@ int cmain ()
     multiplex_add_signal (sig_bus,  cb_on_bad_signal, (void *)0);
 
     multiplex_add_sexpr (stdio, (void *)0, (void *)0);
-
-    p_diff = icemake_which ((void *)0, "diff", "DIFF");
 
     if (target_architecture != (const char *)0)
     {

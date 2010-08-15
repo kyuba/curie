@@ -32,13 +32,11 @@
 
 static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
 {
-    sexpr dir = get_build_file (t, sx_nil),
+    sexpr dir = icemake_decorate_file (t, ft_other, fet_build_file, sx_nil),
           b   = sx_join (str_ddsddsdds, file, sx_nil);
 
     if (stringp (p_pdflatex))
     {
-/*        sexpr tar = get_build_file (t, sx_join (base, str_dot_pdf, sx_nil));*/
-
         t->icemake->workstack
                 = cons (cons (sym_chdir,
                               cons (dir,
@@ -54,8 +52,6 @@ static void build_documentation_tex (sexpr file, sexpr base, struct target *t)
     }
     else if (stringp (p_latex))
     {
-/*        sexpr tar = get_build_file (t, sx_join (base, str_dot_dvi, sx_nil));*/
-
         t->icemake->workstack
                 = cons (cons (sym_chdir,
                               cons (dir,

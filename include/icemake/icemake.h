@@ -196,6 +196,9 @@ enum file_type
     ft_data,
     ft_configuration,
     ft_header,
+    ft_object,
+    ft_object_pic,
+    ft_resource,
     ft_other
 };
 
@@ -380,12 +383,6 @@ extern sexpr i_destlibdir;
  *  Set with the -x flag.
  */
 extern sexpr do_build_documentation;
-
-/*! \brief Diff Binary
- *
- *  Automatically searched in the PATH according to the toolchain type.
- */
-extern sexpr p_diff;
 
 /*! \brief LaTeX Binary
  *
@@ -843,8 +840,6 @@ char *mangle_path_borland (char *b);
  *  used for other things in some of the tools.
  */
 sexpr mangle_path_borland_sx (sexpr b);
-
-sexpr get_build_file   (struct target *t, sexpr file);
 
 void mkdir_pi (sexpr path);
 

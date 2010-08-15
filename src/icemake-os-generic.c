@@ -270,6 +270,7 @@ sexpr icemake_decorate_file
      sexpr file)
 {
     define_string (str_share, "share");
+    char empty = 0;
 
     sexpr g;
 
@@ -281,7 +282,8 @@ sexpr icemake_decorate_file
 
     if (!stringp (file))
     {
-        file = str_blank;
+        file  = str_blank;
+        empty = 1;
     }
     else switch (ft)
     {
@@ -334,12 +336,51 @@ sexpr icemake_decorate_file
         case ft_header:
             file = sx_join (t->name, g, sx_join (file, str_dot_h, sx_nil));
             break;
+        case ft_object:
+            switch (t->toolchain->toolchain)
+            {
+                case tc_borland:
+                case tc_msvc:
+                    file = sx_join (file, str_dot_obj, sx_nil);
+                    break;
+                default:
+                    file = sx_join (file, str_dot_o, sx_nil);
+                    break;
+            }
+            break;
+        case ft_object_pic:
+            switch (t->toolchain->toolchain)
+            {
+                case tc_borland:
+                case tc_msvc:
+                    file = sx_join (file, str_dot_obj, sx_nil);
+                    break;
+                default:
+                    file = sx_join (file, str_dot_pic_o, sx_nil);
+                    break;
+            }
+            break;
+        case ft_resource:
+            file = sx_join (file, str_dot_res, sx_nil);
+            break;
         default:
             break;
     }
 
     switch (fet)
     {
+        case fet_build_file:
+            file = sx_join (t->buildbase, t->toolchain->uname,
+                   sx_join (g, t->name,
+                            (empty ? sx_nil : sx_join (g, file, sx_nil))));
+
+            if (t->toolchain->toolchain == tc_borland)
+            {
+                file = mangle_path_borland_sx (file);
+            }
+
+            break;
+
         case fet_install_file:
             switch (ft)
             {
@@ -393,6 +434,12 @@ sexpr icemake_decorate_file
 int icemake_prepare_operating_system_generic
     (struct icemake *im, struct toolchain_descriptor *td)
 {
+/*    if (td != (struct toolchain_descriptor *)0)
+    {
+        td->meta_operating_system.generic.diff
+            = icemake_which (td, "diff", "DIFF");
+    }*/
+
     if (im != (struct icemake *)0)
     {
         if (im->install_file == (int (*)(struct icemake *, sexpr))0)
