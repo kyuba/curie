@@ -319,6 +319,7 @@ sexpr icemake_decorate_file
                     file = sx_join (str_lib, file, str_dot_so);
                     break;
             }
+            break;
         case ft_shared_library_full:
             switch (t->toolchain->operating_system)
             {
@@ -331,8 +332,10 @@ sexpr icemake_decorate_file
                            sx_join (str_dot_so_dot, t->dversion, sx_nil));
                     break;
             }
+            break;
         case ft_library_options:
             file = sx_join (str_lib, file, str_dot_sx);
+            break;
         case ft_header:
             file = sx_join (t->name, g, sx_join (file, str_dot_h, sx_nil));
             break;

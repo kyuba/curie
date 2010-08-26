@@ -52,8 +52,12 @@ static void mx_on_read (struct io *r, void *d)
     struct io_element *element = (struct io_element *)d;
     sexpr sx = sx_read (element->io);
 
-    while (sx != sx_nonexistent) {
-        element->on_read (sx, element->io, element->data);
+    while (sx != sx_nonexistent)
+    {
+        if (element->on_read != (void (*)(sexpr, struct sexpr_io *, void *))0)
+        {
+            element->on_read (sx, element->io, element->data);
+        }
 
         if (sx == sx_end_of_file)
         {
@@ -69,12 +73,16 @@ static void mx_on_close (struct io *r, void *d)
     struct io_element *element = (struct io_element *)d;
     struct sexpr_io *io = element->io;
 
-    element->on_read (sx_end_of_file, element->io, element->data);
+    if (element->on_read != (void (*)(sexpr, struct sexpr_io *, void *))0)
+    {
+        element->on_read (sx_end_of_file, element->io, element->data);
+    }
 
     if ((io->out != (struct io*)0) && (io->in != io->out))
     {
         multiplex_del_io (io->out);
     }
+
     free_pool_mem (io);
     free_pool_mem (element);
 }
@@ -84,7 +92,10 @@ static void mx_on_close_out (struct io *r, void *d)
     struct io_element *element = (struct io_element *)d;
     struct sexpr_io *io = element->io;
 
-    element->on_read (sx_end_of_file, element->io, element->data);
+    if (element->on_read != (void (*)(sexpr, struct sexpr_io *, void *))0)
+    {
+        element->on_read (sx_end_of_file, element->io, element->data);
+    }
 
     if ((io->in != (struct io*)0) && (io->in != io->out))
     {
@@ -110,15 +121,12 @@ void multiplex_add_sexpr
     if (io->in == (struct io *)0)
     {
         multiplex_add_io (io->out, (void *)0, mx_on_close_out, (void *)element);
-        return;
     }
     else if (io->out == (struct io *)0)
     {
         multiplex_add_io (io->in, mx_on_read, mx_on_close, (void *)element);
-        return;
     }
-
-    if (
+    else if (
 #if defined(_WIN32)
         (io->in->handle == (void *)0)
 #else

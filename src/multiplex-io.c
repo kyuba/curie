@@ -289,16 +289,19 @@ void multiplex_add_io_no_callback (struct io *io)
     multiplex_add_io (io, (void *)0, (void *)0, (void *)0);
 }
 
-void multiplex_del_io (struct io *io) {
+void multiplex_del_io (struct io *io)
+{
     struct io_list *l = list, **p;
     char av = (char)0;
 
     while (l != (struct io_list *)0) {
         if (l->io == io)
         {
-            if (l->on_close != (void *)0)
+            if (l->on_close != (void (*)(struct io *, void *))0)
             {
-                l->on_close (l->io, l->data);
+                void (*f)(struct io *, void *) = l->on_close;
+                l->on_close = (void (*)(struct io *, void *))0;
+                f (l->io, l->data);
             }
         }
 
