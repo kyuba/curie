@@ -77,7 +77,7 @@ void metadata_from_path
     {
         struct metadata_indirection i = { with_metadata, aux };
         enum metadata_classification_unix c;
-        int attributes;
+        int attributes = 0;
 
              if (0xc000 & st.st_mode) { c = mcu_socket;           }
         else if (0xa000 & st.st_mode) { c = mcu_symbolic_link;    }
@@ -103,6 +103,30 @@ void metadata_to_path
     (struct metadata *metadata,
      const char *path)
 {
-#pragma message("metadata_to_path() incomplete")
+    enum metadata_classification_unix classification;
+    int uid, gid, mode, device, attributes;
+    long atime = 0, mtime = 0, ctime = 0, size;
+    long times[2];
+
+    metadata_to_unix
+        (metadata, &classification, &uid, &gid, &mode, &atime, &mtime, &ctime,
+         &size, &device, &attributes);
+
+    if (attributes & MAT_SET_UID) { mode |= 0x0800; }
+    if (attributes & MAT_SET_GID) { mode |= 0x0400; }
+    if (attributes & MAT_STICKY)  { mode |= 0x0200; }
+
+#if defined(have_sys_chmod)
+    sys_chmod (path, mode);
+#endif
+#if defined(have_sys_chown)
+    sys_chown (path, uid, gid);
+#endif
+#if defined(have_sys_utime)
+    times[0] = atime;
+    times[1] = mtime;
+
+    sys_utime ((char *)path, times);
+#endif
 }
 

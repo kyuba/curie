@@ -437,11 +437,11 @@ sexpr icemake_decorate_file
 int icemake_prepare_operating_system_generic
     (struct icemake *im, struct toolchain_descriptor *td)
 {
-/*    if (td != (struct toolchain_descriptor *)0)
+    if (td != (struct toolchain_descriptor *)0)
     {
         td->meta_operating_system.generic.diff
             = icemake_which (td, "diff", "DIFF");
-    }*/
+    }
 
     if (im != (struct icemake *)0)
     {
