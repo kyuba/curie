@@ -353,7 +353,8 @@ static int build_object_gcc
     }
     else
     {
-        t->icemake->on_error (ie_unknown_code_file_type, sx_symbol (type));
+        t->icemake->visualiser.on_error
+            (t->icemake, ie_unknown_code_file_type, type);
     }
 
     return 0;

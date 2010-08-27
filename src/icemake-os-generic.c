@@ -54,16 +54,10 @@ static int install_file
 /*        source = car (target);
         target = cdr (target);
 
-        sx_write (stdio, cons (sym_symlink,
-                  cons (source, cons (target, sx_end_of_list))));
-
         symlink (sx_string(source), sx_string(target));*/
     }
     else if (truep (filep (source)))
     {
-        sx_write (stdio, cons (sym_install, cons (make_integer (mode),
-                  cons (source, cons (target, sx_end_of_list)))));
-
         mkdir_pi (target);
         CopyFile (sx_string (source), sx_string (target), FALSE);
     }
@@ -134,16 +128,10 @@ static int install_file
         source = car (target);
         target = cdr (target);
 
-        sx_write (stdio, cons (sym_symlink,
-                  cons (source, cons (target, sx_end_of_list))));
-
         symlink (sx_string(source), sx_string(target));
     }
     else if (truep (filep (source)))
     {
-        sx_write (stdio, cons (sym_install, cons (make_integer (mode),
-                  cons (source, cons (target, sx_end_of_list)))));
-
         mkdir_pi (target);
 
         meta = (struct file_metadata *)get_pool_mem (&pool);

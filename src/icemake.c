@@ -65,13 +65,8 @@ sexpr p_doxygen                        = sx_false;
 
 static sexpr i_alternatives            = sx_end_of_list;
 
-struct sexpr_io *stdio;
-
 static void parse_add_definition
     (struct icemake *im, struct toolchain_descriptor *td, sexpr definition);
-
-static void on_warning (enum icemake_error error, const char *text);
-static void on_error   (enum icemake_error error, const char *text);
 
 struct process_data
 {
@@ -613,8 +608,8 @@ static void find_code (struct target *context, sexpr file)
 
                 if (consp (file))
                 {
-                    context->icemake->on_error
-                        (ie_invalid_choice, sx_string (file));
+                    context->icemake->visualiser.on_error
+                        (context->icemake, ie_invalid_choice, file);
                 }
 
                 break;
@@ -720,8 +715,8 @@ static void find_code (struct target *context, sexpr file)
         }
         else
         {
-            context->icemake->on_error
-                (ie_missing_code_file, sx_string (file));
+            context->icemake->visualiser.on_error
+                (context->icemake, ie_missing_code_file, file);
         }
     }
 
@@ -751,7 +746,8 @@ static void find_header (struct target *context, sexpr file)
     }
     else
     {
-        context->icemake->on_error (ie_missing_header, sx_string (file));
+        context->icemake->visualiser.on_error
+            (context->icemake, ie_missing_header, file);
     }
 }
 
@@ -828,7 +824,8 @@ static void find_documentation (struct target *context, sexpr file)
     }
     else
     {
-        context->icemake->on_error (ie_missing_documentation, sx_string (file));
+        context->icemake->visualiser.on_error
+            (context->icemake, ie_missing_documentation, file);
     }
 }
 
@@ -839,7 +836,8 @@ static sexpr find_data (struct target *context, sexpr file)
     if ((r = find_in_permutations (context->toolchain, str_data, file)),
         !stringp(r))
     {
-        context->icemake->on_error (ie_missing_data, sx_string (file));
+        context->icemake->visualiser.on_error
+            (context->icemake, ie_missing_data, file);
     }
 
     return r;
@@ -1287,46 +1285,55 @@ static void merge_contexts ( struct icemake *im )
 
 static void print_help ()
 {
-    sx_write (stdio, make_symbol (
+    struct io *out = io_open_stdout();
+
 #if !defined(NOVERSION)
-        icemake_version_long "\n\n"
+    io_collect (out, icemake_version_long "\n\n",
+                sizeof (icemake_version_long) + 1);
 #endif
-        "Usage: icemake [options] [targets]\n"
-        "\n"
-        "Options:\n"
-        " -h           Print help (this text) and exit.\n"
-        " -v           Print version and exit.\n\n"
-        " -t <chost>   Specify target CHOST\n"
-        " -d <destdir> Specify the directory to install to.\n"
-        " -i           Install resulting binaries\n"
-        " -r           Execute runtime tests\n"
-        " -f           Use the FHS layout for installation\n"
-        " -l <libdir>  Use <libdir> instead of 'lib' when installing\n"
-        " -s           Use the default FS layout for installation\n"
-        " -L           Optimise linking.\n"
-        " -c           Use gcc's -combine option for C source files.\n"
-        " -o           Don't link dynamic libraries.\n"
-        " -O           Do link dynamic libraries.\n"
-        " -S           Enforce a static link (default).\n"
-        " -R           Enforce a dynamic link.\n"
-        " -j <num>     Spawn <num> processes simultaneously.\n"
-        " -a <1> <2>   Use implementation <2> for code part <1>.\n"
-        " -x           Build documentation (if possible).\n"
-        "\n"
-        "The [targets] specify a list of things to build, according to the\n"
-        "icemake.sx file located in the current working directory.\n"
-        "\n"));
+#define HELP "Usage: icemake [options] [targets]\n"\
+        "\n"\
+        "Options:\n"\
+        " -h           Print help (this text) and exit.\n"\
+        " -v           Print version and exit.\n\n"\
+        " -t <chost>   Specify target CHOST\n"\
+        " -d <destdir> Specify the directory to install to.\n"\
+        " -i           Install resulting binaries\n"\
+        " -r           Execute runtime tests\n"\
+        " -f           Use the FHS layout for installation\n"\
+        " -l <libdir>  Use <libdir> instead of 'lib' when installing\n"\
+        " -s           Use the default FS layout for installation\n"\
+        " -L           Optimise linking.\n"\
+        " -c           Use gcc's -combine option for C source files.\n"\
+        " -o           Don't link dynamic libraries.\n"\
+        " -O           Do link dynamic libraries.\n"\
+        " -S           Enforce a static link (default).\n"\
+        " -R           Enforce a dynamic link.\n"\
+        " -j <num>     Spawn <num> processes simultaneously.\n"\
+        " -a <1> <2>   Use implementation <2> for code part <1>.\n"\
+        " -x           Build documentation (if possible).\n"\
+        "\n"\
+        "The [targets] specify a list of things to build, according to the\n"\
+        "icemake.sx file located in the current working directory.\n\n"
+
+    io_collect (out, HELP,
+                sizeof (HELP) - 1);
+
+    io_close (out);
 }
 
 static void print_version ()
 {
-    sx_write (stdio, make_symbol (
+    struct io *out = io_open_stdout();
+
 #if defined(NOVERSION)
-        "icemake (version info not available)"
+    io_write (out, "icemake (version info not available\n",
+              sizeof ("icemake (version info not available"));
 #else
-        icemake_version_long "\n"
+    io_write (out, icemake_version_long "\n\n",
+              sizeof (icemake_version_long) + 1);
 #endif
-            ));
+    io_close (out);
 }
  
 static void write_uname_element (const char *source, char *target, int tlen)
@@ -1414,26 +1421,13 @@ sexpr icemake_which
 
 static void initialise_toolchain_tex (struct toolchain_descriptor *td)
 {
-    p_latex = icemake_which (td, "latex", "LATEX");
-    if (falsep(p_latex))
-    {
-        on_warning (ie_missing_tool, "latex");
-    }
-
+    p_latex    = icemake_which (td, "latex",    "LATEX");
     p_pdflatex = icemake_which (td, "pdflatex", "PDFLATEX");
-    if (falsep(p_pdflatex))
-    {
-        on_warning (ie_missing_tool, "pdflatex");
-    }
 }
 
 static void initialise_toolchain_doxygen (struct toolchain_descriptor *td)
 {
-    p_doxygen = icemake_which (td, "doxygen", "DOXYGEN");
-    if (falsep(p_doxygen))
-    {
-        on_warning (ie_missing_tool, "doxygen");
-    }
+    p_doxygen = icemake_which (td, "doxygen",   "DOXYGEN");
 }
 
 static void spawn_stack_items (struct icemake *im, int *fl);
@@ -1448,20 +1442,16 @@ static void process_on_death
         sexpr sx = (sexpr)d->command;
         (d->icemake->alive_processes)--;
 
+        d->icemake->visualiser.on_command_done
+            (d->icemake, sx);
+
         if (context->exitstatus != 0)
         {
-            sx_write (stdio, cons (sym_failed,
-                      cons (make_integer (context->exitstatus),
-                            cons (sx,
-                                  sx_end_of_list))));
-
-            on_warning (ie_programme_failed, "");
+            d->icemake->visualiser.on_warning
+                (d->icemake, ie_programme_failed,
+                 cons (make_integer (context->exitstatus), sx));
 
             d->failures++;
-        }
-        else
-        {
-            sx_write (stdio, cons (sym_completed, cons (sx, sx_end_of_list)));
         }
 
         free_exec_context (context);
@@ -1484,7 +1474,7 @@ static void spawn_item
         MEMORY_POOL_INITIALISER(sizeof (struct process_data));
     struct process_data *pd;
 
-    sx_write (stdio, cons (sym_execute, sx));
+    im->visualiser.on_command (im, cons (sym_execute, sx));
 
     if (truep(equalp(cf, sym_chdir)))
     {
@@ -1538,9 +1528,11 @@ static void spawn_item
 
     switch (context->pid)
     {
-        case -1: im->on_error (ie_failed_to_spawn_subprocess, "");
+        case -1: im->visualiser.on_error
+                    (im, ie_failed_to_spawn_subprocess, sx_end_of_list);
                  break;
-        case 0:  im->on_error (ie_failed_to_execute_binary_image, "");
+        case 0:  im->visualiser.on_error
+                    (im, ie_failed_to_execute_binary_image, sx_end_of_list);
                  break;
         default: (im->alive_processes)++;
                  multiplex_add_process (context, f, (void *)pd);
@@ -1555,14 +1547,10 @@ static void spawn_stack_items (struct icemake *im, int *fl)
         sexpr spec = car (im->workstack);
         sexpr sca  = car (spec);
 
-        if (truep (equalp (sym_phase, sca)) ||
-            truep (equalp (sym_completed, sca)) ||
-            truep (equalp (sym_targets, sca)))
-        {
-            sx_write (stdio, spec);
-        }
-        else if (truep (equalp (sym_install, sca)) ||
-                 truep (equalp (sym_symlink, sca)))
+        im->visualiser.on_command (im, spec);
+
+        if (truep (equalp (sym_install, sca)) ||
+            truep (equalp (sym_symlink, sca)))
         {
             if (im->install_file !=
                     (int (*)(struct icemake *, sexpr))0)
@@ -1570,7 +1558,9 @@ static void spawn_stack_items (struct icemake *im, int *fl)
                 im->install_file (im, cdr (spec));
             }
         }
-        else
+        else if (falsep (equalp (sym_phase, sca)) &&
+                 falsep (equalp (sym_completed, sca)) &&
+                 falsep (equalp (sym_targets, sca)))
         {
             spawn_item (spec, process_on_death, im, fl);
         }
@@ -1593,11 +1583,7 @@ static int icemake_count_print_items (struct icemake *im )
 
     for (cur = im->workstack; consp (cur); count++, cur = cdr (cur));
 
-    if (count > 0)
-    {
-        sx_write (stdio, cons (sym_items_total,
-                               cons (make_integer (count), sx_end_of_list)));
-    }
+    im->visualiser.items (im, count);
 
     return count;
 }
@@ -1664,23 +1650,6 @@ static void save_metadata ( struct icemake *im )
     sx_close_io (io);
 }
 
-static void on_error (enum icemake_error error, const char *text)
-{
-    if (error != ie_problematic_signal)
-    {
-        sx_write (stdio,
-                  cons (sym_error, cons (make_string (text), sx_end_of_list)));
-    }
-
-    cexit (error);
-}
-
-static void on_warning (enum icemake_error error, const char *text)
-{
-    sx_write (stdio,
-              cons (sym_warning, cons (make_string (text), sx_end_of_list)));
-}
-
 int icemake_default_architecture
     (int (*with_data)(const char *, void *), void *aux)
 {
@@ -1741,8 +1710,6 @@ int icemake_prepare_toolchain
         { tc_generic, os_generic, is_generic, make_string(name) };
 
     int p;
-
-    sx_write (stdio, make_string (name));
 
     td.toolchain  = tc_generic;
 
@@ -1873,9 +1840,8 @@ int icemake_prepare
 {
     struct icemake iml =
         { fs_afsl,
-          on_error, on_warning,
           sx_end_of_list,
-          stdio, TREE_INITIALISER,
+          TREE_INITIALISER,
           (int (*)(struct icemake *, sexpr))0,
           0, 0, sx_end_of_list };
     sexpr icemake_sx_path = make_string (path);
@@ -1887,6 +1853,7 @@ int icemake_prepare
     if (im == (struct icemake *)0)
     {
         im = &iml;
+        icemake_prepare_visualiser_raw (im);
     }
  
     icemake_prepare_operating_system_generic (im, td);
@@ -1912,7 +1879,9 @@ int icemake_prepare
 
     if (falsep (filep (icemake_sx_path)))
     {
-        iml.on_error (ie_missing_description_file, "");
+        iml.visualiser.on_error
+            (im, ie_missing_description_file,
+             sx_end_of_list);
     }
 
     io = sx_open_i (io_open_read (sx_string (icemake_sx_path)));
@@ -2074,8 +2043,6 @@ int cmain ()
         { sx_end_of_list, fs_afsl,
           ICEMAKE_OPTION_STATIC | ICEMAKE_OPTION_DYNAMIC_LINKING };
 
-    stdio = sx_open_stdout ();
-
     mkdir ("build", 0755);
 
     i_destlibdir = str_lib;
@@ -2209,8 +2176,6 @@ int cmain ()
     multiplex_add_signal (sig_int,  cb_on_bad_signal, (void *)0);
     multiplex_add_signal (sig_term, cb_on_bad_signal, (void *)0);
     multiplex_add_signal (sig_bus,  cb_on_bad_signal, (void *)0);
-
-    multiplex_add_sexpr (stdio, (void *)0, (void *)0);
 
     if (target_architecture != (const char *)0)
     {

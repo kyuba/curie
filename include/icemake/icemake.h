@@ -236,16 +236,18 @@ struct toolchain_descriptor
 
     union
     {
-        struct toolchain_gcc     gcc;
-        struct toolchain_borland borland;
-        struct toolchain_msvc    msvc;
-        struct toolchain_latex   latex;
-        struct toolchain_doxygen doxygen;
+        struct toolchain_gcc      gcc;
+        struct toolchain_borland  borland;
+        struct toolchain_msvc     msvc;
+        struct toolchain_latex    latex;
+        struct toolchain_doxygen  doxygen;
+        void                     *aux;
     } meta_toolchain;
 
     union
     {
-        struct operating_system_generic generic;
+        struct operating_system_generic  generic;
+        void                            *aux;
     } meta_operating_system;
 
     unsigned long instruction_set_options;
@@ -268,12 +270,20 @@ struct visualiser_descriptor
 {
     enum visualiser visualiser;
 
-    void (*on_command) (sexpr);
+    void (*items)           (struct icemake *im, int count);
+    void (*on_command)      (struct icemake *im, sexpr cmd);
+    void (*on_command_done) (struct icemake *im, sexpr cmd);
+
+    void (*on_error)   (struct icemake *im,
+                        enum icemake_error error, sexpr sx);
+    void (*on_warning) (struct icemake *im,
+                        enum icemake_error error, sexpr sx);
 
     union
     {
-        struct visualiser_raw raw;
-        struct visualiser_ice ice;
+        struct visualiser_raw  raw;
+        struct visualiser_ice  ice;
+        void                  *aux;
     } meta;
 };
 
@@ -289,13 +299,7 @@ struct icemake
 {
     enum fs_layout filesystem_layout;
 
-    void (*on_error)   (enum icemake_error error, const char *text);
-    void (*on_warning) (enum icemake_error error, const char *text);
-
     sexpr buildtargets;
-
-    /*! \brief S-Expression Standard I/O Port */
-    struct sexpr_io *stdio;
 
     /*! \brief Build Targets
      *
@@ -311,6 +315,8 @@ struct icemake
 
     /*! \brief List: Queued tasks */
     sexpr workstack;
+    
+    struct visualiser_descriptor visualiser;
 };
 
 #define ICEMAKE_PROGRAMME              (1 << 0x0)
@@ -401,9 +407,6 @@ extern sexpr p_pdflatex;
  *  Automatically searched in the PATH according to the toolchain type.
  */
 extern sexpr p_doxygen;
-
-/*! \brief S-Expression Standard I/O Port */
-extern struct sexpr_io *stdio;
 
 /*! \brief Predefined Symbol */
 define_symbol (sym_library,             "library");
@@ -852,6 +855,9 @@ int icemake_prepare_toolchain_doxygen (struct toolchain_descriptor *td);
 
 int icemake_prepare_operating_system_generic
     (struct icemake *im, struct toolchain_descriptor *td);
+
+int icemake_prepare_visualiser_raw (struct icemake *im);
+int icemake_prepare_visualiser_ice (struct icemake *im);
 
 int icemake_prepare_toolchain
     (const char *name,
