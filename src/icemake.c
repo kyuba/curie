@@ -51,6 +51,9 @@
 #include <icemake/version.h>
 #endif
 
+#define ICEMAKE_OPTION_VIS_ICE         (1 << 0x10)
+#define ICEMAKE_OPTION_VIS_RAW         (1 << 0x11)
+
 static unsigned int max_processes      = 1;
 
 sexpr i_destdir                        = sx_false;
@@ -742,7 +745,8 @@ static void find_header (struct target *context, sexpr file)
     if ((r = find_header_h (context->toolchain, context->name, file)),
         stringp(r))
     {
-        context->headers = cons (cons(file, cons (r, sx_end_of_list)), context->headers);
+        context->headers = cons (cons(file, cons (r, sx_end_of_list)),
+                                 context->headers);
     }
     else
     {
@@ -782,45 +786,69 @@ static void find_documentation (struct target *context, sexpr file)
         context->documentation
             = cons(cons(sym_tex, cons (file, r)), context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".1")), stringp(r))
+    else if ((r = find_documentation_with_suffix
+                      (context->toolchain, file, ".1")), stringp(r))
     {
         context->documentation
-            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man1, sx_end_of_list)))), context->documentation);
+            = cons(cons(sym_man,
+                   cons (file, cons(r, cons (sym_man1, sx_end_of_list)))),
+                         context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".2")), stringp(r))
+    else if ((r = find_documentation_with_suffix
+                      (context->toolchain, file, ".2")), stringp(r))
     {
         context->documentation
-            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man2, sx_end_of_list)))), context->documentation);
+            = cons(cons(sym_man,
+                   cons (file, cons(r, cons (sym_man2, sx_end_of_list)))),
+                         context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".3")), stringp(r))
+    else if ((r = find_documentation_with_suffix
+                      (context->toolchain, file, ".3")), stringp(r))
     {
         context->documentation
-            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man3, sx_end_of_list)))), context->documentation);
+            = cons(cons(sym_man,
+                   cons (file, cons(r, cons (sym_man3, sx_end_of_list)))),
+                         context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".4")), stringp(r))
+    else if ((r = find_documentation_with_suffix
+                      (context->toolchain, file, ".4")), stringp(r))
     {
         context->documentation
-            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man4, sx_end_of_list)))), context->documentation);
+            = cons(cons(sym_man,
+                   cons (file, cons(r, cons (sym_man4, sx_end_of_list)))),
+                         context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".5")), stringp(r))
+    else if ((r = find_documentation_with_suffix
+                      (context->toolchain, file, ".5")), stringp(r))
     {
         context->documentation
-            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man5, sx_end_of_list)))), context->documentation);
+            = cons(cons(sym_man,
+                   cons (file, cons(r, cons (sym_man5, sx_end_of_list)))),
+                         context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".6")), stringp(r))
+    else if ((r = find_documentation_with_suffix
+                      (context->toolchain, file, ".6")), stringp(r))
     {
         context->documentation
-            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man6, sx_end_of_list)))), context->documentation);
+            = cons(cons(sym_man,
+                   cons (file, cons(r, cons (sym_man6, sx_end_of_list)))),
+                         context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".7")), stringp(r))
+    else if ((r = find_documentation_with_suffix
+                      (context->toolchain, file, ".7")), stringp(r))
     {
         context->documentation
-            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man7, sx_end_of_list)))), context->documentation);
+            = cons(cons(sym_man,
+                   cons (file, cons(r, cons (sym_man7, sx_end_of_list)))),
+                         context->documentation);
     }
-    else if ((r = find_documentation_with_suffix (context->toolchain, file, ".8")), stringp(r))
+    else if ((r = find_documentation_with_suffix
+                      (context->toolchain, file, ".8")), stringp(r))
     {
         context->documentation
-            = cons(cons(sym_man, cons (file, cons(r, cons (sym_man8, sx_end_of_list)))), context->documentation);
+            = cons(cons(sym_man,
+                   cons (file, cons(r, cons (sym_man8, sx_end_of_list)))),
+                         context->documentation);
     }
     else
     {
@@ -1312,6 +1340,8 @@ static void print_help ()
         " -j <num>     Spawn <num> processes simultaneously.\n"\
         " -a <1> <2>   Use implementation <2> for code part <1>.\n"\
         " -x           Build documentation (if possible).\n"\
+        " -m           Use raw output.\n"\
+        " -M           Use nicer output (default).\n"\
         "\n"\
         "The [targets] specify a list of things to build, according to the\n"\
         "icemake.sx file located in the current working directory.\n\n"
@@ -2018,6 +2048,18 @@ static int with_icemake (struct icemake *im, void *aux)
     im->buildtargets       = imc->buildtargets;
     im->options           |= imc->options;
 
+    if (im->options & ICEMAKE_OPTION_VIS_ICE)
+    {
+        icemake_prepare_visualiser_ice (im);
+        im->options &= ~ICEMAKE_OPTION_VIS_ICE;
+    }
+
+    if (im->options & ICEMAKE_OPTION_VIS_RAW)
+    {
+        icemake_prepare_visualiser_raw (im);
+        im->options &= ~ICEMAKE_OPTION_VIS_RAW;
+    }
+
     return icemake (im);
 }
 
@@ -2041,7 +2083,8 @@ int cmain ()
     const char *target_architecture = c_getenv("CHOST");
     struct icemake_meta im =
         { sx_end_of_list, fs_afsl,
-          ICEMAKE_OPTION_STATIC | ICEMAKE_OPTION_DYNAMIC_LINKING };
+          ICEMAKE_OPTION_STATIC | ICEMAKE_OPTION_DYNAMIC_LINKING |
+          ICEMAKE_OPTION_VIS_ICE };
 
     mkdir ("build", 0755);
 
@@ -2143,6 +2186,14 @@ int cmain ()
                         break;
                     case 'r':
                         im.options |=  ICEMAKE_OPTION_TESTS;
+                        break;
+                    case 'm':
+                        im.options &= ~ICEMAKE_OPTION_VIS_RAW;
+                        im.options |=  ICEMAKE_OPTION_VIS_ICE;
+                        break;
+                    case 'M':
+                        im.options &= ~ICEMAKE_OPTION_VIS_ICE;
+                        im.options |=  ICEMAKE_OPTION_VIS_RAW;
                         break;
                     case 'v':
                         print_version ();

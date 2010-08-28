@@ -27,9 +27,56 @@
 */
 
 #include <icemake/icemake.h>
+#include <curie/multiplex.h>
+
+static void items
+    (struct icemake *im, int count)
+{
+    sx_write (im->visualiser.meta.raw.stdio,
+              cons (sym_items_total,
+                    cons (make_integer (count), sx_end_of_list)));
+}
+
+static void on_command
+    (struct icemake *im, sexpr cmd)
+{
+    sx_write (im->visualiser.meta.raw.stdio, cmd);
+}
+
+static void on_command_done
+    (struct icemake *im, sexpr cmd)
+{
+    sx_write (im->visualiser.meta.raw.stdio,
+              cons (sym_completed, cons (cmd, sx_end_of_list)));
+}
+
+static void on_error
+    (struct icemake *im, enum icemake_error error, sexpr sx)
+{
+    if (error != ie_problematic_signal)
+    {
+        sx_write (im->visualiser.meta.raw.stdio, cons (sym_error, sx));
+    }
+}
+
+static void on_warning
+    (struct icemake *im, enum icemake_error error, sexpr sx)
+{
+    sx_write (im->visualiser.meta.raw.stdio, cons (sym_warning, sx));
+}
 
 int icemake_prepare_visualiser_ice (struct icemake *im)
 {
+    im->visualiser.visualiser      = vs_ice;
+
+    im->visualiser.items           = items;
+    im->visualiser.on_command      = on_command;
+    im->visualiser.on_command_done = on_command_done;
+    im->visualiser.on_error        = on_error;
+    im->visualiser.on_warning      = on_warning;
+    im->visualiser.meta.raw.stdio  = sx_open_stdout();
+
+    multiplex_add_sexpr (im->visualiser.meta.raw.stdio, (void *)0, (void *)0);
+
     return 0;
 }
-
