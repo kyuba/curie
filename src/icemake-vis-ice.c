@@ -28,50 +28,93 @@
 
 #include <icemake/icemake.h>
 #include <curie/multiplex.h>
+#include <syscall/syscall.h>
 
-#define WIDTH 78
+#if defined(have_sys_ioctl)
+#include <sys/ioctl.h>
+#endif
+
 static int items_total  = 1;
 static int items_have   = 0;
 static int items_failed = 0;
+static int width        = 80;
 static sexpr phase      = sx_false;
+
+static void complete
+    (struct icemake *im)
+{
+    int i, j;
+
+    io_collect (im->visualiser.meta.ice.out, (char *)"\r", 1);
+
+    for (i = 0; i < width; i += 10)
+    {
+        j = width - i;
+
+        if (j > 10)
+        {
+            io_collect (im->visualiser.meta.ice.out,
+                        (char *)"          ", 10);
+        }
+        else
+        {
+            io_collect (im->visualiser.meta.ice.out,
+                        (char *)"          ", j);
+        }
+    }
+
+    io_write (im->visualiser.meta.ice.out, (char *)"\r", 1);
+}
 
 static void update_screen
     (struct icemake *im)
 {
-    char buffer[0x1000] = " * ";
-    const char *s = sx_symbol (phase);
-    int i = 3, p = 4, j, x;
-
-    for (j = 0; s[j] != (char)0; j++, i++, p++)
+    if (items_have > items_total)
     {
-        buffer[i] = s[j];
+        items_have = items_total;
     }
 
-    buffer[i]     = ' ';
-    buffer[i+1]   = '[';
-    buffer[i+2]   = ' ';
-    i += 3;
-
-    if (items_have > items_total) items_have = items_total;
-
-    for (j = 0, x = ((double)items_have / (double)items_total)
-                        * (WIDTH - p - 3);
-         j < x; j++, i++, p++)
+    if (items_have == items_total)
     {
-        buffer[i] = '#';
+        complete (im);
     }
-
-    for (j = 0, x = WIDTH - p - 3; j < x; j++, i++, p++)
+    else
     {
-        buffer[i] = ' ';
+        char buffer[0x1000] = " * ";
+        const char *s = sx_symbol (phase);
+        int i = 3, p = 4, j, x;
+
+        for (j = 0; s[j] != (char)0; j++, i++, p++)
+        {
+            buffer[i] = s[j];
+        }
+
+        buffer[i]     = ' ';
+        buffer[i+1]   = '[';
+        buffer[i+2]   = ' ';
+        i += 3;
+
+        if (items_have > items_total) items_have = items_total;
+
+        for (j = 0, x = ((double)items_have / (double)items_total)
+                            * (width - p - 4);
+             j < x; j++, i++, p++)
+        {
+            buffer[i] = '#';
+        }
+
+        for (j = 0, x = width - p - 4; j < x; j++, i++, p++)
+        {
+            buffer[i] = ' ';
+        }
+
+        buffer[i]     = ' ';
+        buffer[i+1]   = ']';
+        buffer[i+2]   = '\r';
+        i += 3;
+
+        io_write (im->visualiser.meta.ice.out, buffer, i);
     }
-
-    buffer[i]     = ' ';
-    buffer[i+1]   = ']';
-    buffer[i+2]   = '\r';
-    i += 3;
-
-    io_write (im->visualiser.meta.ice.out, buffer, i);
 }
 
 static void describe_failure
@@ -86,13 +129,13 @@ static void describe_failure
     code /= 10;
     buffer[3] = '0' + (code % 10);
 
-    for (j = 0, x = (WIDTH - p);
+    for (j = 0, x = (width - p - 2);
          (j < x) && (programme[j] != (char)0); j++, i++, p++)
     {
         buffer[i] = programme[j];
     }
 
-    for (j = 0, x = WIDTH - p + 2; j < x; j++, i++, p++)
+    for (j = 0, x = (width - p + 1); j < x; j++, i++, p++)
     {
         buffer[i] = ' ';
     }
@@ -101,14 +144,6 @@ static void describe_failure
     i++;
 
     io_write (im->visualiser.meta.ice.out, buffer, i);
-}
-
-static void complete
-    (struct icemake *im)
-{
-    io_write (im->visualiser.meta.ice.out,
-              (char*)"\r                                              "
-                     "                                 \r", 81);
 }
 
 static void items
@@ -122,21 +157,19 @@ static void items
     items_have = 0;
 }
 
-static void icemake_read (struct icemake *im, sexpr sx)
+static void icemake_read
+    (struct icemake *im, sexpr sx)
 {
     if (consp (sx))
     {
         sexpr c = car (sx);
 
-        if (truep(equalp (c, sym_items_remaining)))
+        if (truep (equalp (c, sym_install)) ||
+            truep (equalp (c, sym_symlink)))
         {
-            sexpr r = car (cdr(sx));
-            int items_remaining = (int)sx_integer (r);
-            if (items_remaining > items_total) items_total = items_remaining;
-            items_have = (items_total - items_remaining);
-            if (items_have < 0) items_have = 0;
+            items_have++;
         }
-        else if (truep(equalp (c, sym_phase)))
+        if (truep(equalp (c, sym_phase)))
         {
             sexpr r = car (cdr(sx));
 
@@ -154,22 +187,14 @@ static void on_command
     (struct icemake *im, sexpr cmd)
 {
     icemake_read (im, cmd);
+    update_screen (im);
 }
 
 static void on_command_done
     (struct icemake *im, sexpr cmd)
 {
     items_have++;
-
-    if (items_have > items_total)
-    {
-        items_have = items_total;
-    }
-
-    if (items_have == items_total)
-    {
-        complete (im);
-    }
+    update_screen (im);
 }
 
 static void on_error
@@ -202,8 +227,13 @@ static void on_warning
     on_error (im, error, sx);
 }
 
-int icemake_prepare_visualiser_ice (struct icemake *im)
+int icemake_prepare_visualiser_ice
+    (struct icemake *im)
 {
+#if defined(have_sys_ioctl) && defined(TIOCGWINSZ)
+    struct winsize size;
+#endif
+
     im->visualiser.visualiser      = vs_ice;
 
     im->visualiser.items           = items;
@@ -214,6 +244,13 @@ int icemake_prepare_visualiser_ice (struct icemake *im)
     im->visualiser.meta.ice.out    = io_open_stdout();
 
     multiplex_add_io_no_callback (im->visualiser.meta.ice.out);
+
+#if defined(have_sys_ioctl) && defined(TIOCGWINSZ)
+    if (sys_ioctl (0, TIOCGWINSZ, (long)&size) == 0)
+    {
+        width = size.ws_col;
+    }
+#endif
 
     return 0;
 }

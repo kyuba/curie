@@ -1535,9 +1535,20 @@ enum signal_callback_result cb_on_bad_signal(enum signal s, void *p)
 static int icemake_count_print_items (struct icemake *im )
 {
     int count = 0;
-    sexpr cur;
+    sexpr cur, ccur, ca;
 
-    for (cur = im->workstack; consp (cur); count++, cur = cdr (cur));
+    for (cur = im->workstack; consp (cur); cur = cdr (cur))
+    {
+        ccur = car (cur);
+        ca   = car (ccur);
+
+        if (falsep (equalp (ca, sym_phase)) &&
+            falsep (equalp (ca, sym_targets)) &&
+            falsep (equalp (ca, sym_completed)))
+        {
+            count++;
+        }
+    }
 
     im->visualiser.items (im, count);
 
@@ -1565,7 +1576,7 @@ int icemake_loop_processes (struct icemake *im)
 
 static void read_metadata ( struct icemake *im )
 {
-    struct sexpr_io *io = sx_open_i (io_open_read("metadata.sx"));
+    struct sexpr_io *io = sx_open_i (io_open_read ("metadata.sx"));
     sexpr r;
 
     while (!eofp(r = sx_read (io)) && !nexp (r))
@@ -1580,7 +1591,7 @@ static void read_metadata ( struct icemake *im )
             if (node != (struct tree_node *)0)
             {
                 t = (struct target *)node_get_value (node);
-                
+
                 t->buildnumber = car (cdr (r));
             }
         }
@@ -1599,7 +1610,7 @@ static void target_map_save_metadata (struct tree_node *node, void *i)
 
 static void save_metadata ( struct icemake *im )
 {
-    struct sexpr_io *io = sx_open_o (io_open_write("metadata.sx"));
+    struct sexpr_io *io = sx_open_o (io_open_write ("metadata.sx"));
 
     tree_map (&(im->targets), target_map_save_metadata, (void *)io);
 
