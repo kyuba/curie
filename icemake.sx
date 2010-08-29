@@ -186,7 +186,7 @@
 (test-case "math-matrix" libcurie (libraries "curie-math")
   (code "test-math-matrix"))
 
-(programme "icemake" libcurie
+(library "icemake" libcurie
   (name "icemake")
   (description "simple build tool for curie, based on curie")
   (version "11")
@@ -198,7 +198,7 @@
         "icemake-tc-generic" "icemake-tc-gcc" "icemake-tc-borland"
         "icemake-tc-msvc" "icemake-tc-latex" "icemake-tc-doxygen"
         "icemake-os-generic"
-        "icemake-vis-raw" "icemake-vis-ice")
+        "icemake-vis-stub" "icemake-vis-raw" "icemake-vis-ice")
 
   (documentation
         "icemake" "ice" "icemake.sx"))
@@ -208,7 +208,7 @@
   (description "Pretty-printing tool for icemake")
   (version "2")
 
-  (libraries "sievert" "syscall")
+  (libraries "sievert" "syscall" "icemake")
 
   (code "ice"))
 

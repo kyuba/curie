@@ -26,192 +26,270 @@
  * THE SOFTWARE.
 */
 
-#include <curie/main.h>
-#include <curie/exec.h>
-#include <curie/sexpr.h>
-#include <curie/multiplex.h>
-#include <curie/memory.h>
-#include <sievert/shell.h>
 #include <icemake/icemake.h>
+#include <curie/main.h>
 
-#define WIDTH 78
-static int items_total  = 1;
-static int items_have   = 0;
-static int items_failed = 0;
-static sexpr phase      = sx_false;
-static struct io *out;
+#if !defined(NOVERSION)
+#include <icemake/version.h>
+#endif
 
-static void update_screen ()
+#define ICEMAKE_OPTION_VIS_ICE         (1 << 0x10)
+#define ICEMAKE_OPTION_VIS_RAW         (1 << 0x11)
+
+struct icemake_meta
 {
-    char buffer[0x1000] = " * ";
-    const char *s = sx_symbol (phase);
-    int i = 3, p = 4, j, x;
+    sexpr buildtargets;
+    enum fs_layout filesystem_layout;
+    unsigned long options;
+    unsigned int max_processes;
+    sexpr alternatives;
+};
 
-    for (j = 0; s[j] != (char)0; j++, i++, p++)
-    {
-        buffer[i] = s[j];
-    }
+static void print_help ()
+{
+    struct io *out = io_open_stdout();
 
-    buffer[i]     = ' ';
-    buffer[i+1]   = '[';
-    buffer[i+2]   = ' ';
-    i += 3;
+#if !defined(NOVERSION)
+    io_collect (out, icemake_version_long "\n\n",
+                sizeof (icemake_version_long) + 1);
+#endif
+#define HELP "Usage: icemake [options] [targets]\n"\
+        "\n"\
+        "Options:\n"\
+        " -h           Print help (this text) and exit.\n"\
+        " -v           Print version and exit.\n\n"\
+        " -t <chost>   Specify target CHOST\n"\
+        " -d <destdir> Specify the directory to install to.\n"\
+        " -i           Install resulting binaries\n"\
+        " -r           Execute runtime tests\n"\
+        " -f           Use the FHS layout for installation\n"\
+        " -l <libdir>  Use <libdir> instead of 'lib' when installing\n"\
+        " -s           Use the default FS layout for installation\n"\
+        " -L           Optimise linking.\n"\
+        " -c           Use gcc's -combine option for C source files.\n"\
+        " -o           Don't link dynamic libraries.\n"\
+        " -O           Do link dynamic libraries.\n"\
+        " -S           Enforce a static link (default).\n"\
+        " -R           Enforce a dynamic link.\n"\
+        " -j <num>     Spawn <num> processes simultaneously.\n"\
+        " -a <1> <2>   Use implementation <2> for code part <1>.\n"\
+        " -x           Build documentation (if possible).\n"\
+        " -m           Use raw output.\n"\
+        " -M           Use nicer output (default).\n"\
+        "\n"\
+        "The [targets] specify a list of things to build, according to the\n"\
+        "icemake.sx file located in the current working directory.\n\n"
 
-    if (items_have > items_total) items_have = items_total;
+    io_collect (out, HELP,
+                sizeof (HELP) - 1);
 
-    for (j = 0, x = ((double)items_have / (double)items_total)
-                        * (WIDTH - p - 3);
-         j < x; j++, i++, p++)
-    {
-        buffer[i] = '#';
-    }
-
-    for (j = 0, x = WIDTH - p - 3; j < x; j++, i++, p++)
-    {
-        buffer[i] = ' ';
-    }
-
-    buffer[i]     = ' ';
-    buffer[i+1]   = ']';
-    buffer[i+2]   = '\r';
-    i += 3;
-
-    io_write (out, buffer, i);
+    io_close (out);
 }
 
-static void describe_failure (unsigned int code, const char *programme)
+static void print_version ()
 {
-    char buffer[0x1000] = " [ 000 ] ";
-    int i = 9, p = 10, j, x;
+    struct io *out = io_open_stdout();
 
-    buffer[5] = '0' + (code % 10);
-    code /= 10;
-    buffer[4] = '0' + (code % 10);
-    code /= 10;
-    buffer[3] = '0' + (code % 10);
-
-    for (j = 0, x = (WIDTH - p);
-         (j < x) && (programme[j] != (char)0); j++, i++, p++)
-    {
-        buffer[i] = programme[j];
-    }
-
-    for (j = 0, x = WIDTH - p + 2; j < x; j++, i++, p++)
-    {
-        buffer[i] = ' ';
-    }
-
-    buffer[i]   = '\n';
-    i++;
-
-    io_write (out, buffer, i);
+#if defined(NOVERSION)
+    io_write (out, "icemake (version info not available\n",
+              sizeof ("icemake (version info not available"));
+#else
+    io_write (out, icemake_version_long "\n\n",
+              sizeof (icemake_version_long) + 1);
+#endif
+    io_close (out);
 }
 
-static void complete ()
+static int with_icemake (struct icemake *im, void *aux)
 {
-    io_write (out, (char*)"\r                                              "
-                          "                                 \r", 81);
+    struct icemake_meta *imc = (struct icemake_meta *)aux;
+
+    im->filesystem_layout  = imc->filesystem_layout;
+    im->buildtargets       = imc->buildtargets;
+    im->options           |= imc->options;
+
+    im->max_processes      = imc->max_processes;
+
+    if (im->options & ICEMAKE_OPTION_VIS_ICE)
+    {
+        icemake_prepare_visualiser_ice (im);
+        im->options &= ~ICEMAKE_OPTION_VIS_ICE;
+    }
+
+    if (im->options & ICEMAKE_OPTION_VIS_RAW)
+    {
+        icemake_prepare_visualiser_raw (im);
+        im->options &= ~ICEMAKE_OPTION_VIS_RAW;
+    }
+
+    return icemake (im);
 }
 
-static void icemake_read (sexpr sx, struct sexpr_io *io, void *aux)
+static int with_toolchain (struct toolchain_descriptor *td, void *aux)
 {
-    if (consp (sx))
+    struct icemake_meta *im = (struct icemake_meta *)aux;
+
+    return icemake_prepare
+        ((struct icemake *)0, ".", td, im->alternatives,
+         with_icemake, (void *)im);
+}
+
+static int with_architecture (const char *arch, void *aux)
+{
+    return icemake_prepare_toolchain
+        (arch, with_toolchain, aux);
+}
+
+int cmain ()
+{
+    int i = 1;
+    const char *target_architecture = (const char *)0;
+    struct icemake_meta im =
+        { sx_end_of_list, fs_afsl,
+          ICEMAKE_OPTION_STATIC | ICEMAKE_OPTION_DYNAMIC_LINKING |
+          ICEMAKE_OPTION_VIS_ICE,
+          1, sx_end_of_list };
+
+    mkdir ("build", 0755);
+
+    i_destlibdir = str_lib;
+
+    while (curie_argv[i])
     {
-        sexpr c = car (sx);
-
-        if (truep(equalp (c, sym_items_total)))
+        if (curie_argv[i][0] == '-')
         {
-            sexpr r = car (cdr(sx));
-            items_total = (int)sx_integer (r);
-            if (items_total < 1) items_total = 1;
-            items_have = 0;
-        }
-        else if (truep(equalp (c, sym_items_remaining)))
-        {
-            sexpr r = car (cdr(sx));
-            int items_remaining = (int)sx_integer (r);
-            if (items_remaining > items_total) items_total = items_remaining;
-            items_have = (items_total - items_remaining);
-            if (items_have < 0) items_have = 0;
-        }
-        else if (truep(equalp (c, sym_phase)))
-        {
-            sexpr r = car (cdr(sx));
-
-            if (falsep (equalp (r, sym_completed)))
+            int y = 1;
+            int xn = i + 1;
+            while (curie_argv[i][y] != 0)
             {
-                phase = r;
+                switch (curie_argv[i][y])
+                {
+                    case 't':
+                        if (curie_argv[xn])
+                        {
+                            target_architecture = curie_argv[xn];
+                            xn++;
+                        }
+                        break;
+                    case 'd':
+                        if (curie_argv[xn])
+                        {
+                            i_destdir = make_string(curie_argv[xn]);
+                            xn++;
+                        }
+                        break;
+                    case 'i':
+                        im.options |=  ICEMAKE_OPTION_INSTALL;
+                        break;
+                    case 'L':
+                        im.options |=  ICEMAKE_OPTION_OPTIMISE_LINKING;
+                        break;
+                    case 'c':
+                        im.options |=  ICEMAKE_OPTION_COMBINE;
+                        break;
+                    case 'S':
+                        im.options |=  ICEMAKE_OPTION_STATIC;
+                        break;
+                    case 'R':
+                        im.options &= ~ICEMAKE_OPTION_STATIC;
+                        break;
+                    case 'x':
+                        do_build_documentation = sx_true;
+                        break;
+                    case 'f':
+                        im.filesystem_layout = fs_fhs;
+                        break;
+                    case 'o':
+                        im.options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
+                        break;
+                    case 'O':
+                        im.options |=  ICEMAKE_OPTION_DYNAMIC_LINKING;
+                        break;
+                    case 's':
+                        im.filesystem_layout = fs_afsl;
+                        break;
+                    case 'l':
+                        if (curie_argv[xn])
+                        {
+                            i_destlibdir = make_string(curie_argv[xn]);
+                            xn++;
+                        }
+                        break;
+                    case 'a':
+                        if (curie_argv[xn] && curie_argv[(xn + 1)])
+                        {
+                            im.alternatives
+                                = cons (cons(make_symbol(curie_argv[xn]),
+                                             make_string(curie_argv[(xn + 1)])),
+                                        im.alternatives);
+
+                            xn += 2;
+                        }
+                        break;
+                    case 'j':
+                        if (curie_argv[xn])
+                        {
+                            char *s = curie_argv[xn];
+                            unsigned int j;
+
+                            im.max_processes = 0;
+
+                            for (j = 0; s[j]; j++)
+                            {
+                                im.max_processes =
+                                    10 * im.max_processes + (s[j]-'0');
+                            }
+
+                            xn++;
+                        }
+
+                        if (im.max_processes == 0)
+                        {
+                            im.max_processes = 1;
+                        }
+                        break;
+                    case 'r':
+                        im.options |=  ICEMAKE_OPTION_TESTS;
+                        break;
+                    case 'm':
+                        im.options &= ~ICEMAKE_OPTION_VIS_RAW;
+                        im.options |=  ICEMAKE_OPTION_VIS_ICE;
+                        break;
+                    case 'M':
+                        im.options &= ~ICEMAKE_OPTION_VIS_ICE;
+                        im.options |=  ICEMAKE_OPTION_VIS_RAW;
+                        break;
+                    case 'v':
+                        print_version ();
+                        return 0;
+                    case 'h':
+                    case '-':
+                        print_help (curie_argv[0]);
+                        return 0;
+                }
+
+                y++;
             }
+
+            i = xn;
         }
-        else if (truep(equalp (c, sym_completed)))
+        else
         {
-            items_have++;
-            if (items_have > items_total) items_have = items_total;
+            im.buildtargets =
+                sx_set_add (im.buildtargets, make_string (curie_argv[i]));
+            i++;
         }
-        else if (truep(equalp (c, sym_failed)))
-        {
-            sexpr code;
-            sexpr programme;
-
-            c         = cdr (sx);
-            code      = car (c);
-            programme = car (cdr (c));
-
-            describe_failure (sx_integer (code), sx_string (programme));
-
-            items_have++;
-            items_failed++;
-            if (items_have > items_total) items_have = items_total;
-        }
-
-        update_screen();
     }
-}
 
-int cmain()
-{
-    struct exec_context *context;
-    int i = 0, argvsize;
-    define_string (str_icemake, "icemake");
-    sexpr icemake;
-    char **argv;
-
-    while (curie_argv[i] != (char *)0) { i++; }
-
-    argvsize = sizeof (char *) * (i + 1);
-    argv = aalloc (argvsize);
-
-    for (i = 0; curie_argv[i] != (char *)0; i++)
+    if (target_architecture != (const char *)0)
     {
-        argv[i] = curie_argv[i];
+        return with_architecture
+            (target_architecture, (void *)&im);
     }
-    curie_argv[i] = (char *)0;
+    else
+    {
+        return icemake_default_architecture
+            (with_architecture,   (void *)&im);
+    }
 
-    multiplex_io();
-    multiplex_sexpr();
-
-    icemake = which (str_icemake);
-
-    if (!stringp (icemake)) return -2;
-
-    out = io_open_stdout ();
-
-    argv[0] = (char *)sx_string (icemake);
-
-    context = execute (EXEC_CALL_PURGE, argv, curie_environment);
-
-    if (context->pid <= 0) return -3;
-
-    multiplex_add_io_no_callback (out);
-    multiplex_add_sexpr (sx_open_io (context->in, context->out),
-                         icemake_read, (void *)0);
-
-    while (multiplex() == mx_ok);
-
-    afree (argvsize, argv);
-
-    complete();
-
-    return items_failed;
 }
-

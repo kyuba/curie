@@ -139,6 +139,7 @@ enum icemake_invocation
 
 enum visualiser
 {
+    vs_stub,
     vs_raw,
     vs_ice
 };
@@ -310,12 +311,14 @@ struct icemake
     int (*install_file) (struct icemake *im, sexpr spec);
 
     int alive_processes;
+    int max_processes;
 
     unsigned long options;
 
     /*! \brief List: Queued tasks */
     sexpr workstack;
-    
+    sexpr alternatives;
+
     struct visualiser_descriptor visualiser;
 };
 
@@ -856,8 +859,9 @@ int icemake_prepare_toolchain_doxygen (struct toolchain_descriptor *td);
 int icemake_prepare_operating_system_generic
     (struct icemake *im, struct toolchain_descriptor *td);
 
-int icemake_prepare_visualiser_raw (struct icemake *im);
-int icemake_prepare_visualiser_ice (struct icemake *im);
+int icemake_prepare_visualiser_stub (struct icemake *im);
+int icemake_prepare_visualiser_raw  (struct icemake *im);
+int icemake_prepare_visualiser_ice  (struct icemake *im);
 
 int icemake_prepare_toolchain
     (const char *name,
@@ -865,6 +869,7 @@ int icemake_prepare_toolchain
 
 int icemake_prepare
     (struct icemake *im, const char *path, struct toolchain_descriptor *td,
+     sexpr alternatives,
      int (*with_data)(struct icemake *, void *), void *aux);
 
 int icemake_default_architecture

@@ -47,26 +47,14 @@
 
 #include <ctype.h>
 
-#if !defined(NOVERSION)
-#include <icemake/version.h>
-#endif
-
-#define ICEMAKE_OPTION_VIS_ICE         (1 << 0x10)
-#define ICEMAKE_OPTION_VIS_RAW         (1 << 0x11)
-
-static unsigned int max_processes      = 1;
-
 sexpr i_destdir                        = sx_false;
 sexpr i_destlibdir                     = sx_false;
-static sexpr in_dynamic_libraries      = sx_nil;
 
 sexpr do_build_documentation           = sx_false;
 
 sexpr p_latex                          = sx_false;
 sexpr p_pdflatex                       = sx_false;
 sexpr p_doxygen                        = sx_false;
-
-static sexpr i_alternatives            = sx_end_of_list;
 
 static void parse_add_definition
     (struct icemake *im, struct toolchain_descriptor *td, sexpr definition);
@@ -76,13 +64,6 @@ struct process_data
     sexpr command;
     struct icemake *icemake;
     int *failures;
-};
-
-struct icemake_meta
-{
-    sexpr buildtargets;
-    enum fs_layout filesystem_layout;
-    unsigned long options;
 };
 
 /* toolchain classification patterns */
@@ -588,7 +569,7 @@ static void find_code (struct target *context, sexpr file)
 
     if (consp (file))
     {
-        sexpr ch = car (file), d = i_alternatives;
+        sexpr ch = car (file), d = context->icemake->alternatives;
 
         while (consp (d))
         {
@@ -939,10 +920,10 @@ static void process_definition
 
         sx_close_io (in);
 
-        if (nilp (in_dynamic_libraries) &&
-            (context->toolchain->options & ICEMAKE_OPTION_FREESTANDING))
+        if ((context->toolchain->operating_system != os_windows) &&
+            !(context->toolchain->options & ICEMAKE_OPTION_FREESTANDING))
         {
-            context->icemake->options |= ICEMAKE_OPTION_DYNAMIC_LINKING;
+            context->icemake->options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
         }
     }
 
@@ -1310,61 +1291,6 @@ static void merge_contexts ( struct icemake *im )
     tree_map (&(im->targets), target_map_merge,   (void *)im);
     tree_map (&(im->targets), target_map_combine, (void *)im);
 }
-
-static void print_help ()
-{
-    struct io *out = io_open_stdout();
-
-#if !defined(NOVERSION)
-    io_collect (out, icemake_version_long "\n\n",
-                sizeof (icemake_version_long) + 1);
-#endif
-#define HELP "Usage: icemake [options] [targets]\n"\
-        "\n"\
-        "Options:\n"\
-        " -h           Print help (this text) and exit.\n"\
-        " -v           Print version and exit.\n\n"\
-        " -t <chost>   Specify target CHOST\n"\
-        " -d <destdir> Specify the directory to install to.\n"\
-        " -i           Install resulting binaries\n"\
-        " -r           Execute runtime tests\n"\
-        " -f           Use the FHS layout for installation\n"\
-        " -l <libdir>  Use <libdir> instead of 'lib' when installing\n"\
-        " -s           Use the default FS layout for installation\n"\
-        " -L           Optimise linking.\n"\
-        " -c           Use gcc's -combine option for C source files.\n"\
-        " -o           Don't link dynamic libraries.\n"\
-        " -O           Do link dynamic libraries.\n"\
-        " -S           Enforce a static link (default).\n"\
-        " -R           Enforce a dynamic link.\n"\
-        " -j <num>     Spawn <num> processes simultaneously.\n"\
-        " -a <1> <2>   Use implementation <2> for code part <1>.\n"\
-        " -x           Build documentation (if possible).\n"\
-        " -m           Use raw output.\n"\
-        " -M           Use nicer output (default).\n"\
-        "\n"\
-        "The [targets] specify a list of things to build, according to the\n"\
-        "icemake.sx file located in the current working directory.\n\n"
-
-    io_collect (out, HELP,
-                sizeof (HELP) - 1);
-
-    io_close (out);
-}
-
-static void print_version ()
-{
-    struct io *out = io_open_stdout();
-
-#if defined(NOVERSION)
-    io_write (out, "icemake (version info not available\n",
-              sizeof ("icemake (version info not available"));
-#else
-    io_write (out, icemake_version_long "\n\n",
-              sizeof (icemake_version_long) + 1);
-#endif
-    io_close (out);
-}
  
 static void write_uname_element (const char *source, char *target, int tlen)
 {
@@ -1572,7 +1498,7 @@ static void spawn_item
 
 static void spawn_stack_items (struct icemake *im, int *fl)
 {
-    while (consp (im->workstack) && ((im->alive_processes) < max_processes))
+    while (consp (im->workstack) && ((im->alive_processes) < im->max_processes))
     {
         sexpr spec = car (im->workstack);
         sexpr sca  = car (spec);
@@ -1683,53 +1609,63 @@ static void save_metadata ( struct icemake *im )
 int icemake_default_architecture
     (int (*with_data)(const char *, void *), void *aux)
 {
-    const char *toolchain = "unknown";
+    const char *toolchain = c_getenv ("CHOST");
+
+    if (toolchain == (const char *)0)
+    {
 #if !defined(_WIN32)
-    struct utsname un;
+        struct utsname un;
 #endif
 
-    char ar_t[UNAMELENGTH] = "generic";
-    char os_t[UNAMELENGTH] = "generic";
-    char ve_t[UNAMELENGTH] = "unknown";
-    sexpr uname_t = sx_false;
+        char ar_t[UNAMELENGTH] = "generic";
+        char os_t[UNAMELENGTH] = "generic";
+        char ve_t[UNAMELENGTH] = "unknown";
+        sexpr uname_t = sx_false;
 
-    if (!falsep(which(str_cl)))
-    {
-        toolchain = "msvc";
-    }
-    else if (!falsep(which(str_bcc32)))
-    {
-        toolchain = "borland";
-    }
-    else /* if nothing specific is found, guess it's gcc*/
-    {
-        toolchain = "gnu";
-    }
+        toolchain = "unknown";
+
+        if (!falsep(which(str_cl)))
+        {
+            toolchain = "msvc";
+        }
+        else if (!falsep(which(str_bcc32)))
+        {
+            toolchain = "borland";
+        }
+        else /* if nothing specific is found, guess it's gcc*/
+        {
+            toolchain = "gnu";
+        }
 
 #if !defined(_WIN32)
-    if (uname (&un) >= 0)
-    {
-        write_uname_element(un.sysname, os_t, UNAMELENGTH - 1);
-        write_uname_element(un.machine, ar_t, UNAMELENGTH - 1);
-    }
+        if (uname (&un) >= 0)
+        {
+            write_uname_element(un.sysname, os_t, UNAMELENGTH - 1);
+            write_uname_element(un.machine, ar_t, UNAMELENGTH - 1);
+        }
 #else
 
-    write_uname_element ("windows",   os_t, UNAMELENGTH-1);
-    write_uname_element ("microsoft", ve_t, UNAMELENGTH-1);
+        write_uname_element ("windows",   os_t, UNAMELENGTH-1);
+        write_uname_element ("microsoft", ve_t, UNAMELENGTH-1);
 
 #if defined(__ia64__) || defined(__ia64) || defined(_M_IA64) || defined(_M_X64)
-    write_uname_element ("x86-64", ar_t, UNAMELENGTH-1);
+        write_uname_element ("x86-64", ar_t, UNAMELENGTH-1);
 #elif defined(i386) || defined(__i386__) || defined(_X86_) || defined(_M_IX86) || defined(__INTEL__)
-    write_uname_element ("x86-32", ar_t, UNAMELENGTH-1);
+        write_uname_element ("x86-32", ar_t, UNAMELENGTH-1);
 #endif
 #endif
 
-    uname_t = lowercase (sx_join (make_string (ar_t), str_dash,
-                         sx_join (make_string (ve_t), str_dash,
-                         sx_join (make_string (os_t), str_dash,
-                                  make_string (toolchain)))));
+        uname_t = lowercase (sx_join (make_string (ar_t), str_dash,
+                             sx_join (make_string (ve_t), str_dash,
+                             sx_join (make_string (os_t), str_dash,
+                                      make_string (toolchain)))));
 
-    return with_data ((char *)sx_string(uname_t), aux);
+        return with_data ((char *)sx_string(uname_t), aux);
+    }
+    else
+    {
+        return with_data ((char *)toolchain, aux);
+    }
 }
 
 int icemake_prepare_toolchain
@@ -1807,11 +1743,6 @@ int icemake_prepare_toolchain
     initialise_toolchain_tex (&td);
     initialise_toolchain_doxygen (&td);
 
-    if (td.operating_system == os_darwin)
-    {
-        in_dynamic_libraries = sx_false;
-    }
-
     switch (td.toolchain)
     {
         case tc_generic: icemake_prepare_toolchain_generic (&td); break;
@@ -1866,6 +1797,7 @@ static void parse_add_definition
 
 int icemake_prepare
     (struct icemake *im, const char *path, struct toolchain_descriptor *td,
+     sexpr alternatives,
      int (*with_data)(struct icemake *, void *), void *aux)
 {
     struct icemake iml =
@@ -1873,7 +1805,7 @@ int icemake_prepare
           sx_end_of_list,
           TREE_INITIALISER,
           (int (*)(struct icemake *, sexpr))0,
-          0, 0, sx_end_of_list };
+          0, 0, 0, sx_end_of_list, sx_end_of_list };
     sexpr icemake_sx_path = make_string (path);
     struct sexpr_io *io;
     sexpr r;
@@ -1883,26 +1815,25 @@ int icemake_prepare
     if (im == (struct icemake *)0)
     {
         im = &iml;
-        icemake_prepare_visualiser_raw (im);
+        icemake_prepare_visualiser_stub (im);
     }
+
+    im->alternatives = sx_set_merge (im->alternatives, alternatives);
  
     icemake_prepare_operating_system_generic (im, td);
  
-    if (nilp(in_dynamic_libraries))
+    if (td != (struct toolchain_descriptor *)0)
     {
-        if (td->operating_system == os_windows)
-        {
-            im->options |= ICEMAKE_OPTION_DYNAMIC_LINKING;
-        }
-        else if (!(td->options & ICEMAKE_OPTION_FREESTANDING))
+        if (td->operating_system == os_darwin)
         {
             im->options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
         }
-    }
-    else
-    {
-        im->options |= (truep (in_dynamic_libraries) ?
-                         ICEMAKE_OPTION_DYNAMIC_LINKING : 0);
+
+        if ((td->operating_system != os_windows) &&
+            !(td->options & ICEMAKE_OPTION_FREESTANDING))
+        {
+            im->options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
+        }
     }
 
     icemake_sx_path = sx_join (icemake_sx_path, str_sicemakedsx, sx_nil);
@@ -1994,6 +1925,17 @@ int icemake
     read_metadata  (im);
     merge_contexts (im);
 
+    multiplex_io();
+/*    multiplex_all_processes();*/
+    multiplex_signal_primary();
+    multiplex_process();
+    multiplex_sexpr();
+
+    multiplex_add_signal (sig_segv, cb_on_bad_signal, (void *)0);
+    multiplex_add_signal (sig_int,  cb_on_bad_signal, (void *)0);
+    multiplex_add_signal (sig_term, cb_on_bad_signal, (void *)0);
+    multiplex_add_signal (sig_bus,  cb_on_bad_signal, (void *)0);
+
     if (!consp(im->buildtargets))
     {
         tree_map (&(im->targets), collect_targets, &(im->buildtargets));
@@ -2038,205 +1980,4 @@ int icemake
     save_metadata (im);
 
     return failures;
-}
-
-static int with_icemake (struct icemake *im, void *aux)
-{
-    struct icemake_meta *imc = (struct icemake_meta *)aux;
-
-    im->filesystem_layout  = imc->filesystem_layout;
-    im->buildtargets       = imc->buildtargets;
-    im->options           |= imc->options;
-
-    if (im->options & ICEMAKE_OPTION_VIS_ICE)
-    {
-        icemake_prepare_visualiser_ice (im);
-        im->options &= ~ICEMAKE_OPTION_VIS_ICE;
-    }
-
-    if (im->options & ICEMAKE_OPTION_VIS_RAW)
-    {
-        icemake_prepare_visualiser_raw (im);
-        im->options &= ~ICEMAKE_OPTION_VIS_RAW;
-    }
-
-    return icemake (im);
-}
-
-static int with_toolchain (struct toolchain_descriptor *td, void *aux)
-{
-    struct icemake_meta *im = (struct icemake_meta *)aux;
-
-    return icemake_prepare
-        ((struct icemake *)0, ".", td, with_icemake, (void *)im);
-}
-    
-static int with_architecture (const char *arch, void *aux)
-{
-    return icemake_prepare_toolchain
-        (arch, with_toolchain, aux);
-}
-
-int cmain ()
-{
-    int i = 1;
-    const char *target_architecture = c_getenv("CHOST");
-    struct icemake_meta im =
-        { sx_end_of_list, fs_afsl,
-          ICEMAKE_OPTION_STATIC | ICEMAKE_OPTION_DYNAMIC_LINKING |
-          ICEMAKE_OPTION_VIS_ICE };
-
-    mkdir ("build", 0755);
-
-    i_destlibdir = str_lib;
-
-    while (curie_argv[i])
-    {
-        if (curie_argv[i][0] == '-')
-        {
-            int y = 1;
-            int xn = i + 1;
-            while (curie_argv[i][y] != 0)
-            {
-                switch (curie_argv[i][y])
-                {
-                    case 't':
-                        if (curie_argv[xn])
-                        {
-                            target_architecture = curie_argv[xn];
-                            xn++;
-                        }
-                        break;
-                    case 'd':
-                        if (curie_argv[xn])
-                        {
-                            i_destdir = make_string(curie_argv[xn]);
-                            xn++;
-                        }
-                        break;
-                    case 'i':
-                        im.options |=  ICEMAKE_OPTION_INSTALL;
-                        break;
-                    case 'L':
-                        im.options |=  ICEMAKE_OPTION_OPTIMISE_LINKING;
-                        break;
-                    case 'c':
-                        im.options |=  ICEMAKE_OPTION_COMBINE;
-                        break;
-                    case 'S':
-                        im.options |=  ICEMAKE_OPTION_STATIC;
-                        break;
-                    case 'R':
-                        im.options &= ~ICEMAKE_OPTION_STATIC;
-                        break;
-                    case 'x':
-                        do_build_documentation = sx_true;
-                        break;
-                    case 'f':
-                        im.filesystem_layout = fs_fhs;
-                        break;
-                    case 'o':
-                        in_dynamic_libraries = sx_false;
-                        break;
-                    case 'O':
-                        in_dynamic_libraries = sx_true;
-                        break;
-                    case 's':
-                        im.filesystem_layout = fs_afsl;
-                        break;
-                    case 'l':
-                        if (curie_argv[xn])
-                        {
-                            i_destlibdir = make_string(curie_argv[xn]);
-                            xn++;
-                        }
-                        break;
-                    case 'a':
-                        if (curie_argv[xn] && curie_argv[(xn + 1)])
-                        {
-                            i_alternatives
-                                    = cons (cons
-                                        (make_symbol(curie_argv[xn]),
-                                         make_string(curie_argv[(xn + 1)])),
-                                      i_alternatives);
-
-                            xn += 2;
-                        }
-                        break;
-                    case 'j':
-                        if (curie_argv[xn])
-                        {
-                            char *s = curie_argv[xn];
-                            unsigned int j;
-
-                            max_processes = 0;
-
-                            for (j = 0; s[j]; j++)
-                            {
-                                max_processes = 10 * max_processes + (s[j]-'0');
-                            }
-
-                            xn++;
-                        }
-
-                        if (max_processes == 0)
-                        {
-                            max_processes = 1;
-                        }
-                        break;
-                    case 'r':
-                        im.options |=  ICEMAKE_OPTION_TESTS;
-                        break;
-                    case 'm':
-                        im.options &= ~ICEMAKE_OPTION_VIS_RAW;
-                        im.options |=  ICEMAKE_OPTION_VIS_ICE;
-                        break;
-                    case 'M':
-                        im.options &= ~ICEMAKE_OPTION_VIS_ICE;
-                        im.options |=  ICEMAKE_OPTION_VIS_RAW;
-                        break;
-                    case 'v':
-                        print_version ();
-                        return 0;
-                    case 'h':
-                    case '-':
-                        print_help (curie_argv[0]);
-                        return 0;
-                }
-
-                y++;
-            }
-
-            i = xn;
-        }
-        else
-        {
-            im.buildtargets =
-                sx_set_add (im.buildtargets, make_string (curie_argv[i]));
-            i++;
-        }
-    }
-
-    multiplex_io();
-/*    multiplex_all_processes();*/
-    multiplex_signal_primary();
-    multiplex_process();
-    multiplex_sexpr();
-
-    multiplex_add_signal (sig_segv, cb_on_bad_signal, (void *)0);
-    multiplex_add_signal (sig_int,  cb_on_bad_signal, (void *)0);
-    multiplex_add_signal (sig_term, cb_on_bad_signal, (void *)0);
-    multiplex_add_signal (sig_bus,  cb_on_bad_signal, (void *)0);
-
-    if (target_architecture != (const char *)0)
-    {
-        return with_architecture
-            (target_architecture, (void *)&im);
-    }
-    else
-    {
-        return icemake_default_architecture
-            (with_architecture,   (void *)&im);
-    }
-
 }

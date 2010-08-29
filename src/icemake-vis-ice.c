@@ -29,40 +29,177 @@
 #include <icemake/icemake.h>
 #include <curie/multiplex.h>
 
+#define WIDTH 78
+static int items_total  = 1;
+static int items_have   = 0;
+static int items_failed = 0;
+static sexpr phase      = sx_false;
+
+static void update_screen
+    (struct icemake *im)
+{
+    char buffer[0x1000] = " * ";
+    const char *s = sx_symbol (phase);
+    int i = 3, p = 4, j, x;
+
+    for (j = 0; s[j] != (char)0; j++, i++, p++)
+    {
+        buffer[i] = s[j];
+    }
+
+    buffer[i]     = ' ';
+    buffer[i+1]   = '[';
+    buffer[i+2]   = ' ';
+    i += 3;
+
+    if (items_have > items_total) items_have = items_total;
+
+    for (j = 0, x = ((double)items_have / (double)items_total)
+                        * (WIDTH - p - 3);
+         j < x; j++, i++, p++)
+    {
+        buffer[i] = '#';
+    }
+
+    for (j = 0, x = WIDTH - p - 3; j < x; j++, i++, p++)
+    {
+        buffer[i] = ' ';
+    }
+
+    buffer[i]     = ' ';
+    buffer[i+1]   = ']';
+    buffer[i+2]   = '\r';
+    i += 3;
+
+    io_write (im->visualiser.meta.ice.out, buffer, i);
+}
+
+static void describe_failure
+    (struct icemake *im, unsigned int code, const char *programme)
+{
+    char buffer[0x1000] = " [ 000 ] ";
+    int i = 9, p = 10, j, x;
+
+    buffer[5] = '0' + (code % 10);
+    code /= 10;
+    buffer[4] = '0' + (code % 10);
+    code /= 10;
+    buffer[3] = '0' + (code % 10);
+
+    for (j = 0, x = (WIDTH - p);
+         (j < x) && (programme[j] != (char)0); j++, i++, p++)
+    {
+        buffer[i] = programme[j];
+    }
+
+    for (j = 0, x = WIDTH - p + 2; j < x; j++, i++, p++)
+    {
+        buffer[i] = ' ';
+    }
+
+    buffer[i]   = '\n';
+    i++;
+
+    io_write (im->visualiser.meta.ice.out, buffer, i);
+}
+
+static void complete
+    (struct icemake *im)
+{
+    io_write (im->visualiser.meta.ice.out,
+              (char*)"\r                                              "
+                     "                                 \r", 81);
+}
+
 static void items
     (struct icemake *im, int count)
 {
-    sx_write (im->visualiser.meta.raw.stdio,
-              cons (sym_items_total,
-                    cons (make_integer (count), sx_end_of_list)));
+    items_total = count;
+    if (items_total < 1)
+    {
+        items_total = 1;
+    }
+    items_have = 0;
+}
+
+static void icemake_read (struct icemake *im, sexpr sx)
+{
+    if (consp (sx))
+    {
+        sexpr c = car (sx);
+
+        if (truep(equalp (c, sym_items_remaining)))
+        {
+            sexpr r = car (cdr(sx));
+            int items_remaining = (int)sx_integer (r);
+            if (items_remaining > items_total) items_total = items_remaining;
+            items_have = (items_total - items_remaining);
+            if (items_have < 0) items_have = 0;
+        }
+        else if (truep(equalp (c, sym_phase)))
+        {
+            sexpr r = car (cdr(sx));
+
+            if (falsep (equalp (r, sym_completed)))
+            {
+                phase = r;
+            }
+        }
+
+        update_screen (im);
+    }
 }
 
 static void on_command
     (struct icemake *im, sexpr cmd)
 {
-    sx_write (im->visualiser.meta.raw.stdio, cmd);
+    icemake_read (im, cmd);
 }
 
 static void on_command_done
     (struct icemake *im, sexpr cmd)
 {
-    sx_write (im->visualiser.meta.raw.stdio,
-              cons (sym_completed, cons (cmd, sx_end_of_list)));
+    items_have++;
+
+    if (items_have > items_total)
+    {
+        items_have = items_total;
+    }
+
+    if (items_have == items_total)
+    {
+        complete (im);
+    }
 }
 
 static void on_error
     (struct icemake *im, enum icemake_error error, sexpr sx)
 {
+    sexpr c;
+
     if (error != ie_problematic_signal)
     {
-        sx_write (im->visualiser.meta.raw.stdio, cons (sym_error, sx));
+        sexpr code;
+        sexpr programme;
+
+        c         = cdr (sx);
+        code      = car (c);
+        programme = car (cdr (c));
+
+        describe_failure (im, sx_integer (code), sx_string (programme));
+
+        items_failed++;
+        if (items_have > items_total)
+        {
+            items_have = items_total;
+        }
     }
 }
 
 static void on_warning
     (struct icemake *im, enum icemake_error error, sexpr sx)
 {
-    sx_write (im->visualiser.meta.raw.stdio, cons (sym_warning, sx));
+    on_error (im, error, sx);
 }
 
 int icemake_prepare_visualiser_ice (struct icemake *im)
@@ -74,9 +211,9 @@ int icemake_prepare_visualiser_ice (struct icemake *im)
     im->visualiser.on_command_done = on_command_done;
     im->visualiser.on_error        = on_error;
     im->visualiser.on_warning      = on_warning;
-    im->visualiser.meta.raw.stdio  = sx_open_stdout();
+    im->visualiser.meta.ice.out    = io_open_stdout();
 
-    multiplex_add_sexpr (im->visualiser.meta.raw.stdio, (void *)0, (void *)0);
+    multiplex_add_io_no_callback (im->visualiser.meta.ice.out);
 
     return 0;
 }
