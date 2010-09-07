@@ -150,6 +150,8 @@ int cmain ()
           ICEMAKE_OPTION_VIS_ICE,
           1, sx_end_of_list };
 
+    initialise_icemake ();
+
     mkdir ("build", 0755);
 
     i_destlibdir = str_lib;

@@ -50,14 +50,13 @@ int cmain(void) {
 
     context = execute(EXEC_CALL_PURGE, (char **)0, (char **)0);
 
-    stdio = sx_open_stdio();
-
     switch (context->pid) {
         case -1: /* only way this would fail ... */
-            sx_write (stdio, sym_failure);
             return 1;
         case 0:
             {
+                stdio = sx_open_stdio();
+
                 do {
                     i = sx_read(stdio);
                 } while (i == sx_nonexistent);
@@ -72,6 +71,8 @@ int cmain(void) {
 
                 i = sx_read(stdio);
                 rv |= (equalp(i, sx_nonexistent) ? 0 : 1) << 3;
+
+                sx_close_io (stdio);
             }
 
             break;
@@ -89,22 +90,12 @@ int cmain(void) {
                 } while (i == sx_nonexistent);
 
                 rv |= (equalp(i, t3) ? 0 : 1) << 4;
-                sx_write (stdio, i);
 
                 sx_close_io (io);
             }
 
             break;
     }
-
-    if (rv != 0) {
-        sx_write (stdio, sym_failure);
-        sx_write (stdio, make_integer (rv));
-    } else {
-        sx_write (stdio, t3);
-    }
-
-    sx_close_io (stdio);
 
     if (context->pid > 0) {
         while (context->status == ps_running)

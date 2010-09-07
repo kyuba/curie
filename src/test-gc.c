@@ -39,6 +39,11 @@ static void dummy (int i)
     }
 }
 
+static sexpr use (sexpr t)
+{
+    return equalp (t, t);
+}
+
 int cmain (void) {
     sexpr test = make_string ("keep");
     unsigned long rv;
@@ -48,7 +53,7 @@ int cmain (void) {
     /* it should clean *something*, but not all 4 allocated sexprs, so: */
     rv = gc_invoke();
 
-    sx_write (sx_open_stdio(), test);
+    (sexpr)use (test);
 
     return !((rv > 0) && (rv < 4));
 }

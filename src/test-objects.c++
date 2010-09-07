@@ -31,9 +31,8 @@
 
 class X {
   public:
-    void foo () {
-        struct sexpr_io *io = sx_open_stdio();
-        sx_write (io, make_string(text));
+    char * foo () {
+        return text;
     }
 
     X(char *btext) {
@@ -51,14 +50,16 @@ class X {
 /*X z = X("success");*/
 
 int cxxmain() {
-  X *y = new X("meow");
-  X z = X("success");
-  X u;
+    int rv = 0;
+    X *y = new X("meow");
+    X z = X("success");
+    X u;
 
-  u.foo();
-  y->foo();
-  z.foo();
+    if (u.foo()  != "foo")     rv++;
+    if (y->foo() != "meow")    rv++;
+    if (z.foo()  != "success") rv++;
 
-  delete y;
-  return 0;
+    delete y;
+    
+    return rv;
 }

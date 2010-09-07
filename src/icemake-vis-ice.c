@@ -200,16 +200,13 @@ static void on_command_done
 static void on_error
     (struct icemake *im, enum icemake_error error, sexpr sx)
 {
-    sexpr c;
-
     if (error != ie_problematic_signal)
     {
         sexpr code;
         sexpr programme;
 
-        c         = cdr (sx);
-        code      = car (c);
-        programme = car (cdr (c));
+        code      = car (sx);
+        programme = cdr (sx);
 
         describe_failure (im, sx_integer (code), sx_string (programme));
 

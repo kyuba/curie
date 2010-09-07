@@ -38,14 +38,13 @@ define_symbol(sym_failure, "failure");
 
 int cmain(void) {
     struct io *in, *out;
-    struct sexpr_io *io, *stdio;
+    struct sexpr_io *io;
     sexpr i, t1, t2;
     int rv = 0;
 
     net_open_loop(&in, &out);
 
     io = sx_open_io(in, out);
-    stdio = sx_open_stdio();
 
     t1 = test_symbol_1;
     t2 = test_string_1;
@@ -74,14 +73,7 @@ int cmain(void) {
 
     rv |= (nexp(i) ? 0 : 1) << 3;
 
-    if (rv != 0) {
-        sx_write (stdio, sym_failure);
-    } else {
-        sx_write (stdio, sym_success);
-    }
-
     sx_close_io (io);
-    sx_close_io (stdio);
 
     return rv;
 }

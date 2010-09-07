@@ -43,13 +43,12 @@ int cmain(void) {
           t1 = test_symbol_1,
           t2 = test_string_1,
           t3 = sym_success;
-    struct sexpr_io *io, *stdio = sx_open_stdio();
+    struct sexpr_io *io;
 
     context = execute(0, (char **)0, (char **)0);
 
     switch (context->pid) {
         case -1: /* only way this would fail ... */
-            sx_write (stdio, sym_failure);
             return 1;
         case 0:
             {
@@ -97,15 +96,7 @@ int cmain(void) {
             break;
     }
 
-    if (rv != 0) {
-        sx_write (stdio, sym_failure);
-        sx_write (stdio, make_integer (rv));
-    } else {
-        sx_write (stdio, t3);
-    }
-
     sx_close_io (io);
-    sx_close_io (stdio);
 
     if (context->pid > 0) {
         while (context->status == ps_running)

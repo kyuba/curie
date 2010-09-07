@@ -796,6 +796,8 @@ define_string (str_blank,               "");
  */
 sexpr prepend_flags_from_environment (sexpr x, const char *var);
 
+void initialise_icemake ( void );
+
 /*! \brief Build Targets
  *  \param[in] icemake Icemake handle.
  */

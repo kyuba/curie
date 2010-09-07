@@ -1928,6 +1928,22 @@ static sexpr dependency_sort (sexpr a, sexpr b, void *aux)
     return sx_false;
 }
 
+void initialise_icemake ( void )
+{
+    static int initialised = 0;
+
+    if (initialised == (char)0)
+    {
+        multiplex_io();
+/*        multiplex_all_processes();*/
+        multiplex_signal_primary();
+        multiplex_process();
+        multiplex_sexpr();
+
+        initialised = (char)1;
+    }
+}
+
 int icemake
     (struct icemake *im)
 {
@@ -1935,12 +1951,6 @@ int icemake
 
     read_metadata  (im);
     merge_contexts (im);
-
-    multiplex_io();
-/*    multiplex_all_processes();*/
-    multiplex_signal_primary();
-    multiplex_process();
-    multiplex_sexpr();
 
     multiplex_add_signal (sig_segv, cb_on_bad_signal, (void *)0);
     multiplex_add_signal (sig_int,  cb_on_bad_signal, (void *)0);

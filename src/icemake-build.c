@@ -126,7 +126,7 @@ static void create_special_files (struct target *t)
         {
             buffer[i] = 'x';
         }
-        else if ((c < 'a') && (c > 'z') && (c < 'A') && (c > 'Z'))
+        else if (!((c >= 'a') && (c <= 'z')) && !((c >= 'A') && (c <= 'Z')))
         {
             buffer[i] = '_';
         }
