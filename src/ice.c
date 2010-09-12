@@ -30,7 +30,10 @@
 #include <curie/main.h>
 
 #if !defined(NOVERSION)
+#include <curie/version.h>
+#include <sievert/version.h>
 #include <icemake/version.h>
+#include <ice/version.h>
 #endif
 
 #define ICEMAKE_OPTION_VIS_ICE         (1 << 0x10)
@@ -45,15 +48,30 @@ struct icemake_meta
     sexpr alternatives;
 };
 
+static void print_version_wo (struct io *out)
+{
+#if defined(NOVERSION)
+    io_write (out, "icemake (version info not available\n",
+              sizeof ("icemake (version info not available"));
+#else
+    io_collect (out, ice_version_long "\n"
+                     icemake_version_long "\n"
+                     curie_version_long "\n"
+                     sievert_version_long "\n",
+                sizeof (ice_version_long) +
+                sizeof (icemake_version_long) +
+                sizeof (curie_version_long) +
+                sizeof (sievert_version_long));
+#endif
+}
+
 static void print_help ()
 {
     struct io *out = io_open_stdout();
 
-#if !defined(NOVERSION)
-    io_collect (out, icemake_version_long "\n\n",
-                sizeof (icemake_version_long) + 1);
-#endif
-#define HELP "Usage: icemake [options] [targets]\n"\
+    print_version_wo (out);
+
+#define HELP "\nUsage: ice [options] [targets]\n"\
         "\n"\
         "Options:\n"\
         " -h           Print help (this text) and exit.\n"\
@@ -90,13 +108,8 @@ static void print_version ()
 {
     struct io *out = io_open_stdout();
 
-#if defined(NOVERSION)
-    io_write (out, "icemake (version info not available\n",
-              sizeof ("icemake (version info not available"));
-#else
-    io_write (out, icemake_version_long "\n\n",
-              sizeof (icemake_version_long) + 1);
-#endif
+    print_version_wo (out);
+
     io_close (out);
 }
 

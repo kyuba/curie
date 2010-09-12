@@ -44,8 +44,6 @@ static int prepare_target (struct target *t)
 
 static int run_tests_target (struct target *t)
 {
-    sexpr cur;
-
     if (t->toolchain->test != (int (*)(struct target *))0)
     {
         return t->toolchain->test (t);

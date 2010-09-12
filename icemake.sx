@@ -206,7 +206,7 @@
 (programme "ice" libcurie
   (name "ice")
   (description "Pretty-printing tool for icemake")
-  (version "2")
+  (version "3")
 
   (libraries "sievert" "syscall" "icemake")
 
