@@ -118,37 +118,88 @@ void metadata_to_unix
         }
     }
 
-    for (i = 0; i < metadata->relation_count; i++)
-    {
-    }
-
     for (i = 0; i < metadata->acl_count; i++)
     {
-    }
+        struct metadata_acl *acl = metadata->acl + i;
+
+        switch (acl->target_type)
+        {
+            case mct_owning_user:
+                *mode = ((*mode) & ~0700)
+                      | ((acl->access & MCT_READ)    ? 0400 : 0)
+                      | ((acl->access & MCT_WRITE)   ? 0200 : 0)
+                      | ((acl->access & MCT_EXECUTE) ? 0100 : 0);
+                break;
+            case mct_owning_group:
+                *mode = ((*mode) & ~0070)
+                      | ((acl->access & MCT_READ)    ? 0040 : 0)
+                      | ((acl->access & MCT_WRITE)   ? 0020 : 0)
+                      | ((acl->access & MCT_EXECUTE) ? 0010 : 0);
+                break;
+            case mct_default:
+                *mode = ((*mode) & ~0007)
+                      | ((acl->access & MCT_READ)    ? 0004 : 0)
+                      | ((acl->access & MCT_WRITE)   ? 0002 : 0)
+                      | ((acl->access & MCT_EXECUTE) ? 0001 : 0);
+                break;
+            default:
+                break;
+        }
+   }
 
     if (metadata->classification != (struct metadata_classification **)0)
     {
-        for (i = 0; metadata->classification[i] !=
-                        (struct metadata_classification *)0; i++)
+        struct metadata_classification **c = metadata->classification;
+        struct metadata_classification_unix_type *cu;
+
+        while ((*c) != (struct metadata_classification *)0)
         {
+            cu = (struct metadata_classification_unix_type *)(*c);
+
+            switch ((*c)->type)
+            {
+                case mdt_unix:
+                    *classification = cu->classification;
+                    break;
+                default:
+                    break;
+            }
+
+            c++;
         }
     }
 
     if (metadata->attribute != (struct metadata_attribute **)0)
     {
-        for (i = 0; metadata->attribute[i] !=
-                        (struct metadata_attribute *)0; i++)
+        struct metadata_attribute **a = metadata->attribute;
+        struct metadata_attribute_integer *ai;
+
+        while ((*a) != (struct metadata_attribute *)0)
         {
+            ai = (struct metadata_attribute_integer *)(*a);
+
+            switch ((*a)->type)
+            {
+                case mat_source_device_id:
+//                case mat_link_device_id:
+                    *device = ai->integer;
+                    break;
+                case mat_user_id:
+                    *uid = ai->integer;
+                    break;
+                case mat_group_id:
+                    *gid = ai->integer;
+                    break;
+                case mat_flags:
+                    *mode |= ((ai->integer & MAT_SET_UID) ? 0x800 : 0)
+                           | ((ai->integer & MAT_SET_GID) ? 0x400 : 0)
+                           | ((ai->integer & MAT_STICKY)  ? 0x200 : 0);
+                    break;
+                default:
+                    break;
+            }
+
+            a++;
         }
     }
-
-    if (metadata->signature != (struct metadata_signature **)0)
-    {
-        for (i = 0; metadata->signature[i] !=
-                        (struct metadata_signature *)0; i++)
-        {
-        }
-    }
-
-#pragma message("metadata_to_unix() incomplete")
 }

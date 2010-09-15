@@ -439,80 +439,32 @@ static void reset_cpio (struct cpio *cpio, struct metadata *metadata)
 
     if (metadata)
     {
-        int i, j;
+        enum metadata_classification_unix classification = mcu_file;
+        int uid = 0, gid = 0, mode = 0100644, device = 1, attributes = 0;
+        long atime, mtime, ctime, size;
 
-        for (i = 0, j = metadata->datetime_count; i < j; i++)
+        metadata_to_unix
+            (metadata, &classification, &uid, &gid, &mode, &atime,
+             &mtime, &ctime, &size, &device, &attributes);
+
+        cpio->mode   = mode & 0xf000;
+        cpio->mtime  = mtime;
+        cpio->uid    = uid;
+        cpio->gid    = gid;
+        cpio->device = device;
+
+        cpio->mode   = (cpio->mode & 0xf000);
+
+        switch (classification)
         {
-            struct metadata_datetime *dt = metadata->datetime + i;
-
-            if (dt->purpose == mdp_last_modification)
-            {
-                cpio->mtime = dt_to_unix (&(dt->datetime));
-            }
-        }
-
-        for (i = 0, j = metadata->acl_count; i < j; i++)
-        {
-            struct metadata_acl *acl = metadata->acl + i;
-
-            switch (acl->target_type)
-            {
-                case mct_owning_user:
-                    cpio->mode = (cpio->mode & ~0700)
-                               | ((acl->access & MCT_READ)    ? 0400 : 0)
-                               | ((acl->access & MCT_WRITE)   ? 0200 : 0)
-                               | ((acl->access & MCT_EXECUTE) ? 0100 : 0);
-                    break;
-                case mct_owning_group:
-                    cpio->mode = (cpio->mode & ~0070)
-                               | ((acl->access & MCT_READ)    ? 0040 : 0)
-                               | ((acl->access & MCT_WRITE)   ? 0020 : 0)
-                               | ((acl->access & MCT_EXECUTE) ? 0010 : 0);
-                    break;
-                case mct_default:
-                    cpio->mode = (cpio->mode & ~0007)
-                               | ((acl->access & MCT_READ)    ? 0004 : 0)
-                               | ((acl->access & MCT_WRITE)   ? 0002 : 0)
-                               | ((acl->access & MCT_EXECUTE) ? 0001 : 0);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        if (metadata->classification != (struct metadata_classification **)0)
-        {
-            struct metadata_classification **c = metadata->classification;
-            struct metadata_classification_unix_type *cu;
-
-            while ((*c) != (struct metadata_classification *)0)
-            {
-                cu = (struct metadata_classification_unix_type *)(*c);
-
-                switch ((*c)->type)
-                {
-                    case mdt_unix:
-                        cpio->mode = (cpio->mode & 0xf000);
-
-                        switch (cu->classification)
-                        {
-                            case mcu_socket:        cpio->mode |= 0xc000; break;
-                            case mcu_symbolic_link: cpio->mode |= 0xa000; break;
-                            case mcu_file:          cpio->mode |= 0x8000; break;
-                            case mcu_block_device:  cpio->mode |= 0x6000; break;
-                            case mcu_directory:     cpio->mode |= 0x4000; break;
-                            case mcu_character_device:
-                                                    cpio->mode |= 0x2000; break;
-                            case mcu_fifo:          cpio->mode |= 0x1000; break;
-                            default:                cpio->mode |= 0x8000; break;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-
-                c++;
-            }
+            case mcu_socket:           cpio->mode |= 0xc000; break;
+            case mcu_symbolic_link:    cpio->mode |= 0xa000; break;
+            case mcu_file:             cpio->mode |= 0x8000; break;
+            case mcu_block_device:     cpio->mode |= 0x6000; break;
+            case mcu_directory:        cpio->mode |= 0x4000; break;
+            case mcu_character_device: cpio->mode |= 0x2000; break;
+            case mcu_fifo:             cpio->mode |= 0x1000; break;
+            default:                   cpio->mode |= 0x8000; break;
         }
 
         if (metadata->attribute != (struct metadata_attribute **)0)
@@ -526,28 +478,14 @@ static void reset_cpio (struct cpio *cpio, struct metadata *metadata)
 
                 switch ((*a)->type)
                 {
-                    case mat_source_device_id:
-                        cpio->device = ai->integer;
-                        break;
                     case mat_inode:
                         cpio->inode = ai->integer;
-                        break;
-                    case mat_user_id:
-                        cpio->uid = ai->integer;
-                        break;
-                    case mat_group_id:
-                        cpio->gid = ai->integer;
                         break;
                     case mat_link_count:
                         cpio->links = ai->integer;
                         break;
                     case mat_link_device_id:
                         cpio->device_id = ai->integer;
-                        break;
-                    case mat_flags:
-                        cpio->mode |= ((ai->integer & MAT_SET_UID) ? 0x800 : 0)
-                                    | ((ai->integer & MAT_SET_GID) ? 0x400 : 0)
-                                    | ((ai->integer & MAT_STICKY)  ? 0x200 : 0);
                         break;
                     default:
                         break;
