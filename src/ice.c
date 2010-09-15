@@ -119,7 +119,6 @@ static int with_icemake (struct icemake *im, void *aux)
 
     im->filesystem_layout  = imc->filesystem_layout;
     im->buildtargets       = imc->buildtargets;
-    im->options           |= imc->options;
 
     im->max_processes      = imc->max_processes;
 
@@ -143,7 +142,7 @@ static int with_toolchain (struct toolchain_descriptor *td, void *aux)
     struct icemake_meta *im = (struct icemake_meta *)aux;
 
     return icemake_prepare
-        ((struct icemake *)0, ".", td, im->alternatives,
+        ((struct icemake *)0, ".", td, im->options, im->alternatives,
          with_icemake, (void *)im);
 }
 

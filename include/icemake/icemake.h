@@ -871,7 +871,7 @@ int icemake_prepare_toolchain
 
 int icemake_prepare
     (struct icemake *im, const char *path, struct toolchain_descriptor *td,
-     sexpr alternatives,
+     unsigned long options, sexpr alternatives,
      int (*with_data)(struct icemake *, void *), void *aux);
 
 int icemake_default_architecture

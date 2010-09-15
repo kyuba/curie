@@ -1808,7 +1808,7 @@ static void parse_add_definition
 
 int icemake_prepare
     (struct icemake *im, const char *path, struct toolchain_descriptor *td,
-     sexpr alternatives,
+     unsigned long options, sexpr alternatives,
      int (*with_data)(struct icemake *, void *), void *aux)
 {
     struct icemake iml =
@@ -1816,7 +1816,7 @@ int icemake_prepare
           sx_end_of_list,
           TREE_INITIALISER,
           (int (*)(struct icemake *, sexpr))0,
-          0, 0, 0, sx_end_of_list, sx_end_of_list };
+          0, 0, options, sx_end_of_list, sx_end_of_list };
     sexpr icemake_sx_path = make_string (path);
     struct sexpr_io *io;
     sexpr r;
