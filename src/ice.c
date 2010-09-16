@@ -265,11 +265,11 @@ int cmain ()
                     case 'r':
                         im.options |=  ICEMAKE_OPTION_TESTS;
                         break;
-                    case 'm':
+                    case 'M':
                         im.options &= ~ICEMAKE_OPTION_VIS_RAW;
                         im.options |=  ICEMAKE_OPTION_VIS_ICE;
                         break;
-                    case 'M':
+                    case 'm':
                         im.options &= ~ICEMAKE_OPTION_VIS_ICE;
                         im.options |=  ICEMAKE_OPTION_VIS_RAW;
                         break;
