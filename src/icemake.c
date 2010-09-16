@@ -1486,9 +1486,11 @@ static void spawn_item
     {
         case -1: im->visualiser.on_error
                     (im, ie_failed_to_spawn_subprocess, sx_end_of_list);
+                 cexit(-1);
                  break;
         case 0:  im->visualiser.on_error
                     (im, ie_failed_to_execute_binary_image, sx_end_of_list);
+                 cexit(0);
                  break;
         default: (im->alive_processes)++;
                  multiplex_add_process (context, f, (void *)pd);
