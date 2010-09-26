@@ -1209,34 +1209,6 @@ static struct target *create_documentation
     return context;
 }
 
-static void target_map_prepare_archives (struct tree_node *node, void *u)
-{
-    struct target *context = (struct target *)node_get_value(node);
-    sexpr c = context->code, d, da, dd;
-
-    while (consp (c))
-    {
-        d  = car (c);
-        da = car (d);
-
-        if (truep (equalp (da, sym_raw_c)))
-        {
-            context->code = sx_set_remove (context->code, d);
-        }
-        else if (truep (equalp (da, sym_cpio_c)))
-        {
-            context->code = sx_set_remove (context->code, d);
-        }
-
-        c  = cdr (c);
-    }
-}
-
-static void prepare_archives (struct icemake *im)
-{
-    tree_map (&(im->targets), target_map_prepare_archives, (void *)im);
-}
-
 static void combine_code (struct target *context, sexpr type, sexpr object_file)
 {
     sexpr ccur = sx_end_of_list;
@@ -2004,9 +1976,9 @@ int icemake
 {
     int failures = 0;
 
-    read_metadata    (im);
-    prepare_archives (im);
-    merge_contexts   (im);
+    read_metadata            (im);
+    icemake_prepare_archives (im);
+    merge_contexts           (im);
 
     multiplex_add_signal (sig_segv, cb_on_bad_signal, (void *)0);
     multiplex_add_signal (sig_int,  cb_on_bad_signal, (void *)0);

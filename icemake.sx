@@ -209,7 +209,8 @@
         "icemake-tc-generic" "icemake-tc-gcc" "icemake-tc-borland"
         "icemake-tc-msvc" "icemake-tc-latex" "icemake-tc-doxygen"
         "icemake-os-generic"
-        "icemake-vis-stub" "icemake-vis-raw" "icemake-vis-ice")
+        "icemake-vis-stub" "icemake-vis-raw" "icemake-vis-ice"
+        "icemake-archive")
 
   (documentation
         "icemake" "ice" "icemake.sx"))

@@ -789,6 +789,8 @@ define_string (str_1,                   "1");
 define_string (str_blank,               "");
 /*! \brief Predefined String */
 define_string (str_archive,             "archive");
+/*! \brief Predefined String */
+define_string (str_datas,               "data-");
 
 /*! \brief Prefix List with Elements from an Environment Variable
  *  \param[in] x   The original list.
@@ -804,6 +806,8 @@ define_string (str_archive,             "archive");
 sexpr prepend_flags_from_environment (sexpr x, const char *var);
 
 void initialise_icemake ( void );
+
+void icemake_prepare_archives (struct icemake *icemake);
 
 /*! \brief Build Targets
  *  \param[in] icemake Icemake handle.
