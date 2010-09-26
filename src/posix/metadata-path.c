@@ -62,7 +62,7 @@ void metadata_from_path
     {
         struct metadata_indirection i = { with_metadata, aux };
         enum metadata_classification_unix c;
-        int attributes;
+        int attributes = 0;
 
              if (0xc000 & st.st_mode) { c = mcu_socket;           }
         else if (0xa000 & st.st_mode) { c = mcu_symbolic_link;    }

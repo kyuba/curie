@@ -5,13 +5,11 @@
 (archive "curie-source"
   (raw-c "curie_metadata" "metadata.sx")
   (cpio-c "curie_source"
-          "documentation/.*\\.([1-9]|tex)"
+          "documentation/.+\\.([1-9]|tex)"
           "(icemake|metadata)\\.sx"
-          "(README|COPYING|CREDITS|AUTHORS)(\\.txt)?"
-          "(src|include|tests)/.*\\.(c|h|c++|sx)"
-          "(src|include|tests)/.*/.*\\.(c|h|c++|sx)"
-          "(src|include|tests)/.*/.*/.*\\.(c|h|c++|sx)"
-          "(src|include|tests)/.*/.*/.*/.*\\.(c|h|c++|sx)"))
+;          "(README|COPYING|CREDITS|AUTHORS)(\\.txt)?"
+;          "(src|include|tests)/(\\.|[+a-zA-Z0-9-]+)/(\\.|[+a-zA-Z0-9-]+)/(\\.|[+a-zA-Z0-9-]+)/.+\\.(c|h|c\\+\\+|sx)"
+          ))
 
 (library "curie-bootstrap" libcurie no-shared-library
   (name "Curie Boostrap")
@@ -150,10 +148,12 @@
         "cpio"
         "time-unix"
         "io-mmap"
+        "sievert-filesystem"
         "metadata-path" "metadata-unix")
 
   (headers
-        "immutable" "tree" "sexpr" "string" "shell" "cpio" "time" "io")
+        "immutable" "tree" "sexpr" "string" "shell" "cpio" "time" "io"
+        "filesystem" "metadata")
 
   (test-case-reference
         ("build/to-sexpr-sort" . "tests/reference/sexpr-sort")))
