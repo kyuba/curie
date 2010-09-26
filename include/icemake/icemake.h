@@ -200,6 +200,7 @@ enum file_type
     ft_object,
     ft_object_pic,
     ft_resource,
+    ft_code_c,
     ft_other
 };
 
@@ -513,6 +514,12 @@ define_symbol (sym_error,               "error");
 define_symbol (sym_warning,             "warning");
 /*! \brief Predefined Symbol */
 define_symbol (sym_no_shared_library,   "no-shared-library");
+/*! \brief Predefined Symbol */
+define_symbol (sym_archive,             "archive");
+/*! \brief Predefined Symbol */
+define_symbol (sym_raw_c,               "raw-c");
+/*! \brief Predefined Symbol */
+define_symbol (sym_cpio_c,              "cpio-c");
 
 /*! \brief Predefined String */
 define_string (str_curie,               "curie");
@@ -651,6 +658,8 @@ define_string (str_dot_exe,             ".exe");
 /*! \brief Predefined String */
 define_string (str_dot_pic_o,           ".pic.o");
 /*! \brief Predefined String */
+define_string (str_dot_c,               ".c");
+/*! \brief Predefined String */
 define_string (str_dL,                  "-L");
 /*! \brief Predefined String */
 define_string (str_dI,                  "-I");
@@ -677,11 +686,7 @@ define_string (str_test_dash,           "test-");
 /*! \brief Predefined String */
 define_string (str_sinclude,            "/include");
 /*! \brief Predefined String */
-define_string (str_sincludes,           "/include/");
-/*! \brief Predefined String */
 define_string (str_includes,            "include/");
-/*! \brief Predefined String */
-define_string (str_sversiondh,          "/version.h");
 /*! \brief Predefined String */
 define_string (str_colon,               ":");
 /*! \brief Predefined String */
@@ -782,6 +787,8 @@ define_string (str_test_case,           "test case");
 define_string (str_1,                   "1");
 /*! \brief Predefined String */
 define_string (str_blank,               "");
+/*! \brief Predefined String */
+define_string (str_archive,             "archive");
 
 /*! \brief Prefix List with Elements from an Environment Variable
  *  \param[in] x   The original list.

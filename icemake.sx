@@ -2,6 +2,17 @@
 ; vim:ft=lisp
 ;;
 
+(archive "curie-source"
+  (raw-c "curie_metadata" "metadata.sx")
+  (cpio-c "curie_source"
+          "documentation/.*\\.([1-9]|tex)"
+          "(icemake|metadata)\\.sx"
+          "(README|COPYING|CREDITS|AUTHORS)(\\.txt)?"
+          "(src|include|tests)/.*\\.(c|h|c++|sx)"
+          "(src|include|tests)/.*/.*\\.(c|h|c++|sx)"
+          "(src|include|tests)/.*/.*/.*\\.(c|h|c++|sx)"
+          "(src|include|tests)/.*/.*/.*/.*\\.(c|h|c++|sx)"))
+
 (library "curie-bootstrap" libcurie no-shared-library
   (name "Curie Boostrap")
   (description "Inialisation code for libcurie, used when building freestanding programmes")

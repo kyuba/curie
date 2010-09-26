@@ -1020,6 +1020,11 @@ static void process_definition
                 sxc = cdr (sxc);
             }
         }
+        else if (truep(equalp(sxcaar, sym_raw_c)) ||
+                 truep(equalp(sxcaar, sym_cpio_c)))
+        {
+            context->code = sx_set_add (context->code, sxcar);
+        }
         else if (truep(equalp(sxcaar, sym_data)))
         {
             sexpr name = cdr (sxcar);
@@ -1064,14 +1069,13 @@ static void process_definition
     mkdir_p (sx_join (context->buildbase, context->toolchain->uname,
                       str_sinclude));
 
-    mkdir_p (sx_join (context->buildbase, context->toolchain->uname,
-                      sx_join (str_sincludes, context->name, sx_nil)));
+    mkdir_p (icemake_decorate_file (context, ft_header, fet_build_file,
+                                    sx_nil));
 
     context->headers =
         cons (cons (str_version,
-                    cons (sx_join (context->buildbase,context->toolchain->uname,
-                                   sx_join (str_sincludes, context->name,
-                                            str_sversiondh)),
+                    cons (icemake_decorate_file (context, ft_header,
+                                                 fet_build_file, str_version),
                           sx_end_of_list)),
               context->headers);
 
@@ -1123,6 +1127,23 @@ static void process_definition
             context->olibraries = cons (str_curie, context->olibraries);
         }
     }
+}
+
+static struct target *create_archive
+    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
+{
+    struct target *context = get_context (im, td);
+
+    context->name        = car(definition);
+    context->dname       = str_archive;
+    context->description = str_archive;
+    context->dversion    = str_1;
+
+    context->options |= ICEMAKE_LIBRARY | ICEMAKE_USE_CURIE;
+
+    process_definition (context, cdr(definition));
+
+    return context;
 }
 
 static struct target *create_library
@@ -1186,6 +1207,34 @@ static struct target *create_documentation
     process_definition (context, cdr(definition));
 
     return context;
+}
+
+static void target_map_prepare_archives (struct tree_node *node, void *u)
+{
+    struct target *context = (struct target *)node_get_value(node);
+    sexpr c = context->code, d, da, dd;
+
+    while (consp (c))
+    {
+        d  = car (c);
+        da = car (d);
+
+        if (truep (equalp (da, sym_raw_c)))
+        {
+            context->code = sx_set_remove (context->code, d);
+        }
+        else if (truep (equalp (da, sym_cpio_c)))
+        {
+            context->code = sx_set_remove (context->code, d);
+        }
+
+        c  = cdr (c);
+    }
+}
+
+static void prepare_archives (struct icemake *im)
+{
+    tree_map (&(im->targets), target_map_prepare_archives, (void *)im);
 }
 
 static void combine_code (struct target *context, sexpr type, sexpr object_file)
@@ -1784,7 +1833,11 @@ static void parse_add_definition
     struct target *t = (struct target *)0;
     sexpr sxcar = car (definition);
 
-    if (truep(equalp(sxcar, sym_library)))
+    if (truep(equalp(sxcar, sym_archive)))
+    {
+        t = create_archive (im, td, cdr (definition));
+    }
+    else if (truep(equalp(sxcar, sym_library)))
     {
         t = create_library (im, td, cdr (definition));
     }
@@ -1951,8 +2004,9 @@ int icemake
 {
     int failures = 0;
 
-    read_metadata  (im);
-    merge_contexts (im);
+    read_metadata    (im);
+    prepare_archives (im);
+    merge_contexts   (im);
 
     multiplex_add_signal (sig_segv, cb_on_bad_signal, (void *)0);
     multiplex_add_signal (sig_int,  cb_on_bad_signal, (void *)0);

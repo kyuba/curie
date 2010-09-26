@@ -109,8 +109,7 @@ static void create_special_files (struct target *t)
     int i = 0;
     struct io *io;
     char c;
-    sexpr b = sx_join (t->buildbase, t->toolchain->uname,
-                sx_join (str_sincludes, t->name, str_sversiondh)),
+    sexpr b = icemake_decorate_file (t, ft_header, fet_build_file, str_version),
           n, o;
     const char *nx = sx_string (t->name), *ox;
 

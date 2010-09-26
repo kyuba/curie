@@ -354,6 +354,9 @@ sexpr icemake_decorate_file
         case ft_resource:
             file = sx_join (file, str_dot_res, sx_nil);
             break;
+        case ft_code_c:
+            file = sx_join (file, str_dot_c, sx_nil);
+            break;
         default:
             break;
     }
@@ -361,13 +364,26 @@ sexpr icemake_decorate_file
     switch (fet)
     {
         case fet_build_file:
-            file = sx_join (t->buildbase, t->toolchain->uname,
-                   sx_join (g, t->name,
-                            (empty ? sx_nil : sx_join (g, file, sx_nil))));
-
-            if (t->toolchain->toolchain == tc_borland)
+            switch (ft)
             {
-                file = mangle_path_borland_sx (file);
+                case ft_header:
+                    file = sx_join (t->buildbase, t->toolchain->uname,
+                           sx_join (g, str_include,
+                                    (empty ? sx_join (g, t->name, sx_nil)
+                                           : sx_join (g, file, sx_nil))));
+
+                    break;
+                default:
+                    file = sx_join (t->buildbase, t->toolchain->uname,
+                           sx_join (g, t->name,
+                                    (empty ? sx_nil
+                                           : sx_join (g, file, sx_nil))));
+
+                    if (t->toolchain->toolchain == tc_borland)
+                    {
+                        file = mangle_path_borland_sx (file);
+                    }
+                    break;
             }
 
             break;
