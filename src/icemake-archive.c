@@ -41,7 +41,7 @@ struct archive_metadata
     struct io *out;
     sexpr name;
     sexpr source;
-    int length;
+    unsigned int length;
     struct cpio *cpio;
 };
 
@@ -76,7 +76,7 @@ static void on_close_cpio_archive_source_file (struct io *io, void *aux)
 static void on_read_archive_source_file (struct io *io, void *aux)
 {
     struct archive_metadata *ad = (struct archive_metadata *)aux;
-    char s[] = "\\xxx";
+    char s[] = "0xxx,";
     int i = 0;
     const char *b = io->buffer;
 
@@ -84,37 +84,15 @@ static void on_read_archive_source_file (struct io *io, void *aux)
     {
         unsigned char t = (unsigned char)b[i];
 
-        switch (t)
-        {
-            case '"':  io_collect (ad->out, (char *)"\\\"", 2); break;
-            case '\a': io_collect (ad->out, (char *)"\\a",  2); break;
-            case '\b': io_collect (ad->out, (char *)"\\b",  2); break;
-            case '\f': io_collect (ad->out, (char *)"\\f",  2); break;
-            case '\\': io_collect (ad->out, (char *)"\\\\", 2); break;
-            case '\n': io_collect (ad->out, (char *)"\\n",  2); break;
-            case '\r': io_collect (ad->out, (char *)"\\r",  2); break;
-            case '\t': io_collect (ad->out, (char *)"\\t",  2); break;
-            case '\v': io_collect (ad->out, (char *)"\\v",  2); break;
+        s[3] =  (t % 16);
+        s[2] = ((t - s[3]) / 16);
 
-            default:
-                if ((t >= 0x20) && (t <= 0x7f))
-                {
-                    io_collect (ad->out, (char *)&t, 1);
-                }
-                else
-                {
-                    s[3] =  (t % 16);
-                    s[2] = ((t - s[3]) / 16);
+        if (s[2] < 10) { s[2] = '0' + s[2]; }
+        else           { s[2] = 'a' + s[2] - 10; }
+        if (s[3] < 10) { s[3] = '0' + s[3]; }
+        else           { s[3] = 'a' + s[3] - 10; }
 
-                    if (s[2] < 10) { s[2] = '0' + s[2]; }
-                    else           { s[2] = 'a' + s[2] - 10; }
-                    if (s[3] < 10) { s[3] = '0' + s[3]; }
-                    else           { s[3] = 'a' + s[3] - 10; }
-
-                    io_collect (ad->out, s, 4);
-                }
-                break;
-        }
+        io_collect (ad->out, s, 5);
     }
 
     io_commit (ad->out);
@@ -133,7 +111,7 @@ static void on_close_archive_source_file (struct io *io, void *aux)
     signed int i;
     char c;
 
-    io_write (ad->out, "\";\nconst unsigned long ", 23);
+    io_write (ad->out, "0x00};\nconst unsigned long ", 27);
     for (j = 0; s[j] != (char)0; j++);
     io_write (ad->out, s, j);
     io_write (ad->out, "_length=0x", 10);
@@ -195,9 +173,9 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
             s = sx_string (name);
             for (j = 0; s[j] != (char)0; j++);
 
-            io_collect (header, "extern const char *", 19);
+            io_collect (header, "extern const unsigned char ", 27);
             io_collect (header, s, j);
-            io_collect (header, ";\n", 2);
+            io_collect (header, "[];\n", 4);
 
             io_collect (header, "extern const unsigned long int ", 31);
             io_collect (header, s, j);
@@ -214,10 +192,10 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
                 i = io_open_read  (sx_string (source));
                 o = io_open_write (sx_string (out));
 
-                io_collect (o,      "const char *",        12);
+                io_collect (o,      "const unsigned char ",        20);
 
                 io_collect (o,      s, j);
-                io_collect (o,      "=\"", 2);
+                io_collect (o,      "[]={", 4);
 
                 ad = (struct archive_metadata *)get_pool_mem (&pool);
                 ad->out    = o;
@@ -263,10 +241,10 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
 
                     o  = io_open_write (sx_string (out));
 
-                    io_collect (o,      "const char *",        12);
+                    io_collect (o,      "const unsigned char ", 20);
 
                     io_collect (o,      s, j);
-                    io_collect (o,      "=\"", 2);
+                    io_collect (o,      "[]={", 4);
 
                     net_open_loop (&ci, &co);
 
