@@ -30,33 +30,22 @@
 #include <curie/memory.h>
 #include <curie/constants.h>
 
-static struct io *rpool[IO_STRUCT_POOL_ENTRIES] = { (struct io *)0 };
+static struct memory_pool *io_struct_pool = (struct memory_pool *)0;
+static struct io *(*get_io_struct)();
 
-static struct io *get_io_struct ()
+static struct io *get_io_struct_real ()
 {
-    struct io *io = 0;
-
-    if (rpool [0] != (struct io *)0)
-    {
-        int i;
-
-        io = rpool[0];
-
-        for (i = 1; i < IO_STRUCT_POOL_ENTRIES; i++)
-        {
-            rpool[(i - 1)] = rpool[i];
-        }
-    }
-    else
-    {
-        static struct memory_pool io_pool
-            = MEMORY_POOL_INITIALISER(sizeof(struct io));
-
-        io = get_pool_mem(&io_pool);
-    }
-
-    return io;
+    return get_pool_mem (io_struct_pool);
 }
+
+static struct io *get_io_struct_init ()
+{
+    io_struct_pool = create_memory_pool (sizeof (struct io));
+    get_io_struct = get_io_struct_real;
+    return get_io_struct_real();
+}
+
+static struct io *(*get_io_struct)() = get_io_struct_init;
 
 struct io *io_open_buffer (void *buffer, unsigned int size)
 {
@@ -95,24 +84,6 @@ struct io *io_create ()
 
 void io_destroy (struct io *io)
 {
-    int i;
-
-    for (i = 0; i < IO_STRUCT_POOL_ENTRIES; i++)
-    {
-        if (rpool[i] == (struct io *)0)
-        {
-            rpool[i] = io;
-            return;
-        }
-    }
-
-    free_pool_mem ((void *)(rpool[0]));
-
-    for (i = 1; i < IO_STRUCT_POOL_ENTRIES; i++)
-    {
-        rpool[(i - 1)] = rpool[i];
-    }
-
-    rpool[(IO_STRUCT_POOL_ENTRIES - 1)] = io;
+    free_pool_mem ((void *)(io));
 }
 

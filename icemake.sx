@@ -7,7 +7,7 @@
   (cpio-c "curie_source"
           "documentation/.+\\.([1-9]|tex)"
           "(icemake|metadata)\\.sx"
-;          "(README|COPYING|CREDITS|AUTHORS)(\\.txt)?"
+          "(README|COPYING|CREDITS|AUTHORS).*"
 ;          "(src|include|tests)/(\\.|[+a-zA-Z0-9-]+)/(\\.|[+a-zA-Z0-9-]+)/(\\.|[+a-zA-Z0-9-]+)/.+\\.(c|h|c\\+\\+|sx)"
           ))
 
