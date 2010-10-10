@@ -7,8 +7,8 @@
   (cpio-c "curie_source"
           "documentation/.+\\.([1-9]|tex)"
           "(icemake|metadata)\\.sx"
-          "(README|COPYING|CREDITS|AUTHORS).*"
-          "(src|include|tests)/(\\.|[+a-zA-Z0-9-]+)/(\\.|[+a-zA-Z0-9-]+)/(\\.|[+a-zA-Z0-9-]+)/.+\\.(c|h|c\\+\\+|sx)"))
+          "(README|COPYING|CREDITS|AUTHORS)(\\.txt?)"
+          "(src|include|tests)/(\\.|(-|[+a-zA-Z0-9])+)/(\\.|(-|[+a-zA-Z0-9])+)/(\\.|(-|[+a-zA-Z0-9])+)/(\\.|(-|[+a-zA-Z0-9])+)/.+\\.(c|h|c\\+\\+|sx|s|S)"))
 
 (library "curie-bootstrap" libcurie no-shared-library
   (name "Curie Boostrap")
