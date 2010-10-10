@@ -229,3 +229,12 @@
   (version "1")
 
   (code "example-sx-stdio"))
+
+(programme "example-dump-source" libcurie
+  (name "example-dump-source")
+  (description "Archive Example: extracting archive contents")
+  (version "1")
+
+  (libraries "curie-source")
+
+  (code "example-dump-source"))
