@@ -275,6 +275,11 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
                          cons (sym_c, cons (out, cons (icemake_decorate_file
                                  (context, ft_object, fet_build_file, df),
                                   sx_end_of_list))));
+                    context->code = sx_set_add
+                        (context->code,
+                         cons (sym_c_pic, cons (out, cons (icemake_decorate_file
+                                 (context, ft_object, fet_build_file, df),
+                                  sx_end_of_list))));
 
                 }
 
