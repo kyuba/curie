@@ -116,7 +116,7 @@ static void on_close_archive_source_file (struct io *io, void *aux)
     io_write (ad->out, s, j);
     io_write (ad->out, "_length=0x", 10);
 
-    for (i = 8; (i >= 0) && (ad->length >= 0); i--)
+    for (i = 7; (i >= 0) && (ad->length >= 0); i--)
     {
         c = ad->length % 16;
         if (c < 10)
