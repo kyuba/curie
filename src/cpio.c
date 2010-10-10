@@ -513,9 +513,9 @@ static void cpio_write_file
     io_collect (out, (char *)&(cpio->gid), 2);
     io_collect (out, (char *)&(cpio->links), 2);
     io_collect (out, (char *)&(cpio->device_id), 2);
-    ts = (cpio->mtime & 0xff00) >> 16;
+    ts = (cpio->mtime & 0xffff0000) >> 16;
     io_collect (out, (char *)&ts, 2);
-    ts = (cpio->mtime & 0xff);
+    ts = (cpio->mtime & 0xffff);
     io_collect (out, (char *)&ts, 2);
 
     for (ts = 0; fname[ts]; ts++);
@@ -523,10 +523,10 @@ static void cpio_write_file
 
     io_collect (out, (char *)&ts, 2); /* namesize */
 
-    ts2 = (tl & 0xff00) >> 16;
+    ts2 = (tl & 0xffff0000) >> 16;
     io_collect (out, (char *)&ts2, 2); /* filesize[0] */
 
-    ts2 = (tl & 0x00ff);
+    ts2 = (tl & 0x0000ffff);
     io_collect (out, (char *)&ts2, 2); /* filesize[1] */
 
     io_collect (out, (char *)fname, ts);
