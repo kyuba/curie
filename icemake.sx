@@ -8,6 +8,7 @@
           "documentation/.+\\.([1-9]|tex)"
           "(icemake|metadata)\\.sx"
           "(README|COPYING|CREDITS|AUTHORS)(\\.txt?)"
+          "build.*\\.(cmd|sh)"
           "(src|include|tests)/(\\.|(-|[+a-zA-Z0-9])+)/(\\.|(-|[+a-zA-Z0-9])+)/(\\.|(-|[+a-zA-Z0-9])+)/(\\.|(-|[+a-zA-Z0-9])+)/.+\\.(c|h|c\\+\\+|sx|s|S)"))
 
 (library "curie-bootstrap" libcurie no-shared-library
