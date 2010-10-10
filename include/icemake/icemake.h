@@ -319,6 +319,7 @@ struct icemake
     /*! \brief List: Queued tasks */
     sexpr workstack;
     sexpr alternatives;
+    sexpr roots;
 
     struct visualiser_descriptor visualiser;
 };
@@ -368,6 +369,8 @@ struct target {
     sexpr buildnumber;
     /*!\brief Options */
     unsigned int options;
+    /*!\brief Source Directory */
+    sexpr base;
     /*!\brief Base Path for Build Data */
     sexpr buildbase;
     /*!\brief Toolchain Descriptor */

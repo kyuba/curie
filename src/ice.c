@@ -46,6 +46,8 @@ struct icemake_meta
     unsigned long options;
     unsigned int max_processes;
     sexpr alternatives;
+    sexpr root;
+    struct toolchain_descriptor *last_tc;
 };
 
 static void print_version_wo (struct io *out)
@@ -76,6 +78,7 @@ static void print_help ()
         "Options:\n"\
         " -h           Print help (this text) and exit.\n"\
         " -v           Print version and exit.\n\n"\
+        " -P <dir>     Specify source directory (allowed multiple times)\n"\
         " -t <chost>   Specify target CHOST\n"\
         " -d <destdir> Specify the directory to install to.\n"\
         " -i           Install resulting binaries\n"\
@@ -137,13 +140,40 @@ static int with_icemake (struct icemake *im, void *aux)
     return icemake (im);
 }
 
+static int with_icemake_loop (struct icemake *im, void *aux)
+{
+    struct icemake_meta *imm = (struct icemake_meta *)aux;
+
+    if (consp (imm->root))
+    {
+        sexpr p = car (imm->root);
+        imm->root = cdr (imm->root);
+
+        return icemake_prepare
+            (im, sx_string(p), imm->last_tc, imm->options, imm->alternatives,
+             with_icemake_loop, aux);
+    }
+    else
+    {
+        return with_icemake (im, aux);
+    }
+}
+
 static int with_toolchain (struct toolchain_descriptor *td, void *aux)
 {
     struct icemake_meta *im = (struct icemake_meta *)aux;
 
-    return icemake_prepare
-        ((struct icemake *)0, ".", td, im->options, im->alternatives,
-         with_icemake, (void *)im);
+    if (!consp (im->root))
+    {
+        return icemake_prepare
+            ((struct icemake *)0, "./", td, im->options, im->alternatives,
+             with_icemake, aux);
+    }
+    else
+    {
+        im->last_tc = td;
+        return with_icemake_loop ((struct icemake *)0, aux);
+    }
 }
 
 static int with_architecture (const char *arch, void *aux)
@@ -160,7 +190,7 @@ int cmain ()
         { sx_end_of_list, fs_afsl,
           ICEMAKE_OPTION_STATIC | ICEMAKE_OPTION_DYNAMIC_LINKING |
           ICEMAKE_OPTION_VIS_ICE,
-          1, sx_end_of_list };
+          1, sx_end_of_list, sx_end_of_list };
 
     initialise_icemake ();
 
@@ -178,6 +208,14 @@ int cmain ()
             {
                 switch (curie_argv[i][y])
                 {
+                    case 'P':
+                        if (curie_argv[xn])
+                        {
+                            im.root = sx_set_add
+                                (im.root, make_string (curie_argv[xn]));
+                            xn++;
+                        }
+                        break;
                     case 't':
                         if (curie_argv[xn])
                         {

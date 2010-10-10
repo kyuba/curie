@@ -101,12 +101,71 @@ sexpr path_normalise (sexpr path)
     return rv;
 }
 
-sexpr path_prefix     (sexpr list)
+sexpr path_normalise_prefix (sexpr path)
 {
-    return list;
+    sexpr p = path_normalise(path), rv = sx_end_of_list, n,
+          px = path_prefix (p);
+    int i = 0;
+    const char *s = sx_string(px);
+
+    while (s[i] != (char)0)
+    {
+        i++;
+    }
+
+    while (consp (p))
+    {
+        n = car (p);
+
+        s = sx_string (n);
+
+        rv = cons (cons (n, make_string (s + i)), rv);
+
+        p = cdr (p);
+    }
+
+    return rv;
 }
 
-sexpr path_prefix_map (sexpr path)
+sexpr path_prefix (sexpr list)
 {
-    return path;
+    sexpr l = list, n = car (l);
+    const char *s;
+    char buf[0x1000];
+    int i = 0, li;
+
+    for (s = sx_string(n); (s[i] != (char)0) && (i < 0xfff); i++)
+    {
+        buf[i] = s[i];
+    }
+    buf[i] = (char)0;
+
+    for (l = cdr (l); consp (l); l = cdr (l))
+    {
+        n = car (l);
+
+        s = sx_string (n);
+
+        for (i = 0; (s[i] != (char)0) && (buf[i] != (char)0); i++)
+        {
+            if (buf[i] != s[i])
+            {
+                buf[i] = 0;
+                break;
+            }
+        }
+    }
+
+    for (i = li = 0; (buf[i] != (char)0); i++)
+    {
+        if ((buf[i] == '/') || (buf[i] == '\\'))
+        {
+            li = i+1;
+            i++;
+        }
+    }
+
+    buf[li] = (char)0;
+
+    return make_string (buf);
 }

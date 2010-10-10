@@ -38,3 +38,6 @@ EXPORTS
     metadata_to_unix                    @38
     metadata_to_sexpr                   @39
     metadata_to_path                    @40
+    path_normalise                      @41
+    path_normalise_prefix               @42
+    path_prefix                         @43

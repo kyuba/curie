@@ -78,11 +78,11 @@ static void update_screen
     {
         complete (im);
     }
-    else
+    else if (symbolp (phase))
     {
-        char buffer[0x1000] = " * ";
+        char buffer[0x1000] = "\r * ";
         const char *s = sx_symbol (phase);
-        int i = 3, p = 4, j, x;
+        int i = 4, p = 4, j, x;
 
         for (j = 0; s[j] != (char)0; j++, i++, p++)
         {
@@ -169,7 +169,7 @@ static void icemake_read
         {
             items_have++;
         }
-        if (truep(equalp (c, sym_phase)))
+        else if (truep(equalp (c, sym_phase)))
         {
             sexpr r = car (cdr(sx));
 

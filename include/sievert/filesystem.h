@@ -39,9 +39,9 @@
 extern "C" {
 #endif
 
-sexpr path_normalise  (sexpr path);
-sexpr path_prefix     (sexpr list);
-sexpr path_prefix_map (sexpr path);
+sexpr path_normalise        (sexpr path);
+sexpr path_normalise_prefix (sexpr path);
+sexpr path_prefix           (sexpr list);
 
 #ifdef __cplusplus
 }

@@ -29,7 +29,7 @@
 #include <icemake/icemake.h>
 
 #include <curie/multiplex.h>
-#include <curie/filesystem.h>
+#include <sievert/filesystem.h>
 
 static sexpr collect_code (sexpr sx, sexpr code)
 {
@@ -79,8 +79,20 @@ static void write_curie_sx (sexpr name, struct target *t)
 
 static sexpr prepend_includes_msvc (struct target *t, sexpr x)
 {
-    sexpr include_paths = icemake_permutate_paths (t->toolchain, str_include);
-    sexpr cur = include_paths;
+    sexpr p = t->icemake->roots;
+    sexpr include_paths = sx_end_of_list;
+    sexpr cur;
+
+    while (consp (p))
+    {
+        include_paths =
+            sx_set_merge
+                (include_paths, icemake_permutate_paths
+                     (t->toolchain, sx_join (car(p), str_include, sx_nil)));
+        p = cdr (p);
+    }
+
+    cur = path_normalise(include_paths);
 
     if (stringp (i_destdir))
     {

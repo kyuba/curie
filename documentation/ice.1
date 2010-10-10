@@ -1,4 +1,4 @@
-.TH ICE 1 "AUGUST 2010" Curie "Curie Developers Manual"
+.TH ICE 1 "OCTOBER 2010" Curie "Curie Developers Manual"
 
 .SH NAME
 ice \- curie build and installation tool
@@ -35,6 +35,13 @@ Print a short summary of the options, then exit.
 
 .IP "-v"
 Print ice's version, then exit.
+
+.IP "-P base-path"
+Add the given path to the list of sources searched by the tool for icemake.sx
+files. This parameter can be specified more than once, and doing so will make
+the tool process all of the given paths at once, possibly improving the output
+binaries if options like -c are used because all source files are available at
+the same time.
 
 .IP "-c"
 Use GCCs

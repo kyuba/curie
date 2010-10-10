@@ -57,7 +57,8 @@ sexpr p_pdflatex                       = sx_false;
 sexpr p_doxygen                        = sx_false;
 
 static void parse_add_definition
-    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition);
+    (struct icemake *im, sexpr path, struct toolchain_descriptor *td,
+     sexpr definition);
 
 struct process_data
 {
@@ -420,83 +421,84 @@ static sexpr find_in_permutations
 }
 
 static sexpr find_code_with_suffix
-    (struct toolchain_descriptor *td, sexpr file, char *s)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file, char *s)
 {
     return find_in_permutations
-        (td, str_src,
+        (td, sx_join (path, str_src, sx_nil),
          sx_join (file, make_string (s), sx_nil));
 }
 
 static sexpr find_code_sx
-    (struct toolchain_descriptor *td, sexpr file)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file)
 {
-    return find_code_with_suffix (td, file, ".sx");
+    return find_code_with_suffix (td, path, file, ".sx");
 }
 
 static sexpr find_code_c
-    (struct toolchain_descriptor *td, sexpr file)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file)
 {
-    return find_code_with_suffix (td, file, ".c");
+    return find_code_with_suffix (td, path, file, ".c");
 }
 
 static sexpr find_code_cpp
-    (struct toolchain_descriptor *td, sexpr file)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file)
 {
-    return find_code_with_suffix (td, file, ".c++");
+    return find_code_with_suffix (td, path, file, ".c++");
 }
 
 static sexpr find_code_s
-    (struct toolchain_descriptor *td, sexpr file)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file)
 {
-    return find_code_with_suffix (td, file, ".s");
+    return find_code_with_suffix (td, path, file, ".s");
 }
 
 static sexpr find_code_pic_s
-    (struct toolchain_descriptor *td, sexpr file)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file)
 {
-    sexpr r = find_code_with_suffix (td, file, ".pic.s");
+    sexpr r = find_code_with_suffix (td, path, file, ".pic.s");
 
-    return (falsep(r) ? find_code_s (td, file) : r);
+    return (falsep(r) ? find_code_s (td, path, file) : r);
 }
 
 static sexpr find_code_S
-    (struct toolchain_descriptor *td, sexpr file)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file)
 {
-    return find_code_with_suffix (td, file, ".S");
+    return find_code_with_suffix (td, path, file, ".S");
 }
 
 static sexpr find_code_pic_S
-    (struct toolchain_descriptor *td, sexpr file)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file)
 {
-    sexpr r = find_code_with_suffix (td, file, ".pic.S");
+    sexpr r = find_code_with_suffix (td, path, file, ".pic.S");
 
-    return (falsep(r) ? find_code_S (td, file) : r);
+    return (falsep(r) ? find_code_S (td, path, file) : r);
 }
 
 static sexpr find_code_def
-    (struct toolchain_descriptor *td, sexpr file)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file)
 {
-    return find_code_with_suffix (td, file, ".def");
+    return find_code_with_suffix (td, path, file, ".def");
 }
 
 static sexpr find_code_rc
-    (struct toolchain_descriptor *td, sexpr file)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file)
 {
-    return find_code_with_suffix (td, file, ".rc");
+    return find_code_with_suffix (td, path, file, ".rc");
 }
 
 static sexpr find_header_with_suffix
-    (struct toolchain_descriptor *td, sexpr name, sexpr file, char *s) 
+    (struct toolchain_descriptor *td, sexpr path, sexpr name, sexpr file,
+     char *s) 
 {
     return find_in_permutations
-        (td, str_include,
+        (td, sx_join (path, str_include, sx_nil),
          sx_join (name, str_slash, sx_join (file, make_string (s), sx_nil)));
 }
 
 static sexpr find_header_h
-    (struct toolchain_descriptor *td, sexpr name, sexpr file)
+    (struct toolchain_descriptor *td, sexpr path, sexpr name, sexpr file)
 {
-    return find_header_with_suffix (td, name, file, ".h");
+    return find_header_with_suffix (td, path, name, file, ".h");
 }
 
 static sexpr generate_object_file_name (sexpr file, struct target *t)
@@ -518,7 +520,8 @@ static sexpr find_code_highlevel (struct target *context, sexpr file)
 {
     sexpr r, subfile = sx_join (file, str_dhighlevel, sx_nil);
 
-    if (((r = find_code_cpp (context->toolchain, subfile)), stringp(r)))
+    if (((r = find_code_cpp (context->toolchain, context->base, subfile)),
+        stringp(r)))
     {
         context->options |= ICEMAKE_HAVE_CPP;
 
@@ -527,7 +530,8 @@ static sexpr find_code_highlevel (struct target *context, sexpr file)
                    sx_end_of_list)));
 
     }
-    else if (((r = find_code_c (context->toolchain, subfile)), stringp(r)))
+    else if (((r = find_code_c (context->toolchain, context->base, subfile)),
+             stringp(r)))
     {
         return cons(sym_c, cons (r,
                  cons (generate_object_file_name (subfile, context),
@@ -541,7 +545,8 @@ static sexpr find_code_highlevel_pic (struct target *context, sexpr file)
 {
     sexpr r, subfile = sx_join (file, str_dhighlevel, sx_nil);
 
-    if (((r = find_code_cpp (context->toolchain, subfile)), stringp(r)))
+    if (((r = find_code_cpp (context->toolchain, context->base, subfile)),
+        stringp(r)))
     {
         context->options |= ICEMAKE_HAVE_CPP;
 
@@ -549,7 +554,8 @@ static sexpr find_code_highlevel_pic (struct target *context, sexpr file)
                  cons (generate_pic_object_file_name (subfile, context),
                    sx_end_of_list)));
     }
-    else if (((r = find_code_c (context->toolchain, subfile)), stringp(r)))
+    else if (((r = find_code_c (context->toolchain, context->base, subfile)),
+             stringp(r)))
     {
         return cons(sym_c_pic, cons (r,
                  cons (generate_pic_object_file_name (subfile, context),
@@ -608,7 +614,7 @@ static void find_code (struct target *context, sexpr file)
         }
     }
 
-    if ((r = find_code_S (context->toolchain, file)), stringp(r))
+    if ((r = find_code_S (context->toolchain, context->base, file)), stringp(r))
     {
         primus =
             cons(sym_preproc_assembly, cons (r,
@@ -621,7 +627,8 @@ static void find_code (struct target *context, sexpr file)
         {
             secundus =
                 cons(sym_preproc_assembly_pic,
-                  cons (find_code_pic_S (context->toolchain, file),
+                  cons (find_code_pic_S
+                            (context->toolchain, context->base, file),
                     cons (generate_pic_object_file_name
                             (file, context), sx_end_of_list)));
         }
@@ -635,7 +642,8 @@ static void find_code (struct target *context, sexpr file)
             quartus = find_code_highlevel_pic (context, file);
         }
     }
-    else if ((r = find_code_s (context->toolchain, file)), stringp(r))
+    else if ((r = find_code_s (context->toolchain, context->base, file)),
+             stringp(r))
     {
         primus =
             cons(sym_assembly, cons (r,
@@ -648,7 +656,8 @@ static void find_code (struct target *context, sexpr file)
         {
             secundus =
                 cons(sym_assembly_pic,
-                  cons (find_code_pic_s (context->toolchain, file),
+                  cons (find_code_pic_s
+                            (context->toolchain, context->base, file),
                     cons (generate_pic_object_file_name
                             (file, context), sx_end_of_list)));
         }
@@ -665,7 +674,8 @@ static void find_code (struct target *context, sexpr file)
 
     if (falsep(primus))
     {
-        if (((r = find_code_cpp (context->toolchain, file)), stringp(r)))
+        if (((r = find_code_cpp (context->toolchain, context->base, file)),
+            stringp(r)))
         {
             context->options |= ICEMAKE_HAVE_CPP;
 
@@ -682,7 +692,8 @@ static void find_code (struct target *context, sexpr file)
                                      (file, context), sx_end_of_list)));
             }
         }
-        else if (((r = find_code_c (context->toolchain, file)), stringp(r)))
+        else if (((r = find_code_c (context->toolchain, context->base, file)),
+                 stringp(r)))
         {
             primus = cons(sym_c, cons (r,
                        cons (generate_object_file_name (file, context),
@@ -723,7 +734,8 @@ static void find_header (struct target *context, sexpr file)
 {
     sexpr r;
 
-    if ((r = find_header_h (context->toolchain, context->name, file)),
+    if ((r = find_header_h (context->toolchain, context->base, context->name, 
+                            file)),
         stringp(r))
     {
         context->headers = cons (cons(file, cons (r, sx_end_of_list)),
@@ -737,16 +749,17 @@ static void find_header (struct target *context, sexpr file)
 }
 
 static sexpr find_documentation_with_suffix
-    (struct toolchain_descriptor *td, sexpr file, char *s)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file, char *s)
 {
     return find_in_permutations
-        (td, str_documentation, sx_join (file, make_string (s), sx_nil));
+        (td, sx_join (path, str_documentation, sx_nil),
+         sx_join (file, make_string (s), sx_nil));
 }
 
 static sexpr find_documentation_tex
-    (struct toolchain_descriptor *td, sexpr file)
+    (struct toolchain_descriptor *td, sexpr path, sexpr file)
 {
-    return find_documentation_with_suffix (td, file, ".tex");
+    return find_documentation_with_suffix (td, path, file, ".tex");
 }
 
 static void find_documentation (struct target *context, sexpr file)
@@ -762,13 +775,15 @@ static void find_documentation (struct target *context, sexpr file)
 
     sexpr r;
 
-    if ((r = find_documentation_tex (context->toolchain, file)), stringp(r))
+    if ((r = find_documentation_tex (context->toolchain, context->base, file)),
+        stringp(r))
     {
         context->documentation
             = cons(cons(sym_tex, cons (file, r)), context->documentation);
     }
     else if ((r = find_documentation_with_suffix
-                      (context->toolchain, file, ".1")), stringp(r))
+                      (context->toolchain, context->base, file, ".1")),
+             stringp(r))
     {
         context->documentation
             = cons(cons(sym_man,
@@ -776,7 +791,8 @@ static void find_documentation (struct target *context, sexpr file)
                          context->documentation);
     }
     else if ((r = find_documentation_with_suffix
-                      (context->toolchain, file, ".2")), stringp(r))
+                      (context->toolchain, context->base, file, ".2")),
+             stringp(r))
     {
         context->documentation
             = cons(cons(sym_man,
@@ -784,7 +800,8 @@ static void find_documentation (struct target *context, sexpr file)
                          context->documentation);
     }
     else if ((r = find_documentation_with_suffix
-                      (context->toolchain, file, ".3")), stringp(r))
+                      (context->toolchain, context->base, file, ".3")),
+             stringp(r))
     {
         context->documentation
             = cons(cons(sym_man,
@@ -792,7 +809,8 @@ static void find_documentation (struct target *context, sexpr file)
                          context->documentation);
     }
     else if ((r = find_documentation_with_suffix
-                      (context->toolchain, file, ".4")), stringp(r))
+                      (context->toolchain, context->base, file, ".4")),
+             stringp(r))
     {
         context->documentation
             = cons(cons(sym_man,
@@ -800,7 +818,8 @@ static void find_documentation (struct target *context, sexpr file)
                          context->documentation);
     }
     else if ((r = find_documentation_with_suffix
-                      (context->toolchain, file, ".5")), stringp(r))
+                      (context->toolchain, context->base, file, ".5")),
+             stringp(r))
     {
         context->documentation
             = cons(cons(sym_man,
@@ -808,7 +827,8 @@ static void find_documentation (struct target *context, sexpr file)
                          context->documentation);
     }
     else if ((r = find_documentation_with_suffix
-                      (context->toolchain, file, ".6")), stringp(r))
+                      (context->toolchain, context->base, file, ".6")),
+             stringp(r))
     {
         context->documentation
             = cons(cons(sym_man,
@@ -816,7 +836,8 @@ static void find_documentation (struct target *context, sexpr file)
                          context->documentation);
     }
     else if ((r = find_documentation_with_suffix
-                      (context->toolchain, file, ".7")), stringp(r))
+                      (context->toolchain, context->base, file, ".7")),
+             stringp(r))
     {
         context->documentation
             = cons(cons(sym_man,
@@ -824,7 +845,8 @@ static void find_documentation (struct target *context, sexpr file)
                          context->documentation);
     }
     else if ((r = find_documentation_with_suffix
-                      (context->toolchain, file, ".8")), stringp(r))
+                      (context->toolchain, context->base, file, ".8")),
+             stringp(r))
     {
         context->documentation
             = cons(cons(sym_man,
@@ -840,9 +862,9 @@ static void find_documentation (struct target *context, sexpr file)
 
 static sexpr find_data (struct target *context, sexpr file)
 {
-    sexpr r;
+    sexpr r = sx_join (context->base, str_data, sx_nil);
 
-    if ((r = find_in_permutations (context->toolchain, str_data, file)),
+    if ((r = find_in_permutations (context->toolchain, r, file)),
         !stringp(r))
     {
         context->icemake->visualiser.on_error
@@ -853,7 +875,7 @@ static sexpr find_data (struct target *context, sexpr file)
 }
 
 static struct target *get_context
-    (struct icemake *im, struct toolchain_descriptor *td)
+    (struct icemake *im, sexpr path, struct toolchain_descriptor *td)
 {
     static struct memory_pool pool
         = MEMORY_POOL_INITIALISER (sizeof(struct target));
@@ -875,6 +897,7 @@ static struct target *get_context
     context->options          = 0;
     context->toolchain        = td;
     context->icemake          = im;
+    context->base             = path;
 
     if (td->operating_system == os_windows)
     {
@@ -894,7 +917,8 @@ static void process_definition
     sexpr sx;
     
     /* find extra options to process first */
-    if ((sx = find_code_sx (context->toolchain, context->name)), stringp(sx))
+    if ((sx = find_code_sx (context->toolchain, context->base, context->name)),
+        stringp(sx))
     {
         const char *s = sx_string (sx);
         struct sexpr_io *in = sx_open_i (io_open_read(s));
@@ -974,7 +998,8 @@ static void process_definition
             if ((context->toolchain->operating_system == os_windows) &&
                 (context->toolchain->toolchain == tc_msvc))
             {
-                sexpr r = find_code_rc (context->toolchain, context->name);
+                sexpr r = find_code_rc
+                    (context->toolchain, context->base, context->name);
 
                 if (stringp (r))
                 {
@@ -1130,9 +1155,10 @@ static void process_definition
 }
 
 static struct target *create_archive
-    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
+    (struct icemake *im, sexpr path, struct toolchain_descriptor *td,
+     sexpr definition)
 {
-    struct target *context = get_context (im, td);
+    struct target *context = get_context (im, path, td);
 
     context->name        = car(definition);
     context->dname       = str_archive;
@@ -1147,9 +1173,10 @@ static struct target *create_archive
 }
 
 static struct target *create_library
-    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
+    (struct icemake *im, sexpr path, struct toolchain_descriptor *td,
+     sexpr definition)
 {
-    struct target *context = get_context (im, td);
+    struct target *context = get_context (im, path, td);
 
     context->name = car(definition);
 
@@ -1161,15 +1188,16 @@ static struct target *create_library
     {
         context->libraries = cons (context->name, context->libraries);
     }
-    context->deffile = find_code_def (td, context->name);
+    context->deffile = find_code_def (td, context->base, context->name);
 
     return context;
 }
 
 static struct target *create_programme
-    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
+    (struct icemake *im, sexpr path, struct toolchain_descriptor *td,
+     sexpr definition)
 {
-    struct target *context = get_context (im, td);
+    struct target *context = get_context (im, path, td);
 
     context->name = car(definition);
 
@@ -1181,9 +1209,10 @@ static struct target *create_programme
 }
 
 static struct target *create_test_case
-    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
+    (struct icemake *im, sexpr path, struct toolchain_descriptor *td,
+     sexpr definition)
 {
-    struct target *context = get_context (im, td);
+    struct target *context = get_context (im, path, td);
 
     context->name        = car(definition);
     context->dname       = str_test_case;
@@ -1198,9 +1227,10 @@ static struct target *create_test_case
 }
 
 static struct target *create_documentation
-    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
+    (struct icemake *im, sexpr path, struct toolchain_descriptor *td,
+     sexpr definition)
 {
-    struct target *context = get_context (im, td);
+    struct target *context = get_context (im, path, td);
 
     context->name = car(definition);
 
@@ -1800,30 +1830,31 @@ int icemake_prepare_toolchain
 }
 
 static void parse_add_definition
-    (struct icemake *im, struct toolchain_descriptor *td, sexpr definition)
+    (struct icemake *im, sexpr path, struct toolchain_descriptor *td,
+     sexpr definition)
 {
     struct target *t = (struct target *)0;
     sexpr sxcar = car (definition);
 
     if (truep(equalp(sxcar, sym_archive)))
     {
-        t = create_archive (im, td, cdr (definition));
+        t = create_archive (im, path, td, cdr (definition));
     }
     else if (truep(equalp(sxcar, sym_library)))
     {
-        t = create_library (im, td, cdr (definition));
+        t = create_library (im, path, td, cdr (definition));
     }
     else if (truep(equalp(sxcar, sym_programme)))
     {
-        t = create_programme (im, td, cdr (definition));
+        t = create_programme (im, path, td, cdr (definition));
     }
     else if (truep(equalp(sxcar, sym_test_case)))
     {
-        t = create_test_case (im, td, cdr (definition));
+        t = create_test_case (im, path, td, cdr (definition));
     }
     else if (truep(equalp(sxcar, sym_documentation)))
     {
-        t = create_documentation (im, td, cdr (definition));
+        t = create_documentation (im, path, td, cdr (definition));
     }
 
     if (t != (struct target *)0)
@@ -1843,18 +1874,21 @@ int icemake_prepare
           sx_end_of_list,
           TREE_INITIALISER,
           (int (*)(struct icemake *, sexpr))0,
-          0, 0, options, sx_end_of_list, sx_end_of_list };
-    sexpr icemake_sx_path = make_string (path);
+          0, 0, options, sx_end_of_list, sx_end_of_list, sx_end_of_list };
+    sexpr base_path = make_string (path);
+    sexpr icemake_sx_path;
     struct sexpr_io *io;
     sexpr r;
 
-    define_string (str_sicemakedsx, "/icemake.sx");
+    define_string (str_icemakedsx, "icemake.sx");
  
     if (im == (struct icemake *)0)
     {
         im = &iml;
         icemake_prepare_visualiser_stub (im);
     }
+
+    im->roots = sx_set_add (im->roots, base_path);
 
     im->alternatives = sx_set_merge (im->alternatives, alternatives);
  
@@ -1874,7 +1908,7 @@ int icemake_prepare
         }
     }
 
-    icemake_sx_path = sx_join (icemake_sx_path, str_sicemakedsx, sx_nil);
+    icemake_sx_path = sx_join (base_path, str_icemakedsx, sx_nil);
 
     if (falsep (filep (icemake_sx_path)))
     {
@@ -1890,7 +1924,7 @@ int icemake_prepare
         if (nexp(r)) continue;
         if (consp(r))
         {
-            parse_add_definition (im, td, r);
+            parse_add_definition (im, base_path, td, r);
         }
     }
 

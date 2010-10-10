@@ -56,10 +56,10 @@ static void on_close_cpio_archive_source_file (struct io *io, void *aux)
     struct archive_metadata *ad = (struct archive_metadata *)aux;
     if (consp (ad->source))
     {
-        sexpr ca = car (ad->source);
-        struct io *i = io_open_read (sx_string (ca));
+        sexpr ca = car (ad->source), caa = car (ca), cad = cdr (ca);
+        struct io *i = io_open_read (sx_string (caa));
 
-        cpio_next_file (ad->cpio, sx_string (ca), (struct metadata *)0, i);
+        cpio_next_file (ad->cpio, sx_string (cad), (struct metadata *)0, i);
 
         multiplex_add_io
             (i, on_read_cpio_archive_source_file,
@@ -142,7 +142,7 @@ static void on_close_archive_source_file (struct io *io, void *aux)
 static void target_map_prepare_archives (struct tree_node *node, void *u)
 {
     struct target *context = (struct target *)node_get_value(node);
-    sexpr c = context->code, d, da, dd, name, source, out, df, ca;
+    sexpr c = context->code, d, da, dd, name, source, out, df, ca, caa, cad;
     struct memory_pool pool =
         MEMORY_POOL_INITIALISER(sizeof(struct archive_metadata));
     struct archive_metadata *ad;
@@ -183,7 +183,7 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
 
             if (truep (equalp (da, sym_raw_c)))
             {
-                source = car(cdr (dd));
+                source = sx_join (context->base, car(cdr (dd)), sx_nil);
 
                 out    = icemake_decorate_file
                              (context, ft_code_c, fet_build_file, df);
@@ -224,12 +224,13 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
                 while (consp (dd))
                 {
                     source = sx_set_merge
-                        (source, read_directory_sx (car (dd)));
+                        (source, read_directory_sx
+                                   (sx_join (context->base, car (dd), sx_nil)));
 
                     dd = cdr (dd);
                 }
 
-                source = path_normalise (source);
+                source = path_normalise_prefix (source);
 
                 context->code = sx_set_remove (context->code, d);
 
@@ -255,12 +256,14 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
                     ad->length = 0;
                     ad->cpio   = cpio_create_archive (co);
 
-                    ca = car (source);
+                    ca  = car (source);
+                    caa = car (ca);
+                    cad = cdr (ca);
 
-                    i = io_open_read (sx_string (ca));
+                    i = io_open_read (sx_string (caa));
 
                     cpio_next_file
-                        (ad->cpio, sx_string (ca), (struct metadata *)0, i);
+                        (ad->cpio, sx_string (cad), (struct metadata *)0, i);
 
                     multiplex_add_io
                         (i, on_read_cpio_archive_source_file,
@@ -278,9 +281,8 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
                     context->code = sx_set_add
                         (context->code,
                          cons (sym_c_pic, cons (out, cons (icemake_decorate_file
-                                 (context, ft_object, fet_build_file, df),
+                                 (context, ft_object_pic, fet_build_file, df),
                                   sx_end_of_list))));
-
                 }
 
                 context->code = sx_set_remove (context->code, d);
