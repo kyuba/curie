@@ -1660,21 +1660,39 @@ static void read_metadata ( struct icemake *im )
     }
 }
 
+struct save_metadata_d
+{
+    struct sexpr_io *io;
+    sexpr base;
+};
+
 static void target_map_save_metadata (struct tree_node *node, void *i)
 {
-    struct sexpr_io *io = (struct sexpr_io *)i;
+    struct save_metadata_d *d = (struct save_metadata_d *)i;
     struct target *t = (struct target *)node_get_value (node);
 
-    sx_write (io, cons (t->name, cons (t->buildnumber, sx_end_of_list)));
+    if (truep (equalp (t->base, d->base)))
+    {
+        sx_write (d->io, cons (t->name, cons (t->buildnumber, sx_end_of_list)));
+    }
 }
 
 static void save_metadata ( struct icemake *im )
 {
-    struct sexpr_io *io = sx_open_o (io_open_write ("metadata.sx"));
+    sexpr c = im->roots, t;
+    struct save_metadata_d d;
 
-    tree_map (&(im->targets), target_map_save_metadata, (void *)io);
+    while (consp (c))
+    {
+        d.base = car (c);
+        t = sx_join (d.base, str_metadata_sx, sx_nil);
+        d.io = sx_open_o (io_open_write (sx_string(t)));
 
-    sx_close_io (io);
+        tree_map (&(im->targets), target_map_save_metadata, (void *)(&d));
+
+        sx_close_io (d.io);
+        c = cdr (c);
+    }
 }
 
 int icemake_default_architecture
