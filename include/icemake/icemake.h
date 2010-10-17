@@ -794,6 +794,8 @@ define_string (str_blank,               "");
 define_string (str_archive,             "archive");
 /*! \brief Predefined String */
 define_string (str_datas,               "data-");
+/*! \brief Predefined String */
+define_string (str_metadata_sx,         "metadata.sx");
 
 /*! \brief Prefix List with Elements from an Environment Variable
  *  \param[in] x   The original list.

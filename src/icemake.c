@@ -1629,28 +1629,35 @@ int icemake_loop_processes (struct icemake *im)
 
 static void read_metadata ( struct icemake *im )
 {
-    struct sexpr_io *io = sx_open_i (io_open_read ("metadata.sx"));
-    sexpr r;
-
-    while (!eofp(r = sx_read (io)) && !nexp (r))
+    sexpr c = im->roots, t, r;
+    struct sexpr_io *io;
+    while (consp (c))
     {
-        struct target *t = (struct target *)0;
+        t = sx_join (car (c), str_metadata_sx, sx_nil);
+        io = sx_open_i (io_open_read (sx_string(t)));
 
-        if (consp(r)) {
-            sexpr sxcar = car (r);
-            struct tree_node *node =
-                tree_get_node_string(&(im->targets), (char *)sx_string(sxcar));
+        while (!eofp(r = sx_read (io)) && !nexp (r))
+        {
+            struct target *t = (struct target *)0;
 
-            if (node != (struct tree_node *)0)
+            if (consp(r))
             {
-                t = (struct target *)node_get_value (node);
+                sexpr sxcar = car (r);
+                struct tree_node *node =
+                    tree_get_node_string(&(im->targets), (char *)sx_string(sxcar));
 
-                t->buildnumber = car (cdr (r));
+                if (node != (struct tree_node *)0)
+                {
+                    t = (struct target *)node_get_value (node);
+
+                    t->buildnumber = car (cdr (r));
+                }
             }
         }
-    }
+        sx_close_io (io);
 
-    sx_close_io (io);
+        c = cdr (c);
+    }
 }
 
 static void target_map_save_metadata (struct tree_node *node, void *i)
