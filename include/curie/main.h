@@ -96,7 +96,7 @@ extern "C" {
  *  After calling this function, the process will terminate and return the given
  *  status code to the calling process.
  */
-void cexit (int status);
+extern void cexit (int status);
 
 /*! \brief Main Function
  *  \return The status code to return to the calling process.
@@ -104,7 +104,7 @@ void cexit (int status);
  *  This is the main entry point for plain curie applications. Once this
  *  function terminates, the process will also terminate.
  */
-int cmain ( void );
+extern int cmain ( void );
 
 /*! \brief Command-line Arguments
  *

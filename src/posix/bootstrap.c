@@ -34,7 +34,6 @@
 
 char **curie_argv = (char **)0;
 char **curie_environment = (char **)0;
-int cmain();
 
 void cexit (int status)
 {

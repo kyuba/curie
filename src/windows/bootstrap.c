@@ -35,7 +35,6 @@
 
 char **curie_argv = (char **)0;
 char **curie_environment = (char **)0;
-int cmain();
 
 int main (int argc, char **argv)
 {
