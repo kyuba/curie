@@ -214,6 +214,12 @@ enum file_expansion_type
 #define IS_32_BIT 0x0001
 #define IS_64_BIT 0x0002
 
+/*! \brief Toolchain Descriptor
+ *
+ *  Icemake populates one or more of these structures with the locations and
+ *  types of local toolchains, which are used to build programmes or
+ *  documentation files.
+ */
 struct toolchain_descriptor
 {
     enum toolchain        toolchain;
@@ -297,8 +303,13 @@ struct visualiser_descriptor
 #define ICEMAKE_OPTION_COMBINE          (1 << 0x5)
 #define ICEMAKE_OPTION_DYNAMIC_LINKING  (1 << 0x6)
 
+/*! \brief Icemake Context Data
+ *
+ *  This struct contains all the data that icemake needs and uses to work.
+ */
 struct icemake
 {
+    /*! \brief Target Filesystem Layout */
     enum fs_layout filesystem_layout;
 
     sexpr buildtargets;
@@ -822,22 +833,22 @@ int icemake_build (struct icemake *icemake);
 /*! \brief Install Targets
  *  \param[in] icemake Icemake handle.
  */
-int icemake_install (struct icemake *);
+int icemake_install (struct icemake *icemake);
 
 /*! \brief Run Test Cases
  *  \param[in] icemake Icemake handle.
  */
-int icemake_run_tests (struct icemake *);
+int icemake_run_tests (struct icemake *icemake);
 
 /*! \brief Link Targets
  *  \param[in] icemake Icemake handle.
  */
-int icemake_link (struct icemake *);
+int icemake_link (struct icemake *icemake);
 
 /*! \brief Build Documentation
  *  \param[in] icemake Icemake handle.
  */
-int icemake_build_documentation (struct icemake *);
+int icemake_build_documentation (struct icemake *icemake);
 
 /*! \brief Loop over all Processes
  *  \param[in] icemake Icemake handle.
@@ -845,9 +856,10 @@ int icemake_build_documentation (struct icemake *);
  *  This will go through the workstack and process all of the items. If any of
  *  the programmes fail, icemake terminates.
  */
-int icemake_loop_processes ( struct icemake *im );
+int icemake_loop_processes (struct icemake *icemake);
 
 /*! \brief Path Name Mangling (Borland)
+ *  \param[in] b The path to mangle.
  *  \return b;
  *
  *  BCC and related tools can't handle some characters in path names... in
@@ -857,6 +869,7 @@ int icemake_loop_processes ( struct icemake *im );
 char *mangle_path_borland (char *b);
 
 /*! \brief Path Name Mangling (Borland) (S-expressions)
+ *  \param[in] b The path to mangle.
  *  \return b;
  *
  *  BCC and related tools can't handle some characters in path names... in
