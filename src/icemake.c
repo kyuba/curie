@@ -525,17 +525,15 @@ static sexpr find_code_highlevel (struct target *context, sexpr file)
     {
         context->options |= ICEMAKE_HAVE_CPP;
 
-        return cons(sym_cpp, cons (r,
-                 cons (generate_object_file_name (subfile, context),
-                   sx_end_of_list)));
+        return sx_list3 (sym_cpp, r,
+                         generate_object_file_name (subfile, context));
 
     }
     else if (((r = find_code_c (context->toolchain, context->base, subfile)),
              stringp(r)))
     {
-        return cons(sym_c, cons (r,
-                 cons (generate_object_file_name (subfile, context),
-                   sx_end_of_list)));
+        return sx_list3 (sym_c, r,
+                         generate_object_file_name (subfile, context));
     }
 
     return sx_false;
@@ -550,16 +548,14 @@ static sexpr find_code_highlevel_pic (struct target *context, sexpr file)
     {
         context->options |= ICEMAKE_HAVE_CPP;
 
-        return cons(sym_cpp_pic, cons (r,
-                 cons (generate_pic_object_file_name (subfile, context),
-                   sx_end_of_list)));
+        return sx_list3 (sym_cpp_pic, r,
+                         generate_pic_object_file_name (subfile, context));
     }
     else if (((r = find_code_c (context->toolchain, context->base, subfile)),
              stringp(r)))
     {
-        return cons(sym_c_pic, cons (r,
-                 cons (generate_pic_object_file_name (subfile, context),
-                   sx_end_of_list)));
+        return sx_list3 (sym_c_pic, r,
+                         generate_pic_object_file_name (subfile, context));
     }
 
     return sx_false;
@@ -616,21 +612,17 @@ static void find_code (struct target *context, sexpr file)
 
     if ((r = find_code_S (context->toolchain, context->base, file)), stringp(r))
     {
-        primus =
-            cons(sym_preproc_assembly, cons (r,
-              cons (generate_object_file_name (file, context),
-                sx_end_of_list)));
+        primus = sx_list3 (sym_preproc_assembly, r,
+                           generate_object_file_name (file, context));
 
         if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
             (context->toolchain->toolchain == tc_gcc) &&
             !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
-            secundus =
-                cons(sym_preproc_assembly_pic,
-                  cons (find_code_pic_S
-                            (context->toolchain, context->base, file),
-                    cons (generate_pic_object_file_name
-                            (file, context), sx_end_of_list)));
+            secundus = sx_list3 (sym_preproc_assembly_pic,
+                                 find_code_pic_S (context->toolchain,
+                                                  context->base, file),
+                                 generate_pic_object_file_name (file, context));
         }
 
         tertius = find_code_highlevel (context, file);
@@ -645,21 +637,17 @@ static void find_code (struct target *context, sexpr file)
     else if ((r = find_code_s (context->toolchain, context->base, file)),
              stringp(r))
     {
-        primus =
-            cons(sym_assembly, cons (r,
-              cons (generate_object_file_name (file, context),
-                sx_end_of_list)));
+        primus = sx_list3 (sym_assembly, r,
+                           generate_object_file_name (file, context));
 
         if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
             (context->toolchain->toolchain == tc_gcc) &&
             !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
         {
-            secundus =
-                cons(sym_assembly_pic,
-                  cons (find_code_pic_s
-                            (context->toolchain, context->base, file),
-                    cons (generate_pic_object_file_name
-                            (file, context), sx_end_of_list)));
+            secundus = sx_list3 (sym_assembly_pic,
+                                 find_code_pic_s (context->toolchain,
+                                                  context->base, file),
+                                 generate_pic_object_file_name (file, context));
         }
 
         tertius = find_code_highlevel (context, file);
@@ -679,33 +667,31 @@ static void find_code (struct target *context, sexpr file)
         {
             context->options |= ICEMAKE_HAVE_CPP;
 
-            primus = cons(sym_cpp, cons (r,
-                       cons (generate_object_file_name (file, context),
-                         sx_end_of_list)));
+            primus = sx_list3 (sym_cpp, r,
+                               generate_object_file_name (file, context));
 
             if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
                 (context->toolchain->toolchain == tc_gcc) &&
                 !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
-                secundus = cons(sym_cpp_pic, cons (r,
-                             cons (generate_pic_object_file_name
-                                     (file, context), sx_end_of_list)));
+                secundus = sx_list3 (sym_cpp_pic, r,
+                                     generate_pic_object_file_name
+                                        (file, context));
             }
         }
         else if (((r = find_code_c (context->toolchain, context->base, file)),
                  stringp(r)))
         {
-            primus = cons(sym_c, cons (r,
-                       cons (generate_object_file_name (file, context),
-                         sx_end_of_list)));
+            primus = sx_list3 (sym_c, r,
+                               generate_object_file_name (file, context));
 
             if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
                 (context->toolchain->toolchain == tc_gcc) &&
                 !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
             {
-                secundus = cons (sym_c_pic, cons (r,
-                             cons (generate_pic_object_file_name
-                                     (file, context), sx_end_of_list)));
+                secundus = sx_list3 (sym_c_pic, r,
+                                     generate_pic_object_file_name
+                                        (file, context));
             }
         }
         else

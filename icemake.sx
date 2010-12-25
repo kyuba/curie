@@ -142,7 +142,7 @@
   (code "immutable"
         "tree-string"
         "sievert-sexpr" "sexpr-set" "sexpr-set-regex" "sexpr-set-string"
-        "sexpr-sort"
+        "sexpr-sort" "sexpr-list"
         "string-set" "string-set-regex"
         "shell"
         "cpio"

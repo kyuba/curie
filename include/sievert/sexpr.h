@@ -186,6 +186,82 @@ sexpr sx_merge          (sexpr set,    sexpr glue);
 sexpr sx_set_sort_merge
     (sexpr set, sexpr (*gtp)(sexpr, sexpr, void *), void *aux);
 
+/*! \brief Create a List with one Element
+ *  \param[in] alpha   The first element.
+ *  \return The new list.
+ *
+ *  This function will create a new list with the given argument as the first
+ *  element of that list.
+ */
+sexpr sx_list1
+    (sexpr alpha);
+
+/*! \brief Create a List with two Elements
+ *  \param[in] alpha   The first element.
+ *  \param[in] beta    The second element.
+ *  \return The new list.
+ *
+ *  This function will create a new list with the given arguments as elements
+ *  of that list.
+ */
+sexpr sx_list2
+    (sexpr alpha, sexpr beta);
+
+/*! \brief Create a List with three Elements
+ *  \param[in] alpha   The first element.
+ *  \param[in] beta    The second element.
+ *  \param[in] gamma   The third element.
+ *  \return The new list.
+ *
+ *  This function will create a new list with the given arguments as elements
+ *  of that list.
+ */
+sexpr sx_list3
+    (sexpr alpha, sexpr beta, sexpr gamma);
+
+/*! \brief Create a List with four Elements
+ *  \param[in] alpha   The first element.
+ *  \param[in] beta    The second element.
+ *  \param[in] gamma   The third element.
+ *  \param[in] delta   The fourth element.
+ *  \return The new list.
+ *
+ *  This function will create a new list with the given arguments as elements
+ *  of that list.
+ */
+sexpr sx_list4
+    (sexpr alpha, sexpr beta, sexpr gamma, sexpr delta);
+
+/*! \brief Create a List with five Elements
+ *  \param[in] alpha   The first element.
+ *  \param[in] beta    The second element.
+ *  \param[in] gamma   The third element.
+ *  \param[in] delta   The fourth element.
+ *  \param[in] epsilon The fifth element.
+ *  \return The new list.
+ *
+ *  This function will create a new list with the given arguments as elements
+ *  of that list.
+ */
+sexpr sx_list5
+    (sexpr alpha, sexpr beta, sexpr gamma, sexpr delta, sexpr epsilon);
+
+/*! \brief Create a List with six Elements
+ *  \param[in] alpha   The first element.
+ *  \param[in] beta    The second element.
+ *  \param[in] gamma   The third element.
+ *  \param[in] delta   The fourth element.
+ *  \param[in] epsilon The fifth element.
+ *  \param[in] zeta    The sixth element.
+ *  \return The new list.
+ *
+ *  This function will create a new list with the given arguments as elements
+ *  of that list.
+ */
+sexpr sx_list6
+    (sexpr alpha, sexpr beta, sexpr gamma, sexpr delta, sexpr epsilon,
+     sexpr zeta);
+
 /*! @} */
 
 #ifdef __cplusplus
