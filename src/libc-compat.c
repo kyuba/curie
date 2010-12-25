@@ -48,6 +48,7 @@ static struct tree size_map = TREE_INITIALISER;
 #pragma weak memset
 #pragma weak memcpy
 #pragma weak memcmp
+#pragma weak calloc
 
 void cexit (int status) {}
 
@@ -187,6 +188,15 @@ int strncmp(const char *s1, const char *s2, unsigned long count)
     }
 
     return 0;
+}
+
+void *calloc (unsigned long length)
+{
+    void *ptr = malloc (length);
+
+    memset (ptr, 0, length);
+
+    return ptr;
 }
 
 /* fuck SSP. learn how to programme, bitches */
