@@ -34,10 +34,17 @@ static void mx_f_augment(int *rs, int *r, int *ws, int *w);
 static void mx_f_callback(int *rs, int r, int *ws, int w);
 
 static struct multiplex_functions mx_functions = {
-    .count = mx_f_count,
-    .augment = mx_f_augment,
-    .callback = mx_f_callback,
-    .next = (struct multiplex_functions *)0
+    mx_f_count,
+    mx_f_augment,
+    mx_f_callback,
+    (struct multiplex_functions *)0
+};
+
+enum io_list_status
+{
+    ils_nominal = 0x0,
+    ils_active  = 0x1,
+    ils_kill    = 0x2
 };
 
 struct io_list {
@@ -45,6 +52,7 @@ struct io_list {
     void (*on_read)(struct io *, void *);
     void (*on_close)(struct io *, void *);
     void *data;
+    enum io_list_status status;
     struct io_list *next;
 };
 
@@ -145,6 +153,11 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
     while (l != (struct io_list *)0) {
         struct io *io = l->io;
 
+        if (io->status & ils_active)
+        {
+            goto next;
+        }
+
         if (io->fd == -1)
         {
             switch (io->type) {
@@ -154,7 +167,9 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
                     {
                         if (io_read(io) == io_changes)
                         {
+                            io->status |= ils_active;
                             l->on_read (io, l->data);
+                            io->status &= ~ils_active;
                         }
                     }
                     break;
@@ -173,7 +188,11 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
                         if (rs[i] == fd) {
                             (void)io_read (io);
                             if (l->on_read != (void *)0)
+                            {
+                                io->status |= ils_active;
                                 l->on_read (io, l->data);
+                                io->status &= ~ils_active;
+                            }
                         }
                     }
                     break;
@@ -193,6 +212,11 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
 
         next:
         l = l->next;
+
+        if (io->status == ils_kill)
+        {
+            multiplex_del_io (io);
+        }
     }
 
     while (changes)
@@ -203,7 +227,8 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
         while (l != (struct io_list *)0) {
             struct io *io = l->io;
 
-            if (io->fd == -1)
+            if (!(io->status & ils_active) &&
+                (io->fd == -1))
             {
                 switch (io->type) {
                     case iot_special_read:
@@ -212,8 +237,10 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
                         {
                             if (io_read(io) == io_changes)
                             {
+                                io->status |= ils_active;
                                 l->on_read (io, l->data);
                                 changes = 1;
+                                io->status &= ~ils_active;
                             }
                         }
                         break;
@@ -223,6 +250,11 @@ static void mx_f_callback(int *rs, int r, int *ws, int w) {
             }
 
             l = l->next;
+            
+            if (io->status == ils_kill)
+            {
+                multiplex_del_io (io);
+            }
         }
     }
 
@@ -265,6 +297,7 @@ void multiplex_add_io (struct io *io, void (*on_read)(struct io *, void *), void
     list_element->io = io;
     list_element->on_read = on_read;
     list_element->on_close = on_close;
+    list_element->status = ils_nominal;
     list_element->data = data;
 
     if (list == (void *)0)
@@ -293,6 +326,12 @@ void multiplex_del_io (struct io *io)
 {
     struct io_list *l = list, **p;
     char av = (char)0;
+
+    if (io->status & ils_active)
+    {
+        io->status |= ils_kill;
+        return;
+    }
 
     while (l != (struct io_list *)0) {
         if (l->io == io)
