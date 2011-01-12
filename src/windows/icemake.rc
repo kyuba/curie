@@ -12,11 +12,11 @@
     {
         BLOCK "080904B0"
         {
-            VALUE "CompanyName", "kyuba.org"
+            VALUE "CompanyName", "becquerel.org"
             VALUE "FileDescription", "Icemake - Curie Build Tool"
             VALUE "FileVersion", "11"
             VALUE "InternalName", "icemake"
-            VALUE "LegalCopyright", "Copyright (C) 2008-2010, Kyuba Project Members"
+            VALUE "LegalCopyright", "Copyright (C) 2008-2011, Kyuba Project Members"
             VALUE "OriginalFilename", "icemake.exe"
             VALUE "ProductName", "Icemake"
             VALUE "ProductVersion", "11"

@@ -13,11 +13,11 @@
     {
         BLOCK "080904B0"
         {
-            VALUE "CompanyName", "kyuba.org"
+            VALUE "CompanyName", "becquerel.org"
             VALUE "FileDescription", "Curie Auxiliary Library - Higher-Level Functionality not needed for Curie"
             VALUE "FileVersion", "1"
             VALUE "InternalName", "libsievert"
-            VALUE "LegalCopyright", "Copyright (C) 2008-2010, Kyuba Project Members"
+            VALUE "LegalCopyright", "Copyright (C) 2008-2011, Kyuba Project Members"
             VALUE "OriginalFilename", "libsievert.1.dll"
             VALUE "ProductName", "Sievert: Curie Auxiliary Library"
             VALUE "ProductVersion", "1"

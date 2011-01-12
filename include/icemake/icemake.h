@@ -1,11 +1,11 @@
 /*
- * This file is part of the kyuba.org Curie project.
- * See the appropriate repository at http://git.kyuba.org/ for exact file
+ * This file is part of the becquerel.org Curie project.
+ * See the appropriate repository at http://git.becquerel.org/ for exact file
  * modification records.
 */
 
 /*
- * Copyright (c) 2008-2010, Kyuba Project Members
+ * Copyright (c) 2008-2011, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -106,7 +106,7 @@ enum fs_layout
 
     /*! \brief AFSL
      *
-     *  This uses the AFSL, see the papers on kyuba.org for details.
+     *  This uses the AFSL, see the papers on becquerel.org for details.
      */
     fs_afsl,
 };

@@ -13,11 +13,11 @@
     {
         BLOCK "080904B0"
         {
-            VALUE "CompanyName", "kyuba.org"
+            VALUE "CompanyName", "becquerel.org"
             VALUE "FileDescription", "Curie Core Library - Minimalistic Cross-Platform Programming Library"
             VALUE "FileVersion", "11"
             VALUE "InternalName", "libcurie"
-            VALUE "LegalCopyright", "Copyright (C) 2008-2010, Kyuba Project Members"
+            VALUE "LegalCopyright", "Copyright (C) 2008-2011, Kyuba Project Members"
             VALUE "OriginalFilename", "libcurie.11.dll"
             VALUE "ProductName", "Curie Core Library"
             VALUE "ProductVersion", "11"
