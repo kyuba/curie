@@ -35,6 +35,7 @@
 
 #define linux_syscalls
 
+#include <syscall/invocation.h>
 #include <asm/unistd.h>
 
 #ifndef define_syscall0

@@ -26,30 +26,44 @@
  * THE SOFTWARE.
 */
 
+/*! \file
+ *  \brief Syscall Header (Linux)
+ */
+
+#ifndef LIBSYSCALL_INVOCATION_H
+#define LIBSYSCALL_INVOCATION_H
+
 #define _BSD_SOURCE
 
 #include <unistd.h>
 
 #define define_syscall0(a,b,c,r)\
-r c () { return (r)syscall(a); }
+static inline r c ()\
+{ return (r)syscall(a); }
 
 #define define_syscall1(a,b,c,r,p1)\
-r c (p1 a1) { return (r)syscall(a, a1); }
+static inline r c (p1 a1)\
+{ return (r)syscall(a, a1); }
 
 #define define_syscall2(a,b,c,r,p1,p2)\
-r c (p1 a1, p2 a2) { return (r)syscall(a, a1, a2); }
+static inline r c (p1 a1, p2 a2)\
+{ return (r)syscall(a, a1, a2); }
 
 #define define_syscall3(a,b,c,r,p1,p2,p3)\
-r c (p1 a1, p2 a2, p3 a3) { return (r)syscall(a, a1, a2, a3); }
+static inline r c (p1 a1, p2 a2, p3 a3)\
+{ return (r)syscall(a, a1, a2, a3); }
 
 #define define_syscall4(a,b,c,r,p1,p2,p3,p4)\
-r c (p1 a1, p2 a2, p3 a3, p4 a4) { return (r)syscall(a, a1, a2, a3, a4); }
+static inline r c (p1 a1, p2 a2, p3 a3, p4 a4)\
+{ return (r)syscall(a, a1, a2, a3, a4); }
 
 #define define_syscall5(a,b,c,r,p1,p2,p3,p4,p5)\
-r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5) { return (r)syscall(a, a1, a2, a3, a4, a5); }
+static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5)\
+{ return (r)syscall(a, a1, a2, a3, a4, a5); }
 
 #define define_syscall6(a,b,c,r,p1,p2,p3,p4,p5,p6)\
-r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5, p6 a6) { return (r)syscall(a, a1, a2, a3, a4, a5, a6); }
+static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5, p6 a6)\
+{ return (r)syscall(a, a1, a2, a3, a4, a5, a6); }
 
 #define define_socketcall0(a,b,c,r)
 #define define_socketcall1(a,b,c,r,a1)
@@ -59,4 +73,4 @@ r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5, p6 a6) { return (r)syscall(a, a1, a2, a3
 #define define_socketcall5(a,b,c,r,a1,a2,a3,a4,a5)
 #define define_socketcall6(a,b,c,r,a1,a2,a3,a4,a5,a6)
 
-#include <syscall/syscall.h>
+#endif

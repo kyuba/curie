@@ -26,42 +26,11 @@
  * THE SOFTWARE.
 */
 
-/* C-functions: */
-/* rdi rsi rdx rcx r8 r9 */
-/* kernel: */
-/* rdi rsi rdx r10 r8 r9 */
+/*! \file
+ *  \brief Syscall Header (stub)
+ */
 
-#define define_syscall0(a,b,c,r)\
-.globl c;\
-.type c, @function;\
-c:\
-        movq    $a, %rax;\
-        syscall;\
-        ret;
+#ifndef LIBSYSCALL_INVOCATION_H
+#define LIBSYSCALL_INVOCATION_H
 
-#define define_syscall4(a,b,c,r,p1,p2,p3,p4)\
-.globl c;\
-.type c, @function;\
-c:\
-        movq    %rcx, %r10;\
-        movq    $a, %rax;\
-        syscall;\
-        ret;
-
-#define define_syscall1(a,b,c,r,p1) define_syscall0(a,b,c,r)
-#define define_syscall2(a,b,c,r,p1,p2) define_syscall0(a,b,c,r)
-#define define_syscall3(a,b,c,r,p1,p2,p3) define_syscall0(a,b,c,r)
-#define define_syscall5(a,b,c,r,p1,p2,p3,p4,p5) define_syscall4(a,b,c,r,p1,p2,p3,p4)
-#define define_syscall6(a,b,c,r,p1,p2,p3,p4,p5,p6) define_syscall4(a,b,c,r,p1,p2,p3,p4)
-
-#define define_socketcall0(a,b,c,r)
-#define define_socketcall1(a,b,c,r,a1)
-#define define_socketcall2(a,b,c,r,a1,a2)
-#define define_socketcall3(a,b,c,r,a1,a2,a3)
-#define define_socketcall4(a,b,c,r,a1,a2,a3,a4)
-#define define_socketcall5(a,b,c,r,a1,a2,a3,a4,a5)
-#define define_socketcall6(a,b,c,r,a1,a2,a3,a4,a5,a6)
-
-#include <syscall/syscall.h>
-
-.section .note.GNU-stack,"",%progbits
+#endif

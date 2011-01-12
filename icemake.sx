@@ -128,7 +128,7 @@
   (code "syscall")
 
   (headers
-        "syscall"))
+        "syscall" "invocation"))
 
 (library "sievert" libcurie
   (name "Sievert")
