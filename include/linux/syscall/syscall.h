@@ -187,7 +187,7 @@ define_syscall0 (__NR_sched_yield, sched_yield, sys_sched_yield, long)
 #endif
 #ifdef __NR_mremap
 #define have_sys_mremap
-define_syscall4 (__NR_mremap, mremap, sys_mremap, void *, void *, unsigned long, unsigned long, unsigned long)
+define_syscall5 (__NR_mremap, mremap, sys_mremap, void *, void *, unsigned long, unsigned long, unsigned long, void *)
 #endif
 #ifdef __NR_msync
 #define have_sys_msync

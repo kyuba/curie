@@ -60,7 +60,8 @@ void *resize_mem
     unsigned long long msize = get_multiple_of_pagesize(size);
     unsigned long long mnew_size = get_multiple_of_pagesize(new_size);
 
-    void *rv = sys_mremap(location, msize, mnew_size, 0x1 /*MREMAP_MAYMOVE*/);
+    void *rv = sys_mremap (location, msize, mnew_size,
+                           0x1 /*MREMAP_MAYMOVE*/, 0);
 
     if (rv == (void*)-1)
     {
