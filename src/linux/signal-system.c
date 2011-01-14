@@ -26,6 +26,7 @@
  * THE SOFTWARE.
 */
 
+#include <syscall/syscall.h>
 #include <curie/signal.h>
 #include <curie/signal-system.h>
 #include <curie/int.h>
@@ -248,10 +249,10 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
     }
 
     x.action.sa_handler = sig_invoker;
-    x.action.sa_restorer = __a_sigreturn;
+    x.action.sa_restorer = (void (*)())sys_rt_sigreturn;
     x.action.sa_flags = SA_RESTORER;
 
     signal_handlers[signal] = handler;
 
-    (void)__a_set_signal_handler (signum, (void *)&(x.action));
+    (void)sys_rt_sigaction (signum, (void *)&(x.action), (void *)0, 8);
 }
