@@ -27,45 +27,70 @@
 */
 
 /*! \file
- *  \brief Syscall Header (Linux)
+ *  \brief Syscall Invocation Descriptions (Linux/x86-64/gcc)
  */
 
 #ifndef LIBSYSCALL_INVOCATION_H
 #define LIBSYSCALL_INVOCATION_H
 
-#define _BSD_SOURCE
-
-#include <unistd.h>
-
 /* syscall registers: rdi, rsi, rdx, r10, r8, r9*/
 
 #define define_syscall0(a,b,c,r)\
 static inline r c ()\
-{ r out; __asm__ volatile ( "syscall" : "=a"(out) : "a"(a) : "memory" ); return out; }
+{ r out;\
+  __asm__ volatile ( "syscall" : "=a"(out) : "0"(a) : "memory" );\
+  return out; }
 
 #define define_syscall1(a,b,c,r,p1)\
 static inline r c (p1 a1)\
-{ r out; __asm__ volatile ( "syscall" : "=a"(out) : "a"(a), "D"(a1) : "memory" ); return out; }
+{ r out;\
+  __asm__ volatile ( "syscall" : "=a"(out) : "0"(a), "D"(a1) : "memory" );\
+  return out; }
 
 #define define_syscall2(a,b,c,r,p1,p2)\
 static inline r c (p1 a1, p2 a2)\
-{ r out; __asm__ volatile ( "syscall" : "=a"(out) : "a"(a), "D"(a1), "S"(a2) : "memory" ); return out; }
+{ r out;\
+  __asm__ volatile ( "syscall" : "=a"(out) : "0"(a), "D"(a1), "S"(a2) :\
+                     "memory" );\
+  return out; }
 
 #define define_syscall3(a,b,c,r,p1,p2,p3)\
 static inline r c (p1 a1, p2 a2, p3 a3)\
-{ r out; __asm__ volatile ( "syscall" : "=a"(out) : "a"(a), "D"(a1), "S"(a2), "d"(a3) : "memory" ); return out; }
+{ r out;\
+  __asm__ volatile ( "syscall" : "=a"(out) : "0"(a), "D"(a1), "S"(a2),\
+                                             "d"(a3) :\
+                     "memory" );\
+  return out; }
 
 #define define_syscall4(a,b,c,r,p1,p2,p3,p4)\
 static inline r c (p1 a1, p2 a2, p3 a3, p4 a4)\
-{ r out; register p4 _a4 __asm__("r10") = a4; __asm__ volatile ( "syscall" : "=a"(out) : "a"(a), "D"(a1), "S"(a2), "d"(a3), "q"(_a4) : "memory" ); return out; }
+{ r out;\
+  register p4 _a4 __asm__("r10") = a4;\
+  __asm__ volatile ( "syscall" : "=a"(out) : "0"(a), "D"(a1), "S"(a2), "d"(a3),\
+                                             "q"(_a4) :\
+                     "memory" );\
+  return out; }
 
 #define define_syscall5(a,b,c,r,p1,p2,p3,p4,p5)\
 static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5)\
-{ r out; register p4 _a4 __asm__("r10") = a4; register p5 _a5 __asm__("r8") = a5; __asm__ volatile ( "syscall" : "=a"(out) : "a"(a), "D"(a1), "S"(a2), "d"(a3), "q"(_a4), "q"(_a5) : "memory" ); return out; }
+{ r out;\
+  register p4 _a4 __asm__("r10") = a4;\
+  register p5 _a5 __asm__("r8") = a5;\
+  __asm__ volatile ( "syscall" : "=a"(out) : "0"(a), "D"(a1), "S"(a2), "d"(a3),\
+                                             "q"(_a4), "q"(_a5) :\
+                     "memory" );\
+  return out; }
 
 #define define_syscall6(a,b,c,r,p1,p2,p3,p4,p5,p6)\
 static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5, p6 a6)\
-{ r out; register p4 _a4 __asm__("r10") = a4; register p5 _a5 __asm__("r8") = a5; register p6 _a6 __asm__("r9") = a6; __asm__ volatile ( "syscall" : "=a"(out) : "a"(a), "D"(a1), "S"(a2), "d"(a3), "q"(_a4), "q"(_a5), "q"(_a6) : "memory" ); return out; }
+{ r out;\
+  register p4 _a4 __asm__("r10") = a4;\
+  register p5 _a5 __asm__("r8") = a5;\
+  register p6 _a6 __asm__("r9") = a6;\
+  __asm__ volatile ( "syscall" : "=a"(out) : "0"(a), "D"(a1), "S"(a2), "d"(a3),\
+                                             "q"(_a4), "q"(_a5), "q"(_a6) :\
+                     "memory" );\
+  return out; }
 
 #define define_socketcall0(a,b,c,r)
 #define define_socketcall1(a,b,c,r,a1)

@@ -120,12 +120,10 @@
 (test-case "test-time"                     libcurie
   (code "test-time"))
 
-(library "syscall" libcurie
+(documentation "syscall" libcurie
   (name "libsyscall")
-  (description "raw syscall library, useful for implementing libcs and low-level system tools")
-  (version "1")
-
-  (code "syscall")
+  (description "raw syscall library, useful for implementing libcs and low-level system tools (headers only)")
+  (version "2")
 
   (headers
         "syscall" "invocation"))
@@ -135,9 +133,6 @@
   (description "library with auxiliary functionality, based off of libcurie")
   (version "1")
   (url "http://kyuba.org/")
-
-  (libraries
-        "syscall")
 
   (code "immutable"
         "tree-string"
@@ -159,17 +154,17 @@
         ("build/to-sexpr-sort" . "tests/reference/sexpr-sort")))
 
 (test-case "test-immutable"  libcurie
-  (libraries "sievert" "syscall") (code "test-immutable"))
+  (libraries "sievert") (code "test-immutable"))
 (test-case "test-directory"  libcurie
-  (libraries "sievert" "syscall") (code "test-directory"))
+  (libraries "sievert") (code "test-directory"))
 (test-case "test-string-set" libcurie
-  (libraries "sievert" "syscall") (code "test-string-set"))
+  (libraries "sievert") (code "test-string-set"))
 (test-case "test-sexpr-set"  libcurie
-  (libraries "sievert" "syscall") (code "test-sexpr-set"))
+  (libraries "sievert") (code "test-sexpr-set"))
 (test-case "test-sexpr-sort" libcurie
-  (libraries "sievert" "syscall") (code "test-sexpr-sort"))
+  (libraries "sievert") (code "test-sexpr-sort"))
 (test-case "test-cpio"       libcurie
-  (libraries "sievert" "syscall") (code "test-cpio"))
+  (libraries "sievert") (code "test-cpio"))
 
 (library "curie++" libcurie
   (name "Curie++")
@@ -202,7 +197,7 @@
   (description "simple build tool for curie, based on curie")
   (version "11")
 
-  (libraries "sievert" "syscall")
+  (libraries "sievert")
 
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
         "icemake-link" "icemake-documentation"
@@ -220,7 +215,7 @@
   (description "Pretty-printing tool for icemake")
   (version "3")
 
-  (libraries "sievert" "syscall" "icemake")
+  (libraries "sievert" "icemake")
 
   (code "ice"))
 
