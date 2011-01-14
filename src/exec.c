@@ -26,6 +26,7 @@
  * THE SOFTWARE.
 */
 
+#include <syscall/syscall.h>
 #include <curie/io-system.h>
 #include <curie/memory.h>
 #include <curie/io.h>
@@ -56,7 +57,7 @@ struct exec_context *execute(unsigned int options,
         net_open_loop(&proc_stdin_in, &proc_stdin_out);
     }
 
-    while (((pid = a_fork()) == -1) && (retries < 10))
+    while (((pid = sys_fork()) == -1) && (retries < 10))
     {
         retries++;
     }
@@ -79,7 +80,7 @@ struct exec_context *execute(unsigned int options,
         case 0:
             if (options & EXEC_CALL_CREATE_SESSION)
             {
-                a_set_sid();
+                sys_setsid();
             }
 
             if ((command != (char **)0) ||
@@ -95,7 +96,7 @@ struct exec_context *execute(unsigned int options,
                 }
 
                 if (command != (char **)0) {
-                    a_exec (command[0], command, environment);
+                    sys_execve (command[0], command, environment);
                 }
             } else if ((options & EXEC_CALL_NO_IO) == 0) {
                 io_close (proc_stdout_in);

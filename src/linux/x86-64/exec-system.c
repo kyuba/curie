@@ -26,34 +26,31 @@
  * THE SOFTWARE.
 */
 
-#define _POSIX_SOURCE
-
+#include <syscall/syscall.h>
 #include <curie/exec-system.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/wait.h>
-
-#include <unistd.h>
 
 enum wait_return a_wait(int pid, int *status) {
     int st = 0;
     enum wait_return r;
+    int st_masked;
 
-    (void)waitpid((pid_t)pid, &st, WNOHANG);
+    (void)sys_wait4((signed int)pid, &st, 0x1 /*WNOHANG*/, (void *)0);
 
-    if (WIFEXITED(st)) {
+    st_masked = st & 0x7f;
+
+    if (st_masked == 0) { /* mask = 0 means it exited normally*/
         r = wr_exited;
-        *status = (int)(char)(WEXITSTATUS(st));
+        *status = (int)((st & 0xff00) >> 8);
     }
-    else if (WIFSIGNALED(st))
+    else if (((signed char)(st_masked + 1) >> 1) > 0) /* signal */
     {
         r = wr_killed;
-        *status = (int)(char)-(WTERMSIG(st));
+        *status = (int)-st_masked;
     }
-    else
+    else /* otherwise */
     {
         r = wr_running;
-        *status = (int)(char)0;
+        *status = (int)0;
     }
 
     return r;
@@ -62,10 +59,11 @@ enum wait_return a_wait(int pid, int *status) {
 int a_wait_all(int *status) {
     int st, r;
 
-    r = waitpid((pid_t)-1, &st, WNOHANG);
+    r = sys_wait4((signed int)-1, &st, 0x1 /*WNOHANG*/, (void *)0);
 
-    if (WIFEXITED(st) != 0) {
-        *status = WEXITSTATUS(st);
+    if ((st & 0x7f) == 0) /* see above */
+    {
+        *status = ((st & 0xff00) >> 8);
     }
 
     return r;

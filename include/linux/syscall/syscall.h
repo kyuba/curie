@@ -111,7 +111,7 @@ define_syscall3 (__NR_lseek, lseek, sys_lseek, int, unsigned int, int, unsigned 
 #endif
 #ifdef __NR_mmap
 #define have_sys_mmap
-define_syscall5 (__NR_mmap, mmap, sys_mmap, void *, void *, int, int, int, int)
+define_syscall6 (__NR_mmap, mmap, sys_mmap, void *, void *, int, int, int, int, long)
 #endif
 #ifdef __NR_mprotect
 #define have_sys_mprotect
@@ -187,7 +187,7 @@ define_syscall0 (__NR_sched_yield, sched_yield, sys_sched_yield, long)
 #endif
 #ifdef __NR_mremap
 #define have_sys_mremap
-define_syscall5 (__NR_mremap, mremap, sys_mremap, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long)
+define_syscall4 (__NR_mremap, mremap, sys_mremap, void *, void *, unsigned long, unsigned long, unsigned long)
 #endif
 #ifdef __NR_msync
 #define have_sys_msync

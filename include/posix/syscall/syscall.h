@@ -26,47 +26,17 @@
  * THE SOFTWARE.
 */
 
-#define _POSIX_SOURCE
+/*! \file
+ *  \brief Syscall Header (POSIX)
+ */
 
-#include <curie/exec-system.h>
-#include <sys/types.h>
+#ifndef LIBSYSCALL_SYSCALL_H
+#define LIBSYSCALL_SYSCALL_H
+
 #include <unistd.h>
-#include <sys/wait.h>
 
-#include <unistd.h>
+#define sys_fork() fork()
+#define sys_execve(image, argv, env) execve(image, argv, env)
+#define sys_setsid() setsid()
 
-enum wait_return a_wait(int pid, int *status) {
-    int st = 0;
-    enum wait_return r;
-
-    (void)waitpid((pid_t)pid, &st, WNOHANG);
-
-    if (WIFEXITED(st)) {
-        r = wr_exited;
-        *status = (int)(char)(WEXITSTATUS(st));
-    }
-    else if (WIFSIGNALED(st))
-    {
-        r = wr_killed;
-        *status = (int)(char)-(WTERMSIG(st));
-    }
-    else
-    {
-        r = wr_running;
-        *status = (int)(char)0;
-    }
-
-    return r;
-}
-
-int a_wait_all(int *status) {
-    int st, r;
-
-    r = waitpid((pid_t)-1, &st, WNOHANG);
-
-    if (WIFEXITED(st) != 0) {
-        *status = WEXITSTATUS(st);
-    }
-
-    return r;
-}
+#endif

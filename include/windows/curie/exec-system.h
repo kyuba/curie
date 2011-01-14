@@ -46,13 +46,6 @@ enum wait_return {
     wr_killed = 2
 };
 
-/*! \brief Wrapper for the CreateProcess() System Call
- *  \param[in] image The process image to execute.
- *  \param[in] argv  The argument vector for the new process.
- *  \param[in] env   The environment vector for the new process.
- */
-int a_exec(const char *image, char **argv, char **env);
-
 #endif
 
 /*! @} */

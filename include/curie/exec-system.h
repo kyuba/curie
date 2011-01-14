@@ -46,13 +46,6 @@ enum wait_return {
     wr_killed = 2
 };
 
-/*! \brief Wrapper for the fork() System Call
- *  \return -1 if the call failed. If the call succeeded, 0 if we're in the
- *          child process or the PID of the child process if we're in the parent
- *          process.
- */
-int a_fork();
-
 /*! \brief Wrapper for the wait4() System Call
  *  \param[in]  pid    The PID to wait for.
  *  \param[out] status The location of an integer to store the result in.
@@ -61,15 +54,6 @@ int a_fork();
 enum wait_return a_wait(int pid, int *status);
 
 int a_wait_all (int *status);
-
-/*! \brief Wrapper for the execve() System Call
- *  \param[in] image The process image to execute.
- *  \param[in] argv  The argument vector for the new process.
- *  \param[in] env   The environment vector for the new process.
- */
-void a_exec(const char *image, char **argv, char **env);
-
-int a_set_sid ();
 
 #endif
 
