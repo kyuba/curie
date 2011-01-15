@@ -33,7 +33,7 @@
         "exec-system" "multiplex-system" "signal-system" "regex"
         "directory" "directory-common" "libc-compat" "utf-8"
         "sexpr-stdio" "stdio" "stack" "gc" "variables"
-        "sexpr-custom" "time" "time-system" "hash" "tree-library"
+        "sexpr-custom" "time" "hash" "tree-library"
         "gcd" "io-pool")
 
   (headers

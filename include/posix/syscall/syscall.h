@@ -33,10 +33,12 @@
 #ifndef LIBSYSCALL_SYSCALL_H
 #define LIBSYSCALL_SYSCALL_H
 
+#include <time.h>
 #include <unistd.h>
 
 #define sys_fork() fork()
 #define sys_execve(image, argv, env) execve(image, argv, env)
 #define sys_setsid() setsid()
+#define sys_time(a) time(a)
 
 #endif

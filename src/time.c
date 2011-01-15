@@ -26,13 +26,13 @@
  * THE SOFTWARE.
 */
 
+#include <syscall/syscall.h>
 #include <curie/time.h>
 #include <curie/constants.h>
-#include <curie/time-system.h>
 
 int_date dt_get_kin (void)
 {
-    return UNIX_EPOCH + (__a_time() / SECONDS_PER_DAY);
+    return UNIX_EPOCH + (sys_time(0) / SECONDS_PER_DAY);
 }
 
 int_date dt_make_kin (struct date *date)
@@ -59,12 +59,12 @@ void dt_split_kin (int_date kin, struct date *date)
 
 unsigned int dt_get_time (void)
 {
-    return __a_time() % SECONDS_PER_DAY;
+    return sys_time(0) % SECONDS_PER_DAY;
 }
 
 void dt_get (struct datetime *date)
 {
-    int_64 utime = __a_time();
+    int_64 utime = sys_time(0);
 
     date->date = UNIX_EPOCH + (utime / SECONDS_PER_DAY);
     date->time = utime % SECONDS_PER_DAY;

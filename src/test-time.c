@@ -29,7 +29,6 @@
 #include <curie/main.h>
 #include <curie/sexpr.h>
 #include <curie/time.h>
-#include <curie/time-system.h>
 
 int cmain()
 {
