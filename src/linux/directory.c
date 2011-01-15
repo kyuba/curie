@@ -26,6 +26,7 @@
  * THE SOFTWARE.
 */
 
+#include <syscall/syscall.h>
 #include <curie/directory.h>
 #include <curie/directory-system.h>
 #include <curie/internal-constants.h>
@@ -44,7 +45,8 @@ struct dirent64 {
 
 sexpr read_directory_rx (const char *base, sexpr rx)
 {
-    int fd = a_open_directory (base);
+    int fd = sys_open (base, 0x10800 /* O_RDONLY | O_NONBLOCK | O_DIRECTORY */,
+                       0444);
     sexpr r = sx_end_of_list;
 
     if (fd >= 0)
@@ -52,7 +54,7 @@ sexpr read_directory_rx (const char *base, sexpr rx)
         char buffer[LIBCURIE_DIRENT_BUFFER_SIZE];
         int rc;
 
-        while ((rc = a_getdents64 (fd, &buffer, sizeof(buffer))) > 0)
+        while ((rc = sys_getdents64 (fd, &buffer, sizeof(buffer))) > 0)
         {
             unsigned int p = 0;
 

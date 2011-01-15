@@ -93,6 +93,10 @@ define_syscall1 (__NR_close, close, sys_close, long, unsigned int)
 #define have_sys_stat
 define_syscall2 (__NR_stat, stat, sys_stat, long, char *, void *)
 #endif
+#ifdef __NR_newstat
+#define have_sys_newstat
+define_syscall2 (__NR_newstat, newstat, sys_newstat, long, char *, void *)
+#endif
 #ifdef __NR_fstat
 #define have_sys_fstat
 define_syscall2 (__NR_fstat, fstat, sys_fstat, long, unsigned int, void *)
@@ -100,6 +104,10 @@ define_syscall2 (__NR_fstat, fstat, sys_fstat, long, unsigned int, void *)
 #ifdef __NR_lstat
 #define have_sys_lstat
 define_syscall2 (__NR_lstat, lstat, sys_lstat, long, char *, void *)
+#endif
+#ifdef __NR_newlstat
+#define have_sys_newlstat
+define_syscall2 (__NR_newlstat, newlstat, sys_newlstat, long, char *, void *)
 #endif
 #ifdef __NR_poll
 #define have_sys_poll
@@ -128,6 +136,10 @@ define_syscall1 (__NR_brk, brk, sys_brk, unsigned long, unsigned long)
 #ifdef __NR_rt_sigaction
 #define have_sys_rt_sigaction
 define_syscall4 (__NR_rt_sigaction, rt_sigaction, sys_rt_sigaction, long, int, void *, void *, int)
+#endif
+#ifdef __NR_sigaction
+#define have_sys_sigaction
+define_syscall3 (__NR_sigaction, rt_sigaction, sys_rt_sigaction, long, int, void *, void *)
 #endif
 #ifdef __NR_rt_sigprocmask
 #define have_sys_rt_sigprocmask
