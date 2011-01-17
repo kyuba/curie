@@ -327,11 +327,11 @@ define_syscall5 (__NR_getsockopt, getsockopt, sys_getsockopt, long, int, int, in
 #endif
 #ifdef __NR_clone
 #define have_sys_clone
-define_syscall2 (__NR_clone, clone, sys_clone, int, void *, unsigned long)
+define_syscall5 (__NR_clone, clone, sys_clone, int, unsigned, void *, void *, void *, void *)
 #endif
 #ifdef __NR_fork
 #define have_sys_fork
-define_syscall0 (__NR_fork, fork, sys_fork, int)
+define_syscall1 (__NR_fork, fork, sys_fork, int, void *)
 #endif
 #ifdef __NR_vfork
 #define have_sys_vfork

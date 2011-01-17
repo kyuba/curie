@@ -36,6 +36,11 @@
 
 #define MAXFD 1024
 
+#ifdef linux_syscalls
+//#define sys_fork() sys_fork(0)
+#define sys_fork() sys_clone(0, 0, 0, 0, 0)
+#endif
+
 struct exec_context *execute(unsigned int options,
                              char **command,
                              char **environment)
