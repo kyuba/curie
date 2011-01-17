@@ -88,28 +88,23 @@ struct exec_context *execute(unsigned int options,
                 sys_setsid();
             }
 
-            if ((command != (char **)0) ||
-                ((options & EXEC_CALL_PURGE) != 0))
-            {
-                if ((options & EXEC_CALL_NO_IO) == 0) {
-                    (void)a_dup (proc_stdin_in->fd, 0);
-                    (void)a_dup (proc_stdout_out->fd, 1);
-                }
+            if ((options & EXEC_CALL_NO_IO) == 0) {
+                (void)a_dup (proc_stdin_in->fd, 0);
+                (void)a_dup (proc_stdout_out->fd, 1);
+            }
 
+            if ((options & EXEC_CALL_PURGE) != 0)
+            {
                 for (i = 3; i < MAXFD; i++) {
                     (void)a_close(i);
                 }
-
-                if (command != (char **)0) {
-                    sys_execve (command[0], command, environment);
-                }
-            } else if ((options & EXEC_CALL_NO_IO) == 0) {
-                io_close (proc_stdout_in);
-                io_close (proc_stdin_out);
-
-                context->in = proc_stdin_in;
-                context->out = proc_stdout_out;
             }
+
+            sys_execve (command[0], command, environment);
+
+#if defined(have_sys_exit)
+            sys_exit(~0);
+#endif
 
             break;
         default:
