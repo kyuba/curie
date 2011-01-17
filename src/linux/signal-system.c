@@ -238,6 +238,11 @@ static void sig_invoker (int signum) {
     }
 }
 
+void a_sigreturn()
+{
+    sys_rt_sigreturn(0);
+}
+
 void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signal)) {
     union {
         struct sigaction action;
@@ -253,9 +258,9 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
     }
 
     x.action.sa_handler = sig_invoker;
-/*    x.action.sa_restorer = (void (*)())sys_rt_sigreturn;
-    x.action.sa_flags = SA_RESTORER; */
-    x.action.sa_flags = 0;
+    x.action.sa_restorer = (void (*)())a_sigreturn;
+    x.action.sa_flags = SA_RESTORER;
+//    x.action.sa_flags = 0;
 
     signal_handlers[signal] = handler;
 

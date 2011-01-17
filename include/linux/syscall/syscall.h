@@ -121,6 +121,10 @@ define_syscall3 (__NR_lseek, lseek, sys_lseek, int, unsigned int, int, unsigned 
 #define have_sys_mmap
 define_syscall6 (__NR_mmap, mmap, sys_mmap, void *, void *, int, int, int, int, long)
 #endif
+#ifdef __NR_mmap2
+#define have_sys_mmap2
+define_syscall6 (__NR_mmap2, mmap2, sys_mmap2, void *, void *, int, int, int, int, long)
+#endif
 #ifdef __NR_mprotect
 #define have_sys_mprotect
 define_syscall3 (__NR_mprotect, mprotect, sys_mprotect, int, void *, int, int)
@@ -151,7 +155,7 @@ define_syscall3 (__NR_sigprocmask, sigprocmask, sys_sigprocmask, long, int, void
 #endif
 #ifdef __NR_rt_sigreturn
 #define have_sys_rt_sigreturn
-define_syscall0 (__NR_rt_sigreturn, rt_sigreturn, sys_rt_sigreturn, int)
+define_syscall1 (__NR_rt_sigreturn, rt_sigreturn, sys_rt_sigreturn, int, void *)
 #endif
 #ifdef __NR_ioctl
 #define have_sys_ioctl
