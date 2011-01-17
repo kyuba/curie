@@ -139,7 +139,7 @@ define_syscall4 (__NR_rt_sigaction, rt_sigaction, sys_rt_sigaction, long, int, v
 #endif
 #ifdef __NR_sigaction
 #define have_sys_sigaction
-define_syscall3 (__NR_sigaction, rt_sigaction, sys_rt_sigaction, long, int, void *, void *)
+define_syscall3 (__NR_sigaction, sigaction, sys_sigaction, long, int, void *, void *)
 #endif
 #ifdef __NR_rt_sigprocmask
 #define have_sys_rt_sigprocmask

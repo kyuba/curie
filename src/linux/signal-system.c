@@ -31,7 +31,9 @@
 #include <curie/signal-system.h>
 #include <curie/int.h>
 
+#if !defined(__SIZE_TYPE__)
 typedef unsigned long size_t;
+#endif
 
 #define _LINUX_TYPES_H
 #define _LINUX_TIME_H

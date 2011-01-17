@@ -63,10 +63,6 @@
   (code "test-curie-main"))
 (test-case "test-environment"              libcurie
   (code "test-environment"))
-(test-case "test-execute-fork"             libcurie
-  (code "test-execute-fork"))
-(test-case "test-execute-fork-purge"       libcurie
-  (code "test-execute-fork-purge"))
 (test-case "test-exit"                     libcurie
   (code "test-exit"))
 (test-case "test-filesystem"               libcurie
@@ -81,18 +77,10 @@
   (code "test-memory-pool"))
 (test-case "test-memory-primitives"        libcurie
   (code "test-memory-primitives"))
-(test-case "test-multiplex-all-processes"  libcurie
-  (code "test-multiplex-all-processes"))
 (test-case "test-multiplex-io"             libcurie
   (code "test-multiplex-io"))
-(test-case "test-multiplex-network"        libcurie
-  (code "test-multiplex-network"))
-(test-case "test-multiplex-process"        libcurie
-  (code "test-multiplex-process"))
 (test-case "test-multiplex-sexpr"          libcurie
   (code "test-multiplex-sexpr"))
-(test-case "test-network-loop"             libcurie
-  (code "test-network-loop"))
 (test-case "test-read-write"               libcurie
   (code "test-read-write"))
 (test-case "test-sexpr-read"               libcurie

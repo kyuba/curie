@@ -34,6 +34,7 @@
 #define LIBSYSCALL_INVOCATION_H
 
 #define _BSD_SOURCE
+#define __USE_MISC
 
 #include <unistd.h>
 

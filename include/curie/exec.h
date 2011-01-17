@@ -133,11 +133,9 @@ struct exec_context {
  *                         array of strings (ignored if command == (char **)0).
  *  \return A new exec_context.
  *
- *  Command and environment may both be (char **)0 instead of arrays. If
- *  command is (char **)0, the function essentially just fork()s instead of
- *  running a programme, but only if the current operating system supports this
- *  (which means this doesn't work on Windows, due to the distinctive lack of a
- *  fork() function).
+ *  Environment may be (char **)0 instead of an array. If command is
+ *  (char **)0, the function used to just fork, but now it'll fail as this
+ *  proved too hard to support on non-unices.
  */
 struct exec_context *execute
         (unsigned int options, char **command, char **environment);
