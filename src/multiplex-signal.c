@@ -26,12 +26,14 @@
  * THE SOFTWARE.
 */
 
+#include <syscall/syscall.h>
 #include <curie/multiplex.h>
 #include <curie/signal.h>
 #include <curie/signal-system.h>
 #include <curie/tree.h>
 #include <curie/memory.h>
 #include <curie/network.h>
+#include <curie/stack.h>
 
 struct handler {
     enum signal signal;
@@ -100,6 +102,25 @@ static void generic_signal_handler (enum signal signal) {
                     (unsigned int)sizeof(enum signal));
 }
 
+static void setup_alternate_stack ( void )
+{
+#if defined(have_sys_sigaltstack)
+    struct { char *stack; int flags; unsigned long ss_size; } stack =
+        { get_mem(LIBCURIE_PAGE_SIZE), 0, LIBCURIE_PAGE_SIZE };
+
+    switch (stack_growth)
+    {
+        case sg_down:
+            stack.stack += LIBCURIE_PAGE_SIZE;
+            break;
+        default:
+            break;
+    }
+
+    sys_sigaltstack (&stack, 0, 0);
+#endif
+}
+
 void multiplex_signal () {
     if (installed == (char)0) {
         int i;
@@ -120,6 +141,8 @@ void multiplex_signal () {
 
         multiplex_add_io (signal_queue, queue_on_read, queue_on_close,
                           (void *)0);
+
+        setup_alternate_stack();
 
         installed = (char)1;
     }
@@ -147,6 +170,8 @@ void multiplex_signal_primary () {
         multiplex_add_io (signal_queue_in, queue_on_read, queue_on_close,
                           (void *)0);
         multiplex_add_io_no_callback (signal_queue);
+
+        setup_alternate_stack();
 
         installed = (char)1;
     }

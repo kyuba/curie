@@ -259,8 +259,7 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
 
     x.action.sa_handler = sig_invoker;
     x.action.sa_restorer = (void (*)())a_sigreturn;
-    x.action.sa_flags = SA_RESTORER;
-//    x.action.sa_flags = 0;
+    x.action.sa_flags = SA_RESTORER | SA_ONSTACK;
 
     signal_handlers[signal] = handler;
 
