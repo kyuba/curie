@@ -26,9 +26,8 @@
  * THE SOFTWARE.
 */
 
+#include <syscall/syscall.h>
 #include <curie/multiplex-system.h>
-
-int __a_select (int, void *, void *);
 
 #define BITSPERBYTE 8
 #define MAXCELLS 16
@@ -80,7 +79,7 @@ void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum) {
         fdset(&wset, wfds[i]);
     }
 
-    r = __a_select(highest + 1, (void *)&rset, (void *)&wset);
+    r = sys_select(highest + 1, (void *)&rset, (void *)&wset, 0, 0);
 
     if (r <= 0) {
         for (i = 0; i < rnum; i++) {
