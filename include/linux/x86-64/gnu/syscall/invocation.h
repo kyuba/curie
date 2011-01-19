@@ -114,6 +114,13 @@ static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5, p6 a6)\
                      "cc", "memory", "rcx", "r11" );\
   return (r)out; }
 
+#define sys_sigreturn_immediate()\
+{ register unsigned long out __asm__("rax") = (unsigned long)__NR_rt_sigreturn;\
+  __asm__ volatile ("syscall\n\tretq" : "+a"(out) : :\
+                    "cc", "memory", "rcx", "r11"); }
+
+#define sys_sigreturn_opcodes { 0xb8, 0x0f, 0x00, 0x00, 0x00, 0x0f, 0x05, 0xc3 }
+
 #define define_socketcall0(a,b,c,r)
 #define define_socketcall1(a,b,c,r,a1)
 #define define_socketcall2(a,b,c,r,a1,a2)
