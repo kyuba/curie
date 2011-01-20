@@ -90,13 +90,21 @@
 extern "C" {
 #endif
 
+#if defined(__GNUC__)
+#define NORETURN __attribute__((noreturn))
+#endif
+
+#if !defined(NORETURN)
+#define NORETURN
+#endif
+
 /*! \brief Terminate Process
  *  \param[in] status The status code to return.
  *
  *  After calling this function, the process will terminate and return the given
  *  status code to the calling process.
  */
-extern void cexit (int status);
+extern void cexit (int status) NORETURN;
 
 /*! \brief Main Function
  *  \return The status code to return to the calling process.

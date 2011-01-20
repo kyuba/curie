@@ -26,49 +26,40 @@
  * THE SOFTWARE.
 */
 
-.data
+#include <syscall/syscall.h>
+#include <curie/main.h>
+#include <curie/stack.h>
 
-.globl curie_argv
-    .type curie_argv, @object
-    .size curie_argv, 8
-curie_argv:
-        .quad 0x0
+char **curie_argv        = 0;
+char **curie_environment = 0;
 
-.globl curie_environment
-    .type curie_environment, @object
-    .size curie_environment, 8
-curie_environment:
-        .quad 0x0
+void cexit (int status)
+{
+    sys_exit (status);
+}
 
-.text
-    .align 8
+void __start ( void ) __attribute__((used));
 
-.globl _start
-    .type _start,             @function
-.globl cexit
-    .type cexit,              @function
+void __start ( void )
+{
+    __asm__ volatile
+        (".globl _start\n\t"
+         ".type _start, @function\n"
+         "_start:\n\t"
+         "xorq  %%rbp, %%rbp\n\t"
+         "movq  %%rsp, %%r11\n\t"
+         "addq  $0x8, %%r11\n\t"
+         "movq  %%r11, %0\n\t"
+         "movq  (%%rsp), %%rbx\n\t"
+         "incq  %%rbx\n\t"
+         "imulq $0x8, %%rbx, %%rbx\n\t"
+         "addq  %%rbx, %%r11\n\t"
+         "movq  %%r11, %1"
+         : "=m"(curie_argv), "=m"(curie_environment)
+         :
+         : "r11", "rbx");
 
+    initialise_stack ();
 
-_start:
-        /* play dat funkeh music white boy */
-        xorq    %rbp, %rbp
-
-        movq    %rsp, %r11
-        addq    $0x8, %r11
-        movq    %r11, curie_argv(%rip)
-
-        movq    (%rsp), %rbx
-        incq    %rbx
-        imulq   $0x8, %rbx, %rbx
-        addq    %rbx, %r11
-        movq    %r11, curie_environment(%rip)
-
-        call    initialise_stack
-
-        call    cmain
-        movq    %rax, %rdi
-cexit:
-        movq    $0x3c, %rax /* sys_exit */
-        syscall
-
-.section .note.GNU-stack,"",%progbits
+    cexit (cmain ());
+}
