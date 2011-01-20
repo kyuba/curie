@@ -37,74 +37,81 @@
 
 #define define_syscall0(a,b,c,r)\
 static inline r c ()\
-{ register r _a __asm__("3") = a;\
-  __asm__ volatile ( "sc" : "=g"(_a) : "0"(_a) : "memory" );\
-  return _a; }
+{ register unsigned long _c  __asm__("0") = (unsigned long)a;\
+  register unsigned long _a  __asm__("3");\
+  __asm__ volatile ( "sc" : "=g"(_a) : "g"(_c) : "memory" );\
+  return (r)_a; }
 
 #define define_syscall1(a,b,c,r,p1)\
 static inline r c (p1 a1)\
-{ register r _a __asm__("3") = a;\
-  register p1 _a1 __asm__("4") = a1;\
-  __asm__ volatile ( "sc" : "=g"(_a) : "0"(_a), "g"(_a1) : "memory" );\
-  return _a; }
+{ register unsigned long _c  __asm__("0") = (unsigned long)a;\
+  register unsigned long _a  __asm__("3");\
+  register unsigned long _a1 __asm__("3") = (unsigned long)a1;\
+  __asm__ volatile ( "sc" : "=g"(_a) : "g"(_c), "g"(_a1) : "memory" );\
+  return (r)_a; }
 
 #define define_syscall2(a,b,c,r,p1,p2)\
 static inline r c (p1 a1, p2 a2)\
-{ register r _a __asm__("3") = a;\
-  register p1 _a1 __asm__("4") = a1;\
-  register p2 _a2 __asm__("5") = a1;\
-  __asm__ volatile ( "sc" : "=g"(_a) : "0"(_a), "g"(_a1), "g"(_a2) :\
+{ register unsigned long _c  __asm__("0") = (unsigned long)a;\
+  register unsigned long _a  __asm__("3");\
+  register unsigned long _a1 __asm__("3") = (unsigned long)a1;\
+  register unsigned long _a2 __asm__("4") = (unsigned long)a2;\
+  __asm__ volatile ( "sc" : "=g"(_a) : "g"(_c), "g"(_a1), "g"(_a2) :\
                      "memory" );\
-  return _a; }
+  return (r)_a; }
 
 #define define_syscall3(a,b,c,r,p1,p2,p3)\
 static inline r c (p1 a1, p2 a2, p3 a3)\
-{ register r _a __asm__("3") = a;\
-  register p1 _a1 __asm__("4") = a1;\
-  register p2 _a2 __asm__("5") = a2;\
-  register p3 _a3 __asm__("6") = a3;\
-  __asm__ volatile ( "sc" : "=g"(_a) : "0"(_a), "g"(_a1), "g"(_a2), "g"(_a3) :\
+{ register unsigned long _c  __asm__("0") = (unsigned long)a;\
+  register unsigned long _a  __asm__("3");\
+  register unsigned long _a1 __asm__("3") = (unsigned long)a1;\
+  register unsigned long _a2 __asm__("4") = (unsigned long)a2;\
+  register unsigned long _a3 __asm__("5") = (unsigned long)a3;\
+  __asm__ volatile ( "sc" : "=g"(_a) : "g"(_c), "g"(_a1), "g"(_a2), "g"(_a3) :\
                      "memory" );\
-  return _a; }
+  return (r)_a; }
 
 #define define_syscall4(a,b,c,r,p1,p2,p3,p4)\
 static inline r c (p1 a1, p2 a2, p3 a3, p4 a4)\
-{ register r _a __asm__("3") = a;\
-  register p1 _a1 __asm__("4") = a1;\
-  register p2 _a2 __asm__("5") = a2;\
-  register p3 _a3 __asm__("6") = a3;\
-  register p4 _a4 __asm__("7") = a4;\
-  __asm__ volatile ( "sc" : "=g"(_a) : "0"(_a), "g"(_a1), "g"(_a2), "g"(_a3),\
+{ register unsigned long _c  __asm__("0") = (unsigned long)a;\
+  register unsigned long _a  __asm__("3");\
+  register unsigned long _a1 __asm__("3") = (unsigned long)a1;\
+  register unsigned long _a2 __asm__("4") = (unsigned long)a2;\
+  register unsigned long _a3 __asm__("5") = (unsigned long)a3;\
+  register unsigned long _a4 __asm__("6") = (unsigned long)a4;\
+  __asm__ volatile ( "sc" : "=g"(_a) : "g"(_c), "g"(_a1), "g"(_a2), "g"(_a3),\
                                        "g"(_a4) :\
                      "memory" );\
-  return _a; }
+  return (r)_a; }
 
 #define define_syscall5(a,b,c,r,p1,p2,p3,p4,p5)\
 static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5)\
-{ register r _a __asm__("3") = a;\
-  register p1 _a1 __asm__("4") = a1;\
-  register p2 _a2 __asm__("5") = a2;\
-  register p3 _a3 __asm__("6") = a3;\
-  register p4 _a4 __asm__("7") = a4;\
-  register p5 _a5 __asm__("8") = a5;\
-  __asm__ volatile ( "sc" : "=g"(_a) : "0"(_a), "g"(_a1), "g"(_a2), "g"(_a3),\
+{ register unsigned long _c  __asm__("0") = (unsigned long)a;\
+  register unsigned long _a  __asm__("3");\
+  register unsigned long _a1 __asm__("3") = (unsigned long)a1;\
+  register unsigned long _a2 __asm__("4") = (unsigned long)a2;\
+  register unsigned long _a3 __asm__("5") = (unsigned long)a3;\
+  register unsigned long _a4 __asm__("6") = (unsigned long)a4;\
+  register unsigned long _a5 __asm__("7") = (unsigned long)a5;\
+  __asm__ volatile ( "sc" : "=g"(_a) : "g"(_c), "g"(_a1), "g"(_a2), "g"(_a3),\
                                        "g"(_a4), "g"(_a5) :\
                      "memory" );\
-  return _a; }
+  return (r)_a; }
 
 #define define_syscall6(a,b,c,r,p1,p2,p3,p4,p5,p6)\
 static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5, p6 a6)\
-{ register r _a __asm__("3") = a;\
-  register p1 _a1 __asm__("4") = a1;\
-  register p2 _a2 __asm__("5") = a2;\
-  register p3 _a3 __asm__("6") = a3;\
-  register p4 _a4 __asm__("7") = a4;\
-  register p5 _a5 __asm__("8") = a5;\
-  register p6 _a6 __asm__("9") = a6;\
-  __asm__ volatile ( "sc" : "=g"(_a) : "0"(_a), "g"(_a1), "g"(_a2), "g"(_a3),\
+{ register unsigned long _c  __asm__("0") = (unsigned long)a;\
+  register unsigned long _a  __asm__("3");\
+  register unsigned long _a1 __asm__("3") = (unsigned long)a1;\
+  register unsigned long _a2 __asm__("4") = (unsigned long)a2;\
+  register unsigned long _a3 __asm__("5") = (unsigned long)a3;\
+  register unsigned long _a4 __asm__("6") = (unsigned long)a4;\
+  register unsigned long _a5 __asm__("7") = (unsigned long)a5;\
+  register unsigned long _a6 __asm__("8") = (unsigned long)a6;\
+  __asm__ volatile ( "sc" : "=g"(_a) : "g"(_c), "g"(_a1), "g"(_a2), "g"(_a3),\
                                        "g"(_a4), "g"(_a5), "g"(_a6) :\
                      "memory" );\
-  return _a; }
+  return (r)_a; }
 
 #define define_socketcall0(a,b,c,r)
 #define define_socketcall1(a,b,c,r,a1)
