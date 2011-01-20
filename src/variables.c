@@ -28,8 +28,13 @@
 
 #define _BSD_SOURCE
 
+#include <syscall/syscall.h>
 #include <curie/main.h>
 #include <curie/memory.h>
+
+#if defined(have_sys_exit)
+#define cexit sys_exit
+#endif
 
 void *(*get_mem_recovery)(unsigned long int)
     = (void *(*)(unsigned long int))cexit;

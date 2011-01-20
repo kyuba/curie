@@ -35,10 +35,12 @@
 
 #include <time.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #define sys_fork() fork()
 #define sys_execve(image, argv, env) execve(image, argv, env)
 #define sys_setsid() setsid()
 #define sys_time(a) time(a)
+#define sys_exit(a) exit(a)
 
 #endif

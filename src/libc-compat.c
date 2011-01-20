@@ -26,6 +26,7 @@
  * THE SOFTWARE.
 */
 
+#include <syscall/syscall.h>
 #include <curie/int.h>
 #include <curie/memory.h>
 #include <curie/tree.h>
@@ -36,7 +37,6 @@ static struct tree size_map = TREE_INITIALISER;
 /* weak stubs for stuff in this file, so that when linked with a libc things
  * from the libc are used */
 
-#pragma weak cexit
 #pragma weak abort
 #pragma weak free
 #pragma weak malloc
@@ -48,9 +48,6 @@ static struct tree size_map = TREE_INITIALISER;
 #pragma weak memset
 #pragma weak memcpy
 #pragma weak memcmp
-#pragma weak calloc
-
-void cexit (int status) {}
 
 void *malloc (unsigned long length)
 {
@@ -107,7 +104,7 @@ void *realloc (void *ptr, unsigned long length)
 
 void abort ( void )
 {
-    cexit (-1);
+    sys_exit (-1);
 }
 
 void *memcpy(void *dest, const void *src, unsigned long n)
@@ -188,15 +185,6 @@ int strncmp(const char *s1, const char *s2, unsigned long count)
     }
 
     return 0;
-}
-
-void *calloc (unsigned long length)
-{
-    void *ptr = malloc (length);
-
-    memset (ptr, 0, length);
-
-    return ptr;
 }
 
 /* fuck SSP. learn how to programme, bitches */
