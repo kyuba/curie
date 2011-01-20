@@ -64,7 +64,7 @@ static enum signal_callback_result sig_chld_signal_handler
 static enum signal_callback_result sig_chld_combined_handler
         (enum signal signal, void *e)
 {
-    int pid, q;
+    int pid, q = 0;
 
     while ((pid = a_wait_all(&q)) > 0)
     {
