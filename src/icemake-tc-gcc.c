@@ -179,12 +179,47 @@ static void build_object_gcc_c_combine
 
     sx = cons (str_dcombine, cons (str_dc, item));
 
-/*
-    if ((t->options & ICEMAKE_PROGRAMME) && eolp (cdr (t->code)))
+    if ((t->options & ICEMAKE_PROGRAMME))
     {
-        sx = cons (str_dfwhole_program, sx);
+        sexpr c = t->code;
+        char allow_whole_program = 1;
+
+        while (!eolp (c))
+        {
+            sexpr ca = car (c);
+            sexpr type = car (ca);
+
+            if (falsep (equalp (type, sym_resource)) &&
+                falsep (equalp (type, sym_c)) &&
+                falsep (equalp (type, sym_c_pic)))
+            {
+                allow_whole_program = 0;
+                break;
+            }
+
+            c = cdr (c);
+        }
+
+        c = t->libraries;
+
+        while (!eolp (c))
+        {
+            sexpr ca = car (c);
+
+            if (falsep (equalp (ca, str_gcc)))
+            {
+                allow_whole_program = 0;
+                break;
+            }
+
+            c = cdr (c);
+        }
+
+        if (allow_whole_program == 1)
+        {
+            sx = cons (str_dfwhole_program, sx);
+        }
     }
-*/
 
     item = cons (t->toolchain->meta_toolchain.gcc.gcc, sx);
 
@@ -274,12 +309,47 @@ static void build_object_gcc_c_pic_combine
 
     sx = cons (str_dcombine, cons (str_dc, item));
 
-/*
-    if ((t->options & ICEMAKE_PROGRAMME) && eolp (cdr (t->code)))
+    if ((t->options & ICEMAKE_PROGRAMME))
     {
-        sx = cons (str_dfwhole_program, sx);
+        sexpr c = t->code;
+        char allow_whole_program = 1;
+
+        while (!eolp (c))
+        {
+            sexpr ca = car (c);
+            sexpr type = car (ca);
+
+            if (falsep (equalp (type, sym_resource)) &&
+                falsep (equalp (type, sym_c)) &&
+                falsep (equalp (type, sym_c_pic)))
+            {
+                allow_whole_program = 0;
+                break;
+            }
+
+            c = cdr (c);
+        }
+
+        c = t->libraries;
+
+        while (!eolp (c))
+        {
+            sexpr ca = car (c);
+
+            if (falsep (equalp (ca, str_gcc)))
+            {
+                allow_whole_program = 0;
+                break;
+            }
+
+            c = cdr (c);
+        }
+
+        if (allow_whole_program == 1)
+        {
+            sx = cons (str_dfwhole_program, sx);
+        }
     }
-*/
 
     item = cons (t->toolchain->meta_toolchain.gcc.gcc, cons (str_dfpic, sx));
 
