@@ -33,12 +33,22 @@
 char **curie_argv        = 0;
 char **curie_environment = 0;
 
+#if defined(__GNUC__) && defined(__GNUC_MINOR__) && (((__GNUC__ == 4) && (__GNUC_VERSION__ >= 5)) || (__GNUC__ > 4))
+#define UNREACHABLE __builtin_unreachable ();
+#else
+#define UNREACHABLE
+#endif
+
+void __start ( void ) __attribute__((used));
+void cexit ( int ) __attribute__((used));
+void initialise_stack ( void ) __attribute__((used));
+int cmain ( void ) __attribute__((used));
+
 void cexit (int status)
 {
     sys_exit (status);
+    UNREACHABLE
 }
-
-void __start ( void ) __attribute__((used));
 
 void __start ( void )
 {
@@ -54,12 +64,13 @@ void __start ( void )
          "incq  %%rbx\n\t"
          "imulq $0x8, %%rbx, %%rbx\n\t"
          "addq  %%rbx, %%r11\n\t"
-         "movq  %%r11, %1"
+         "movq  %%r11, %1\n\t"
+         "call initialise_stack\n\t"
+         "call cmain\n\t"
+         "movq %%rax, %%rdi\n\t"
+         "call cexit"
          : "=m"(curie_argv), "=m"(curie_environment)
          :
-         : "r11", "rbx");
-
-    initialise_stack ();
-
-    cexit (cmain ());
+         : "memory" );
+    UNREACHABLE
 }
