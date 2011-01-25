@@ -46,4 +46,8 @@
 
 #define NORETURN __attribute__((noreturn))
 
+#define EXTENSION __extension__
+
+#define PURE __attribute__((pure))
+
 #endif

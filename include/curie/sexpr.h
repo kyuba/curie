@@ -44,6 +44,7 @@
 #ifndef LIBCURIE_SEXPR_H
 #define LIBCURIE_SEXPR_H
 
+#include <curie/attributes.h>
 #include <curie/io.h>
 
 #ifdef __cplusplus
@@ -335,6 +336,7 @@ sexpr cons
  *  define_symbol().
  */
 #define define_sosi(t,n,s) \
+    EXTENSION\
     static const struct sexpr_string_or_symbol sexpr_payload_ ## n = { t, s };\
     static const sexpr n = ((const sexpr)&(sexpr_payload_ ## n))
 

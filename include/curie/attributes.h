@@ -39,5 +39,7 @@
 #define UNREACHABLE
 #define USED
 #define NORETURN
+#define EXTENSION
+#define PURE
 
 #endif
