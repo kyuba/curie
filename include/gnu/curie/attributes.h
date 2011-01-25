@@ -27,48 +27,23 @@
 */
 
 /*! \file
- *  \brief Stack Information
+ *  \brief Compiler-specific attributes (GCC version)
  *
- *  Some generic information to help with certain stack majick thingamajiggies.
- *  The GC needs this.
+ *  In this file we're trying to collect compiler-specific attributes that are
+ *  useful to compilers, but which are inherently compiler-specific.
  */
 
-#ifndef LIBCURIE_STACK_H
-#define LIBCURIE_STACK_H
+#ifndef LIBCURIE_ATTRIBUTES_H
+#define LIBCURIE_ATTRIBUTES_H
 
-#include <curie/attributes.h>
+#if defined(__GNUC__) && defined(__GNUC_MINOR__) && (((__GNUC__ == 4) && (__GNUC_VERSION__ >= 5)) || (__GNUC__ > 4))
+#define UNREACHABLE __builtin_unreachable ();
+#else
+#define UNREACHABLE
+#endif
 
-/*!\brief Stack Growth Direction (Date Type)
- *
- * Stacks in computer programmes may grow either upwards or downwards, depending
- * on the computer's architecture. Which direction the stack grows towards needs
- * to be known to programmes that manipulate the stack.
- */
-enum stack_growth
-{
-    sg_down = 0, /*!< The stack grows downwards (from high addresses to low) */
-    sg_up   = 1  /*!< The stack grows upwards (from low addresses to high) */
-};
+#define USED __attribute__((used))
 
-/*!\brief Stack Growth Direction
- *
- * This is the actual stack growth direction, as identified by
- * initialise_stack().
- */
-extern enum stack_growth stack_growth;
-
-/*!\brief Stack Start Address
- *
- * This is the start address of the stack, or a value near enough, as identified
- * by initialise_stack().
- */
-extern void *stack_start_address;
-
-/*! \brief Initialise Stack Boundaries
- *
- *  This function will try to identify the start address of the stack and
- *  whether it grows up or downwards.
- */
-void initialise_stack() USED;
+#define NORETURN __attribute__((noreturn))
 
 #endif

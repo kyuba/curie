@@ -39,7 +39,8 @@
   (headers
         "exec" "main" "sexpr" "memory" "multiplex" "signal" "tree" "network"
         "int" "io" "constants" "graph" "filesystem" "regex"
-        "directory" "string" "utf-8" "time" "stack" "gc" "hash" "math")
+        "directory" "string" "utf-8" "time" "stack" "gc" "hash" "math"
+        "attributes")
 
   (test-case-reference
         ("build/to-curie-test-data" . "tests/reference/curie-test-data")

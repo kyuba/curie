@@ -90,13 +90,7 @@
 extern "C" {
 #endif
 
-#if defined(__GNUC__)
-#define NORETURN __attribute__((noreturn))
-#endif
-
-#if !defined(NORETURN)
-#define NORETURN
-#endif
+#include <curie/attributes.h>
 
 /*! \brief Terminate Process
  *  \param[in] status The status code to return.
@@ -104,7 +98,7 @@ extern "C" {
  *  After calling this function, the process will terminate and return the given
  *  status code to the calling process.
  */
-extern void cexit (int status) NORETURN;
+extern void cexit (int status) NORETURN USED;
 
 /*! \brief Main Function
  *  \return The status code to return to the calling process.
@@ -112,7 +106,7 @@ extern void cexit (int status) NORETURN;
  *  This is the main entry point for plain curie applications. Once this
  *  function terminates, the process will also terminate.
  */
-extern int cmain ( void );
+extern int cmain ( void ) USED;
 
 /*! \brief Command-line Arguments
  *

@@ -27,22 +27,31 @@
 */
 
 #include <syscall/syscall.h>
+#include <curie/attributes.h>
 #include <curie/main.h>
 #include <curie/stack.h>
 
 char **curie_argv        = 0;
 char **curie_environment = 0;
 
-#if defined(__GNUC__) && defined(__GNUC_MINOR__) && (((__GNUC__ == 4) && (__GNUC_VERSION__ >= 5)) || (__GNUC__ > 4))
-#define UNREACHABLE __builtin_unreachable ();
-#else
-#define UNREACHABLE
-#endif
+void __start ( void ) __attribute__((used,noreturn));
+void __asm_cexit ( int ) __attribute((used,alias("cexit")));
+int  jump_cmain ( void ) __attribute__((flatten));
+void jump_initialise_stack ( void ) __attribute__((flatten));
 
-void __start ( void ) __attribute__((used));
-void cexit ( int ) __attribute__((used));
-void initialise_stack ( void ) __attribute__((used));
-int cmain ( void ) __attribute__((used));
+void __asm_initialise_stack ( void )
+__attribute((used,alias("jump_initialise_stack")));
+int __asm_cmain ( void ) __attribute((used,alias("jump_cmain")));
+
+void jump_initialise_stack ( void )
+{
+    initialise_stack ();
+}
+
+int jump_cmain ( void )
+{
+    return cmain ();
+}
 
 void cexit (int status)
 {
@@ -65,12 +74,12 @@ void __start ( void )
          "imulq $0x8, %%rbx, %%rbx\n\t"
          "addq  %%rbx, %%r11\n\t"
          "movq  %%r11, %1\n\t"
-         "call initialise_stack\n\t"
-         "call cmain\n\t"
+         "call __asm_initialise_stack\n\t"
+         "call __asm_cmain\n\t"
          "movq %%rax, %%rdi\n\t"
-         "call cexit"
+         "call __asm_cexit"
          : "=m"(curie_argv), "=m"(curie_environment)
-         :
+         : "p"(cexit), "p"(cmain), "p"(initialise_stack)
          : "memory" );
     UNREACHABLE
 }
