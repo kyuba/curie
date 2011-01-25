@@ -36,7 +36,7 @@
 #ifndef LIBCURIE_ATTRIBUTES_H
 #define LIBCURIE_ATTRIBUTES_H
 
-#if defined(__GNUC__) && defined(__GNUC_MINOR__) && (((__GNUC__ == 4) && (__GNUC_VERSION__ >= 5)) || (__GNUC__ > 4))
+#if defined(__GNUC__) && defined(__GNUC_MINOR__) && (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 5)) || (__GNUC__ > 4))
 #define UNREACHABLE __builtin_unreachable ();
 #else
 #define UNREACHABLE
