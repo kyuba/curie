@@ -35,13 +35,13 @@ char **curie_argv        = 0;
 char **curie_environment = 0;
 
 void __start ( void ) __attribute__((used,noreturn));
-void __asm_cexit ( int ) __attribute((used,alias("cexit")));
+void __asm_cexit ( int ) __attribute__((used,alias("cexit")));
 int  jump_cmain ( void ) __attribute__((flatten));
 void jump_initialise_stack ( void ) __attribute__((flatten));
 
 void __asm_initialise_stack ( void )
-__attribute((used,alias("jump_initialise_stack")));
-int __asm_cmain ( void ) __attribute((used,alias("jump_cmain")));
+__attribute__((used,alias("jump_initialise_stack")));
+int __asm_cmain ( void ) __attribute__((used,alias("jump_cmain")));
 
 void jump_initialise_stack ( void )
 {
