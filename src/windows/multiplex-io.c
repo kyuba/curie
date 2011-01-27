@@ -134,7 +134,7 @@ static void mx_f_augment(void **rs, int *r) {
 }
 
 static void mx_f_callback(void **rs, int r) {
-    struct io_list *l = list;
+    struct io_list *l = list, *t;
     char changes = 1;
 
     while (l != (struct io_list *)0) {
@@ -188,9 +188,10 @@ static void mx_f_callback(void **rs, int r) {
         }
 
         next:
+        t = l;
         l = l->next;
 
-        if (io->status == ils_kill)
+        if (t->status == ils_kill)
         {
             multiplex_del_io (io);
         }
@@ -226,9 +227,10 @@ static void mx_f_callback(void **rs, int r) {
                 }
             }
 
+            t = l;
             l = l->next;
 
-            if (io->status == ils_kill)
+            if (t->status == ils_kill)
             {
                 multiplex_del_io (io);
             }
