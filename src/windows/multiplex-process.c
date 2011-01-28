@@ -38,13 +38,6 @@ static enum multiplex_result mx_f_count(int *r);
 static void mx_f_augment(void **rs, int *r);
 static void mx_f_callback(void **rs, int r);
 
-static struct multiplex_functions mx_functions = {
-    mx_f_count,
-    mx_f_augment,
-    mx_f_callback,
-    (struct multiplex_functions *)0
-};
-
 struct exec_cx {
     struct exec_context *context;
     void (*on_death)(struct exec_context *, void *);
@@ -142,6 +135,13 @@ void multiplex_all_processes ()
 
 void multiplex_process ()
 {
+    static struct multiplex_functions mx_functions = {
+        mx_f_count,
+        mx_f_augment,
+        mx_f_callback,
+        (struct multiplex_functions *)0
+    };
+
     static char installed = (char)0;
 
     if (installed == (char)0) {

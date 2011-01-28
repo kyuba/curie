@@ -53,14 +53,6 @@ static enum multiplex_result mx_f_count(int *r, int *w);
 static void mx_f_augment(int *rs, int *r, int *ws, int *w);
 static void mx_f_callback(int *rs, int r, int *ws, int w);
 
-static struct multiplex_functions mx_functions =
-{
-    .count = mx_f_count,
-    .augment = mx_f_augment,
-    .callback = mx_f_callback,
-    .next = (struct multiplex_functions *)0
-};
-
 static enum multiplex_result mx_f_count(int *r, int *w) {
     struct net_socket_listener *l = list;
 
@@ -255,6 +247,14 @@ void net_open_ip6 (int_8 addr[16], int_16 port, struct io **in, struct io **out)
 }
 
 void multiplex_network() {
+    static struct multiplex_functions mx_functions =
+    {
+        .count = mx_f_count,
+        .augment = mx_f_augment,
+        .callback = mx_f_callback,
+        .next = (struct multiplex_functions *)0
+    };
+
     static char installed = (char)0;
 
     if (installed == (char)0) {

@@ -34,13 +34,6 @@ static enum multiplex_result mx_f_count(int *r);
 static void mx_f_augment(void **rs, int *r);
 static void mx_f_callback(void **rs, int r);
 
-static struct multiplex_functions mx_functions = {
-    mx_f_count,
-    mx_f_augment,
-    mx_f_callback,
-    (struct multiplex_functions *)0
-};
-
 enum io_list_status
 {
     ils_nominal = 0x0,
@@ -258,6 +251,13 @@ static void mx_f_callback(void **rs, int r) {
 }
 
 void multiplex_io () {
+    static struct multiplex_functions mx_functions = {
+        mx_f_count,
+        mx_f_augment,
+        mx_f_callback,
+        (struct multiplex_functions *)0
+    };
+
     static char installed = (char)0;
 
     if (installed == (char)0) {
