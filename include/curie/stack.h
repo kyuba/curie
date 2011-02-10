@@ -36,8 +36,6 @@
 #ifndef LIBCURIE_STACK_H
 #define LIBCURIE_STACK_H
 
-#include <curie/attributes.h>
-
 /*!\brief Stack Growth Direction (Date Type)
  *
  * Stacks in computer programmes may grow either upwards or downwards, depending
@@ -69,6 +67,6 @@ extern void *stack_start_address;
  *  This function will try to identify the start address of the stack and
  *  whether it grows up or downwards.
  */
-void initialise_stack() USED;
+void initialise_stack();
 
 #endif
