@@ -168,7 +168,7 @@ static struct toolchain_pattern toolchain_pattern[] =
         tc_unknown, os_unknown,       is_powerpc,
         0,              "ppc-64",   0,          0,
         IS_64_BIT, 0 },
-    { "(arm-?(e[bl]|32)?)-.*",
+    { "(arm-?(e[bl]|32|v..?)?)-.*",
         tc_unknown, os_unknown,       is_arm,
         0,              "arm-32",   0,          0,
         IS_32_BIT, 0 },
