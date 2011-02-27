@@ -36,7 +36,16 @@
 #define linux_syscalls
 
 #include <syscall/invocation.h>
+
+#if defined(__ARM_EABI__)
+#define __SCOFF__ __ARM_EABI__
+#undef __ARM_EABI__
 #include <asm/unistd.h>
+#define __ARM_EABI__ __SCOFF__
+#undef __SCOFF__
+#else
+#include <asm/unistd.h>
+#endif
 
 #ifndef define_syscall0
 #define define_syscall0(num,id,rid,rettype)\
