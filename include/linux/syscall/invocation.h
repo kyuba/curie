@@ -66,12 +66,4 @@ static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5)\
 static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5, p6 a6)\
 { return (r)syscall(a, a1, a2, a3, a4, a5, a6); }
 
-#define define_socketcall0(a,b,c,r)
-#define define_socketcall1(a,b,c,r,a1)
-#define define_socketcall2(a,b,c,r,a1,a2)
-#define define_socketcall3(a,b,c,r,a1,a2,a3)
-#define define_socketcall4(a,b,c,r,a1,a2,a3,a4)
-#define define_socketcall5(a,b,c,r,a1,a2,a3,a4,a5)
-#define define_socketcall6(a,b,c,r,a1,a2,a3,a4,a5,a6)
-
 #endif
