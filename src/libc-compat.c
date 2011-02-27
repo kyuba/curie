@@ -32,15 +32,10 @@
 #include <curie/tree.h>
 #include <curie/main.h>
 
-static struct tree size_map = TREE_INITIALISER;
-
 /* weak stubs for stuff in this file, so that when linked with a libc things
  * from the libc are used */
 
 #pragma weak abort
-#pragma weak free
-#pragma weak malloc
-#pragma weak realloc
 #pragma weak strcat
 #pragma weak strcpy
 #pragma weak strlen
@@ -48,59 +43,6 @@ static struct tree size_map = TREE_INITIALISER;
 #pragma weak memset
 #pragma weak memcpy
 #pragma weak memcmp
-
-void *malloc (unsigned long length)
-{
-    void *r = aalloc(length);
-
-    tree_add_node_value (&size_map, (int_pointer)r, (void *)(int_pointer)length);
-
-    return r;
-}
-
-void free(void *ptr)
-{
-    if (ptr != (void *)0)
-    {
-        struct tree_node *node = tree_get_node (&size_map, (int_pointer)ptr);
-
-        if (node != (struct tree_node *)0)
-        {
-            afree((unsigned long)node_get_value(node), ptr);
-            tree_remove_node (&size_map, (int_pointer)ptr);
-        }
-    }
-}
-
-void *realloc (void *ptr, unsigned long length)
-{
-    if (ptr == (void *)0)
-    {
-        return malloc (length);
-    }
-    else
-    {
-        struct tree_node *node = tree_get_node (&size_map, (int_pointer)ptr);
-
-        if (node != (struct tree_node *)0)
-        {
-            unsigned long len = (unsigned long)node_get_value(node);
-
-            if (len != length)
-            {
-                void *r = arealloc (len, ptr, length);
-
-                tree_remove_node (&size_map, (int_pointer)ptr);
-                tree_add_node_value (&size_map, (int_pointer)r,
-                                     (void *)(int_pointer)length);
-
-                ptr = r;
-            }
-        }
-
-        return ptr;
-    }
-}
 
 void abort ( void )
 {
