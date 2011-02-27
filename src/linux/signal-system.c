@@ -264,7 +264,7 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
     }
 
     x.action.sa_handler = sig_invoker;
-    x.action.sa_flags = SA_RESTORER | SA_ONSTACK;
+    x.action.sa_flags = SA_RESTORER;
 
 #if defined(sys_sigreturn_opcodes)
     x.action.sa_restorer = y.sigret_f;
@@ -274,5 +274,9 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
 
     signal_handlers[signal] = handler;
 
+#if defined(have_sys_sigaction)
+    (void)sys_sigaction (signum, (void *)&(x.action), (void *)0);
+#else
     (void)sys_rt_sigaction (signum, (void *)&(x.action), (void *)0, 8);
+#endif
 }
