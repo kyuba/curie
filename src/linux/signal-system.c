@@ -250,7 +250,7 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
     unsigned long int i;
     int signum = signal2signum (signal);
 #if defined(sys_sigreturn_opcodes)
-    static __attribute__((section("text"))) unsigned char sigret[] = sys_sigreturn_opcodes;
+    __attribute__((section(".text"))) static unsigned char sigret[] = sys_sigreturn_opcodes;
     union {
         void  *sigret_v;
         void (*sigret_f)(); 
