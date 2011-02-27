@@ -1502,7 +1502,7 @@ static void spawn_item
 
     if (wdir != (const char *)0)
     {
-        chdir (wdir);
+        (void)chdir (wdir);
     }
 
     context = execute (EXEC_CALL_NO_IO | EXEC_CALL_PURGE, ex,
@@ -1510,7 +1510,7 @@ static void spawn_item
 
     if (wdir != (const char *)0)
     {
-        chdir (odir);
+        (void)chdir (odir);
     }
 
     pd = (struct process_data *)get_pool_mem (&pool);
