@@ -109,9 +109,11 @@ void multiplex_signal () {
         multiplex_io();
 
         for (i = 0; i < SIGNAL_MAX_NUM; i++) {
-            if ((i != sig_bus) && (i != sig_segv))
+            enum signal s = (enum signal)i;
+            if ((s != sig_bus) && (s != sig_segv) && (s != sig_trap) &&
+                (s != sig_kill) && (s != sig_stop))
             {
-                a_set_signal_handler ((enum signal)i, generic_signal_handler);
+                a_set_signal_handler (s, generic_signal_handler);
             }
         }
 
@@ -138,9 +140,11 @@ void multiplex_signal_primary () {
         multiplex_io();
 
         for (i = 0; i < SIGNAL_MAX_NUM; i++) {
-            if ((i != sig_bus) && (i != sig_segv))
+            enum signal s = (enum signal)i;
+            if ((s != sig_bus) && (s != sig_segv) && (s != sig_trap) &&
+                (s != sig_kill) && (s != sig_stop))
             {
-                a_set_signal_handler ((enum signal)i, generic_signal_handler);
+                a_set_signal_handler (s, generic_signal_handler);
             }
         }
 

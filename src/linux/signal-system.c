@@ -235,7 +235,7 @@ static void sig_invoker (int signum) {
     }
 }
 
-#if !defined(sys_sigreturn_opcodes)
+#if !defined(sys_sigreturn_opcodes) && defined(linux_use_signal_restorer)
 void a_sigreturn()
 {
     sys_rt_sigreturn(0);
@@ -249,7 +249,7 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
     } x;
     unsigned long int i;
     int signum = signal2signum (signal);
-#if defined(sys_sigreturn_opcodes)
+#if defined(sys_sigreturn_opcodes) && defined(linux_use_signal_restorer)
     __attribute__((section(".text"))) static unsigned char sigret[] = sys_sigreturn_opcodes;
     union {
         void  *sigret_v;
@@ -264,12 +264,16 @@ void a_set_signal_handler (enum signal signal, void (*handler)(enum signal signa
     }
 
     x.action.sa_handler = sig_invoker;
+#if !defined(linux_use_signal_restorer)
+    x.action.sa_flags = 0;
+#else
     x.action.sa_flags = SA_RESTORER;
 
 #if defined(sys_sigreturn_opcodes)
     x.action.sa_restorer = y.sigret_f;
 #else
     x.action.sa_restorer = (void (*)())a_sigreturn;
+#endif
 #endif
 
     signal_handlers[signal] = handler;

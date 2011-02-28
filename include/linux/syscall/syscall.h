@@ -206,6 +206,10 @@ define_syscall1 (__NR_pipe, pipe, sys_pipe, long, int *)
 #define have_sys_select
 define_syscall5 (__NR_select, select, sys_select, long, int, void *, void *, void *, void *)
 #endif
+#ifdef __NR__newselect
+#define have_sys_newselect
+define_syscall5 (__NR__newselect, newselect, sys_newselect, long, int, void *, void *, void *, void *)
+#endif
 #ifdef __NR_sched_yield
 #define have_sys_sched_yield
 define_syscall0 (__NR_sched_yield, sched_yield, sys_sched_yield, long)

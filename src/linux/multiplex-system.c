@@ -79,7 +79,12 @@ void a_select_with_fds (int *rfds, int rnum, int *wfds, int wnum) {
         fdset(&wset, wfds[i]);
     }
 
+#if defined(have_sys_newselect)
+    r = sys_newselect(highest + 1, (void *)&rset, (void *)&wset, 0, 0);
+#else
+    /* actually, this probably wont work on most arches... */
     r = sys_select(highest + 1, (void *)&rset, (void *)&wset, 0, 0);
+#endif
 
     if (r <= 0) {
         for (i = 0; i < rnum; i++) {
