@@ -173,6 +173,12 @@ static struct toolchain_pattern toolchain_pattern[] =
         0,              "arm-32",   0,          0,
         IS_32_BIT, 0 },
 
+    /* specific hardware configurations */
+    { "psp",
+        tc_gcc,     os_unknown,       is_mips,
+        "psp",          "mips-32",  "sony",     "gnu",
+        IS_32_BIT, 0},
+
     { 0 } /* last pattern */
 };
 
