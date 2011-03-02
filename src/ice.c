@@ -166,7 +166,9 @@ static int with_toolchain (struct toolchain_descriptor *td, void *aux)
     if (!consp (im->root))
     {
         return icemake_prepare
-            ((struct icemake *)0, "./", td, im->options, im->alternatives,
+            ((struct icemake *)0,
+             ((td->operating_system == os_windows) ? ".\\" : "./"),
+             td, im->options, im->alternatives,
              with_icemake, aux);
     }
     else
