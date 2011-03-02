@@ -111,7 +111,7 @@ static sexpr prepend_includes_msvc (struct target *t, sexpr x)
         cur = cdr (cur);
     }
 
-    return cons (sx_join (str_sIbuilds, t->toolchain->uname, str_sinclude), x);
+    return cons (sx_join (str_sIbuilds, t->toolchain->uname, str_bsinclude), x);
 }
 
 static sexpr prepend_cflags_msvc (sexpr x)

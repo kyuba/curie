@@ -682,7 +682,7 @@ define_string (str_sI,                  "/I");
 /*! \brief Predefined String */
 define_string (str_dIbuilds,            "-Ibuild/");
 /*! \brief Predefined String */
-define_string (str_sIbuilds,            "/Ibuild/");
+define_string (str_sIbuilds,            "/Ibuild\\");
 /*! \brief Predefined String */
 define_string (str_dl,                  "-l");
 /*! \brief Predefined String */
@@ -699,6 +699,8 @@ define_string (str_dash,                "-");
 define_string (str_test_dash,           "test-");
 /*! \brief Predefined String */
 define_string (str_sinclude,            "/include");
+/*! \brief Predefined String */
+define_string (str_bsinclude,           "\\include");
 /*! \brief Predefined String */
 define_string (str_includes,            "include/");
 /*! \brief Predefined String */
