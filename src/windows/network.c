@@ -33,6 +33,8 @@
 #include <curie/io-system.h>
 #include <windows.h>
 
+#include <stdio.h>
+
 void net_open_loop (struct io **in, struct io **out) {
     struct io *iin, *iout;
     void *ihandle, *ohandle;
@@ -48,6 +50,7 @@ void net_open_loop (struct io **in, struct io **out) {
         ohandle = (void *)0;
     }
 
+    fprintf (stderr, "opened anonymous pipe: 0x%x <> 0x%x\n", ihandle, ohandle);
 
     iin = io_open (ihandle);
     iout = io_open (ohandle);

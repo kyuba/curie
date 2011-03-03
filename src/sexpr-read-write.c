@@ -46,24 +46,12 @@ struct sexpr_io *sx_open_io(struct io *in, struct io *out)
     rv->in = in;
     rv->out = out;
 
-    rv->options = 0;
-
     if ((in != (struct io *)0) &&
         (in->type != iot_read) &&
         (in->type != iot_special_read) &&
         (in->type != iot_special_write))
     {
         in->type = iot_read;
-
-#if !defined(SX_MAX_READ_THRESHOLD)
-        rv->options |= SX_FORCE_READ;
-        if ((in->status != io_unrecoverable_error) &&
-            (in->status != io_end_of_file) &&
-            (in->status != io_finalising))
-        {
-            in->status = io_no_change;
-        }
-#endif
     }
 
     if ((out != (struct io *)0) &&
@@ -539,32 +527,11 @@ sexpr sx_read(struct sexpr_io *io) {
         sexpr result = sx_nonexistent;
         char comment = (char)0;
 
-#if defined(SX_MAX_READ_THRESHOLD)
         do {
             r = io_read (io->in);
             i = io->in->position;
             length = io->in->length;
         } while ((r == io_changes) && (length < SX_MAX_READ_THRESHOLD));
-#else
-        if (io->options & SX_FORCE_READ)
-        {
-            if ((io->in->type == iot_read) && (io->in->status == io_no_change))
-            {
-                r = io_read (io->in);
-                if ((io->in->status != io_unrecoverable_error) &&
-                    (io->in->status != io_end_of_file) &&
-                    (io->in->status != io_finalising))
-                {
-                    io->in->status = io_no_change;
-                }
-            }
-
-            io->options ^= SX_FORCE_READ;
-        }
-
-        i = io->in->position;
-        length = io->in->length;
-#endif
 
         if ((i == length) || (length == 0))
         {
@@ -622,13 +589,6 @@ sexpr sx_read(struct sexpr_io *io) {
                 case io_unrecoverable_error:
                     return sx_end_of_file;
                 default:
-#if !defined(SX_MAX_READ_THRESHOLD)
-                    if (io->in->type == iot_read)
-                    {
-                        io->options |= SX_FORCE_READ;
-                        io->in->status = io_no_change;
-                    }
-#endif
                     return sx_nonexistent;
             }
         }
@@ -638,23 +598,6 @@ sexpr sx_read(struct sexpr_io *io) {
         if (result != sx_nonexistent) {
             io->in->position = i;
         }
-
-#if !defined(SX_MAX_READ_THRESHOLD)
-        if (result == sx_nonexistent)
-        {
-            if ((io->in->status == io_unrecoverable_error) ||
-                (io->in->status == io_end_of_file) ||
-                (io->in->status == io_finalising))
-            {
-                result = sx_end_of_file;
-            }
-            else if (io->in->type == iot_read)
-            {
-                io->options |= SX_FORCE_READ;
-                io->in->status = io_no_change;
-            }
-        }
-#endif
 
         return result;
     }

@@ -50,6 +50,7 @@ extern "C" {
 #endif
 
 #include <curie/constants.h>
+#include <windows.h>
 
 /*! \brief I/O mode
  *
@@ -234,6 +235,14 @@ struct io {
      *  the field, in that it describes the allocated size of the buffer.
      */
     unsigned int buffersize;
+
+    /*! \brief Windows-specific Overlapped I/O Control Handle
+     *
+     *  This handle is used on windows to coordinate overlapped I/O, i.e. their
+     *  approach to asynchronous I/O. We're using this because using regular
+     *  asynchronous I/O is poorly supported on Windows.
+     */
+    OVERLAPPED *overlapped;
 };
 
 

@@ -40,8 +40,6 @@
 extern "C" {
 #endif
 
-#define SX_FORCE_READ (1 << 0)
-
 /*! \brief S-Expression I/O Structure
  *
  *  Programmes don't need to know how this one looks on the inside. This is just
@@ -51,8 +49,6 @@ extern "C" {
 struct sexpr_io {
     struct io *in;  /*!< \brief Input Structure */
     struct io *out; /*!< \brief Output Structure */
-
-    int options;    /*!< \brief Extra Flags */
 };
 
 struct sexpr_type_descriptor

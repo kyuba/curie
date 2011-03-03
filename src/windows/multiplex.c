@@ -31,8 +31,6 @@
 #include <curie/memory.h>
 #include <windows.h>
 
-#include <stdio.h>
-
 static struct multiplex_functions *mx_func_list =
     (struct multiplex_functions *)0;
 
