@@ -150,13 +150,14 @@ static void build_object_gcc_c
                   cons (str_stdc99,
                     cons (str_wall,
                       cons (str_pedantic,
+                       cons (str_dWnounknownpragma,
                         prepend_cflags_gcc (t->toolchain,
                         prepend_includes_gcc (t,
                           cons (str_dc,
                             cons (make_string (source),
                               cons (str_do,
                                 cons (make_string(target),
-                                  sx_end_of_list))))))))))));
+                                  sx_end_of_list)))))))))))));
 }
 
 static void build_object_gcc_c_combine
@@ -166,10 +167,11 @@ static void build_object_gcc_c_combine
                    cons (str_stdc99,
                      cons (str_wall,
                        cons (str_pedantic,
+                        cons (str_dWnounknownpragma,
                          prepend_cflags_gcc (t->toolchain,
                          prepend_includes_gcc (t,
                            cons (str_do,
-                             cons (make_string (target), sx_end_of_list))))))));
+                            cons (make_string (target), sx_end_of_list)))))))));
     sexpr cur, sx;
 
     for (cur = sources; consp (cur); cur = cdr (cur))
@@ -280,13 +282,14 @@ static void build_object_gcc_c_pic
                   cons (str_stdc99,
                     cons (str_wall,
                       cons (str_pedantic,
+                       cons (str_dWnounknownpragma,
                         prepend_cflags_gcc (t->toolchain,
                         prepend_includes_gcc (t,
                           cons (str_dc,
                             cons (make_string (source),
                               cons (str_do,
                                 cons (make_string(target),
-                                  sx_end_of_list)))))))))))));
+                                  sx_end_of_list))))))))))))));
 }
 
 static void build_object_gcc_c_pic_combine
@@ -296,10 +299,11 @@ static void build_object_gcc_c_pic_combine
                    cons (str_stdc99,
                      cons (str_wall,
                        cons (str_pedantic,
+                        cons (str_dWnounknownpragma,
                          prepend_cflags_gcc (t->toolchain,
                          prepend_includes_gcc (t,
                            cons (str_do,
-                             cons (make_string (target), sx_end_of_list))))))));
+                            cons (make_string (target), sx_end_of_list)))))))));
     sexpr cur, sx;
 
     for (cur = sources; consp (cur); cur = cdr (cur))

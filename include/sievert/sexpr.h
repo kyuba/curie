@@ -50,6 +50,9 @@
 extern "C" {
 #endif
 
+/* disable the unicode character warnings on MSVC */
+#pragma warning ( disable : 4819 )
+
 /*! \brief List Map
  *  \param[in] list The list to map.
  *  \param[in] f    The function to apply.

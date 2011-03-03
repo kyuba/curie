@@ -602,6 +602,8 @@ define_string (str_wall,                "-Wall");
 /*! \brief Predefined String */
 define_string (str_pedantic,            "-pedantic");
 /*! \brief Predefined String */
+define_string (str_dWnounknownpragma,   "-Wno-unknown-pragmas");
+/*! \brief Predefined String */
 define_string (str_dcombine,            "-combine");
 /*! \brief Predefined String */
 define_string (str_snologo,             "/nologo");
