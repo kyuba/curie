@@ -7,5 +7,5 @@ IF NOT EXIST build\bin\icemake.exe (
 )
 
 IF ERRORLEVEL 0 (
-    build\bin\icemake %*
+    build\bin\ice %*
 )
