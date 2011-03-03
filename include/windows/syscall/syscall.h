@@ -35,4 +35,6 @@
 
 #include <windows.h>
 
+#define sys_time(a) time(a)
+
 #endif
