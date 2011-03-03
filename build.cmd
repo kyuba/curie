@@ -2,10 +2,8 @@
 REM Build System Wrapper
 REM Win32/cmd Variant
 
-IF NOT EXIST build\bin\icemake.exe (
+IF NOT EXIST build\bin\ice.exe (
     CALL build-icemake.cmd -fLoid build\ 
 )
 
-IF ERRORLEVEL 0 (
-    build\bin\ice %*
-)
+build\bin\ice %*
