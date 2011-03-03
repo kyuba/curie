@@ -34,6 +34,7 @@
 #define LIBSYSCALL_SYSCALL_H
 
 #include <windows.h>
+#include <time.h>
 
 #define sys_time(a) time(a)
 
