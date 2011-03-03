@@ -40,9 +40,6 @@
 #ifndef LIBSIEVERT_STRING_H
 #define LIBSIEVERT_STRING_H
 
-/* disable the unicode character warnings on MSVC */
-#pragma warning ( disable : 4819 )
-
 /*! \defgroup stringsSet String Sets
  *  @{
  */
