@@ -411,7 +411,7 @@ sexpr icemake_decorate_file
                     }
                     break;
                 case ft_header:
-                    file = sx_join (str_include, g, file);
+                    file = empty ? str_include : sx_join (str_include, g, file);
                     break;
                 default:
                     file = sx_join (str_share, g, sx_join (t->name, g, file));
