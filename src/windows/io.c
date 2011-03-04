@@ -29,6 +29,7 @@
 #include <curie/io-system.h>
 #include <curie/memory.h>
 #include <windows.h>
+
 #include <stdio.h>
 
 struct io *io_open_special ()
@@ -41,6 +42,11 @@ struct io *io_open_special ()
     io->position = 0;
     io->type = iot_special_write;
     io->overlapped = 0;
+    io->overlapped_buffer = 0;
+    io->overlapped_buffersize = 0;
+    io->overlapped_length = 0;
+
+    fprintf (stderr, "opened (special): 0x%x; ----\n", io);
 
     return io;
 }
@@ -52,9 +58,11 @@ struct io *io_open (void *handle)
     io->handle = handle;
     io->type = iot_undefined;
     io->overlapped = 0;
+    io->overlapped_buffer = 0;
+    io->overlapped_buffersize = 0;
+    io->overlapped_length = 0;
 
-    /* force OVERLAPPED I/O */
-    fprintf (stderr, "opened: 0x%x; 0x%x\n", io, handle);
+    fprintf (stderr, "opened (normal): 0x%x; ----\n", io);
 
     return io;
 }
@@ -68,7 +76,7 @@ struct io *io_open_read (const char *path)
 
     struct io *io = io_open(handle);
 
-    fprintf (stderr, "created: 0x%x; %s\n", io, path);
+    fprintf (stderr, "created (read): 0x%x; %s\n", io, path);
 
     io->type = iot_read;
 
@@ -80,9 +88,11 @@ struct io *io_open_write (const char *path)
     void *handle = CreateFileA
             (path, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
              (void *)0, CREATE_ALWAYS,
-             FILE_ATTRIBUTE_NORMAL, (void *)0);
+             FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, (void *)0);
 
     struct io *io = io_open(handle);
+
+    fprintf (stderr, "created (write): 0x%x; %s\n", io, path);
 
     io->type = iot_write;
 
@@ -96,8 +106,6 @@ struct io *io_open_create (const char *path, int mode)
 
 static void relocate_buffer_contents (struct io *io)
 {
-    fprintf (stderr, "relocating: 0x%x; 0x%x\n", io, io->overlapped); 
-
     if (io->position >= io->length) {
         io->length = 0;
         io->position = 0;
@@ -179,7 +187,8 @@ void io_flush (struct io *io)
 
     if ((io->status == io_finalising) ||
         (io->status == io_end_of_file) ||
-        (io->status == io_unrecoverable_error))
+        (io->status == io_unrecoverable_error) ||
+        (io->overlapped && io->overlapped->hEvent))
         return;
 
     relocate_buffer(io);
@@ -200,8 +209,6 @@ void io_flush (struct io *io)
 
 static void destroy_overlapped (struct io *io)
 {
-    fprintf (stderr, "destroying: 0x%x; 0x%x\n", io, io->overlapped);
-
     if (io->overlapped->hEvent)
     {
         CloseHandle(io->overlapped->hEvent);
@@ -210,18 +217,28 @@ static void destroy_overlapped (struct io *io)
     io->overlapped = 0;
 }
 
-static void __stdcall file_io_complete
-    (DWORD errorCode, DWORD bytesTransferred, OVERLAPPED *overlapped)
+static void update_overlapped (struct io *io)
 {
-    fprintf (stderr, "meh1 0x%x\n", overlapped);
-//    fgetc(stdin);
+    static struct memory_pool overlapped_pool
+            = MEMORY_POOL_INITIALISER(sizeof (OVERLAPPED));
+
+    if (!io->overlapped)
+    {
+        io->overlapped = get_pool_mem (&overlapped_pool);
+
+        io->overlapped->Internal     = 0;
+        io->overlapped->InternalHigh = 0;
+        io->overlapped->Offset       = 0;
+        io->overlapped->OffsetHigh   = 0;
+        io->overlapped->Pointer      = 0;
+    }
+
+    io->overlapped->hEvent           = CreateEvent(0, TRUE, FALSE, 0);
 }
 
 enum io_result io_read(struct io *io)
 {
     DWORD readrv = 0;
-
-    fprintf (stderr, "io_read(0x%x)\n", io);
 
     if ((io->status == io_finalising) ||
         (io->status == io_end_of_file) ||
@@ -253,26 +270,16 @@ enum io_result io_read(struct io *io)
     if (io->overlapped && io->overlapped->hEvent)
     {
       getresult:
-        fprintf (stderr, "meh7: 0x%x; 0x%x\n", io, io->overlapped);
-
         if (GetOverlappedResult (io->handle, io->overlapped, &readrv, FALSE)
             == 0)
         {
-            fprintf (stderr, "meh5: 0x%x; 0x%x\n", io, io->overlapped);
             goto evaluateerror;
         }
 
-        fprintf (stderr, "meh6: 0x%x; 0x%x; length=%i; error=%i\n", io, io->overlapped, readrv, GetLastError());
-//        fgetc(stdin);
         goto evaluate;
     }
     else
     {
-        static struct memory_pool overlapped_pool
-                = MEMORY_POOL_INITIALISER(sizeof (OVERLAPPED));
-
-        fprintf (stderr, "meh8: 0x%x; 0x%x\n", io, io->overlapped);
-
         if (io->type == iot_read) {
             relocate_buffer(io);
         } else {
@@ -283,20 +290,7 @@ enum io_result io_read(struct io *io)
             io->status = io_undefined;
         }
 
-        fprintf (stderr, "meh9: 0x%x; 0x%x\n", io, io->overlapped);
-
-        if (!io->overlapped)
-        {
-            io->overlapped = get_pool_mem (&overlapped_pool);
-
-            io->overlapped->Internal     = 0;
-            io->overlapped->InternalHigh = 0;
-            io->overlapped->Offset       = 0;
-            io->overlapped->OffsetHigh   = 0;
-            io->overlapped->Pointer      = 0;
-        }
-
-        io->overlapped->hEvent           = CreateEvent(0, TRUE, FALSE, 0);
+        update_overlapped(io);
 
         if ((io->length + IO_CHUNKSIZE) > io->buffersize) {
             unsigned int newsize = (io->length + IO_CHUNKSIZE);
@@ -309,14 +303,10 @@ enum io_result io_read(struct io *io)
             io->buffersize = newsize;
         }
 
-        fprintf (stderr, "meh2: 0x%x; 0x%x\n", io, io->overlapped);
-
-        if (ReadFileEx(io->handle, (io->buffer + io->length), IO_CHUNKSIZE,
-                       io->overlapped, file_io_complete) == 0)
+        if (ReadFile(io->handle, (io->buffer + io->length), IO_CHUNKSIZE, 0,
+                     io->overlapped) == 0)
         {
           evaluateerror:
-            fprintf (stderr, "meh3: 0x%x; 0x%x; error=0x%x\n", io, io->overlapped, GetLastError());
-
             switch (GetLastError())
             {
                 case ERROR_HANDLE_EOF:
@@ -335,8 +325,6 @@ enum io_result io_read(struct io *io)
             }
         }
 
-        fprintf (stderr, "meh4: 0x%x; 0x%x\n", io, io->overlapped);
-
         goto getresult;
 
       evaluate:
@@ -352,7 +340,11 @@ enum io_result io_read(struct io *io)
         }
 
 //        destroy_overlapped(io);
-        io->overlapped->hEvent = 0;
+        if (io->overlapped->hEvent)
+        {
+            CloseHandle (io->overlapped->hEvent);
+            io->overlapped->hEvent = 0;
+        }
 
         io->overlapped->Offset += readrv;
         io->length += readrv;
@@ -363,12 +355,11 @@ enum io_result io_read(struct io *io)
 
 enum io_result io_commit (struct io *io)
 {
-    unsigned long rv = 0;
+    DWORD rv = 0;
     int pos;
-    int writecall = 1;
     unsigned int i;
-
-    fprintf (stderr, "io_commit(0x%x)\n", io);
+    int evaluateerror = 0;
+    int evaluate = 0;
 
     switch (io->type) {
         case iot_undefined:
@@ -381,11 +372,42 @@ enum io_result io_commit (struct io *io)
         case iot_special_write:
             return io_incomplete;
         case iot_write:
-            if (io->length == 0) return io_complete;
+            if ((io->length == 0) && (io->overlapped_length == 0))
+            {
+                return io_complete;
+            }
             if (io->buffer != (char *)0)
             {
-                writecall = WriteFile (io->handle, io->buffer, io->length,
-                                       &rv, (void *)0);
+                if (io->overlapped_buffer)
+                {
+                  get_result:
+                    evaluate =
+                        !(evaluateerror = (GetOverlappedResult
+                            (io->handle, io->overlapped, &rv, FALSE) == 0));
+                }
+                else
+                {
+                    update_overlapped(io);
+
+                    io->overlapped_buffer     = io->buffer;
+                    io->overlapped_buffersize = io->buffersize;
+                    io->overlapped_length     = io->length;
+
+                    io->buffer     = get_mem (IO_CHUNKSIZE);
+                    io->buffersize = IO_CHUNKSIZE;
+                    io->length     = 0;
+
+                    evaluate =
+                        !(evaluateerror = (WriteFile
+                            (io->handle, io->overlapped_buffer,
+                             io->overlapped_length, 0,
+                             io->overlapped) == 0));
+
+                    if (evaluate)
+                    {
+                        goto get_result;
+                    }
+                }
             }
     }
 
@@ -395,37 +417,134 @@ enum io_result io_commit (struct io *io)
         return io_unrecoverable_error;
     }
 
-    if (!writecall) /* potential error */
+  retry:
+    if (evaluateerror) /* potential error */
     {
-        if (last_error_recoverable_p == (char)1) { /* nothing serious,
-                                                      just try again later */
-            return io_no_change;
-        } else { /* target is dead, close the fd */
-            io->status = io_unrecoverable_error;
-            CloseHandle (io->handle);
-            io->handle = (void *)0;
-            return io_unrecoverable_error;
+        switch (GetLastError())
+        {
+            case ERROR_IO_PENDING:
+            case ERROR_IO_INCOMPLETE:
+                last_error_recoverable_p = (char)1;
+                return io_no_change;
+            case ERROR_INVALID_ACCESS:
+            case ERROR_INVALID_HANDLE:
+                /* we (probably) get these for non-async handles */
+                evaluate =
+                    !(evaluateerror =
+                          (WriteFile (io->handle, io->overlapped_buffer,
+                                      io->overlapped_length, &rv,
+                                      (void *)0) == 0));
+
+                if (!evaluateerror)
+                {
+                    goto retry;
+                }
+                else switch (GetLastError())
+                {
+                    case ERROR_INVALID_ACCESS:
+                    case ERROR_INVALID_HANDLE:
+                        break;
+                    default:
+                        goto retry;
+                }
+            default:
+                last_error_recoverable_p = (char)0;
+                destroy_overlapped (io);
+
+                if (io->overlapped_buffer)
+                {
+                    char *tbuffer = io->buffer;
+                    unsigned int tsize = io->buffersize;
+                    unsigned int tlength = io->length;
+
+                    io->buffer     = io->overlapped_buffer;
+                    io->buffersize = io->overlapped_buffersize;
+                    io->length     = io->overlapped_length;
+
+                    io->overlapped_buffer     = 0;
+                    io->overlapped_buffersize = 0;
+                    io->overlapped_length     = 0;
+
+                    if (tlength != 0)
+                    {
+                        io_collect (io, tbuffer, tlength);
+                    }
+
+                    free_mem (tsize, tbuffer);
+                }
+
+                io->status = io_unrecoverable_error;
+                CloseHandle (io->handle);
+                io->handle = (void *)0;
+                return io_unrecoverable_error;
         }
     }
 
-    if (rv == 0) /* end-of-file */
+    if (evaluate)
     {
-        io->status = io_end_of_file;
-        CloseHandle (io->handle);
-        io->handle = (void *)0;
-        return io_end_of_file;
-    }
+        if (io->overlapped && io->overlapped->hEvent)
+        {
+            CloseHandle (io->overlapped->hEvent);
+            io->overlapped->hEvent = 0;
+        }
 
-    if (rv == (int)io->length)
-    {
-        io->length = 0;
-        return io_complete;
-    }
+        if (io->overlapped_buffer)
+        {
+            fprintf (stderr, "---- written: ---- %i %i %i --\n", rv, io->overlapped_length, io->length);
+            fwrite (io->overlapped_buffer, rv, 1, stderr);
+            fprintf (stderr, "---- complete: --- %i ---------\n", io->overlapped_length);
+            fwrite (io->overlapped_buffer, io->overlapped_length, 1, stderr);
+            fprintf (stderr, "---- remaining: -- %i ---------\n", io->length);
+            fwrite (io->buffer, io->length, 1, stderr);
+            fprintf (stderr, "---------------- (end dump) ----\n");
 
-    io->length -= rv;
+            io->overlapped->Offset += rv;
+            io->overlapped_length -= rv;
 
-    for (i = 0, pos = rv; i < io->length; i++, pos++) {
-        io->buffer[i] = io->buffer[pos];
+            if (io->overlapped_length == 0)
+            {
+                free_mem (io->overlapped_buffersize, io->overlapped_buffer);
+
+                io->overlapped_buffer     = 0;
+                io->overlapped_buffersize = 0;
+                io->overlapped_length     = 0;
+
+                return (io->length == 0) ? io_complete : io_incomplete;
+            }
+            else
+            {
+                char *tbuffer = io->buffer;
+                unsigned int tsize = io->buffersize;
+                unsigned int tlength = io->length;
+
+                io->buffer     = io->overlapped_buffer;
+                io->buffersize = io->overlapped_buffersize;
+                io->length     = io->overlapped_length;
+
+                io->overlapped_buffer     = 0;
+                io->overlapped_buffersize = 0;
+                io->overlapped_length     = 0;
+
+                for (i = 0, pos = rv; i < io->length; i++, pos++) {
+                    io->buffer[i] = io->buffer[pos];
+                }
+
+                if (tlength != 0)
+                {
+                    io_collect (io, tbuffer, tlength);
+                }
+
+                free_mem (tsize, tbuffer);
+            }
+        }
+        else
+        {
+            io->length -= rv;
+
+            for (i = 0, pos = rv; i < io->length; i++, pos++) {
+                io->buffer[i] = io->buffer[pos];
+            }
+        }
     }
 
     return io_incomplete;
@@ -439,10 +558,6 @@ enum io_result io_finish (struct io *io)
 
 void io_close (struct io *io)
 {
-    if (io->overlapped)
-    {
-        fprintf (stderr, "closing: 0x%x; 0x%x\n", io, io->overlapped); 
-    }
 
     if (io->status != io_finalising) (void)io_finish (io);
 
@@ -464,6 +579,11 @@ void io_close (struct io *io)
         free_mem(io->buffersize, io->buffer);
         io->buffer = (char *)0;
         io->buffersize = 0;
+    }
+
+    if (io->overlapped)
+    {
+        destroy_overlapped(io);
     }
 
     io_destroy (io);

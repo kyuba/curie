@@ -33,24 +33,49 @@
 #include <curie/io-system.h>
 #include <windows.h>
 
-#include <stdio.h>
-
 void net_open_loop (struct io **in, struct io **out) {
     struct io *iin, *iout;
-    void *ihandle, *ohandle;
+    void *ihandle = 0, *ohandle = 0;
     SECURITY_ATTRIBUTES s;
-    
+    char namebuffer[] = "\\\\.\\Pipe\\CurieNetLoop.00000000.00000000";
+    DWORD pid = GetCurrentProcessId();
+    static DWORD fnum = 0;
+    int n = 0;
+
+    while (n < 8)
+    {
+        namebuffer[(22 + n)] = '0' + pid % 10;
+        pid /= 10;
+        n++;
+    }
+
+    pid = fnum++;
+    n = 0;
+
+    while (n < 8)
+    {
+        namebuffer[(31 + n)] = '0' + pid % 10;
+        pid /= 10;
+        n++;
+    }
+
     s.nLength              = sizeof (s);
     s.lpSecurityDescriptor = (void *)0;
     s.bInheritHandle       = TRUE;
 
-    if (CreatePipe (&ihandle, &ohandle, &s, 0x1000) == FALSE)
-    {
-        ihandle = (void *)0;
-        ohandle = (void *)0;
-    }
+    ihandle =
+        CreateNamedPipeA
+                (namebuffer, PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
+                 PIPE_TYPE_BYTE | PIPE_WAIT, 1, 0x1000, 0x1000, 30000,
+                 &s);
 
-    fprintf (stderr, "opened anonymous pipe: 0x%x <> 0x%x\n", ihandle, ohandle);
+    if (ihandle)
+    {
+        ohandle =
+            CreateFileA
+                    (namebuffer, GENERIC_WRITE, 0, &s, OPEN_EXISTING,
+                     FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0);
+    }
 
     iin = io_open (ihandle);
     iout = io_open (ohandle);
@@ -65,84 +90,99 @@ void net_open_loop (struct io **in, struct io **out) {
 void net_open_socket
         (const char *path, struct io **in, struct io **out)
 {
+#pragma message ("net_open_socket() incomplete")
 }
 
 void net_open_ip4 (int_32 addr, int_16 port, struct io **in, struct io **out)
 {
+#pragma message ("net_open_ip4() incomplete")
 }
 
 void net_open_ip6 (int_8 addr[16], int_16 port, struct io **in, struct io **out)
 {
+#pragma message ("net_open_ip6() incomplete")
 }
 
-void multiplex_network
-        ()
+void multiplex_network ()
 {
+#pragma message ("network_multiplex() incomplete")
 }
 
 void multiplex_add_socket
         (const char *path, void (*on_connect)(struct io *, struct io *, void *), void *data)
 {
+#pragma message ("network_add_socket() incomplete")
 }
 
 void multiplex_add_ip4
         (int_32 addr, int_16 port,
          void (*on_connect)(struct io *, struct io *, void *), void *aux)
 {
+#pragma message ("network_add_ip4() incomplete")
 }
 
 void multiplex_add_ip6
         (int_8 addr[16], int_16 port,
          void (*on_connect)(struct io *, struct io *, void *), void *aux)
 {
+#pragma message ("network_add_ip6() incomplete")
 }
 
 void multiplex_add_socket_sx
         (const char *path, void (*on_connect)(struct sexpr_io *, void *), void *data)
 {
+#pragma message ("network_add_socket_sx() incomplete")
 }
 
 void multiplex_add_ip4_sx
         (int_32 addr, int_16 port,
          void (*on_connect)(struct sexpr_io *, void *), void *aux)
 {
+#pragma message ("network_add_ip4_sx() incomplete")
 }
 
 void multiplex_add_ip6_sx
         (int_8 addr[16], int_16 port,
          void (*on_connect)(struct sexpr_io *, void *), void *aux)
 {
+#pragma message ("network_add_ip6_sx() incomplete")
 }
 
 struct sexpr_io *sx_open_socket
         (const char *path)
 {
+#pragma message ("sx_open_socket() incomplete")
     return (struct sexpr_io *)0;
 }
 
 struct sexpr_io *sx_open_ip4 (int_32 addr, int_16 port)
 {
+#pragma message ("sx_open_ip4() incomplete")
     return (struct sexpr_io *)0;
 }
 
 struct sexpr_io *sx_open_ip6 (int_8 addr[16], int_16 port)
 {
+#pragma message ("sx_open_ip6() incomplete")
     return (struct sexpr_io *)0;
 }
 
 void multiplex_add_socket_client_sx
         (const char *path, void (*on_read)(sexpr, struct sexpr_io *, void *), void *d)
 {
+#pragma message ("multiplex_add_socket_client_sx() incomplete")
 }
 
 void multiplex_add_ip4_client_sx
         (int_32 addr, int_16 port,
          void (*on_read)(sexpr, struct sexpr_io *, void *), void *aux)
 {
+#pragma message ("multiplex_add_ip4_client_sx() incomplete")
 }
 
 void multiplex_add_ip6_client_sx
         (int_8 addr[16], int_16 port,
          void (*on_read)(sexpr, struct sexpr_io *, void *), void *aux)
 {
+#pragma message ("multiplex_add_ip6_client_sx() incomplete")
 }

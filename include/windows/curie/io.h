@@ -243,8 +243,28 @@ struct io {
      *  asynchronous I/O is poorly supported on Windows.
      */
     OVERLAPPED *overlapped;
-};
 
+    /*! \brief Windows-specific extra buffer pointer for Overlapped I/O
+     *
+     *  This extra buffer pointer is used for overlapped write operations,
+     *  since we must not touch and especially not move the original buffer
+     *  when an overlapped write operation is happening.
+     */
+    char *overlapped_buffer;
+
+    /*! \brief Windows-specific extra buffer size
+     *
+     *  The size of the overlapped_buffer.
+     */
+    unsigned int overlapped_buffersize;
+
+    /*! \brief Windows-specific write buffer original length.
+     *
+     *  Since we copy the write buffer out of sight, we need to remember how
+     *  much of it used to be usable data.
+     */
+    unsigned int overlapped_length;
+};
 
 /*! \brief Open File Desriptor
  *  \param[in] handle The file handle to use.
