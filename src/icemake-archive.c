@@ -36,8 +36,6 @@
 #include <sievert/cpio.h>
 #include <sievert/filesystem.h>
 
-#include <stdio.h>
-
 struct archive_metadata
 {
     struct io *out;
@@ -113,8 +111,6 @@ static void on_close_archive_source_file (struct io *io, void *aux)
     signed int i;
     char c;
 
-    fprintf (stderr, "exhausted: %s\n", s);
-
     io_write (ad->out, "0x00};\nconst unsigned long ", 27);
     for (j = 0; s[j] != (char)0; j++);
     io_write (ad->out, s, j);
@@ -162,8 +158,6 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
     context->headers = cons (cons(str_data, cons (out, sx_end_of_list)),
                              context->headers);
 
-    fprintf (stderr, "processing: %s\n", sx_string(context->name));
-
     while (consp (c))
     {
         d  = car (c);
@@ -175,8 +169,6 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
             dd     = cdr (d);
             name   = car (dd);
             df     = sx_join (str_datas, name, sx_nil);
-
-            fprintf (stderr, "going to work with this: %s\n", sx_string(context->name));
 
             s = sx_string (name);
             for (j = 0; s[j] != (char)0; j++);
@@ -191,8 +183,6 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
 
             if (truep (equalp (da, sym_raw_c)))
             {
-                fprintf (stderr, "(raw-c ...)\n");
-
                 source = sx_join (context->base, car(cdr (dd)), sx_nil);
 
                 out    = icemake_decorate_file
@@ -228,8 +218,6 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
             }
             else
             {
-                fprintf (stderr, "(cpio-c ...)\n");
-
                 dd     = cdr (dd);
                 source = sx_end_of_list;
 
@@ -246,15 +234,11 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
 
                 context->code = sx_set_remove (context->code, d);
 
-                fprintf (stderr, "processing source files for: %s\n", sx_string(context->name));
-
                 if (consp (source))
                 {
                     out    = icemake_decorate_file
                                  (context, ft_code_c, fet_build_file, df);
                     open_archive_files++;
-
-                fprintf (stderr, "putting data in: %s\n", sx_string(out));
 
                     o  = io_open_write (sx_string (out));
 
@@ -275,8 +259,6 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
                     ca  = car (source);
                     caa = car (ca);
                     cad = cdr (ca);
-
-                fprintf (stderr, "reading from: %s\n", sx_string(caa));
 
                     i = io_open_read (sx_string (caa));
 
@@ -310,11 +292,7 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
         c  = cdr (c);
     }
 
-    fprintf (stderr, "(done, closing header 0x%x)\n", header);
-
     io_close (header);
-
-    fprintf (stderr, "(header closed)\n");
 }
 
 void icemake_prepare_archives (struct icemake *im)

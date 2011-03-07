@@ -133,7 +133,7 @@
         "time-unix"
         "io-mmap"
         "sievert-filesystem"
-        "metadata-path" "metadata-unix")
+        "metadata-path" "metadata-unix" "metadata-sexpr")
 
   (headers
         "immutable" "tree" "sexpr" "string" "shell" "cpio" "time" "io"

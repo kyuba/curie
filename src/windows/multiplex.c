@@ -74,7 +74,9 @@ enum multiplex_result multiplex () {
             return mx_nothing_to_do;
         }
 
-        WaitForMultipleObjects(rnum, rfds, FALSE, INFINITE);
+//        WaitForMultipleObjects(rnum, rfds, FALSE, INFINITE);
+        WaitForMultipleObjects(rnum, rfds, FALSE, 200);
+//        WaitForMultipleObjectsEx (rnum, rfds, FALSE, INFINITE, TRUE);
 
         for (cur = mx_func_list;
              cur != (struct multiplex_functions *)0;

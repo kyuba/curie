@@ -29,9 +29,6 @@
 #include <curie/io-system.h>
 #include <curie/memory.h>
 #include <windows.h>
-
-#include <stdio.h>
-
 struct io *io_open_special ()
 {
     struct io *io = io_create();
@@ -45,8 +42,6 @@ struct io *io_open_special ()
     io->overlapped_buffer = 0;
     io->overlapped_buffersize = 0;
     io->overlapped_length = 0;
-
-    fprintf (stderr, "opened (special): 0x%x; ----\n", io);
 
     return io;
 }
@@ -62,8 +57,6 @@ struct io *io_open (void *handle)
     io->overlapped_buffersize = 0;
     io->overlapped_length = 0;
 
-    fprintf (stderr, "opened (normal): 0x%x; ----\n", io);
-
     return io;
 }
 
@@ -75,8 +68,6 @@ struct io *io_open_read (const char *path)
              FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, (void *)0);
 
     struct io *io = io_open(handle);
-
-    fprintf (stderr, "created (read): 0x%x; %s\n", io, path);
 
     io->type = iot_read;
 
@@ -91,8 +82,6 @@ struct io *io_open_write (const char *path)
              FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, (void *)0);
 
     struct io *io = io_open(handle);
-
-    fprintf (stderr, "created (write): 0x%x; %s\n", io, path);
 
     io->type = iot_write;
 
@@ -236,6 +225,12 @@ static void update_overlapped (struct io *io)
     io->overlapped->hEvent           = CreateEvent(0, TRUE, FALSE, 0);
 }
 
+static void __stdcall cb_io_complete
+    (DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered,
+     OVERLAPPED *lpOverlapped)
+{
+}
+
 enum io_result io_read(struct io *io)
 {
     DWORD readrv = 0;
@@ -305,6 +300,8 @@ enum io_result io_read(struct io *io)
 
         if (ReadFile(io->handle, (io->buffer + io->length), IO_CHUNKSIZE, 0,
                      io->overlapped) == 0)
+/*        if (ReadFileEx(io->handle, (io->buffer + io->length), IO_CHUNKSIZE,
+                       io->overlapped, cb_io_complete) == 0) */
         {
           evaluateerror:
             switch (GetLastError())
@@ -403,6 +400,12 @@ enum io_result io_commit (struct io *io)
                              io->overlapped_length, 0,
                              io->overlapped) == 0));
 
+/*                    evaluate =
+                        !(evaluateerror = (WriteFileEx
+                            (io->handle, io->overlapped_buffer,
+                             io->overlapped_length, io->overlapped,
+                             cb_io_complete) == 0));*/
+
                     if (evaluate)
                     {
                         goto get_result;
@@ -490,14 +493,6 @@ enum io_result io_commit (struct io *io)
 
         if (io->overlapped_buffer)
         {
-            fprintf (stderr, "---- written: ---- %i %i %i --\n", rv, io->overlapped_length, io->length);
-            fwrite (io->overlapped_buffer, rv, 1, stderr);
-            fprintf (stderr, "---- complete: --- %i ---------\n", io->overlapped_length);
-            fwrite (io->overlapped_buffer, io->overlapped_length, 1, stderr);
-            fprintf (stderr, "---- remaining: -- %i ---------\n", io->length);
-            fwrite (io->buffer, io->length, 1, stderr);
-            fprintf (stderr, "---------------- (end dump) ----\n");
-
             io->overlapped->Offset += rv;
             io->overlapped_length -= rv;
 

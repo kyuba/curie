@@ -103,6 +103,11 @@ static void mx_f_augment(void **rs, int *r) {
             int i, t;
             void *handle = io->handle;
 
+            if (io->overlapped && io->overlapped->hEvent)
+            {
+                handle = io->overlapped->hEvent;
+            }
+
             switch (io->type) {
                 case iot_write:
                     if (io->length == 0) goto next;
