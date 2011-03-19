@@ -138,7 +138,7 @@ static void mx_f_callback(void **rs, int r) {
     while (l != (struct io_list *)0) {
         struct io *io = l->io;
 
-        if (io->status & ils_active)
+        if (l->status & ils_active)
         {
             goto next;
         }
@@ -152,9 +152,9 @@ static void mx_f_callback(void **rs, int r) {
                     {
                         if (io_read(io) == io_changes)
                         {
-                            io->status |= ils_active;
+                            l->status |= ils_active;
                             l->on_read (io, l->data);
-                            io->status &= ~ils_active;
+                            l->status &= ~ils_active;
                         }
                     }
                     break;
@@ -170,9 +170,9 @@ static void mx_f_callback(void **rs, int r) {
                     (void)io_read (io);
                     if (l->on_read != (void *)0)
                     {
-                        io->status |= ils_active;
+                        l->status |= ils_active;
                         l->on_read (io, l->data);
-                        io->status &= ~ils_active;
+                        l->status &= ~ils_active;
                     }
                     break;
                 case iot_write:
@@ -203,7 +203,7 @@ static void mx_f_callback(void **rs, int r) {
         while (l != (struct io_list *)0) {
             struct io *io = l->io;
 
-            if (!(io->status & ils_active) &&
+            if (!(l->status & ils_active) &&
                 (io->handle == (void *)0))
             {
                 switch (io->type) {
@@ -213,10 +213,10 @@ static void mx_f_callback(void **rs, int r) {
                         {
                             if (io_read(io) == io_changes)
                             {
-                                io->status |= ils_active;
+                                l->status |= ils_active;
                                 l->on_read (io, l->data);
                                 changes = 1;
-                                io->status &= ~ils_active;
+                                l->status &= ~ils_active;
                             }
                         }
                         break;
@@ -311,15 +311,15 @@ void multiplex_del_io (struct io *io)
     struct io_list *l = list, **p;
     char av = (char)0;
 
-    if (io->status & ils_active)
-    {
-        io->status |= ils_kill;
-        return;
-    }
-
     while (l != (struct io_list *)0) {
         if (l->io == io)
         {
+            if (l->status & ils_active)
+            {
+                l->status |= ils_kill;
+                return;
+            }
+
             if (l->on_close != (void (*)(struct io *, void *))0)
             {
                 void (*f)(struct io *, void *) = l->on_close;
