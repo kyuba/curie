@@ -41,3 +41,4 @@ EXPORTS
     path_normalise                      @41
     path_normalise_prefix               @42
     path_prefix                         @43
+    sx_integer_to_string_hex            @44

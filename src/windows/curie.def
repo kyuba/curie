@@ -132,3 +132,4 @@ EXPORTS
     make_string_l                       @145
     make_symbol_l                       @146
     io_open_buffer                      @147
+    sx_to_string                        @148

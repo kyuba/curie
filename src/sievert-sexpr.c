@@ -50,3 +50,41 @@ sexpr sx_list_fold (sexpr list, sexpr (*f)(sexpr, sexpr), sexpr seed)
     return seed;
 }
 
+sexpr sx_integer_to_string_hex (int_pointer_s i)
+{
+    char num [SX_MAX_NUMBER_LENGTH];
+
+    int neg = 0;
+    unsigned int j = 1;
+
+    num[(SX_MAX_NUMBER_LENGTH-2)] = 0;
+
+    if(i < 0) {
+        neg = 1;
+        i *= -1;
+    }
+   
+    do {
+        char s;
+        s = '0' + (char)(i % 16);
+
+        if (s > '9')
+        {
+            s = 'a' + (s - '9' - 1);
+        }
+
+        num[(SX_MAX_NUMBER_LENGTH-2)-j] = s;
+
+        i /= 16;
+        j++;
+    } while ((i != 0) && (j < (SX_MAX_NUMBER_LENGTH-2)));
+
+    if(neg == 1) {
+        num[SX_MAX_NUMBER_LENGTH-2-j] = '-';
+        j++;
+    }
+    num[(SX_MAX_NUMBER_LENGTH-1)] = (char)0;
+
+    return make_string (num + ((SX_MAX_NUMBER_LENGTH - 1) - j));
+}
+

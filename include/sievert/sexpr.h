@@ -70,6 +70,15 @@ void sx_list_map (sexpr list, void (*f)(sexpr));
  */
 sexpr sx_list_fold (sexpr list, sexpr (*f)(sexpr, sexpr), sexpr seed);
 
+/*! \brief Turn Integer Argument into Hex String
+ *  \param[in] a The argument to convert.
+ *  \return The converted form of the argument.
+ *
+ *  This is similar to sx_to_string(), except that it only works on integers
+ *  and the result is in base-16 instead of base-10.
+ */
+sexpr sx_integer_to_string_hex (int_pointer_s a);
+
 /*! \defgroup sexprSet Sets (S-expression Version)
  *  @{
  */
