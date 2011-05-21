@@ -91,7 +91,7 @@ struct datetime
  *
  *  Queries the OS for the current date.
  */
-int_date     dt_get_kin   (void);
+int_date        dt_get_kin   (void);
 
 /*! \brief Convert a struct date to an int_date.
  *  \param[in] date The date to join up.
@@ -99,7 +99,7 @@ int_date     dt_get_kin   (void);
  *
  *  Creates an int_date using the data from the given struct date.
  */
-int_date     dt_make_kin  (struct date date);
+int_date        dt_make_kin  (struct date date);
 
 /*! \brief Split a Date
  *  \param[in]  kin  Days since the epoch.
@@ -108,21 +108,21 @@ int_date     dt_make_kin  (struct date date);
  *  This function splits up dates (as represented by the days since the epoch)
  *  into its components (for output to humans).
  */
-struct date  dt_split_kin (int_date kin);
+struct date     dt_split_kin (int_date kin);
 
 /*! \brief Get Current Time
  *  \return How far into the day we are already, in % (UTC).
  *
  *  Queries the OS for the current time of day.
  */
-unsigned int dt_get_time  (void);
+unsigned int    dt_get_time  (void);
 
 /*! \brief Get Current Date and Time
- *  \param[out] date A struct datetime to hold the current date and time.
+ *  \return date A struct datetime to hold the current date and time.
  *
  *  Queries the OS for the current date and time.
  */
-void         dt_get       (struct datetime *date);
+struct datetime dt_get       ();
 
 #ifdef __cplusplus
 }

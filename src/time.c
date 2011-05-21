@@ -66,10 +66,13 @@ unsigned int dt_get_time (void)
     return sys_time(0) % SECONDS_PER_DAY;
 }
 
-void dt_get (struct datetime *date)
+struct datetime dt_get ()
 {
     int_64 utime = sys_time(0);
+    struct datetime date =
+        { UNIX_EPOCH + (utime / SECONDS_PER_DAY),
+          utime % SECONDS_PER_DAY };
 
-    date->date = UNIX_EPOCH + (utime / SECONDS_PER_DAY);
-    date->time = utime % SECONDS_PER_DAY;
+
+    return date;
 }
