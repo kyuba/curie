@@ -122,7 +122,7 @@ unsigned int    dt_get_time  (void);
  *
  *  Queries the OS for the current date and time.
  */
-struct datetime dt_get       ();
+struct datetime dt_get       (void);
 
 #ifdef __cplusplus
 }
