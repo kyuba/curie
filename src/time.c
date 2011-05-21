@@ -35,26 +35,30 @@ int_date dt_get_kin (void)
     return UNIX_EPOCH + (sys_time(0) / SECONDS_PER_DAY);
 }
 
-int_date dt_make_kin (struct date *date)
+int_date dt_make_kin (struct date date)
 {
-    return (date->alautun)    * 23040000000 + (date->kinchiltun) * 1152000000  +
-           (date->kalabtun)   * 57600000    + (date->piktun)     * 2880000     +
-           (date->baktun)     * 144000      + (date->katun)      * 7200        +
-           (date->tun)        * 360         + (date->winal)      * 20          +
-           (date->kin);
+    return (date.alautun)    * 23040000000 + (date.kinchiltun) * 1152000000
+         + (date.kalabtun)   * 57600000    + (date.piktun)     * 2880000
+         + (date.baktun)     * 144000      + (date.katun)      * 7200
+         + (date.tun)        * 360         + (date.winal)      * 20
+         + (date.kin);
 }
 
-void dt_split_kin (int_date kin, struct date *date)
+struct date dt_split_kin (int_date kin)
 {
-    date->kin = kin % 20;        kin /= 20;
-    date->winal = kin % 18;      kin /= 18;
-    date->tun = kin % 20;        kin /= 20;
-    date->katun = kin % 20;      kin /= 20;
-    date->baktun = kin % 20;     kin /= 20;
-    date->piktun = kin % 20;     kin /= 20;
-    date->kalabtun = kin % 20;   kin /= 20;
-    date->kinchiltun = kin % 20; kin /= 20;
-    date->alautun = kin % 20;    kin /= 20;
+    struct date date;
+
+    date.kin = kin % 20;        kin /= 20;
+    date.winal = kin % 18;      kin /= 18;
+    date.tun = kin % 20;        kin /= 20;
+    date.katun = kin % 20;      kin /= 20;
+    date.baktun = kin % 20;     kin /= 20;
+    date.piktun = kin % 20;     kin /= 20;
+    date.kalabtun = kin % 20;   kin /= 20;
+    date.kinchiltun = kin % 20; kin /= 20;
+    date.alautun = kin % 20;    kin /= 20;
+
+    return date;
 }
 
 unsigned int dt_get_time (void)

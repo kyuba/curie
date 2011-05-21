@@ -38,6 +38,10 @@
  *  mesoamerican long count. And no, the mayan calendar doesn't "end" on
  *  13.0.0.0.0, that's just bollocks. In fact, it'll happily last a lot
  *  longer than that.
+ *
+ *  It is my understanding that the way I'm querying the OS will result in time
+ *  data in GMT. So, unless otherwise noted, all date and time functions return
+ *  their data in GMT.
  */
 
 #ifndef LIBCURIE_TIME_H
@@ -95,16 +99,16 @@ int_date     dt_get_kin   (void);
  *
  *  Creates an int_date using the data from the given struct date.
  */
-int_date     dt_make_kin  (struct date *date);
+int_date     dt_make_kin  (struct date date);
 
 /*! \brief Split a Date
  *  \param[in]  kin  Days since the epoch.
- *  \param[out] date The date.
+ *  \return The date.
  *
  *  This function splits up dates (as represented by the days since the epoch)
  *  into its components (for output to humans).
  */
-void         dt_split_kin (int_date kin, struct date *date);
+struct date  dt_split_kin (int_date kin);
 
 /*! \brief Get Current Time
  *  \return How far into the day we are already, in % (UTC).

@@ -74,9 +74,9 @@ void metadata_from_unix
           attributes_a,
           (struct metadata_signature **)0 };
 
-    dt_from_unix (&(datetime[0].datetime), atime);
-    dt_from_unix (&(datetime[1].datetime), mtime);
-    dt_from_unix (&(datetime[2].datetime), ctime);
+    datetime[0].datetime = dt_from_unix (atime);
+    datetime[1].datetime = dt_from_unix (mtime);
+    datetime[2].datetime = dt_from_unix (ctime);
 
     acl[0].access = MCT_SET | ((mode & 0100) ? MCT_EXECUTE : 0)
                             | ((mode & 0200) ? MCT_WRITE   : 0)
@@ -106,13 +106,13 @@ void metadata_to_unix
         switch (metadata->datetime[i].purpose)
         {
             case mdp_last_access:
-                *atime = (long)dt_to_unix (&(metadata->datetime[i].datetime));
+                *atime = (long)dt_to_unix (metadata->datetime[i].datetime);
                 break;
             case mdp_last_modification:
-                *mtime = (long)dt_to_unix (&(metadata->datetime[i].datetime));
+                *mtime = (long)dt_to_unix (metadata->datetime[i].datetime);
                 break;
             case mdp_last_status_change:
-                *ctime = (long)dt_to_unix (&(metadata->datetime[i].datetime));
+                *ctime = (long)dt_to_unix (metadata->datetime[i].datetime);
                 break;
             default: break;
         }

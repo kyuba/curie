@@ -26,57 +26,6 @@
  * THE SOFTWARE.
 */
 
-/*! \file
- *  \brief Date and Time Conversion Functions
- *
- *  Since there's at least a dozen different calendar and time systems in use
- *  these days, the functions in this header allow you to convert date and time
- *  between different formats.
- */
+#include <curie/constants.h>
+#include <sievert/time.h>
 
-#ifndef LIBSIEVERT_TIME_H
-#define LIBSIEVERT_TIME_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <curie/time.h>
-
-#define LEAP_YEAR (1 << 0)
-
-struct gregorian_date
-{
-    long int      year;
-    unsigned char month;
-    unsigned char day;
-    unsigned char modifiers;
-};
-
-struct julian_date
-{
-    long int      year;
-    unsigned char month;
-    unsigned char day;
-    unsigned char modifiers;
-};
-
-struct datetime dt_from_unix
-    (unsigned long long timestamp);
-struct datetime dt_from_julian_day
-    (long double julian_day);
-struct datetime dt_from_julian_date
-    (struct julian_date julian_date);
-struct datetime dt_from_gregorian_date
-    (struct gregorian_date gregorian_date);
-
-unsigned long long    dt_to_unix           (struct datetime date);
-long double           dt_to_julian_day     (struct datetime date);
-struct julian_date    dt_to_julian_date    (struct datetime date);
-struct gregorian_date dt_to_gregorian_date (struct datetime date);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif

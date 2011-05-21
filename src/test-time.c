@@ -33,25 +33,6 @@
 int cmain()
 {
     int_date date = dt_get_kin ();
-/*
-    unsigned int time = dt_get_time ();
-    struct sexpr_io *io = sx_open_stdio ();
-    struct date d;
-
-    dt_split_kin (date, &d);
-
-    sx_write (io, make_integer (date));
-    sx_write (io, cons (make_integer (d.alautun),
-                  cons (make_integer (d.kinchiltun),
-                  cons (make_integer (d.kalabtun),
-                  cons (make_integer (d.piktun),
-                  cons (make_integer (d.baktun),
-                  cons (make_integer (d.katun),
-                  cons (make_integer (d.tun),
-                  cons (make_integer (d.winal),
-                  cons (make_integer (d.kin), sx_end_of_list))))))))));
-    sx_write (io, make_integer((time / 100000)));
-*/
 
     return date < UNIX_EPOCH;
 }

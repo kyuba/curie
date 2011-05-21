@@ -42,3 +42,9 @@ EXPORTS
     path_normalise_prefix               @42
     path_prefix                         @43
     sx_integer_to_string_hex            @44
+    dt_from_julian_day                  @45
+    dt_from_julian_date                 @46
+    dt_from_gregorian_date              @47
+    dt_to_julian_day                    @48
+    dt_to_julian_date                   @49
+    dt_to_gregorian_date                @50

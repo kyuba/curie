@@ -130,7 +130,7 @@
         "string-set" "string-set-regex"
         "shell"
         "cpio"
-        "time-unix"
+        "time-unix" "time-julian-day" "time-julian-date" "time-gregorian-date"
         "io-mmap"
         "sievert-filesystem"
         "metadata-path" "metadata-unix" "metadata-sexpr")

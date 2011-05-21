@@ -29,14 +29,17 @@
 #include <curie/constants.h>
 #include <sievert/time.h>
 
-void dt_from_unix (struct datetime *date, unsigned long long timestamp)
+struct datetime dt_from_unix (unsigned long long timestamp)
 {
-    date->date = UNIX_EPOCH + (timestamp / SECONDS_PER_DAY);
-    date->time = timestamp % SECONDS_PER_DAY;
+    struct datetime date =
+        { UNIX_EPOCH + (timestamp / SECONDS_PER_DAY),
+          timestamp % SECONDS_PER_DAY };
+
+    return date;
 }
 
-unsigned long long dt_to_unix (struct datetime *date)
+unsigned long long dt_to_unix (struct datetime date)
 {
-    return ((date->date - UNIX_EPOCH) * SECONDS_PER_DAY) + date->time;
+    return ((date.date - UNIX_EPOCH) * SECONDS_PER_DAY) + date.time;
 }
 

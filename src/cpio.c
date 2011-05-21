@@ -233,8 +233,8 @@ static void cpio_process_fragment
                 attribute_link_count.integer    = header[6];
                 attribute_device.integer        = header[7];
 
-                dt_from_unix (&(datetime[0].datetime),
-                              ((header[8]) << 16) | (header[9]));
+                datetime[0].datetime =dt_from_unix
+                    (((header[8]) << 16) | (header[9]));
 
                 ts = header[10]; /* nsize */
                 tl = ((header[11]) << 16) | (header[12]); /* fsize */
