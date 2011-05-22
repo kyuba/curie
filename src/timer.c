@@ -268,6 +268,7 @@ static void event_add (sexpr sx)
             {
                 repeat = -1;
 
+                stat |= STAT_PROCESS_IN;
                 stat |= STAT_SKIP_IN_POP;
             }
         }
