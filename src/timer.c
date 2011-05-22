@@ -46,6 +46,8 @@ define_symbol (sym_seconds,          "seconds");
 define_symbol (sym_second,           "second");
 define_symbol (sym_s,                "s");
 define_symbol (sym_tick,             "tick");
+define_symbol (sym_then,             "then");
+define_symbol (sym_quit,             "quit");
 
 struct output_channel
 {
@@ -68,11 +70,15 @@ struct event
         unsigned long long seconds;
     } model_data;
     sexpr                    output;
+    sexpr                    then;
     struct event            *next;
 };
 
 static struct output_channel *output_channels = (struct output_channel *)0;
 static struct event          *events          = (struct event *)0;
+
+static void event_queue (void);
+static void event_add   (sexpr);
 
 static void output (sexpr sx)
 {
@@ -121,14 +127,19 @@ static void event_repeat (struct event *e, struct event **p)
     }
 }
 
-static void event_queue (void);
-
 static void event_dispatch
     (struct event *e, struct event **p, unsigned long long ts)
 {
+    sexpr t = e->then;
     e->queue_time = dt_from_unix (ts);
     output (e->output);
     event_repeat (e, p);
+
+    if (!eolp (t))
+    {
+        event_add (t);
+    }
+
     event_queue ();
 }
 
@@ -188,6 +199,7 @@ static struct event *get_event ()
     ev->model              = em_seconds;
     ev->model_data.seconds = 5;
     ev->output             = sx_list1 (sym_tick);
+    ev->then               = sx_end_of_list;
     ev->next               = events;
 
     events                 = ev;
@@ -209,6 +221,11 @@ static void event_add (sexpr sx)
         sexpr c    = cdr (sx);
         int repeat = 1;
         int stat   = 0;
+
+        if (truep (equalp (a, sym_quit)))
+        {
+            cexit (0);
+        }
 
         if (truep (equalp (a, sym_repeat)))
         {
@@ -281,9 +298,17 @@ static void event_add (sexpr sx)
                     /* nothing to do*/
                 }
 
-                if (!nexp (a))
+                if (!nexp (a) && falsep (equalp (a, sym_then)))
                 {
                     ev->output = a;
+
+                    a = car (c);
+                    c = cdr (c);
+                }
+
+                if (truep (equalp (a, sym_then)))
+                {
+                    ev->then = c;
                 }
             }
         }
