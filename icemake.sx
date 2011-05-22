@@ -208,6 +208,15 @@
 
   (code "ice"))
 
+(programme "timer" libcurie
+  (name "timer")
+  (description "programmable multi-purpose timer")
+  (version "1")
+
+  (libraries "sievert")
+
+  (code "timer"))
+
 (programme "example-sx-stdio" libcurie
   (name "example-sx-stdio")
   (description "STDIO S-Expression Example")
