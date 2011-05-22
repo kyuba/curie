@@ -260,17 +260,13 @@ static void event_add (sexpr sx)
             a = car (c);
             c = cdr (c);
 
-            if (stat & STAT_HAD_REPEAT)
-            {
-                stat |= STAT_SKIP_IN_POP;
-            }
-            else
+            if (!(stat & STAT_HAD_REPEAT))
             {
                 repeat = -1;
-
-                stat |= STAT_PROCESS_IN;
-                stat |= STAT_SKIP_IN_POP;
             }
+
+            stat |= STAT_PROCESS_IN;
+            stat |= STAT_SKIP_IN_POP;
         }
 
         if (truep (equalp (a, sym_in)) || (stat & STAT_PROCESS_IN))
@@ -324,7 +320,6 @@ static void timer_io_read (sexpr sx, struct sexpr_io *io, void *aux)
         return;
     }
 
-    output      (sx);
     event_add   (sx);
     event_queue ();
 }
