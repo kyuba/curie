@@ -233,6 +233,10 @@ struct toolchain_descriptor
     const char           *uname_vendor;
     const char           *uname_toolchain;
 
+    sexpr                 toolchain_sym;
+    sexpr                 operating_system_sym;
+    sexpr                 instruction_set_sym;
+
     sexpr                 uname;
 
     int (*build)         (struct target *);

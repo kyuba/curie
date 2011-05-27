@@ -70,121 +70,6 @@ struct process_data
     int *failures;
 };
 
-/* toolchain classification patterns */
-struct toolchain_pattern
-{
-    const char *pattern;
-
-    enum toolchain        toolchain;
-    enum operating_system operating_system;
-    enum instruction_set  instruction_set;
-
-    const char *uname_os;
-    const char *uname_arch;
-    const char *uname_vendor;
-    const char *uname_toolchain;
- 
-    unsigned long instruction_set_options;
-    unsigned long instruction_set_level;
-};
-
-static struct toolchain_pattern toolchain_pattern[] =
-{
-    { ".*",
-        /* defaults */
-        tc_generic, os_generic,      is_generic,
-        "generic",      "generic", "generic",   "generic",
-        0, 0 },
-
-    { ".*-([Dd]arwin|[Ll]inux|.*[Bb][Ss][Dd]).*",
-        /* default to gcc on BSDs, Darwin and Linux */
-        tc_gcc,     os_unknown,      is_unknown,
-        0,              0,         0,           "gnu",
-        0, 0 },
-
-    /* toolchains */
-    { ".*-(gcc|gnu)",
-        tc_gcc,     os_unknown,      is_unknown,
-        0,              0,         0,           "gnu",
-        0, 0 },
-    { ".*-borland",
-        tc_borland, os_unknown,      is_unknown,
-        0,              0,         0,           "borland",
-        0, 0 },
-    { ".*-msvc",
-        tc_msvc,    os_windows,      is_unknown,
-        "windows",      0,         "microsoft", "msvc",
-        0, 0 },
-    { ".*-latex",
-        tc_latex,   os_unknown,      is_unknown,
-        0,              0,         0,           "latex",
-        0, 0 },
-    { ".*-doxygen",
-        tc_doxygen, os_unknown,      is_unknown,
-        0,              0,         0,           "doxygen",
-        0, 0 },
-
-    /* operating systems */
-    { ".*-[Dd]arwin.*",
-        tc_unknown, os_darwin,       is_unknown,
-        "darwin",       0,         0,           0,
-        0, 0 },
-    { ".*-[Ll]inux.*",
-        tc_unknown, os_linux,        is_unknown,
-        "linux",        0,         0,           0,
-        0, 0 },
-    { ".*-[Ww]indows.*",
-        tc_unknown, os_windows,      is_unknown,
-        "windows",      0,         "microsoft", 0,
-        0, 0 },
-    { ".*-[Ff]ree[Bb][Ss][Dd].*",
-        tc_unknown, os_freebsd,      is_unknown,
-        "freebsd",      0,          0,          0,
-        0, 0 },
-    { ".*-[Nn]et[Bb][Ss][Dd].*",
-        tc_unknown, os_netbsd,       is_unknown,
-        "netbsd",       0,          0,          0,
-        0, 0 },
-    { ".*-[Oo]pen[Bb][Ss][Dd].*",
-        tc_unknown, os_openbsd,      is_unknown,
-        "openbsd",      0,          0,          0,
-        0, 0 },
-    { ".*-[Dd]ragonfly[Bb][Ss][Dd].*",
-        tc_unknown, os_dragonflybsd, is_unknown,
-        "dragonflybsd", 0,          0,          0,
-        0, 0 },
-
-    /* CPU architectures */
-    { "(x86[-/_]64|amd64)-.*",
-        tc_unknown, os_unknown,       is_x86,
-        0,              "x86-64",   0,          0,
-        IS_64_BIT, 0 },
-    { "(x86[-/_]32|i[3-6]86)-.*",
-        tc_unknown, os_unknown,       is_x86,
-        0,              "x86-32",   0,          0,
-        IS_32_BIT, 0 },
-    { "([Pp]ower(pc| [Mm]acintosh)|ppc(-?32)?)-.*",
-        tc_unknown, os_unknown,       is_powerpc,
-        0,              "ppc-32",   0,          0,
-        IS_32_BIT, 0 },
-    { "(p(ower)?pc-?64)-.*",
-        tc_unknown, os_unknown,       is_powerpc,
-        0,              "ppc-64",   0,          0,
-        IS_64_BIT, 0 },
-    { "(arm-?(e[bl]|32|v..?)?)-.*",
-        tc_unknown, os_unknown,       is_arm,
-        0,              "arm-32",   0,          0,
-        IS_32_BIT, 0 },
-
-    /* specific hardware configurations */
-    { "psp",
-        tc_gcc,     os_unknown,       is_mips,
-        "psp",          "mips-32",  "sony",     "gnu",
-        IS_32_BIT, 0},
-
-    { 0 } /* last pattern */
-};
-
 static sexpr toolchain_patterns = sx_end_of_list;
 
 static sexpr sx_string_dir_prefix
@@ -1761,65 +1646,168 @@ int icemake_prepare_toolchain
     struct toolchain_descriptor td =
         { tc_generic, os_generic, is_generic, make_string(name) };
 
-    int p;
+    define_symbol (sym_tc,           "tc");
+    define_symbol (sym_os,           "os");
+    define_symbol (sym_is,           "is");
+    define_symbol (sym_vendor,       "vendor");
+    define_symbol (sym_gcc,          "gcc");
+    define_symbol (sym_msvc,         "msvc");
+    define_symbol (sym_borland,      "borland");
+    define_symbol (sym_darwin,       "darwin");
+    define_symbol (sym_linux,        "linux");
+    define_symbol (sym_freebsd,      "freebsd");
+    define_symbol (sym_openbsd,      "openbsd");
+    define_symbol (sym_dragonflybsd, "dragonflybsd");
+    define_symbol (sym_netbsd,       "netbsd");
+    define_symbol (sym_windows,      "windows");
+    define_symbol (sym_64bit,        "is-64-bit");
+    define_symbol (sym_32bit,        "is-32-bit");
+    define_symbol (sym_arm,          "arm");
+    define_symbol (sym_x86,          "x86");
+    define_symbol (sym_mips,         "mips");
+    define_symbol (sym_powerpc,      "powerpc");
+    define_symbol (sym_sh,           "sh");
+
+    sexpr c;
 
     td.toolchain  = tc_generic;
 
-    for (p = 0; toolchain_pattern[p].pattern != (const char *)0; p++)
+    for (c = toolchain_patterns; consp (c); c = cdr (c))
     {
-        sexpr rx = rx_compile (toolchain_pattern[p].pattern);
+        sexpr a = car (c), aa = car (a);
+        sexpr rx = rx_compile_sx (aa);
 
         if (truep (rx_match (rx, name)))
         {
-            if (toolchain_pattern[p].toolchain != tc_unknown)
-            {
-                td.toolchain = toolchain_pattern[p].toolchain;
-            }
+            sexpr d;
 
-            if (toolchain_pattern[p].operating_system != os_unknown)
+            for (d = cdr (a); consp (d); d = cdr (d))
             {
-                td.operating_system = toolchain_pattern[p].operating_system;
-            }
+                a = car (d);
 
-            if (toolchain_pattern[p].instruction_set != is_unknown)
-            {
-                td.instruction_set = toolchain_pattern[p].instruction_set;
-            }
+                if (consp (a))
+                {
+                    aa = car (a);
 
-            if (toolchain_pattern[p].uname_os != (const char *)0)
-            {
-                td.uname_os = toolchain_pattern[p].uname_os;
-            }
+                    if (truep (equalp (aa, sym_tc)))
+                    {
+                        a  = cdr (a);
+                        aa = car (a);
 
-            if (toolchain_pattern[p].uname_arch != (const char *)0)
-            {
-                td.uname_arch = toolchain_pattern[p].uname_arch;
-            }
+                        if (truep (equalp (aa, sym_gcc)))
+                        {
+                            td.toolchain = tc_gcc;
+                        }
+                        else if (truep (equalp (aa, sym_borland)))
+                        {
+                            td.toolchain = tc_borland;
+                        }
+                        else if (truep (equalp (aa, sym_msvc)))
+                        {
+                            td.toolchain = tc_msvc;
+                        }
 
-            if (toolchain_pattern[p].uname_vendor != (const char *)0)
-            {
-                td.uname_vendor = toolchain_pattern[p].uname_vendor;
-            }
+                        td.toolchain_sym = aa;
 
-            if (toolchain_pattern[p].uname_toolchain != (const char *)0)
-            {
-                td.uname_toolchain = toolchain_pattern[p].uname_toolchain;
-            }
+                        a  = cdr (a);
+                        aa = car (a);
 
-            if (toolchain_pattern[p].instruction_set_options != 0)
-            {
-                td.instruction_set_options
-                    |= toolchain_pattern[p].instruction_set_options;
-            }
+                        td.uname_toolchain = sx_string (aa);
+                    }
+                    else if (truep (equalp (aa, sym_os)))
+                    {
+                        a  = cdr (a);
+                        aa = car (a);
 
-            if (toolchain_pattern[p].instruction_set_level != 0)
-            {
-                td.instruction_set_level
-                    = toolchain_pattern[p].instruction_set_level;
+                        if (truep (equalp (aa, sym_linux)))
+                        {
+                            td.operating_system = os_linux;
+                        }
+                        else if (truep (equalp (aa, sym_darwin)))
+                        {
+                            td.operating_system = os_darwin;
+                        }
+                        else if (truep (equalp (aa, sym_windows)))
+                        {
+                            td.operating_system = os_windows;
+                        }
+                        else if (truep (equalp (aa, sym_netbsd)))
+                        {
+                            td.operating_system = os_netbsd;
+                        }
+                        else if (truep (equalp (aa, sym_dragonflybsd)))
+                        {
+                            td.operating_system = os_dragonflybsd;
+                        }
+                        else if (truep (equalp (aa, sym_freebsd)))
+                        {
+                            td.operating_system = os_freebsd;
+                        }
+                        else if (truep (equalp (aa, sym_openbsd)))
+                        {
+                            td.operating_system = os_openbsd;
+                        }
+
+                        td.operating_system_sym = aa;
+
+                        a  = cdr (a);
+                        aa = car (a);
+
+                        td.uname_os = sx_string (aa);
+                    }
+                    else if (truep (equalp (aa, sym_is)))
+                    {
+                        a  = cdr (a);
+                        aa = car (a);
+
+                        if (truep (equalp (aa, sym_arm)))
+                        {
+                            td.instruction_set = is_arm;
+                        }
+                        else if (truep (equalp (aa, sym_x86)))
+                        {
+                            td.instruction_set = is_x86;
+                        }
+                        else if (truep (equalp (aa, sym_mips)))
+                        {
+                            td.instruction_set = is_mips;
+                        }
+                        else if (truep (equalp (aa, sym_powerpc)))
+                        {
+                            td.instruction_set = is_powerpc;
+                        }
+                        else if (truep (equalp (aa, sym_sh)))
+                        {
+                            td.instruction_set = is_sh;
+                        }
+
+                        td.instruction_set_sym = aa;
+
+                        a  = cdr (a);
+                        aa = car (a);
+
+                        td.uname_arch = sx_string (aa);
+                    }
+                    else if (truep (equalp (aa, sym_vendor)))
+                    {
+                        a  = cdr (a);
+                        aa = car (a);
+
+                        td.uname_vendor = sx_string (aa);
+                    }
+                }
+                else if (truep (equalp (a, sym_32bit)))
+                {
+                    td.instruction_set_options |= IS_32_BIT;
+                }
+                else if (truep (equalp (a, sym_64bit)))
+                {
+                    td.instruction_set_options |= IS_64_BIT;
+                }
             }
         }
     }
-    
+
     td.uname =
         sx_join (make_string (td.uname_arch), str_dash,
         sx_join (make_string (td.uname_vendor), str_dash,
@@ -1916,15 +1904,15 @@ static void parse_add_definition
 
 void icemake_load_data (sexpr data)
 {
-    define_symbol (sym_pattern, "pattern");
+    define_symbol (sym_patterns, "patterns");
 
     sexpr t = car (data);
 
     data = cdr (data);
 
-    if (truep (equalp (t, sym_pattern)))
+    if (truep (equalp (t, sym_patterns)))
     {
-        toolchain_patterns = sx_set_merge (toolchain_patterns, data);
+        toolchain_patterns = sx_set_merge (data, toolchain_patterns);
     }
 }
 

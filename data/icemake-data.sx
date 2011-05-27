@@ -7,6 +7,13 @@
 
 (patterns
 ; default to gcc on BSDs, Darwin and Linux
+  (".*"
+    (tc generic "generic")
+    (os generic "generic")
+    (is generic "generic")
+    (vendor "generic"))
+
+; default to gcc on BSDs, Darwin and Linux
   (".*-([Dd]arwin|[Ll]inux|.*[Bb][Ss][Dd]).*"
     (tc gcc "gnu"))
 
