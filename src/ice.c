@@ -28,6 +28,7 @@
 
 #include <icemake/icemake.h>
 #include <curie/main.h>
+#include <curie/filesystem.h>
 
 #if !defined(NOVERSION)
 #include <curie/version.h>
@@ -184,6 +185,28 @@ static int with_architecture (const char *arch, void *aux)
         (arch, with_toolchain, aux);
 }
 
+static void load_data_from_file (const char *file)
+{
+    sexpr r;
+    struct sexpr_io *io;
+
+    if (truep (filep (make_string (file))))
+    {
+        io = sx_open_i (io_open_read (file));
+
+        while (!eofp(r = sx_read (io)))
+        {
+            if (nexp(r)) continue;
+            if (consp(r))
+            {
+                icemake_load_data (r);
+            }
+        }
+
+        sx_close_io (io);
+    }
+}
+
 int cmain ()
 {
     int i = 1;
@@ -195,6 +218,7 @@ int cmain ()
           1, sx_end_of_list, sx_end_of_list };
 
     initialise_icemake ();
+    icemake_load_internal_data ();
 
     mkdir ("build", 0755);
 
@@ -229,6 +253,13 @@ int cmain ()
                         if (curie_argv[xn])
                         {
                             i_destdir = make_string(curie_argv[xn]);
+                            xn++;
+                        }
+                        break;
+                    case 'D':
+                        if (curie_argv[xn])
+                        {
+                            load_data_from_file (curie_argv[xn]);
                             xn++;
                         }
                         break;

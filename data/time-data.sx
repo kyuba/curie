@@ -1,0 +1,18 @@
+;;
+; vim:ft=lisp
+;;
+
+(default-language "en")
+
+(language "en"
+  (define yearly  gregorian (repeat-every 1 0 0))
+  (define monthly gregorian (repeat-every 0 1 0))
+  (define daily   gregorian (repeat-every 0 0 1))
+
+  (time "midnight" julian-time (on 0/1))
+  (time "noon"     julian-time (on 1/2))
+  (time "evening"  julian-time (between 8/10 "midnight"))
+
+  (date-time "New Year's Eve" gregorian yearly (on 12 31) "evening")
+
+  (date "New Year's Day" gregorian yearly (on 1 1)))

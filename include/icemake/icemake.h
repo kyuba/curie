@@ -534,6 +534,8 @@ define_symbol (sym_archive,             "archive");
 define_symbol (sym_raw_c,               "raw-c");
 /*! \brief Predefined Symbol */
 define_symbol (sym_cpio_c,              "cpio-c");
+/*! \brief Predefined Symbol */
+define_symbol (sym_include,             "include");
 
 /*! \brief Predefined String */
 define_string (str_curie,               "curie");
@@ -912,6 +914,12 @@ int icemake_default_architecture
 
 int icemake
     (struct icemake *im);
+
+void icemake_load_data
+    (sexpr data);
+
+void icemake_load_internal_data
+    (void);
 
 /*! \todo remove these functions from the global scope */
 sexpr icemake_permutate_paths (struct toolchain_descriptor *td, sexpr p);

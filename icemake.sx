@@ -188,6 +188,8 @@
 
   (libraries "sievert")
 
+  (raw-c "icemake_data" "data/icemake-data.sx")
+
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
         "icemake-link" "icemake-documentation"
         "icemake-tc-generic" "icemake-tc-gcc" "icemake-tc-borland"
@@ -195,6 +197,9 @@
         "icemake-os-generic"
         "icemake-vis-stub" "icemake-vis-raw" "icemake-vis-ice"
         "icemake-archive")
+
+  (headers
+        "icemake" "icemake-system")
 
   (documentation
         "icemake" "ice" "icemake.sx"))
@@ -232,3 +237,5 @@
   (libraries "curie-source")
 
   (code "example-dump-source"))
+
+(include "data/icemake-data.sx")

@@ -44,29 +44,3 @@ int icemake_prepare_toolchain_doxygen (struct toolchain_descriptor *td)
 
 void gc_call (sexpr sx) {}
 void initialise_stack () {}
-
-static void target_map_prepare_archives (struct tree_node *node, void *u)
-{
-    struct target *context = (struct target *)node_get_value(node);
-    sexpr c = context->code, d, da;
-
-    while (consp (c))
-    {
-        d  = car (c);
-        da = car (d);
-
-        if (truep (equalp (da, sym_raw_c)) ||
-            truep (equalp (da, sym_cpio_c)))
-        {
-            context->code = sx_set_remove (context->code, d);
-        }
-
-        c  = cdr (c);
-    }
-}
-
-void icemake_prepare_archives (struct icemake *im)
-{
-    tree_map (&(im->targets), target_map_prepare_archives, (void *)im);
-}
-

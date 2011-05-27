@@ -38,7 +38,7 @@
   (".*-[Oo]pen[Bb][Ss][Dd].*"
     (os openbsd "openbsd"))
   (".*-[Dd]ragonfly[Bb][Ss][Dd].*"
-    (os dragonflybsd "dragonflybsd))
+    (os dragonflybsd "dragonflybsd"))
 
 ; CPU architectures
   ("(x86[-/_]64|amd64)-.*"

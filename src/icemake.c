@@ -31,6 +31,9 @@
 #endif
 
 #include <icemake/icemake.h>
+#if !defined(NOVERSION)
+#include <icemake/data.h>
+#endif
 
 #include <curie/regex.h>
 
@@ -1873,12 +1876,61 @@ static void parse_add_definition
     {
         t = create_documentation (im, path, td, cdr (definition));
     }
+    else if (truep(equalp(sxcar, sym_include)))
+    {
+        sexpr c = cdr (definition), icemake_sx_path, r;
+        struct sexpr_io *io;
+
+        while (consp (c))
+        {
+            icemake_sx_path = sx_join (path, car (c), sx_nil);
+
+            if (truep (filep (icemake_sx_path)))
+            {
+                io = sx_open_i (io_open_read (sx_string (icemake_sx_path)));
+
+                while (!eofp(r = sx_read (io)))
+                {
+                    if (nexp(r)) continue;
+                    if (consp(r))
+                    {
+                        parse_add_definition (im, path, td, r);
+                    }
+                }
+
+                sx_close_io (io);
+            }
+
+            c = cdr (c);
+        }
+    }
 
     if (t != (struct target *)0)
     {
         tree_add_node_string_value
             (&(im->targets), (char *)sx_string(t->name), t);
     }
+}
+
+void icemake_load_data (sexpr data)
+{
+#pragma message("icemake_load_data() incomplete")
+}
+
+void icemake_load_internal_data ()
+{
+#if !defined(NOVERSION)
+    struct io *io = io_open_buffer (icemake_data, icemake_data_length);
+    struct sexpr_io *i = sx_open_i (io);
+    sexpr r;
+
+    while (!eofp (r = sx_read (i)))
+    {
+        icemake_load_data (r);
+    }
+
+    sx_close_io (i);
+#endif
 }
 
 int icemake_prepare
