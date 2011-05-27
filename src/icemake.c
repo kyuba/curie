@@ -185,6 +185,8 @@ static struct toolchain_pattern toolchain_pattern[] =
     { 0 } /* last pattern */
 };
 
+static sexpr toolchain_patterns = sx_end_of_list;
+
 static sexpr sx_string_dir_prefix
     (struct toolchain_descriptor *td, sexpr f, sexpr p)
 {
@@ -1914,13 +1916,22 @@ static void parse_add_definition
 
 void icemake_load_data (sexpr data)
 {
-#pragma message("icemake_load_data() incomplete")
+    define_symbol (sym_pattern, "pattern");
+
+    sexpr t = car (data);
+
+    data = cdr (data);
+
+    if (truep (equalp (t, sym_pattern)))
+    {
+        toolchain_patterns = sx_set_merge (toolchain_patterns, data);
+    }
 }
 
 void icemake_load_internal_data ()
 {
 #if !defined(NOVERSION)
-    struct io *io = io_open_buffer (icemake_data, icemake_data_length);
+    struct io *io = io_open_buffer ((void *)icemake_data, icemake_data_length);
     struct sexpr_io *i = sx_open_i (io);
     sexpr r;
 

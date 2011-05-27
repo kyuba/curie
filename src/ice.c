@@ -82,6 +82,7 @@ static void print_help ()
         " -P <dir>     Specify source directory (allowed multiple times)\n"\
         " -t <chost>   Specify target CHOST\n"\
         " -d <destdir> Specify the directory to install to.\n"\
+        " -D <file>    Specify an additional toolchain data file.\n"\
         " -i           Install resulting binaries\n"\
         " -r           Execute runtime tests\n"\
         " -f           Use the FHS layout for installation\n"\
