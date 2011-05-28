@@ -117,4 +117,4 @@ CALL :GETTOOLCHAIN
 CALL :BUILDALL %ICEMAKE_FILES%
 CALL :LINKALL %ICEMAKE_FILES%
 
-build\b-icemake.exe -D data\icemake-data.sx %* curie-bootstrap syscall curie sievert icemake ice
+build\b-icemake.exe -D data\toolchains.ice %* curie-bootstrap syscall curie sievert icemake ice

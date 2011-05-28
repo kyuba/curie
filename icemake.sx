@@ -188,7 +188,7 @@
 
   (libraries "sievert")
 
-  (raw-c "icemake_data" "data/icemake-data.sx")
+  (raw-c "toolchain_data" "data/toolchains.ice")
 
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
         "icemake-link" "icemake-documentation"
@@ -237,5 +237,3 @@
   (libraries "curie-source")
 
   (code "example-dump-source"))
-
-(include "data/icemake-data.sx")

@@ -70,7 +70,8 @@ struct process_data
     int *failures;
 };
 
-static sexpr toolchain_patterns = sx_end_of_list;
+static sexpr toolchain_patterns       = sx_end_of_list;
+static sexpr toolchain_specifications = sx_end_of_list;
 
 static sexpr sx_string_dir_prefix
     (struct toolchain_descriptor *td, sexpr f, sexpr p)
@@ -1919,7 +1920,8 @@ void icemake_load_data (sexpr data)
 void icemake_load_internal_data ()
 {
 #if !defined(NOVERSION)
-    struct io *io = io_open_buffer ((void *)icemake_data, icemake_data_length);
+    struct io *io =
+        io_open_buffer ((void *)toolchain_data, toolchain_data_length);
     struct sexpr_io *i = sx_open_i (io);
     sexpr r;
 
