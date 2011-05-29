@@ -31,8 +31,6 @@
 int icemake_build_documentation (struct icemake *im) { return 0; }
 int icemake_run_tests (struct icemake *im) { return 0; }
 
-int icemake_prepare_toolchain_generic (struct toolchain_descriptor *td)
-{ return 0; }
 int icemake_prepare_toolchain_latex   (struct toolchain_descriptor *td)
 { return 0; }
 int icemake_prepare_toolchain_doxygen (struct toolchain_descriptor *td)

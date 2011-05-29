@@ -2,7 +2,7 @@
 # Build System Bootstrap
 # POSIX/sh Variant
 
-ICEMAKE_FILES="icemake icemake-build icemake-install icemake-link icemake-tc-gcc icemake-os-generic icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree-basic immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio utf-8 sexpr-custom hash tree-string tree-library gcd variables libc-compat io-pool sexpr-set bootstrap shell regex graph sexpr-sort metadata-path metadata-unix time-unix icemake-vis-stub icemake-vis-raw icemake-vis-ice ice sievert-filesystem sexpr-list icemake-archive cpio directory directory-common"
+ICEMAKE_FILES="icemake icemake-build icemake-install icemake-link icemake-tc-gcc icemake-tc-generic icemake-os-generic icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree-basic immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio utf-8 sexpr-custom hash tree-string tree-library gcd variables libc-compat io-pool sexpr-set bootstrap shell regex graph sexpr-sort metadata-path metadata-unix time-unix icemake-vis-stub icemake-vis-raw icemake-vis-ice ice sievert-filesystem sexpr-list icemake-archive cpio directory directory-common sexpr-alist"
 
 if [ ! -n "${CC}" ]; then CC='cc'; fi
 if [ ! -n "${LD}" ]; then LD='cc'; fi

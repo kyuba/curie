@@ -26,19 +26,62 @@
  * THE SOFTWARE.
 */
 
-#include <icemake/icemake.h>
+#include <sievert/sexpr.h>
 
-int icemake_build_documentation (struct icemake *im) { return 0; }
-int icemake_run_tests (struct icemake *im) { return 0; }
+sexpr sx_alist_get (sexpr alist, sexpr key)
+{
+    while (consp (alist))
+    {
+        sexpr a = car (alist);
 
-int icemake_prepare_toolchain_borland (struct toolchain_descriptor *td)
-{ return 0; }
-int icemake_prepare_toolchain_msvc    (struct toolchain_descriptor *td)
-{ return 0; }
-int icemake_prepare_toolchain_latex   (struct toolchain_descriptor *td)
-{ return 0; }
-int icemake_prepare_toolchain_doxygen (struct toolchain_descriptor *td)
-{ return 0; }
+        if (truep (equalp (car (a), key)))
+        {
+            return cdr (a);
+        }
 
-void gc_call (sexpr sx) {}
-void initialise_stack () {}
+        alist = cdr (alist);
+    }
+
+    return sx_nonexistent;
+}
+
+sexpr sx_alist_add (sexpr alist, sexpr key, sexpr value)
+{
+    return cons (cons (key, value), alist);
+}
+
+sexpr sx_alist_remove (sexpr alist, sexpr key)
+{
+    sexpr r = sx_end_of_list;
+
+    while (consp (alist))
+    {
+        sexpr a = car (alist);
+
+        if (falsep (equalp (car (a), key)))
+        {
+            r = cons (a, r);
+        }
+
+        alist = cdr (alist);
+    }
+
+    return r;
+}
+
+sexpr sx_alist_merge (sexpr alist1, sexpr alist2)
+{
+    sexpr r = alist1;
+
+    while (consp (alist2))
+    {
+        sexpr a = car (alist2);
+
+        r = sx_alist_remove (r, car (a));
+        r = cons (a, r);
+
+        alist2 = cdr (alist2);
+    }
+
+    return r;
+}

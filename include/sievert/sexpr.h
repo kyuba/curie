@@ -271,6 +271,61 @@ sexpr sx_list6
     (sexpr alpha, sexpr beta, sexpr gamma, sexpr delta, sexpr epsilon,
      sexpr zeta);
 
+/*! \brief Get a Value from an Association List via its Key
+ *  \param[in] alist The list to look in.
+ *  \param[in] key   They key to look for.
+ *  \return The key's value if found, sx_nonexistent otherwise.
+ *
+ *  Given a key and an associative list (i.e. a (... (key . value) ...)
+ *  constuct), this function will try to look for the key in the list and return
+ *  the value associated with it.
+ */
+sexpr sx_alist_get (sexpr alist, sexpr key);
+
+/*! \brief Add a Key-Value Pair to an Association List
+ *  \param[in] alist The list to modify.
+ *  \param[in] key   They key to store the value under.
+ *  \param[in] value They value to associate with the key.
+ *  \return The new list.
+ *
+ *  This will introduce a (key . value) pair to the front of the given alist.
+ *  The list is not searched for any further occurences of the key, which means
+ *  that any duplicates would stay in the list. Make sure to remove duplicates
+ *  yourself before adding a new value.
+ *
+ *  The list passed to this function is not modified. Instead, the new
+ *  association list is return.
+ */
+sexpr sx_alist_add (sexpr alist, sexpr key, sexpr value);
+
+/*! \brief Remove a Value from an Association List via its Key
+ *  \param[in] alist The list to modify.
+ *  \param[in] key   They key to to remove.
+ *  \return The new list.
+ *
+ *  This will remove any (key . value) pairs with the given key from the given
+ *  association list.
+ *
+ *  The list passed to this function is not modified. Instead, the new
+ *  association list is return.
+ */
+sexpr sx_alist_remove (sexpr alist, sexpr key);
+
+/*! \brief Merge two association lists
+ *  \param[in] alist1 The first of the two lists to merge.
+ *  \param[in] alist2 The second of the two lists to merge.
+ *  \return The new list.
+ *
+ *  Given two associaton lists, this function will calucalte a combined version
+ *  of the two. Elements where the key only occurs in one of the lists are
+ *  simply added to the result. For elements where the key occurs in both lists,
+ *  the value in the second list overrides the value in the first.
+ *
+ *  Neither list passed to this function is not modified. Instead, the new
+ *  association list is return.
+ */
+sexpr sx_alist_merge (sexpr alist1, sexpr alist2);
+
 /*! @} */
 
 #ifdef __cplusplus

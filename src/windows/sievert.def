@@ -48,3 +48,7 @@ EXPORTS
     dt_to_julian_day                    @48
     dt_to_julian_date                   @49
     dt_to_gregorian_date                @50
+    sx_alist_get                        @51
+    sx_alist_add                        @52
+    sx_alist_remove                     @53
+    sx_alist_merge                      @54

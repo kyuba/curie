@@ -72,6 +72,36 @@ struct process_data
 
 static sexpr toolchain_patterns       = sx_end_of_list;
 static sexpr toolchain_specifications = sx_end_of_list;
+static sexpr toolchain_object_types   = sx_end_of_list;
+
+static sexpr make_file_name (sexpr rule, sexpr basename, sexpr version)
+{
+    define_symbol (sym_base_name, "base-name");
+    define_symbol (sym_version,   "version");
+    define_string (str_blank,     "");
+
+    sexpr r = str_blank, c, a;
+
+    for (c = rule; consp (c); c = cdr (c))
+    {
+        a = car (c);
+
+        if (truep (equalp (a, sym_base_name)))
+        {
+            r = sx_join (r, basename, sx_nil);
+        }
+        else if (truep (equalp (a, sym_version)))
+        {
+            r = sx_join (r, version, sx_nil);
+        }
+        else
+        {
+            r = sx_join (r, a, sx_nil);
+        }
+    }
+
+    return r;
+}
 
 static sexpr sx_string_dir_prefix
     (struct toolchain_descriptor *td, sexpr f, sexpr p)
@@ -413,58 +443,11 @@ static sexpr generate_pic_object_file_name (sexpr file, struct target *t)
     return icemake_decorate_file (t, ft_object_pic, fet_build_file, file);
 }
 
-static sexpr find_code_highlevel (struct target *context, sexpr file)
-{
-    sexpr r, subfile = sx_join (file, str_dhighlevel, sx_nil);
-
-    if (((r = find_code_cpp (context->toolchain, context->base, subfile)),
-        stringp(r)))
-    {
-        context->options |= ICEMAKE_HAVE_CPP;
-
-        return sx_list3 (sym_cpp, r,
-                         generate_object_file_name (subfile, context));
-
-    }
-    else if (((r = find_code_c (context->toolchain, context->base, subfile)),
-             stringp(r)))
-    {
-        return sx_list3 (sym_c, r,
-                         generate_object_file_name (subfile, context));
-    }
-
-    return sx_false;
-}
-
-static sexpr find_code_highlevel_pic (struct target *context, sexpr file)
-{
-    sexpr r, subfile = sx_join (file, str_dhighlevel, sx_nil);
-
-    if (((r = find_code_cpp (context->toolchain, context->base, subfile)),
-        stringp(r)))
-    {
-        context->options |= ICEMAKE_HAVE_CPP;
-
-        return sx_list3 (sym_cpp_pic, r,
-                         generate_pic_object_file_name (subfile, context));
-    }
-    else if (((r = find_code_c (context->toolchain, context->base, subfile)),
-             stringp(r)))
-    {
-        return sx_list3 (sym_c_pic, r,
-                         generate_pic_object_file_name (subfile, context));
-    }
-
-    return sx_false;
-}
-
 static void find_code (struct target *context, sexpr file)
 {
     sexpr r;
     sexpr primus   = sx_false;
     sexpr secundus = sx_false;
-    sexpr tertius  = sx_false;
-    sexpr quartus  = sx_false;
 
     if (consp (file))
     {
@@ -521,15 +504,6 @@ static void find_code (struct target *context, sexpr file)
                                                   context->base, file),
                                  generate_pic_object_file_name (file, context));
         }
-
-        tertius = find_code_highlevel (context, file);
-
-        if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
-            (context->toolchain->toolchain == tc_gcc) &&
-            !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
-        {
-            quartus = find_code_highlevel_pic (context, file);
-        }
     }
     else if ((r = find_code_s (context->toolchain, context->base, file)),
              stringp(r))
@@ -545,15 +519,6 @@ static void find_code (struct target *context, sexpr file)
                                  find_code_pic_s (context->toolchain,
                                                   context->base, file),
                                  generate_pic_object_file_name (file, context));
-        }
-
-        tertius = find_code_highlevel (context, file);
-
-        if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
-            (context->toolchain->toolchain == tc_gcc) &&
-            !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
-        {
-            quartus = find_code_highlevel_pic (context, file);
         }
     }
 
@@ -602,14 +567,6 @@ static void find_code (struct target *context, sexpr file)
     if (!falsep(secundus))
     {
         context->code = cons (secundus, context->code);
-    }
-    if (!falsep(tertius))
-    {
-        context->code = cons (tertius, context->code);
-    }
-    if (!falsep(quartus))
-    {
-        context->code = cons (quartus, context->code);
     }
 }
 
@@ -757,6 +714,37 @@ static sexpr find_data (struct target *context, sexpr file)
     return r;
 }
 
+static sexpr find_code_with_spec (struct target *context, sexpr code)
+{
+    sexpr r = sx_end_of_list, c, a, b, t, n, d, e, tfn;
+
+    t = sx_alist_get
+            (toolchain_object_types, context->toolchain->toolchain_sym);
+
+    for (a = code; consp (a); a = cdr (a))
+    {
+        n = car (a);
+
+        for (c = t; consp (c); c = cdr (c))
+        {
+            b = car (c);
+
+            for (d = cdr (b); consp (d); d = cdr (d))
+            {
+                e = car (d);
+
+                tfn = make_file_name (e, n, context->dversion);
+
+//                sx_write (sx_open_stdio(), tfn);
+            }
+        }
+    }
+
+//    sx_write (sx_open_stdio(), r);
+
+    return r;
+}
+
 static struct target *get_context
     (struct icemake *im, sexpr path, struct toolchain_descriptor *td)
 {
@@ -870,6 +858,8 @@ static void process_definition
         else if (truep(equalp(sxcaar, sym_code)))
         {
             sexpr sxc = cdr (sxcar);
+
+            find_code_with_spec (context, sxc);
 
             while (consp (sxc))
             {
@@ -1905,7 +1895,9 @@ static void parse_add_definition
 
 void icemake_load_data (sexpr data)
 {
-    define_symbol (sym_patterns, "patterns");
+    define_symbol (sym_patterns,       "patterns");
+    define_symbol (sym_specifications, "specifications");
+    define_symbol (sym_object_types,   "object-types");
 
     sexpr t = car (data);
 
@@ -1914,6 +1906,50 @@ void icemake_load_data (sexpr data)
     if (truep (equalp (t, sym_patterns)))
     {
         toolchain_patterns = sx_set_merge (data, toolchain_patterns);
+    }
+    else if (truep (equalp (t, sym_specifications)))
+    {
+        sexpr c, a, name = sx_nil, aa, cs, o, t;
+
+        for (c = data; consp (c); c = cdr (c))
+        {
+            for (a = car (c); consp (a); a = cdr (a))
+            {
+                aa = car (a);
+
+                if (symbolp (aa))
+                {
+                    if (nilp (name))
+                    {
+                        name = aa;
+                    }
+                }
+                else if (consp (aa))
+                {
+                    cs = car (aa);
+
+                    if (truep (equalp (cs, sym_object_types)))
+                    {
+                        o = sx_alist_get (toolchain_object_types, name);
+                        toolchain_object_types =
+                            sx_alist_remove (toolchain_object_types, name);
+
+                        if (nexp (o))
+                        {
+                            o = sx_end_of_list;
+                        }
+
+                        o = sx_alist_merge (o, cdr (aa));
+
+                        toolchain_object_types =
+                            sx_alist_add (toolchain_object_types, name, o);
+                    }
+                }
+            }
+        }
+
+        toolchain_specifications =
+            sx_set_merge (data, toolchain_specifications);
     }
 }
 

@@ -253,6 +253,7 @@ struct toolchain_descriptor
         struct toolchain_msvc     msvc;
         struct toolchain_latex    latex;
         struct toolchain_doxygen  doxygen;
+        sexpr  specifications;
         void                     *aux;
     } meta_toolchain;
 
@@ -697,10 +698,6 @@ define_string (str_dl,                  "-l");
 define_string (str_dot_lib,             ".lib");
 /*! \brief Predefined String */
 define_string (str_sLIBPATHc,           "/LIBPATH:");
-/*! \brief Predefined String */
-define_string (str_dhighlevel,          "-highlevel");
-/*! \brief Predefined String */
-define_string (str_dbootstrap,          "-bootstrap");
 /*! \brief Predefined String */
 define_string (str_dash,                "-");
 /*! \brief Predefined String */

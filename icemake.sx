@@ -16,7 +16,7 @@
   (description "Inialisation code for libcurie, used when building freestanding programmes")
   (version "1")
 
-  (code "bootstrap"))
+  (code "bootstrap" "bootstrap-highlevel"))
 
 (library "curie" libcurie
   (name "Curie")
@@ -126,7 +126,7 @@
   (code "immutable"
         "tree-string"
         "sievert-sexpr" "sexpr-set" "sexpr-set-regex" "sexpr-set-string"
-        "sexpr-sort" "sexpr-list"
+        "sexpr-sort" "sexpr-list" "sexpr-alist"
         "string-set" "string-set-regex"
         "shell"
         "cpio"
