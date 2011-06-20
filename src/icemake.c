@@ -73,6 +73,7 @@ struct process_data
 static sexpr toolchain_patterns       = sx_end_of_list;
 static sexpr toolchain_specifications = sx_end_of_list;
 static sexpr toolchain_object_types   = sx_end_of_list;
+static sexpr toolchain_build          = sx_end_of_list;
 
 static sexpr make_file_name (sexpr rule, sexpr basename, sexpr version)
 {
@@ -716,7 +717,7 @@ static sexpr find_data (struct target *context, sexpr file)
 
 static sexpr find_code_with_spec (struct target *context, sexpr code)
 {
-    sexpr r = sx_end_of_list, c, a, b, t, n, d, e, tfn;
+    sexpr r = sx_end_of_list, c, a, b, t, n, d, e, tfn, ty, q;
 
     t = sx_alist_get
             (toolchain_object_types, context->toolchain->toolchain_sym);
@@ -724,10 +725,12 @@ static sexpr find_code_with_spec (struct target *context, sexpr code)
     for (a = code; consp (a); a = cdr (a))
     {
         n = car (a);
+        q  = sx_list1 (n);
 
         for (c = t; consp (c); c = cdr (c))
         {
-            b = car (c);
+            b  = car (c);
+            ty = car (b);
 
             for (d = cdr (b); consp (d); d = cdr (d))
             {
@@ -735,12 +738,28 @@ static sexpr find_code_with_spec (struct target *context, sexpr code)
 
                 tfn = make_file_name (e, n, context->dversion);
 
+                tfn = find_code_with_suffix
+                    (context->toolchain, context->base, tfn, "");
 //                sx_write (sx_open_stdio(), tfn);
+
+                if (!falsep (tfn))
+                {
+                    q = cons (sx_list2 (ty, tfn), q);
+                }
             }
         }
+
+        r = cons (sx_reverse(q), r);
     }
 
-//    sx_write (sx_open_stdio(), r);
+    t = sx_alist_get (toolchain_build, context->toolchain->toolchain_sym);
+
+    for (a = t; consp (a); a = cdr (a))
+    {
+        ty = car (a);
+    }
+
+    sx_write (sx_open_stdio(), r);
 
     return r;
 }
@@ -859,8 +878,6 @@ static void process_definition
         {
             sexpr sxc = cdr (sxcar);
 
-            find_code_with_spec (context, sxc);
-
             while (consp (sxc))
             {
                 find_code (context, car (sxc));
@@ -883,6 +900,8 @@ static void process_definition
                               context->code);
                 } 
             }
+
+            find_code_with_spec (context, cdr(sxcar));
         }
         else if (truep(equalp(sxcaar, sym_libraries)))
         {
@@ -1943,6 +1962,22 @@ void icemake_load_data (sexpr data)
 
                         toolchain_object_types =
                             sx_alist_add (toolchain_object_types, name, o);
+                    }
+                    else if (truep (equalp (cs, sym_build)))
+                    {
+                        o = sx_alist_get (toolchain_build, name);
+                        toolchain_build =
+                            sx_alist_remove (toolchain_build, name);
+
+                        if (nexp (o))
+                        {
+                            o = sx_end_of_list;
+                        }
+
+                        o = sx_alist_merge (o, cdr (aa));
+
+                        toolchain_build =
+                            sx_alist_add (toolchain_build, name, o);
                     }
                 }
             }
