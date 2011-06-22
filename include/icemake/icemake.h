@@ -541,6 +541,8 @@ define_symbol (sym_raw_c,               "raw-c");
 define_symbol (sym_cpio_c,              "cpio-c");
 /*! \brief Predefined Symbol */
 define_symbol (sym_include,             "include");
+/*! \brief Predefined Symbol */
+define_symbol (sym_filesystem_layout,   "filesystem-layout");
 
 /*! \brief Predefined String */
 define_string (str_curie,               "curie");

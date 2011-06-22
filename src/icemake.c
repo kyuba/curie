@@ -74,26 +74,75 @@ static sexpr toolchain_patterns       = sx_end_of_list;
 static sexpr toolchain_specifications = sx_end_of_list;
 static sexpr toolchain_object_types   = sx_end_of_list;
 static sexpr toolchain_build          = sx_end_of_list;
+static sexpr toolchain_fs_layout      = sx_end_of_list;
 
-static sexpr make_file_name (sexpr rule, sexpr basename, sexpr version)
+define_symbol (sym_default, "default");
+define_symbol (sym_windows, "windows");
+
+static sexpr get_path_r
+    (struct target *context, sexpr rule, sexpr name)
 {
-    define_symbol (sym_base_name, "base-name");
+    define_symbol (sym_base,      "base");
+    define_symbol (sym_root,      "root");
+    define_symbol (sym_name,      "name");
+    define_symbol (sym_target,    "target");
+    define_symbol (sym_uname,     "uname");
     define_symbol (sym_version,   "version");
-    define_string (str_blank,     "");
+    define_symbol (sym_slash,     "/");
 
     sexpr r = str_blank, c, a;
+
+    if (consp (name))
+    {
+        r = sx_end_of_list;
+
+        for (c = name; consp (c); c = cdr (c))
+        {
+            r = sx_set_merge (r, get_path_r (context, rule, car (c)));
+        }
+
+        return r;
+    }
 
     for (c = rule; consp (c); c = cdr (c))
     {
         a = car (c);
 
-        if (truep (equalp (a, sym_base_name)))
+        if (truep (equalp (a, sym_name)))
         {
-            r = sx_join (r, basename, sx_nil);
+            r = sx_join (r, name, sx_nil);
+        }
+        else if (truep (equalp (a, sym_base)))
+        {
+            r = sx_join (r, context->base, sx_nil);
+        }
+        else if (truep (equalp (a, sym_target)))
+        {
+            r = sx_join (r, context->name, sx_nil);
+        }
+        else if (truep (equalp (a, sym_uname)))
+        {
+            r = sx_join (r, context->toolchain->uname, sx_nil);
         }
         else if (truep (equalp (a, sym_version)))
         {
-            r = sx_join (r, version, sx_nil);
+            r = sx_join (r, context->dversion, sx_nil);
+        }
+        else if (truep (equalp (a, sym_slash)))
+        {
+            if (truep (equalp (context->toolchain->operating_system_sym,
+                               sym_windows)))
+            {
+                r = sx_join (r, str_backslash, sx_nil);
+            }
+            else
+            {
+                r = sx_join (r, str_slash, sx_nil);
+            }
+        }
+        else if (consp (a))
+        {
+            r = sx_join (r, get_path_r (context, a, name), sx_nil);
         }
         else
         {
@@ -101,7 +150,34 @@ static sexpr make_file_name (sexpr rule, sexpr basename, sexpr version)
         }
     }
 
+    return sx_list1 (r);
+}
+
+static sexpr get_path
+    (struct target *context, sexpr layout, sexpr type, sexpr name)
+{
+    sexpr r = sx_end_of_list, t, c;
+
+    if (!symbolp (layout))
+    {
+        layout = sx_alist_get (toolchain_fs_layout, sym_default);
+    }
+
+    t = sx_alist_get (toolchain_fs_layout, layout);
+    t = sx_alist_get (t, type);
+
+    for (c = t; consp (c); c = cdr (c))
+    {
+        r = sx_set_merge (r, get_path_r (context, car (c), name));
+    }
+
     return r;
+}
+
+static sexpr make_file_name
+    (struct target *context, sexpr rule, sexpr name)
+{
+    return get_path_r (context, rule, name);
 }
 
 static sexpr sx_string_dir_prefix
@@ -715,9 +791,68 @@ static sexpr find_data (struct target *context, sexpr file)
     return r;
 }
 
+static sexpr make_work_tree (struct target *context, sexpr code)
+{
+    sexpr r = sx_end_of_list, t, a, ty, b, fs, n, uty, c;
+    enum { m_use_first, m_merge } mode;
+    enum { c_consume_input, c_keep_input } consume;
+
+    define_symbol (sym_consume_input,  "consume-input");
+    define_symbol (sym_keep_input,     "keep-input");
+    define_symbol (sym_mode_merge,     "mode:merge");
+    define_symbol (sym_mode_use_first, "mode:use-first");
+
+    t  = sx_alist_get (toolchain_build, context->toolchain->toolchain_sym);
+    fs = sx_alist_get
+            (toolchain_object_types, context->toolchain->toolchain_sym);
+
+    for (a = t; consp (a); a = cdr (a))
+    {
+        ty      = car (a);
+        mode    = m_use_first;
+        consume = c_keep_input;
+
+        for ((b = cdr (ty)), (ty = car (ty)); consp (b); b = cdr (b))
+        {
+            n = car (b);
+
+            if (truep (equalp (sym_consume_input, n)))
+            {
+                consume = c_consume_input;
+            }
+            else if (truep (equalp (sym_keep_input, n)))
+            {
+                consume = c_keep_input;
+            }
+            else if (truep (equalp (sym_mode_use_first, n)))
+            {
+                mode = m_use_first;
+            }
+            else if (truep (equalp (sym_mode_merge, n)))
+            {
+                mode = m_merge;
+            }
+            else if (consp (n))
+            {
+                uty = car (n);
+
+                for (c = cdr (n); consp (c); c = cdr (c))
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    sx_write (sx_open_stdio(), code);
+    sx_write (sx_open_stdio(), r);
+
+    return r;
+}
+
 static sexpr find_code_with_spec (struct target *context, sexpr code)
 {
-    sexpr r = sx_end_of_list, c, a, b, t, n, d, e, tfn, ty, q;
+    sexpr r = sx_end_of_list, c, a, b, t, n, d, e, tfn, ty, q, u;
 
     t = sx_alist_get
             (toolchain_object_types, context->toolchain->toolchain_sym);
@@ -729,18 +864,15 @@ static sexpr find_code_with_spec (struct target *context, sexpr code)
 
         for (c = t; consp (c); c = cdr (c))
         {
-            b  = car (c);
-            ty = car (b);
+            ty = car (c);
 
-            for (d = cdr (b); consp (d); d = cdr (d))
+            for (u = get_path (context, context->toolchain->toolchain_sym,
+                               ty, n);
+                 consp (u); u = cdr (u))
             {
-                e = car (d);
-
-                tfn = make_file_name (e, n, context->dversion);
-
                 tfn = find_code_with_suffix
-                    (context->toolchain, context->base, tfn, "");
-//                sx_write (sx_open_stdio(), tfn);
+                    (context->toolchain, context->base, car (u), "");
+//                sx_write (sx_open_stdio(), car(u));
 
                 if (!falsep (tfn))
                 {
@@ -752,14 +884,7 @@ static sexpr find_code_with_spec (struct target *context, sexpr code)
         r = cons (sx_reverse(q), r);
     }
 
-    t = sx_alist_get (toolchain_build, context->toolchain->toolchain_sym);
-
-    for (a = t; consp (a); a = cdr (a))
-    {
-        ty = car (a);
-    }
-
-    sx_write (sx_open_stdio(), r);
+    make_work_tree (context, r);
 
     return r;
 }
@@ -1915,8 +2040,8 @@ static void parse_add_definition
 void icemake_load_data (sexpr data)
 {
     define_symbol (sym_patterns,       "patterns");
-    define_symbol (sym_specifications, "specifications");
     define_symbol (sym_object_types,   "object-types");
+    define_symbol (sym_specifications, "specifications");
 
     sexpr t = car (data);
 
@@ -1925,6 +2050,10 @@ void icemake_load_data (sexpr data)
     if (truep (equalp (t, sym_patterns)))
     {
         toolchain_patterns = sx_set_merge (data, toolchain_patterns);
+    }
+    else if (truep (equalp (t, sym_filesystem_layout)))
+    {
+        toolchain_fs_layout = sx_set_merge (data, toolchain_fs_layout);
     }
     else if (truep (equalp (t, sym_specifications)))
     {
@@ -1958,7 +2087,7 @@ void icemake_load_data (sexpr data)
                             o = sx_end_of_list;
                         }
 
-                        o = sx_alist_merge (o, cdr (aa));
+                        o = sx_set_merge (o, cdr (aa));
 
                         toolchain_object_types =
                             sx_alist_add (toolchain_object_types, name, o);
