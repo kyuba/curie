@@ -77,7 +77,10 @@ sexpr path_normalise (sexpr path)
                     {
                         if (s[(l+1)] == '/')
                         {
-                            l++;
+                            while (s[(l+1)] == '/')
+                            {
+                                l++;
+                            }
                             break;
                         }
                     }
