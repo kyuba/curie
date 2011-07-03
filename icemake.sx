@@ -188,8 +188,6 @@
 
   (libraries "sievert")
 
-  (raw-c "toolchain_data" "data/toolchains.ice")
-
   (code "icemake" "icemake-build" "icemake-install" "icemake-run-tests"
         "icemake-link" "icemake-documentation"
         "icemake-tc-generic" "icemake-tc-gcc" "icemake-tc-borland"
@@ -197,6 +195,8 @@
         "icemake-os-generic"
         "icemake-vis-stub" "icemake-vis-raw" "icemake-vis-ice"
         "icemake-archive")
+
+  (raw-c "toolchain_data" "data/toolchains.ice")
 
   (headers
         "icemake" "icemake-system")

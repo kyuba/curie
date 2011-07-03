@@ -47,6 +47,8 @@
 #include <curie/stack.h>
 
 #include <sievert/shell.h>
+#include <sievert/filesystem.h>
+#include <sievert/metadata.h>
 
 #include <ctype.h>
 
@@ -73,14 +75,325 @@ struct process_data
 static sexpr toolchain_patterns       = sx_end_of_list;
 static sexpr toolchain_specifications = sx_end_of_list;
 static sexpr toolchain_object_types   = sx_end_of_list;
+static sexpr toolchain_install        = sx_end_of_list;
+static sexpr toolchain_metadata       = sx_end_of_list;
 static sexpr toolchain_build          = sx_end_of_list;
+static sexpr toolchain_bind           = sx_end_of_list;
 static sexpr toolchain_fs_layout      = sx_end_of_list;
 
 define_symbol (sym_default, "default");
 define_symbol (sym_windows, "windows");
 
+static sexpr glue_spec
+    (sexpr spec, sexpr e)
+{
+    sexpr r = sx_end_of_list, c, a, d, s, f, q;
+
+    if (consp (e))
+    {
+        for (s = e; consp (s); s = cdr (s))
+        {
+            for (q = glue_spec (spec, car (s)); consp (q); q = cdr (q))
+            {
+                r = cons (car (q), r);
+            }
+        }
+    }
+    else for (c = spec; consp (c); c = cdr (c))
+    {
+        a = car (c);
+
+        if (consp (a))
+        {
+            sexpr s = str_blank;
+
+            for (a; consp (a); a = cdr (a))
+            {
+                d = car (a);
+
+                if (symbolp (d))
+                {
+                    d = e;
+                }
+
+                s = sx_join (s, d, sx_nil);
+            }
+
+            r = cons (s, r);
+        }
+        else if (symbolp (a))
+        {
+            r = cons (e, r);
+        }
+        else
+        {
+            r = cons (a, r);
+        }
+    }
+
+    return sx_reverse (r);
+}
+
+static sexpr process_fold_includes
+    (struct target *t, sexpr variables, sexpr spec)
+{
+    sexpr r = sx_end_of_list, p = t->icemake->roots,
+          include_paths = sx_end_of_list, cur, q;
+
+    while (consp (p))
+    {
+        include_paths =
+            sx_set_merge
+                (include_paths, icemake_permutate_paths
+                     (t->toolchain, sx_join (car(p), str_include, sx_nil)));
+        p = cdr (p);
+    }
+
+    if (stringp (i_destdir) && falsep (equalp (i_destdir, str_blank)))
+    {
+        for (q = get_path (t, sx_nonexistent, sym_C_Header,
+                           str_blank, sx_nonexistent);
+             consp (q); q = cdr (q))
+        {
+            include_paths = cons (car (q), include_paths);
+        }
+    }
+
+    for (q = get_path (t, sym_build, sym_C_Header, str_blank, sx_nonexistent);
+         consp (q); q = cdr (q))
+    {
+        include_paths = cons (car (q), include_paths);
+    }
+
+    cur = path_normalise(include_paths);
+
+    while (consp (cur))
+    {
+        sexpr sxcar = car(cur);
+
+        for (q = glue_spec (spec, sxcar); consp (q); q = cdr (q))
+        {
+            r = cons (car (q), r);
+        }
+
+        cur = cdr (cur);
+    }
+
+    return sx_reverse (r);
+}
+
+static sexpr process_fold_library_paths
+    (struct target *t, sexpr variables, sexpr spec)
+{
+    sexpr r = sx_end_of_list, p = t->icemake->roots,
+          lib_paths = sx_end_of_list, cur, q;
+
+    while (consp (p))
+    {
+        lib_paths =
+            sx_set_merge
+                (lib_paths, icemake_permutate_paths
+                     (t->toolchain, sx_join (car(p), str_include, sx_nil)));
+        p = cdr (p);
+    }
+
+    if (stringp (i_destdir) && falsep (equalp (i_destdir, str_blank)))
+    {
+        lib_paths = sx_reverse (lib_paths);
+
+        for (q = get_path (t, sx_nonexistent, sym_Shared_Object,
+                           str_blank, sx_nonexistent);
+             consp (q); q = cdr (q))
+        {
+            lib_paths = cons (car (q), lib_paths);
+        }
+
+        for (q = get_path (t, sx_nonexistent, sym_Static_Library,
+                           str_blank, sx_nonexistent);
+             consp (q); q = cdr (q))
+        {
+            lib_paths = cons (car (q), lib_paths);
+        }
+
+        lib_paths = sx_reverse (lib_paths);
+    }
+
+    cur = path_normalise(lib_paths);
+
+    while (consp (cur))
+    {
+        sexpr sxcar = car(cur);
+
+        for (q = glue_spec (spec, sxcar); consp (q); q = cdr (q))
+        {
+            r = cons (car (q), r);
+        }
+
+        cur = cdr (cur);
+    }
+
+    return sx_reverse (r);
+}
+
+static sexpr process_fold_libraries
+    (struct target *t, sexpr variables, sexpr spec)
+{
+    sexpr r = sx_end_of_list, p = t->libraries;
+
+    for (p = t->libraries; consp (p); p = cdr (p))
+    {
+        sexpr sxcar = car (p), q;
+
+        for (q = glue_spec (spec, sxcar); consp (q); q = cdr (q))
+        {
+            r = cons (car (q), r);
+        }
+    }
+
+    return sx_reverse (r);
+}
+
+static sexpr process_fold
+    (struct target *t, sexpr variables, sexpr spec)
+{
+    define_symbol (sym_includes,      "includes");
+    define_symbol (sym_libraries,     "libraries");
+    define_symbol (sym_library_paths, "library-paths");
+
+    sexpr r = sx_end_of_list, a = car (spec);
+
+    if (truep (equalp (a, sym_includes)))
+    {
+        r = process_fold_includes
+            (t, variables, cdr (spec));
+    }
+    else if (truep (equalp (a, sym_libraries)))
+    {
+        r = process_fold_libraries
+            (t, variables, cdr (spec));
+    }
+    else if (truep (equalp (a, sym_library_paths)))
+    {
+        r = process_fold_library_paths
+            (t, variables, cdr (spec));
+    }
+
+    return r;
+}
+
+static sexpr process_if
+    (struct target *t, sexpr variables, sexpr spec)
+{
+    define_symbol (sym_freestanding,  "freestanding");
+
+    sexpr r = sx_end_of_list, a = car (spec);
+
+    if (truep (equalp (a, sym_freestanding)))
+    {
+        if (t->toolchain->options & ICEMAKE_OPTION_FREESTANDING)
+        {
+            r = car (cdr (spec));
+        }
+        else
+        {
+            r = car (cdr (cdr (spec)));
+        }
+    }
+
+    if (nexp (r))
+    {
+        r = sx_end_of_list;
+    }
+
+    return r;
+}
+
+static sexpr substitute_variables
+    (struct target *t, sexpr variables, sexpr input)
+{
+    sexpr r = sx_end_of_list, c, s, a, u;
+
+    define_symbol (sym_fold, "fold");
+    define_symbol (sym_if,   "if");
+    define_symbol (sym_q,    "?");
+
+//    sx_write (sx_open_stdio(), variables);
+
+    for (c = input; consp (c); c = cdr (c))
+    {
+        a = car (c);
+
+        if (consp (a))
+        {
+            u = car (a);
+
+            if (truep (equalp (u, sym_fold)))
+            {
+                s = process_fold (t, variables, cdr (a));
+
+                if (consp (s))
+                {
+                    for (s = sx_reverse (s); consp (s); s = cdr (s))
+                    {
+                        r = cons (car (s), r);
+                    }
+                }
+                else
+                {
+                    r = cons (s, r);
+                }
+            }
+            else if (truep (equalp (u, sym_if)) || truep (equalp (u, sym_q)))
+            {
+                s = process_if (t, variables, cdr (a));
+
+                if (consp (s))
+                {
+                    for (s = sx_reverse (s); consp (s); s = cdr (s))
+                    {
+                        r = cons (car (s), r);
+                    }
+                }
+                else
+                {
+                    r = cons (s, r);
+                }
+            }
+            else
+            {
+                r = cons (substitute_variables (t, variables, a), r);
+            }
+        }
+        else
+        {
+            s = sx_alist_get (variables, a);
+
+            if (nexp (s))
+            {
+                r = cons (a, r);
+            }
+            else
+            {
+                if (consp (s))
+                {
+                    for (s = sx_reverse (s); consp (s); s = cdr (s))
+                    {
+                        r = cons (car (s), r);
+                    }
+                }
+                else
+                {
+                    r = cons (s, r);
+                }
+            }
+        }
+    }
+
+    return sx_reverse (r);
+}
+
 static sexpr get_path_r
-    (struct target *context, sexpr rule, sexpr name)
+    (struct target *context, sexpr rule, sexpr name, sexpr target)
 {
     define_symbol (sym_base,      "base");
     define_symbol (sym_root,      "root");
@@ -98,7 +411,7 @@ static sexpr get_path_r
 
         for (c = name; consp (c); c = cdr (c))
         {
-            r = sx_set_merge (r, get_path_r (context, rule, car (c)));
+            r = sx_set_merge (r, get_path_r (context, rule, car (c), target));
         }
 
         return r;
@@ -116,9 +429,13 @@ static sexpr get_path_r
         {
             r = sx_join (r, context->base, sx_nil);
         }
+        else if (truep (equalp (a, sym_root)))
+        {
+            r = sx_join (r, i_destdir, sx_nil);
+        }
         else if (truep (equalp (a, sym_target)))
         {
-            r = sx_join (r, context->name, sx_nil);
+            r = sx_join (r, target, sx_nil);
         }
         else if (truep (equalp (a, sym_uname)))
         {
@@ -142,7 +459,7 @@ static sexpr get_path_r
         }
         else if (consp (a))
         {
-            r = sx_join (r, get_path_r (context, a, name), sx_nil);
+            r = sx_join (r, get_path_r (context, a, name, target), sx_nil);
         }
         else
         {
@@ -153,8 +470,8 @@ static sexpr get_path_r
     return sx_list1 (r);
 }
 
-static sexpr get_path
-    (struct target *context, sexpr layout, sexpr type, sexpr name)
+sexpr get_path
+    (struct target *context, sexpr layout, sexpr type, sexpr name, sexpr target)
 {
     sexpr r = sx_end_of_list, t, c;
 
@@ -163,12 +480,17 @@ static sexpr get_path
         layout = sx_alist_get (toolchain_fs_layout, sym_default);
     }
 
+    if (nexp (target))
+    {
+        target = context->name;
+    }
+
     t = sx_alist_get (toolchain_fs_layout, layout);
     t = sx_alist_get (t, type);
 
     for (c = t; consp (c); c = cdr (c))
     {
-        r = sx_set_merge (r, get_path_r (context, car (c), name));
+        r = sx_set_merge (r, get_path_r (context, car (c), name, target));
     }
 
     return r;
@@ -177,7 +499,7 @@ static sexpr get_path
 static sexpr make_file_name
     (struct target *context, sexpr rule, sexpr name)
 {
-    return get_path_r (context, rule, name);
+    return get_path_r (context, rule, name, sx_nonexistent);
 }
 
 static sexpr sx_string_dir_prefix
@@ -665,118 +987,6 @@ static void find_header (struct target *context, sexpr file)
     }
 }
 
-static sexpr find_documentation_with_suffix
-    (struct toolchain_descriptor *td, sexpr path, sexpr file, char *s)
-{
-    return find_in_permutations
-        (td, sx_join (path, str_documentation, sx_nil),
-         sx_join (file, make_string (s), sx_nil));
-}
-
-static sexpr find_documentation_tex
-    (struct toolchain_descriptor *td, sexpr path, sexpr file)
-{
-    return find_documentation_with_suffix (td, path, file, ".tex");
-}
-
-static void find_documentation (struct target *context, sexpr file)
-{
-    define_symbol (sym_man1, "man1");
-    define_symbol (sym_man2, "man2");
-    define_symbol (sym_man3, "man3");
-    define_symbol (sym_man4, "man4");
-    define_symbol (sym_man5, "man5");
-    define_symbol (sym_man6, "man6");
-    define_symbol (sym_man7, "man7");
-    define_symbol (sym_man8, "man8");
-
-    sexpr r;
-
-    if ((r = find_documentation_tex (context->toolchain, context->base, file)),
-        stringp(r))
-    {
-        context->documentation
-            = cons(cons(sym_tex, cons (file, r)), context->documentation);
-    }
-    else if ((r = find_documentation_with_suffix
-                      (context->toolchain, context->base, file, ".1")),
-             stringp(r))
-    {
-        context->documentation
-            = cons(cons(sym_man,
-                   cons (file, cons(r, cons (sym_man1, sx_end_of_list)))),
-                         context->documentation);
-    }
-    else if ((r = find_documentation_with_suffix
-                      (context->toolchain, context->base, file, ".2")),
-             stringp(r))
-    {
-        context->documentation
-            = cons(cons(sym_man,
-                   cons (file, cons(r, cons (sym_man2, sx_end_of_list)))),
-                         context->documentation);
-    }
-    else if ((r = find_documentation_with_suffix
-                      (context->toolchain, context->base, file, ".3")),
-             stringp(r))
-    {
-        context->documentation
-            = cons(cons(sym_man,
-                   cons (file, cons(r, cons (sym_man3, sx_end_of_list)))),
-                         context->documentation);
-    }
-    else if ((r = find_documentation_with_suffix
-                      (context->toolchain, context->base, file, ".4")),
-             stringp(r))
-    {
-        context->documentation
-            = cons(cons(sym_man,
-                   cons (file, cons(r, cons (sym_man4, sx_end_of_list)))),
-                         context->documentation);
-    }
-    else if ((r = find_documentation_with_suffix
-                      (context->toolchain, context->base, file, ".5")),
-             stringp(r))
-    {
-        context->documentation
-            = cons(cons(sym_man,
-                   cons (file, cons(r, cons (sym_man5, sx_end_of_list)))),
-                         context->documentation);
-    }
-    else if ((r = find_documentation_with_suffix
-                      (context->toolchain, context->base, file, ".6")),
-             stringp(r))
-    {
-        context->documentation
-            = cons(cons(sym_man,
-                   cons (file, cons(r, cons (sym_man6, sx_end_of_list)))),
-                         context->documentation);
-    }
-    else if ((r = find_documentation_with_suffix
-                      (context->toolchain, context->base, file, ".7")),
-             stringp(r))
-    {
-        context->documentation
-            = cons(cons(sym_man,
-                   cons (file, cons(r, cons (sym_man7, sx_end_of_list)))),
-                         context->documentation);
-    }
-    else if ((r = find_documentation_with_suffix
-                      (context->toolchain, context->base, file, ".8")),
-             stringp(r))
-    {
-        context->documentation
-            = cons(cons(sym_man,
-                   cons (file, cons(r, cons (sym_man8, sx_end_of_list)))),
-                         context->documentation);
-    }
-    else
-    {
-        context->icemake->visualiser.on_error
-            (context->icemake, ie_missing_documentation, file);
-    }
-}
-
 static sexpr find_data (struct target *context, sexpr file)
 {
     sexpr r = sx_join (context->base, str_data, sx_nil);
@@ -791,63 +1001,311 @@ static sexpr find_data (struct target *context, sexpr file)
     return r;
 }
 
-static sexpr make_work_tree (struct target *context, sexpr code)
+static sexpr convert_code (sexpr code)
 {
-    sexpr r = sx_end_of_list, t, a, ty, b, fs, n, uty, c;
-    enum { m_use_first, m_merge } mode;
-    enum { c_consume_input, c_keep_input } consume;
+    sexpr r = sx_end_of_list, c, a, na, d, t, y, s, l, sa, sb;
 
-    define_symbol (sym_consume_input,  "consume-input");
-    define_symbol (sym_keep_input,     "keep-input");
-    define_symbol (sym_mode_merge,     "mode:merge");
-    define_symbol (sym_mode_use_first, "mode:use-first");
+//    sx_write (sx_open_stdio(), code);
 
-    t  = sx_alist_get (toolchain_build, context->toolchain->toolchain_sym);
-    fs = sx_alist_get
-            (toolchain_object_types, context->toolchain->toolchain_sym);
-
-    for (a = t; consp (a); a = cdr (a))
+    for (c = code; consp (c); c = cdr (c))
     {
-        ty      = car (a);
-        mode    = m_use_first;
-        consume = c_keep_input;
+        a  = car (c);
+        na = car (a);
 
-        for ((b = cdr (ty)), (ty = car (ty)); consp (b); b = cdr (b))
+        for (d = cdr (a); consp (d); d = cdr (d))
         {
-            n = car (b);
+            t  = car (d);
+            y  = car (t);
+            s  = cdr (t);
+            sa = car (s);
+            sb = car (cdr (s));
 
-            if (truep (equalp (sym_consume_input, n)))
-            {
-                consume = c_consume_input;
-            }
-            else if (truep (equalp (sym_keep_input, n)))
-            {
-                consume = c_keep_input;
-            }
-            else if (truep (equalp (sym_mode_use_first, n)))
-            {
-                mode = m_use_first;
-            }
-            else if (truep (equalp (sym_mode_merge, n)))
-            {
-                mode = m_merge;
-            }
-            else if (consp (n))
-            {
-                uty = car (n);
+            l = sx_alist_get    (r, y);
+            r = sx_alist_remove (r, y);
 
-                for (c = cdr (n); consp (c); c = cdr (c))
-                {
-                    break;
-                }
+            if (nexp (l))
+            {
+                l = sx_end_of_list;
             }
+
+            l = sx_alist_add    (l, na, sx_list1(cons (sb, sa)));
+
+            r = sx_alist_add    (r, y, l);
         }
     }
 
-    sx_write (sx_open_stdio(), code);
-    sx_write (sx_open_stdio(), r);
+//    sx_write (sx_open_stdio(), r);
 
     return r;
+}
+
+static sexpr make_work_tree (struct target *context, sexpr code)
+{
+    sexpr r, t, a, ty, b, fs, n, uty, c, d, e, na, f, g, j, ufn, jn, uc, ne, q,
+          spec, on, y, o, src, w, ps, l, ml, mt, sn;
+    enum { m_use_first, m_merge } mode;
+    enum { c_consume, c_keep }    consume;
+    enum { m_have, m_no_match }   match;
+    enum { t_original, t_common } target;
+    enum { u_update, u_none }     update;
+
+    define_symbol (sym_input_consume,   "input:consume");
+    define_symbol (sym_input_keep,      "input:keep");
+    define_symbol (sym_mode_merge,      "mode:merge");
+    define_symbol (sym_mode_use_first,  "mode:use-first");
+    define_symbol (sym_target_original, "target:original");
+    define_symbol (sym_target_common,   "target:common");
+    define_symbol (sym_type_programme,  "type:programme");
+    define_symbol (sym_type_library,    "type:library");
+
+    define_symbol (sym_target,          "target");
+    define_symbol (sym_source,          "source");
+
+    t  = sx_alist_get (toolchain_build, context->toolchain->toolchain_sym);
+/*    fs = sx_alist_get
+            (toolchain_object_types, context->toolchain->toolchain_sym); */
+
+    r = convert_code (code);
+
+//    sx_write (sx_open_stdio(), r);
+
+    do {
+        update = u_none;
+
+        for (a = t; consp (a); a = cdr (a))
+        {
+            ty      = car (a);
+            mode    = m_use_first;
+            consume = c_keep;
+            match   = m_no_match;
+            target  = t_original;
+            ps      = sx_end_of_list;
+
+            for ((b = cdr (ty)), (ty = car (ty)); consp (b); b = cdr (b))
+            {
+                n = car (b);
+
+                if (truep (equalp (sym_input_consume, n)))
+                {
+                    consume = c_consume;
+                }
+                else if (truep (equalp (sym_input_keep, n)))
+                {
+                    consume = c_keep;
+                }
+                else if (truep (equalp (sym_mode_use_first, n)))
+                {
+                    mode = m_use_first;
+                }
+                else if (truep (equalp (sym_mode_merge, n)))
+                {
+                    mode = m_merge;
+                }
+                else if (truep (equalp (sym_target_original, n)))
+                {
+                    target = t_original;
+                }
+                else if (truep (equalp (sym_target_common, n)))
+                {
+                    target = t_common;
+                }
+                else if (truep (equalp (sym_type_programme, n)))
+                {
+                    if (!(context->options & ICEMAKE_PROGRAMME))
+                    {
+                        break;
+                    }
+                }
+                else if (truep (equalp (sym_type_library, n)))
+                {
+                    if (!(context->options & ICEMAKE_LIBRARY))
+                    {
+                        break;
+                    }
+                }
+                else if (consp (n))
+                {
+                    uty  = car (n);
+                    spec = cdr (n);
+
+                    w    = sx_alist_get (r, uty);
+
+                    ml   = sx_end_of_list;
+                    mt   = sx_end_of_list;
+
+                    for (d = w; consp (d); d = cdr (d))
+                    {
+                        q   = car (d);
+                        na  = car (q);
+
+                        if (consume == c_consume)
+                        {
+                            w = sx_alist_remove (w, na);
+                            r = sx_alist_remove (r, uty);
+                            r = sx_alist_add    (r, uty, w);
+
+                            update = u_update;
+                        }
+
+                        if (truep (sx_set_memberp (ps, na)))
+                        {
+                            continue;
+                        }
+
+                        src = car (cdr (q));
+                        if (consp (src))
+                        {
+                            sn  = car (src);
+                            src = cdr (src);
+                        }
+                        else
+                        {
+                            sn  = sx_nonexistent;
+                        }
+
+                        if (mode == m_use_first)
+                        {
+                            on  = (target == t_original) ? na : context->name;
+
+                            ufn = get_path
+                                    (context, context->toolchain->toolchain_sym,
+                                     ty, on, sn);
+                            ufn = get_path
+                                    (context, sym_build, ty, ufn, sn);
+
+                            for (uc = ufn; consp (uc); uc = cdr (uc))
+                            {
+                                ufn = car (uc);
+
+                                l = sx_alist_get    (r, ty);
+                                r = sx_alist_remove (r, ty);
+
+                                o = sx_list5
+                                    (na, ufn, src, sx_list1(q),
+                                     substitute_variables
+                                        (context,
+                                         sx_set_merge
+                                            (context->toolchain->environment,
+                                             sx_list2
+                                                (cons (sym_target, ufn),
+                                                 cons (sym_source, src))),
+                                         spec));
+
+                                if (nexp (l))
+                                {
+                                    l = sx_end_of_list;
+                                }
+
+                                l = sx_set_add   (l, o);
+                                r = sx_alist_add (r, ty, l);
+
+                                update = u_update;
+                            }
+
+                            ps = sx_set_add (ps, na);
+                        }
+                        else
+                        {
+                            ml = sx_set_add (ml, src);
+                            mt = sx_set_add (mt, q);
+                        }
+                    }
+
+                    if ((mode == m_merge) && !eolp (ml) && !eolp (mt))
+                    {
+                        on = context->name;
+
+                        ufn = get_path
+                                (context, context->toolchain->toolchain_sym,
+                                 ty, on, sx_nonexistent);
+                        ufn = get_path
+                                (context, sym_build, ty, ufn, sx_nonexistent);
+
+                        for (uc = ufn; consp (uc); uc = cdr (uc))
+                        {
+                            ufn = car (uc);
+
+                            l = sx_alist_get    (r, ty);
+                            r = sx_alist_remove (r, ty);
+
+                            o = sx_list5
+                                (on, ufn, ml, mt,
+                                 substitute_variables
+                                    (context,
+                                     sx_set_merge
+                                        (context->toolchain->environment,
+                                         sx_list2
+                                            (cons (sym_target, ufn),
+                                             cons (sym_source, ml))),
+                                     spec));
+
+                            if (nexp (l))
+                            {
+                                l = sx_end_of_list;
+                            }
+
+                            l = sx_set_add   (l, o);
+                            r = sx_alist_add (r, ty, l);
+
+                            update = u_update;
+                        }
+                    }
+                }
+            }
+        }
+    } while (update == u_update);
+//    } while (0);
+
+//    sx_write (sx_open_stdio(), code);
+//    sx_write (sx_open_stdio(), r);
+
+    return r;
+}
+
+static sexpr find_alternative (struct target *context, sexpr file)
+{
+    if (consp (file))
+    {
+        sexpr ch = car (file), d = context->icemake->alternatives;
+
+        while (consp (d))
+        {
+            sexpr c = car (d);
+
+            if (truep (equalp (car (c), ch)))
+            {
+                sexpr co = cdr (file), e = cdr (c);
+
+                while (consp (co))
+                {
+                    if (truep (equalp (e, car (co))))
+                    {
+                        file = e;
+                        break;
+                    }
+
+                    co = cdr (co);
+                }
+
+                if (consp (file))
+                {
+                    context->icemake->visualiser.on_error
+                        (context->icemake, ie_invalid_choice, file);
+                }
+
+                break;
+            }
+
+            d = cdr (d);
+        }
+
+        if (consp (file))
+        {
+            file = car (cdr (file));
+        }
+    }
+
+    return file;
 }
 
 static sexpr find_code_with_spec (struct target *context, sexpr code)
@@ -860,14 +1318,15 @@ static sexpr find_code_with_spec (struct target *context, sexpr code)
     for (a = code; consp (a); a = cdr (a))
     {
         n = car (a);
-        q  = sx_list1 (n);
+        n = find_alternative (context, n);
+        q = sx_list1 (n);
 
         for (c = t; consp (c); c = cdr (c))
         {
             ty = car (c);
 
             for (u = get_path (context, context->toolchain->toolchain_sym,
-                               ty, n);
+                               ty, n, sx_nonexistent);
                  consp (u); u = cdr (u))
             {
                 tfn = find_code_with_suffix
@@ -876,7 +1335,7 @@ static sexpr find_code_with_spec (struct target *context, sexpr code)
 
                 if (!falsep (tfn))
                 {
-                    q = cons (sx_list2 (ty, tfn), q);
+                    q = cons (sx_list3 (ty, tfn, context->name), q);
                 }
             }
         }
@@ -884,7 +1343,7 @@ static sexpr find_code_with_spec (struct target *context, sexpr code)
         r = cons (sx_reverse(q), r);
     }
 
-    make_work_tree (context, r);
+//    make_work_tree (context, r);
 
     return r;
 }
@@ -924,6 +1383,10 @@ static struct target *get_context
     }
 
     return context;
+}
+
+static void make_metadata_files (struct target *context)
+{
 }
 
 static void process_definition
@@ -1003,7 +1466,7 @@ static void process_definition
         {
             sexpr sxc = cdr (sxcar);
 
-            while (consp (sxc))
+/*            while (consp (sxc))
             {
                 find_code (context, car (sxc));
                 
@@ -1024,9 +1487,9 @@ static void process_definition
                                       sx_end_of_list))),
                               context->code);
                 } 
-            }
+            } */
 
-            find_code_with_spec (context, cdr(sxcar));
+            context->code = find_code_with_spec (context, cdr(sxcar));
         }
         else if (truep(equalp(sxcaar, sym_libraries)))
         {
@@ -1047,17 +1510,6 @@ static void process_definition
             while (consp (sxc))
             {
                 find_header (context, car (sxc));
-
-                sxc = cdr (sxc);
-            }
-        }
-        else if (truep(equalp(sxcaar, sym_documentation)))
-        {
-            sexpr sxc = cdr (sxcar);
-
-            while (consp (sxc))
-            {
-                find_documentation (context, car (sxc));
 
                 sxc = cdr (sxc);
             }
@@ -1169,6 +1621,8 @@ static void process_definition
             context->olibraries = cons (str_curie, context->olibraries);
         }
     }
+
+    make_metadata_files (context);
 }
 
 static struct target *create_archive
@@ -1357,7 +1811,26 @@ static void target_map_combine (struct tree_node *node, void *u)
 static void merge_contexts ( struct icemake *im )
 {
     tree_map (&(im->targets), target_map_merge,   (void *)im);
-    tree_map (&(im->targets), target_map_combine, (void *)im);
+//    tree_map (&(im->targets), target_map_combine, (void *)im);
+}
+ 
+static void target_map_make_tree (struct tree_node *node, void *u)
+{
+    struct target *context = (struct target *)node_get_value(node);
+    struct icemake *im     = (struct icemake *)u;
+    sexpr c, a;
+
+    for (c = make_work_tree (context, context->code); consp (c); c = cdr (c))
+    {
+        a = car (c);
+
+        im->worktree = sx_set_merge (im->worktree, cdr (a));
+    }
+}
+
+static void make_tree ( struct icemake *im )
+{
+    tree_map (&(im->targets), target_map_make_tree, (void *)im);
 }
  
 static void write_uname_element (const char *source, char *target, int tlen)
@@ -1402,13 +1875,26 @@ sexpr icemake_which
     (const struct toolchain_descriptor *td, const char *programme,
      const char *env)
 {
-    sexpr w, p = make_string (programme);
+    sexpr w = sx_false, p = str_blank;
 
-    if (programme[0] == '/')
+    if (programme != (const char *)0)
     {
-        w = make_string (programme);
+        p = make_string (programme);
+    }
 
-        if (truep (filep (w)))
+    if ((td != (struct toolchain_descriptor *)0) &&
+        (programme != (const char *)0))
+    {
+        if ((w = which (sx_join (td->original_toolchain, str_dash, p))),
+            stringp(w))
+        {
+            return w;
+        }
+    }
+
+    if ((programme != (const char *)0) && (programme[0] == '/'))
+    {
+        if (truep (filep (p)))
         {
             return w;
         }
@@ -1428,33 +1914,19 @@ sexpr icemake_which
             }
         }
     }
-
-    if (td != (struct toolchain_descriptor *)0)
-    {
-        if ((w = which (sx_join (td->original_toolchain, str_dash, p))),
-            stringp(w))
-        {
-            return w;
-        }
-    }
     
-    w = which (p);
+    if (programme != (const char *)0)
+    {
+        w = which (p);
+    }
 
     return w;
 }
 
-static void initialise_toolchain_tex (struct toolchain_descriptor *td)
-{
-    p_latex    = icemake_which (td, "latex",    "LATEX");
-    p_pdflatex = icemake_which (td, "pdflatex", "PDFLATEX");
-}
-
-static void initialise_toolchain_doxygen (struct toolchain_descriptor *td)
-{
-    p_doxygen = icemake_which (td, "doxygen",   "DOXYGEN");
-}
-
 static void spawn_stack_items (struct icemake *im, int *fl);
+static sexpr spawn_tree_items (struct icemake *im, int *fl);
+
+static sexpr running_tasks = sx_end_of_list;
 
 static void process_on_death
     (struct exec_context *context, void *p)
@@ -1479,6 +1951,8 @@ static void process_on_death
         }
 
         free_exec_context (context);
+
+        running_tasks = sx_set_remove (running_tasks, sx);
     }
 
     free_pool_mem (p);
@@ -1498,8 +1972,6 @@ static void spawn_item
         MEMORY_POOL_INITIALISER(sizeof (struct process_data));
     struct process_data *pd;
 
-    im->visualiser.on_command (im, cons (sym_execute, sx));
-
     if (truep(equalp(cf, sym_chdir)))
     {
         sexpr cfcdr = cdr (cur);
@@ -1513,6 +1985,20 @@ static void spawn_item
 
         sx = cdr (cfcdr);
     }
+
+    if (truep (sx_set_memberp (running_tasks, sx)))
+    {
+        /* task already running, nothing to do */
+        return;
+    }
+
+    running_tasks = sx_set_add (running_tasks, sx);
+
+//    sx_write (sx_open_stdio(), sx);
+
+//    im->visualiser.on_command (im, sx);
+
+    im->visualiser.on_command (im, cons (sym_execute, sx));
 
     for (c = 0; consp (cur); cur = cdr (cur))
     {
@@ -1595,6 +2081,236 @@ static void spawn_stack_items (struct icemake *im, int *fl)
     }
 }
 
+struct newerp_data
+{
+    const char *b;
+    int newest;
+    
+    int res;
+};
+
+static void with_metadata_n_b (struct metadata *md, void *aux)
+{
+    struct newerp_data *d = (struct newerp_data *)aux;
+    enum metadata_classification_unix classification;
+    int uid, gid, mode, device, attributes;
+    long atime = 0, mtime = 0, ctime = 0, size;
+
+    metadata_to_unix
+        (md, &classification, &uid, &gid, &mode, &atime, &mtime, &ctime, &size,
+         &device, &attributes);
+
+    if ((atime >= d->newest) || (mtime >= d->newest) || (ctime >= d->newest))
+    {
+        d->res = 0;
+    }
+}
+
+static void with_metadata_n_a (struct metadata *md, void *aux)
+{
+    struct newerp_data *d = (struct newerp_data *)aux;
+    enum metadata_classification_unix classification;
+    int uid, gid, mode, device, attributes;
+    long atime = 0, mtime = 0, ctime = 0, size;
+
+    metadata_to_unix
+        (md, &classification, &uid, &gid, &mode, &atime, &mtime, &ctime, &size,
+         &device, &attributes);
+
+    if (atime > d->newest) { d->newest = atime; }
+    if (mtime > d->newest) { d->newest = mtime; }
+    if (ctime > d->newest) { d->newest = ctime; }
+
+    if (d->newest == 0)
+    {
+        return;
+    }
+
+    metadata_from_path (d->b, with_metadata_n_b, d);
+}
+
+static int newerp (sexpr a, sexpr b)
+{
+    const char *aa = sx_string(a), *ba = sx_string(b);
+    struct newerp_data d = { ba, 0, 1 };
+
+    metadata_from_path (aa, with_metadata_n_a, &d);
+
+    return d.res;
+}
+
+static void sti_test_source
+    (sexpr source, sexpr target, char *dorun, char *sourcenewer)
+{
+    if (consp (source))
+    {
+        sexpr c;
+
+        for (c = source; consp (c); c = cdr (c))
+        {
+            sti_test_source (car(c), target, dorun, sourcenewer);
+        }
+    }
+    else if (stringp (source))
+    {
+        if (falsep (filep (source)))
+        {
+            *dorun = (char)0;
+        }
+        else if ((*sourcenewer) == (char)0)
+        {
+            if (falsep (filep (target)))
+            {
+                *sourcenewer = (char)1;
+            }
+            else if (newerp (source, target))
+            {
+                *sourcenewer = (char)1;
+            }
+        }
+    }
+}
+
+static sexpr spawn_tree_items_r (struct icemake *im, sexpr tree, int *fl)
+{
+    sexpr c = tree, name, target, source, sub, run, cs, tfile;
+    char dorun = (char)1, sourcenewer = (char)0;
+
+    name   = car (c);
+    c      = cdr (c);
+    target = car (c);
+    c      = cdr (c);
+    source = car (c);
+    c      = cdr (c);
+    sub    = car (c);
+    c      = cdr (c);
+    run    = car (c);
+
+    im->remaining_tasks++;
+
+    tfile = (consp (target)) ? car (target) : target;
+
+/*    sx_write (sx_open_stdio(), make_integer(1));
+    sx_write (sx_open_stdio(), name);
+    sx_write (sx_open_stdio(), target);
+    sx_write (sx_open_stdio(), source);
+    sx_write (sx_open_stdio(), sub);
+    sx_write (sx_open_stdio(), run);
+    sx_write (sx_open_stdio(), make_integer(2));*/
+
+//    sx_write (sx_open_stdio(), make_integer (im->alive_processes));
+//    sx_write (sx_open_stdio(), tree);
+
+    if (!consp (run) && !consp (sub))
+    {
+        /* nothing to do here */
+        return sx_false;
+    }
+
+    if (consp (sub)) /* need to do something */
+    {
+        int b = im->alive_processes;
+        sexpr cr = sx_end_of_list, co;
+
+        for (c = sub; consp (c); c = cdr (c))
+        {
+            co = spawn_tree_items_r (im, car(c), fl);
+
+            if (consp (co))
+            {
+                cr = cons (co, cr);
+            }
+        }
+
+        sub = cr;
+
+        if (b != im->alive_processes) /* spawned something */
+        {
+            return sx_list5 (name, target, source, sub, run);
+        }
+    }
+
+    if (!consp (run) && !consp (sub))
+    {
+        /* nothing to do here */
+        return sx_false;
+    }
+
+    if (!consp (sub)) /* run task if no subtasks need to be done */
+    {
+        /* see if we have any slots free to run something at all */
+        if (im->alive_processes > im->alive_processes)
+        {
+            dorun = (char)0;
+        }
+        /* check source and target files */
+        else
+        {
+            sti_test_source (source, tfile, &dorun, &sourcenewer);
+        }
+
+        /* now run task if possible */
+        if (dorun == (char)1)
+        {
+            if (sourcenewer == (char)1)
+            {
+                for (c = run; consp (c); c = cdr (c))
+                {
+                    sexpr spec = car (c);
+
+                    im->visualiser.on_command (im, spec);
+                    spawn_item (spec, process_on_death, im, fl);
+                }
+            }
+            /* if the task had to be run, but the target is newer than all
+             * sources, we do nothing. */
+
+            return sx_list5 (name, target, source, sub, sx_end_of_list);
+        }
+    }
+
+    if (!consp (run) && !consp (sub))
+    {
+        /* nothing to do here */
+        return sx_false;
+    }
+
+    return sx_list5 (name, target, source, sub, run);
+}
+
+static sexpr spawn_tree_items (struct icemake *im, int *fl)
+{
+    sexpr r = sx_end_of_list, c, a;
+
+    im->remaining_tasks = 0;
+
+//    sx_write (sx_open_stdio(), im->worktree);
+
+    for (c = im->worktree; consp (c); c = cdr (c))
+    {
+        a = car (c);
+
+        if (consp (a))
+        {
+            a = spawn_tree_items_r (im, a, fl);
+
+            if (consp (a))
+            {
+                r = cons (a, r);
+            }
+        }
+    }
+
+    im->worktree = r;
+
+    if (im->remaining_tasks > im->max_tasks)
+    {
+        im->max_tasks = im->remaining_tasks;
+    }
+
+    return r;
+}
+
 enum signal_callback_result cb_on_bad_signal(enum signal s, void *p)
 {
     cexit (-1);
@@ -1633,12 +2349,14 @@ int icemake_loop_processes (struct icemake *im)
 
     icemake_count_print_items (im);
 
-    spawn_stack_items (im, &failures);
+//    spawn_stack_items (im, &failures);
+    spawn_tree_items (im, &failures);
 
     while ((im->alive_processes) > 0)
     {
         multiplex();
-        spawn_stack_items (im, &failures);
+        spawn_tree_items (im, &failures);
+//        spawn_stack_items (im, &failures);
     }
 
     return failures;
@@ -1779,7 +2497,8 @@ int icemake_prepare_toolchain
      int (*with_data)(struct toolchain_descriptor *, void *), void *aux)
 {
     struct toolchain_descriptor td =
-        { tc_generic, os_generic, is_generic, make_string(name) };
+        { tc_generic, os_generic, is_generic, make_string(name),
+          "generic", "generic", "generic", "generic" };
 
     define_symbol (sym_tc,           "tc");
     define_symbol (sym_os,           "os");
@@ -1949,8 +2668,71 @@ int icemake_prepare_toolchain
         sx_join (make_string (td.uname_os), str_dash,
                  make_string (td.uname_toolchain))));
 
-    initialise_toolchain_tex (&td);
-    initialise_toolchain_doxygen (&td);
+    td.environment = sx_end_of_list;
+
+    for (c = sx_alist_get (toolchain_bind, td.toolchain_sym);
+         consp (c); c = cdr (c))
+    {
+        sexpr t = car (c), a = car (t), d, e, r = sx_false, u, v;
+        const char *s;
+
+        if (truep (equalp (a, sym_split)))
+             for (a = cdr (t); consp (a); a = cdr (a))
+             for ((v = car (a)), (u = car (v)), (d = cdr (v));
+                  consp (d); d = cdr (d))
+        {
+            e = car (d);
+
+//            sx_write (sx_open_stdio(), e);
+
+            if (stringp (e))
+            {
+                r = sx_alist_get (td.environment, u);
+                td.environment = sx_alist_remove (td.environment, u);
+
+                if (nexp (r))
+                {
+                    r = sx_end_of_list;
+                }
+
+                r = prepend_flags_from_environment (r, sx_string (e));
+                td.environment = sx_alist_add (td.environment, u, r);
+
+//                sx_write (sx_open_stdio(), td.environment);
+            }
+        }
+        else for (d = cdr (t); consp (d); d = cdr (d))
+        {
+            e = car (d);
+
+//            sx_write (sx_open_stdio(), a);
+//            sx_write (sx_open_stdio(), e);
+
+            if (stringp (e))
+            {
+                s = sx_string (e);
+                r = icemake_which (&td, 0, s);
+            }
+            else if (symbolp (e))
+            {
+                s = sx_symbol (e);
+                r = icemake_which (&td, s, 0);
+            }
+            else
+            {
+                continue;
+            }
+
+//            sx_write (sx_open_stdio(), r);
+
+            if (!falsep (r))
+            {
+                td.environment = sx_alist_add (td.environment, a, r);
+//                sx_write (sx_open_stdio(), td.environment);
+                break;
+            }
+        }
+    }
 
     switch (td.toolchain)
     {
@@ -2092,6 +2874,22 @@ void icemake_load_data (sexpr data)
                         toolchain_object_types =
                             sx_alist_add (toolchain_object_types, name, o);
                     }
+                    else if (truep (equalp (cs, sym_bind)))
+                    {
+                        o = sx_alist_get (toolchain_bind, name);
+                        toolchain_bind =
+                            sx_alist_remove (toolchain_bind, name);
+
+                        if (nexp (o))
+                        {
+                            o = sx_end_of_list;
+                        }
+
+                        o = sx_alist_merge (o, cdr (aa));
+
+                        toolchain_bind =
+                            sx_alist_add (toolchain_bind, name, o);
+                    }
                     else if (truep (equalp (cs, sym_build)))
                     {
                         o = sx_alist_get (toolchain_build, name);
@@ -2144,7 +2942,8 @@ int icemake_prepare
           sx_end_of_list,
           TREE_INITIALISER,
           (int (*)(struct icemake *, sexpr))0,
-          0, 0, options, sx_end_of_list, sx_end_of_list, sx_end_of_list };
+          0, 0, 0, 0, options,
+          sx_end_of_list, sx_end_of_list, sx_end_of_list, sx_end_of_list };
     sexpr base_path = make_string (path);
     sexpr icemake_sx_path;
     struct sexpr_io *io;
@@ -2302,7 +3101,11 @@ int icemake
     im->buildtargets = sx_set_sort_merge
         (im->buildtargets, dependency_sort, (void *)im);
 
-    im->workstack =
+    make_tree                (im);
+
+//    sx_write (sx_open_stdio(), im->worktree);
+
+/*    im->workstack =
         cons (cons (sym_completed, cons (sym_targets, im->buildtargets)),
               im->workstack);
 
@@ -2326,7 +3129,7 @@ int icemake
 
     im->workstack =cons (cons (sym_targets, im->buildtargets), im->workstack);
 
-    im->buildtargets = sx_reverse (im->buildtargets);
+    im->buildtargets = sx_reverse (im->buildtargets); */
 
     failures += icemake_loop_processes (im);
 

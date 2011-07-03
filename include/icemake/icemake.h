@@ -246,6 +246,9 @@ struct toolchain_descriptor
 
     int (*build_object)  (struct target *, sexpr type, sexpr src, sexpr target);
 
+    /*!\brief Build environment. */
+    sexpr                 environment;
+
     union
     {
         struct toolchain_gcc      gcc;
@@ -329,11 +332,17 @@ struct icemake
 
     int alive_processes;
     int max_processes;
+    int remaining_tasks;
+    int max_tasks;
 
     unsigned long options;
 
     /*! \brief List: Queued tasks */
     sexpr workstack;
+
+    /*! \brief List: Queued tasks */
+    sexpr worktree;
+
     sexpr alternatives;
     sexpr roots;
 
@@ -543,6 +552,16 @@ define_symbol (sym_cpio_c,              "cpio-c");
 define_symbol (sym_include,             "include");
 /*! \brief Predefined Symbol */
 define_symbol (sym_filesystem_layout,   "filesystem-layout");
+/*! \brief Predefined Symbol */
+define_symbol (sym_bind,                "bind");
+/*! \brief Predefined Symbol */
+define_symbol (sym_split,               "split");
+/*! \brief Predefined Symbol */
+define_symbol (sym_C_Header,            "C-Header");
+/*! \brief Predefined Symbol */
+define_symbol (sym_Shared_Object,       "Shared-Object");
+/*! \brief Predefined Symbol */
+define_symbol (sym_Static_Library,      "Static-Library");
 
 /*! \brief Predefined String */
 define_string (str_curie,               "curie");
@@ -933,6 +952,10 @@ sexpr icemake_which
 sexpr icemake_decorate_file
     (struct target *t, enum file_type ft, enum file_expansion_type fet,
      sexpr file);
+
+sexpr get_path
+    (struct target *context, sexpr layout, sexpr type, sexpr name,
+     sexpr target);
 
 #endif
 

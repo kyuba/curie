@@ -142,7 +142,7 @@ static void on_close_archive_source_file (struct io *io, void *aux)
 static void target_map_prepare_archives (struct tree_node *node, void *u)
 {
     struct target *context = (struct target *)node_get_value(node);
-    sexpr c = context->code, d, da, dd, name, source, out, df, ca, caa, cad;
+    sexpr c = context->code, d, da, dd, name, source, out, df, ca, caa, cad, q;
     struct memory_pool pool =
         MEMORY_POOL_INITIALISER(sizeof(struct archive_metadata));
     struct archive_metadata *ad;
@@ -158,7 +158,7 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
     context->headers = cons (cons(str_data, cons (out, sx_end_of_list)),
                              context->headers);
 
-    while (consp (c))
+    for (c; consp (c); c = cdr (c))
     {
         d  = car (c);
         da = car (d);
@@ -185,8 +185,11 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
             {
                 source = sx_join (context->base, car(cdr (dd)), sx_nil);
 
-                out    = icemake_decorate_file
-                             (context, ft_code_c, fet_build_file, df);
+                out = get_path (context, context->toolchain->toolchain_sym,
+                                sym_c, df, sx_nonexistent);
+                out = get_path (context, sym_build, sym_c, out, sx_nonexistent);
+                out = car (out);
+
                 open_archive_files++;
 
                 i = io_open_read  (sx_string (source));
@@ -210,11 +213,19 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
 
                 context->code = sx_set_remove (context->code, d);
 
-                context->code = sx_set_add
-                    (context->code,
-                     cons (sym_c, cons (out, cons (icemake_decorate_file
-                             (context, ft_object, fet_build_file, df),
-                              sx_end_of_list))));
+                q = sx_alist_get (context->code, df);
+                context->code = sx_alist_remove (context->code, df);
+
+                if (nexp (q))
+                {
+                    q = sx_end_of_list;
+                }
+
+                q = sx_alist_add (q, sym_c,
+                                  sx_list2 (out, context->name));
+                q = sx_alist_add (q, sym_c_pic,
+                                  sx_list2 (out, context->name));
+                context->code = sx_alist_add (context->code, df, q);
             }
             else
             {
@@ -236,8 +247,11 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
 
                 if (consp (source))
                 {
-                    out    = icemake_decorate_file
-                                 (context, ft_code_c, fet_build_file, df);
+                    out = get_path (context, context->toolchain->toolchain_sym,
+                                    sym_c, df, sx_nonexistent);
+                    out = get_path (context, sym_build, sym_c, out,
+                                    sx_nonexistent);
+                    out = car (out);
                     open_archive_files++;
 
                     o  = io_open_write (sx_string (out));
@@ -273,23 +287,24 @@ static void target_map_prepare_archives (struct tree_node *node, void *u)
                         (ci, on_read_archive_source_file,
                          on_close_archive_source_file, ad);
 
-                    context->code = sx_set_add
-                        (context->code,
-                         cons (sym_c, cons (out, cons (icemake_decorate_file
-                                 (context, ft_object, fet_build_file, df),
-                                  sx_end_of_list))));
-                    context->code = sx_set_add
-                        (context->code,
-                         cons (sym_c_pic, cons (out, cons (icemake_decorate_file
-                                 (context, ft_object_pic, fet_build_file, df),
-                                  sx_end_of_list))));
+                    q = sx_alist_get (context->code, df);
+                    context->code = sx_alist_remove (context->code, df);
+
+                    if (nexp (q))
+                    {
+                        q = sx_end_of_list;
+                    }
+
+                    q = sx_alist_add (q, sym_c,
+                                      sx_list2 (out, context->name));
+                    q = sx_alist_add (q, sym_c_pic,
+                                      sx_list2 (out, context->name));
+                    context->code = sx_alist_add (context->code, df, q);
                 }
 
                 context->code = sx_set_remove (context->code, d);
             }
         }
-
-        c  = cdr (c);
     }
 
     io_close (header);
