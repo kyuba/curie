@@ -192,6 +192,7 @@
                cflags "-c" source "-o" target))
         (C++
           (g++ (fold includes ("-I" entry))
+               "-fno-exceptions"
                cxxflags "-c" source "-o" target)))
       (Object-PIC
         type:library
@@ -208,6 +209,7 @@
                "-fPIC" cflags "-c" source "-o" target))
         (C++-PIC
           (g++ (fold includes ("-I" entry))
+               "-fno-exceptions"
                "-fPIC" cxxflags "-c" source "-o" target)))
       (Programme
         type:programme

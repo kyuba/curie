@@ -372,19 +372,16 @@ static sexpr substitute_variables
             {
                 r = cons (a, r);
             }
-            else
+            else if (consp (s))
             {
-                if (consp (s))
+                for (s = sx_reverse (s); consp (s); s = cdr (s))
                 {
-                    for (s = sx_reverse (s); consp (s); s = cdr (s))
-                    {
-                        r = cons (car (s), r);
-                    }
+                    r = cons (car (s), r);
                 }
-                else
-                {
-                    r = cons (s, r);
-                }
+            }
+            else if (stringp (s))
+            {
+                r = cons (s, r);
             }
         }
     }
@@ -1609,7 +1606,8 @@ static void process_definition
 
     if (context->options & ICEMAKE_USE_CURIE)
     {
-        if (!(context->options & ICEMAKE_HOSTED))
+        if (!(context->options & ICEMAKE_HOSTED) &&
+            (context->options & ICEMAKE_PROGRAMME))
         {
             context->libraries = cons (str_curie_bootstrap, context->libraries);
         }
