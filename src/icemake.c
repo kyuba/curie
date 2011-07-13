@@ -1086,17 +1086,19 @@ static sexpr make_work_tree (struct target *context, sexpr code)
     enum { u_update, u_none }     update;
     enum { l_use, l_dont_use }    libraries;
 
-    define_symbol (sym_input_consume,   "input:consume");
-    define_symbol (sym_input_keep,      "input:keep");
-    define_symbol (sym_mode_merge,      "mode:merge");
-    define_symbol (sym_mode_use_first,  "mode:use-first");
-    define_symbol (sym_target_original, "target:original");
-    define_symbol (sym_target_common,   "target:common");
-    define_symbol (sym_type_programme,  "type:programme");
-    define_symbol (sym_type_library,    "type:library");
+    define_symbol (sym_input_consume,      "input:consume");
+    define_symbol (sym_input_keep,         "input:keep");
+    define_symbol (sym_mode_merge,         "mode:merge");
+    define_symbol (sym_mode_use_first,     "mode:use-first");
+    define_symbol (sym_target_original,    "target:original");
+    define_symbol (sym_target_common,      "target:common");
+    define_symbol (sym_type_programme,     "type:programme");
+    define_symbol (sym_type_library,       "type:library");
+    define_symbol (sym_libraries_use,      "libraries:use");
+    define_symbol (sym_libraries_dont_use, "libraries:dont-use");
 
-    define_symbol (sym_target,          "target");
-    define_symbol (sym_source,          "source");
+    define_symbol (sym_target,             "target");
+    define_symbol (sym_source,             "source");
 
     t  = sx_alist_get (toolchain_build, context->toolchain->toolchain_sym);
 /*    fs = sx_alist_get
@@ -1169,6 +1171,14 @@ static sexpr make_work_tree (struct target *context, sexpr code)
                     {
                         break;
                     }
+                }
+                else if (truep (equalp (sym_libraries_use, n)))
+                {
+                    libraries = l_use;
+                }
+                else if (truep (equalp (sym_libraries_dont_use, n)))
+                {
+                    libraries = l_dont_use;
                 }
                 else if (consp (n))
                 {
