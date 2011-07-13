@@ -2547,6 +2547,8 @@ int icemake_loop_processes (struct icemake *im)
 //    spawn_stack_items (im, &failures);
     spawn_tree_items (im, &failures);
 
+    im->visualiser.on_command (im, sx_list2 (sym_phase, sym_build));
+
     while ((im->alive_processes) > 0)
     {
         multiplex();
@@ -2554,6 +2556,8 @@ int icemake_loop_processes (struct icemake *im)
 //        spawn_stack_items (im, &failures);
         icemake_count_print_items (im);
     }
+
+    im->visualiser.on_command (im, sx_list2 (sym_phase, sym_completed));
 
     return failures;
 }
