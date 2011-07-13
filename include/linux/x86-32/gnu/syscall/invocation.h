@@ -108,7 +108,7 @@ static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5, p6 a6)\
   register unsigned long _a4 __asm__("esi") = (unsigned long)a4;\
   register unsigned long _a5 __asm__("edi")  = (unsigned long)a5;\
   register unsigned long _a6 __asm__("ebp")  = (unsigned long)a6;\
-  __asm__ volatile ( "int $0x80" : "+a"(out) :\
+  __asm__ volatile ( "push %%ebp\nint $0x80\npop %%ebp" : "+a"(out) :\
                      "b"(_a1), "c"(_a2), "d"(_a3), "S"(_a4),\
                      "D"(_a5), "R"(_a6) :\
                      "cc", "memory" );\
