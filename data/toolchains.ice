@@ -176,7 +176,8 @@
 #define " name "_version_s \"" version "\"
 #define " name "_build_number " build-number "
 #define " name "_build_number_s \"" build-number "\"
-#define " name "_version_long \"" name "-" version "." build-number "\""))
+#define " name "_version_long \"" name "-" version "." build-number "\"
+"))
     (build
       (Object
         mode:use-first
@@ -216,6 +217,7 @@
         mode:merge
         input:consume
         target:common
+        libraries:use
         (Object
           (gcc (fold library-paths ("-L" entry))
                (fold libraries ("-l" entry))
@@ -227,12 +229,13 @@
         mode:merge
         input:consume
         target:common
+        libraries:use
         (Object-PIC
           (gcc (fold library-paths ("-L" entry))
                (fold libraries ("-l" entry))
                (? freestanding ("-ffreestanding"
                                 "-nostdlib" "-nodefaultlibs" "-nostartfiles"))
-               source "-fPIC" "-o" target)))
+               source "-shared" "-fPIC" "-o" target)))
       (Static-Library
         type:library
         mode:merge

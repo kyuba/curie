@@ -11,10 +11,12 @@
           "build.*\\.(cmd|sh)"
           "(src|include|tests)/(\\.|(-|[+a-zA-Z0-9])+)/(\\.|(-|[+a-zA-Z0-9])+)/(\\.|(-|[+a-zA-Z0-9])+)/(\\.|(-|[+a-zA-Z0-9])+)/.+\\.(c|h|c\\+\\+|sx|s|S)"))
 
-(library "curie-bootstrap" libcurie no-shared-library
+(library "curie-bootstrap" libcurie
   (name "Curie Boostrap")
   (description "Inialisation code for libcurie, used when building freestanding programmes")
   (version "1")
+
+  (omit Shared-Object Object-PIC)
 
   (code "bootstrap" "bootstrap-highlevel"))
 
@@ -154,20 +156,6 @@
   (libraries "sievert") (code "test-sexpr-sort"))
 (test-case "test-cpio"       libcurie
   (libraries "sievert") (code "test-cpio"))
-
-(library "curie++" libcurie
-  (name "Curie++")
-  (description "C++ bindings for libcurie")
-  (version "11")
-  (url "http://kyuba.org/")
-
-  (code "memory++" "io++" "sexpr++" "libc++-compat")
-
-  (headers
-        "int" "io" "multiplex" "sexpr" "main"))
-
-(test-case "test-objects" libcurie (libraries "curie++")
-  (code "test-objects"))
 
 (library "curie-math" libcurie
   (name "Curie-math")

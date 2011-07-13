@@ -286,7 +286,7 @@ struct visualiser_descriptor
 {
     enum visualiser visualiser;
 
-    void (*items)           (struct icemake *im, int count);
+    void (*items)           (struct icemake *im, int run, int rem, int total);
     void (*on_command)      (struct icemake *im, sexpr cmd);
     void (*on_command_done) (struct icemake *im, sexpr cmd);
 
@@ -380,6 +380,8 @@ struct target {
     sexpr headers;
     /*!\brief List with Data Files (for installation) */
     sexpr data;
+    /*!\brief Object types not to build for this target */
+    sexpr omit;
     /*!\brief Programme/Library Name */
     sexpr dname;
     /*!\brief Programme/Library Description */
@@ -562,6 +564,8 @@ define_symbol (sym_C_Header,            "C-Header");
 define_symbol (sym_Shared_Object,       "Shared-Object");
 /*! \brief Predefined Symbol */
 define_symbol (sym_Static_Library,      "Static-Library");
+/*! \brief Predefined Symbol */
+define_symbol (sym_omit,                "omit");
 
 /*! \brief Predefined String */
 define_string (str_curie,               "curie");

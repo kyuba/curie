@@ -147,14 +147,16 @@ static void describe_failure
 }
 
 static void items
-    (struct icemake *im, int count)
+    (struct icemake *im, int run, int rem, int total)
 {
-    items_total = count;
+    items_total = total;
     if (items_total < 1)
     {
         items_total = 1;
     }
-    items_have = 0;
+    items_have = total - rem;
+
+    update_screen (im);
 }
 
 static void icemake_read
@@ -206,7 +208,7 @@ static void on_error
         sexpr programme;
 
         code      = car (sx);
-        programme = cdr (sx);
+        programme = car (cdr (sx));
 
         describe_failure (im, sx_integer (code), sx_string (programme));
 

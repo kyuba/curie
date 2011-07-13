@@ -30,11 +30,13 @@
 #include <curie/multiplex.h>
 
 static void items
-    (struct icemake *im, int count)
+    (struct icemake *im, int run, int rem, int total)
 {
     sx_write (im->visualiser.meta.raw.stdio,
-              cons (sym_items_total,
-                    cons (make_integer (count), sx_end_of_list)));
+              sx_list4 (sym_items_total,
+                        make_integer (run),
+                        make_integer (rem),
+                        make_integer (total)));
 }
 
 static void on_command
