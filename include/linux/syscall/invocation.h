@@ -37,33 +37,37 @@
 #define __USE_MISC
 
 #include <unistd.h>
+#include <errno.h>
 
 #define define_syscall0(a,b,c,r)\
 static inline r c ()\
-{ return (r)syscall(a); }
+{ r rv = (r)syscall(a); if (rv == (r)-1) return -errno; return rv; }
 
 #define define_syscall1(a,b,c,r,p1)\
 static inline r c (p1 a1)\
-{ return (r)syscall(a, a1); }
+{ r rv = (r)syscall(a, a1); if (rv == (r)-1) return -errno; return rv; }
 
 #define define_syscall2(a,b,c,r,p1,p2)\
 static inline r c (p1 a1, p2 a2)\
-{ return (r)syscall(a, a1, a2); }
+{ r rv = (r)syscall(a, a1, a2); if (rv == (r)-1) return -errno; return rv; }
 
 #define define_syscall3(a,b,c,r,p1,p2,p3)\
 static inline r c (p1 a1, p2 a2, p3 a3)\
-{ return (r)syscall(a, a1, a2, a3); }
+{ r rv = (r)syscall(a, a1, a2, a3); if (rv == (r)-1) return -errno; return rv; }
 
 #define define_syscall4(a,b,c,r,p1,p2,p3,p4)\
 static inline r c (p1 a1, p2 a2, p3 a3, p4 a4)\
-{ return (r)syscall(a, a1, a2, a3, a4); }
+{ r rv = (r)syscall(a, a1, a2, a3, a4);\
+  if (rv == (r)-1) return -errno; return rv; }
 
 #define define_syscall5(a,b,c,r,p1,p2,p3,p4,p5)\
 static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5)\
-{ return (r)syscall(a, a1, a2, a3, a4, a5); }
+{ r rv = (r)syscall(a, a1, a2, a3, a4, a5);\
+  if (rv == (r)-1) return -errno; return rv; }
 
 #define define_syscall6(a,b,c,r,p1,p2,p3,p4,p5,p6)\
 static inline r c (p1 a1, p2 a2, p3 a3, p4 a4, p5 a5, p6 a6)\
-{ return (r)syscall(a, a1, a2, a3, a4, a5, a6); }
+{ r rv = (r)syscall(a, a1, a2, a3, a4, a5, a6);\
+  if (rv == (r)-1) return -errno; return rv; }
 
 #endif
