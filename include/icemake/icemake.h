@@ -566,6 +566,8 @@ define_symbol (sym_Shared_Object,       "Shared-Object");
 define_symbol (sym_Static_Library,      "Static-Library");
 /*! \brief Predefined Symbol */
 define_symbol (sym_omit,                "omit");
+/*! \brief Predefined Symbol */
+define_symbol (sym_require_libraries,   "require-libraries");
 
 /*! \brief Predefined String */
 define_string (str_curie,               "curie");

@@ -75,7 +75,6 @@ struct process_data
 static sexpr toolchain_patterns       = sx_end_of_list;
 static sexpr toolchain_specifications = sx_end_of_list;
 static sexpr toolchain_object_types   = sx_end_of_list;
-static sexpr toolchain_install        = sx_end_of_list;
 static sexpr toolchain_metadata       = sx_end_of_list;
 static sexpr toolchain_build          = sx_end_of_list;
 static sexpr toolchain_bind           = sx_end_of_list;
@@ -1230,13 +1229,21 @@ static sexpr make_work_tree (struct target *context, sexpr code)
 
                             for (uc = ufn; consp (uc); uc = cdr (uc))
                             {
+                                sexpr qt = sx_list1(q);
                                 ufn = car (uc);
 
                                 l = sx_alist_get    (r, ty);
                                 r = sx_alist_remove (r, ty);
 
+                                if (libraries == l_use)
+                                {
+                                    spec = cons (cons (sym_require_libraries,
+                                                     context->olibraries),
+                                                 spec);
+                                }
+
                                 o = sx_list5
-                                    (na, ufn, src, sx_list1(q),
+                                    (na, ufn, src, qt,
                                      substitute_variables
                                         (context,
                                          sx_set_merge
@@ -1276,13 +1283,21 @@ static sexpr make_work_tree (struct target *context, sexpr code)
 
                         for (uc = ufn; consp (uc); uc = cdr (uc))
                         {
+                            sexpr qt = mt;
                             ufn = car (uc);
 
                             l = sx_alist_get    (r, ty);
                             r = sx_alist_remove (r, ty);
 
+                            if (libraries == l_use)
+                            {
+                                spec = cons (cons (sym_require_libraries,
+                                                 context->olibraries),
+                                             spec);
+                            }
+
                             o = sx_list5
-                                (on, ufn, ml, mt,
+                                (on, ufn, ml, qt,
                                  substitute_variables
                                     (context,
                                      sx_set_merge
@@ -1451,17 +1466,17 @@ static void make_metadata_files (struct target *context)
         sexpr spec = car (c), type, layout, name, sdata, d, ufn;
         const char *data;
 
-        type = car (spec);
-        spec = cdr (spec);
+        type   = car (spec);
+        spec   = cdr (spec);
         layout = car (spec);
-        spec = cdr (spec);
-        name = car (spec);
-        spec = cdr (spec);
+        spec   = cdr (spec);
+        name   = car (spec);
+        spec   = cdr (spec);
 
         /* we're abusing the path generation functions here... */
-        sdata = get_path_r (context, spec, cname, sx_nonexistent);
-        sdata = car (sdata);
-        data  = sx_string (sdata);
+        sdata  = get_path_r (context, spec, cname, sx_nonexistent);
+        sdata  = car (sdata);
+        data   = sx_string (sdata);
 
         ufn = get_path_d (context, context->toolchain->toolchain_sym, layout,
                           type, name, sx_nonexistent);
@@ -2140,6 +2155,12 @@ static void process_on_death
     free_pool_mem (p);
 }
 
+static int have_libraries (struct icemake *im, sexpr libraries)
+{
+    sx_write (sx_open_stdio (), libraries);
+    return 1;
+}
+
 static void spawn_item
     (sexpr sx, void (*f)(struct exec_context *, void *), struct icemake *im,
      int *fl)
@@ -2167,6 +2188,17 @@ static void spawn_item
 
         sx = cdr (cfcdr);
     }
+    else if (truep (equalp (cf, sym_require_libraries)))
+    {
+        if (have_libraries (im, cdr (cur)))
+        {
+            running_task (sx, sx);
+            finish_task (sx);
+        }
+
+        return;
+    }
+
 
     if (truep (runningp (sx)))
     {
@@ -2381,7 +2413,6 @@ static sexpr spawn_tree_items_r (struct icemake *im, sexpr tree, int *fl)
 //    sx_write (sx_open_stdio(), make_integer (im->alive_processes));
 //    sx_write (sx_open_stdio(), tree);
 
-
     /* at this point we remove all tasks that may have been run in the
      * past, which also have been completed at the time checking this.
      */
@@ -2589,7 +2620,8 @@ static void read_metadata ( struct icemake *im )
             {
                 sexpr sxcar = car (r);
                 struct tree_node *node =
-                    tree_get_node_string(&(im->targets), (char *)sx_string(sxcar));
+                    tree_get_node_string
+                        (&(im->targets), (char *)sx_string(sxcar));
 
                 if (node != (struct tree_node *)0)
                 {
@@ -3132,22 +3164,6 @@ void icemake_load_data (sexpr data)
 
                         toolchain_metadata =
                             sx_alist_add (toolchain_metadata, name, o);
-                    }
-                    else if (truep (equalp (cs, sym_install)))
-                    {
-                        o = sx_alist_get (toolchain_install, name);
-                        toolchain_install =
-                            sx_alist_remove (toolchain_install, name);
-
-                        if (nexp (o))
-                        {
-                            o = sx_end_of_list;
-                        }
-
-                        o = sx_alist_merge (o, cdr (aa));
-
-                        toolchain_install =
-                            sx_alist_add (toolchain_install, name, o);
                     }
                 }
             }
