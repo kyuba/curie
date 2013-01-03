@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2013, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,7 @@
 #include <sievert/tree.h>
 #include <sievert/sexpr.h>
 #include <icemake/icemake-system.h>
+#include <sievert/cpio.h>
 
 #ifndef ICEMAKE_ICEMAKE_H
 #define ICEMAKE_ICEMAKE_H
@@ -51,73 +52,12 @@
 /*! \brief Length of any uname Fields */
 #define UNAMELENGTH 128
 
-/*! \brief Toolchain Codes */
-enum toolchain
-{
-    tc_unknown, /*!< Unknown Toolchain */
-    tc_generic, /*!< Generic Toolchain */
-    tc_gcc,     /*!< GNU GCC */
-    tc_borland, /*!< Borland C/C++ Compiler */
-    tc_msvc,    /*!< Microsoft Visual C++ */
-    tc_latex,   /*!< TeX (LaTeX distribution) */
-    tc_doxygen  /*!< Doxygen */
-};
-
-/*! \brief Operating System Codes */
-enum operating_system
-{
-    os_unknown,     /*!< Unknown Operating system */
-    os_generic,     /*!< Generic Operating System */
-    os_darwin,      /*!< Darwin/MacOSX */
-    os_linux,       /*!< Linux */
-    os_windows,     /*!< Windows */
-    os_freebsd,     /*!< FreeBSD */
-    os_netbsd,      /*!< NetBSD */
-    os_openbsd,     /*!< OpenBSD */
-    os_dragonflybsd /*!< DragonflyBSD */
-};
-
-/*! \brief Instruction Set Codes */
-enum instruction_set
-{
-    is_unknown, /*!< Unknown Instruction Set */
-    is_generic, /*!< Generic Instruction Set */
-    is_arm,     /*!< ARM-based Instruction Set */
-    is_x86,     /*!< X86-based Instruction Set */
-    is_mips,    /*!< MIPS-based Instruction Set */
-    is_powerpc, /*!< PowerPC-based Instruction Set */
-    is_sh       /*!< SH-based Instruction Set */
-};
-
-/*! \brief Filesystem Layout Codes
- *
- *  These codes are used when installing files, they determine where to install
- *  files with icemake -i.
- */
-enum fs_layout
-{
-    /*! \brief FHS Layout
-     *
-     *  This is the most common layout on Linux systems these days, see their
-     *  specs for a summary. Basically things get installed in
-     *  $destdir/{bin|lib|share|...}.
-     */
-    fs_fhs,
-
-    /*! \brief AFSL
-     *
-     *  This uses the AFSL, see the papers on becquerel.org for details.
-     */
-    fs_afsl,
-};
-
 enum icemake_error
 {
     ie_missing_description_file,
     ie_missing_tool,
     ie_missing_header,
     ie_missing_test_case,
-    ie_missing_documentation,
     ie_missing_data,
     ie_missing_code_file,
     ie_invalid_choice,
@@ -133,8 +73,7 @@ enum icemake_invocation
     ii_build,
     ii_link,
     ii_install,
-    ii_test,
-    ii_documentation
+    ii_test
 };
 
 enum visualiser
@@ -147,70 +86,6 @@ enum visualiser
 struct target;
 struct icemake;
 
-struct toolchain_gcc
-{
-    sexpr gcc;
-    sexpr ld;
-    sexpr gpp;
-    sexpr as;
-    sexpr ar;
-};
-
-struct toolchain_borland
-{
-    sexpr bcc32;
-    sexpr tlib;
-};
-
-struct toolchain_msvc
-{
-    sexpr cl;
-    sexpr rc;
-    sexpr link;
-    sexpr lib;
-};
-
-struct toolchain_latex
-{
-    sexpr latex;
-    sexpr pdflatex;
-};
-
-struct toolchain_doxygen
-{
-    sexpr doxygen;
-};
-
-struct operating_system_generic
-{
-    sexpr diff;
-};
-
-enum file_type
-{
-    ft_static_library,
-    ft_shared_library,
-    ft_shared_library_full,
-    ft_library_options,
-    ft_programme,
-    ft_documentation,
-    ft_data,
-    ft_configuration,
-    ft_header,
-    ft_object,
-    ft_object_pic,
-    ft_resource,
-    ft_code_c,
-    ft_other
-};
-
-enum file_expansion_type
-{
-    fet_decorate_only,
-    fet_install_file,
-    fet_build_file
-};
-
 #define IS_32_BIT 0x0001
 #define IS_64_BIT 0x0002
 
@@ -222,10 +97,6 @@ enum file_expansion_type
  */
 struct toolchain_descriptor
 {
-    enum toolchain        toolchain;
-    enum operating_system operating_system;
-    enum instruction_set  instruction_set;
-
     sexpr                 original_toolchain;
 
     const char           *uname_arch;
@@ -240,7 +111,6 @@ struct toolchain_descriptor
     sexpr                 uname;
 
     int (*build)         (struct target *);
-    int (*link)          (struct target *);
     int (*install)       (struct target *);
     int (*test)          (struct target *);
 
@@ -248,23 +118,6 @@ struct toolchain_descriptor
 
     /*!\brief Build environment. */
     sexpr                 environment;
-
-    union
-    {
-        struct toolchain_gcc      gcc;
-        struct toolchain_borland  borland;
-        struct toolchain_msvc     msvc;
-        struct toolchain_latex    latex;
-        struct toolchain_doxygen  doxygen;
-        sexpr  specifications;
-        void                     *aux;
-    } meta_toolchain;
-
-    union
-    {
-        struct operating_system_generic  generic;
-        void                            *aux;
-    } meta_operating_system;
 
     unsigned long instruction_set_options;
     unsigned long instruction_set_level;
@@ -317,8 +170,8 @@ struct visualiser_descriptor
  */
 struct icemake
 {
-    /*! \brief Target Filesystem Layout */
-    enum fs_layout filesystem_layout;
+    sexpr destdir;
+    sexpr filesystem_layout_sym;
 
     sexpr buildtargets;
 
@@ -338,15 +191,15 @@ struct icemake
     unsigned long options;
 
     /*! \brief List: Queued tasks */
-    sexpr workstack;
-
-    /*! \brief List: Queued tasks */
     sexpr worktree;
 
     sexpr alternatives;
     sexpr roots;
 
     struct visualiser_descriptor visualiser;
+
+    struct io   *result;
+    struct cpio *resultcpio;
 };
 
 #define ICEMAKE_PROGRAMME              (1 << 0x0)
@@ -369,8 +222,6 @@ struct target {
     /*!\brief The Libraries to link against */
     sexpr libraries;
     /*!\brief The Libraries to link against */
-    sexpr deffile;
-    /*!\brief The Libraries that the icemake.sx specifies to link against */
     sexpr olibraries;
     /*!\brief List with all Code Files */
     sexpr code;
@@ -405,42 +256,6 @@ struct target {
     /*!\brief Icemake Handle */
     struct icemake *icemake;
 };
-
-/*! \brief Destination Directory
- *
- *  Set with the -d flag.
- */
-extern sexpr i_destdir;
-
-/*! \brief (FHS) Library Directory
- *
- *  Used to decide between lib, lib32 and lib64.
- */
-extern sexpr i_destlibdir;
-
-/*! \brief Boolean: Build Documentation
- *
- *  Set with the -x flag.
- */
-extern sexpr do_build_documentation;
-
-/*! \brief LaTeX Binary
- *
- *  Automatically searched in the PATH according to the toolchain type.
- */
-extern sexpr p_latex;
-
-/*! \brief PDFLaTeX Binary
- *
- *  Automatically searched in the PATH according to the toolchain type.
- */
-extern sexpr p_pdflatex;
-
-/*! \brief Doxygen Binary
- *
- *  Automatically searched in the PATH according to the toolchain type.
- */
-extern sexpr p_doxygen;
 
 /*! \brief Predefined Symbol */
 define_symbol (sym_library,             "library");
@@ -479,10 +294,6 @@ define_symbol (sym_c_pic,               "C-PIC");
 /*! \brief Predefined Symbol */
 define_symbol (sym_cpp_pic,             "C++-PIC");
 /*! \brief Predefined Symbol */
-define_symbol (sym_tex,                 "TeX");
-/*! \brief Predefined Symbol */
-define_symbol (sym_diff,                "diff");
-/*! \brief Predefined Symbol */
 define_symbol (sym_man,                 "man");
 /*! \brief Predefined Symbol */
 define_symbol (sym_libc,                "libc");
@@ -507,12 +318,6 @@ define_symbol (sym_documentation,       "documentation");
 /*! \brief Predefined Symbol */
 define_symbol (sym_missing_programme,   "missing-programme");
 /*! \brief Predefined Symbol */
-define_symbol (sym_latex,               "latex");
-/*! \brief Predefined Symbol */
-define_symbol (sym_pdflatex,            "pdflatex");
-/*! \brief Predefined Symbol */
-define_symbol (sym_doxygen,             "doxygen");
-/*! \brief Predefined Symbol */
 define_symbol (sym_chdir,               "chdir");
 /*! \brief Predefined Symbol */
 define_symbol (sym_symlink,             "symlink");
@@ -528,10 +333,6 @@ define_symbol (sym_completed,           "completed");
 define_symbol (sym_phase,               "phase");
 /*! \brief Predefined Symbol */
 define_symbol (sym_build,               "build");
-/*! \brief Predefined Symbol */
-define_symbol (sym_build_documentation, "build-documentation");
-/*! \brief Predefined Symbol */
-define_symbol (sym_run_tests,           "run-tests");
 /*! \brief Predefined Symbol */
 define_symbol (sym_cross_link,          "cross-link");
 /*! \brief Predefined Symbol */
@@ -559,6 +360,8 @@ define_symbol (sym_bind,                "bind");
 /*! \brief Predefined Symbol */
 define_symbol (sym_split,               "split");
 /*! \brief Predefined Symbol */
+define_symbol (sym_Object,              "Object");
+/*! \brief Predefined Symbol */
 define_symbol (sym_C_Header,            "C-Header");
 /*! \brief Predefined Symbol */
 define_symbol (sym_Shared_Object,       "Shared-Object");
@@ -568,6 +371,8 @@ define_symbol (sym_Static_Library,      "Static-Library");
 define_symbol (sym_omit,                "omit");
 /*! \brief Predefined Symbol */
 define_symbol (sym_require_libraries,   "require-libraries");
+/*! \brief Predefined Symbol */
+define_symbol (sym_afsl,                "afsl");
 
 /*! \brief Predefined String */
 define_string (str_curie,               "curie");
@@ -689,8 +494,6 @@ define_string (str_combined_c_source,   "combined-c-source");
 define_string (str_dfwhole_program,     "-fwhole-program");
 /*! \brief Predefined String */
 define_string (str_build_slash,         "build/");
-/*! \brief Predefined String */
-define_string (str_build_backslash,     "build\\");
 /*! \brief Predefined String */
 define_string (str_slash,               "/");
 /*! \brief Predefined String */
@@ -859,31 +662,6 @@ void initialise_icemake ( void );
 
 void icemake_prepare_archives (struct icemake *icemake);
 
-/*! \brief Build Targets
- *  \param[in] icemake Icemake handle.
- */
-int icemake_build (struct icemake *icemake);
-
-/*! \brief Install Targets
- *  \param[in] icemake Icemake handle.
- */
-int icemake_install (struct icemake *icemake);
-
-/*! \brief Run Test Cases
- *  \param[in] icemake Icemake handle.
- */
-int icemake_run_tests (struct icemake *icemake);
-
-/*! \brief Link Targets
- *  \param[in] icemake Icemake handle.
- */
-int icemake_link (struct icemake *icemake);
-
-/*! \brief Build Documentation
- *  \param[in] icemake Icemake handle.
- */
-int icemake_build_documentation (struct icemake *icemake);
-
 /*! \brief Loop over all Processes
  *  \param[in] icemake Icemake handle.
  *
@@ -892,34 +670,7 @@ int icemake_build_documentation (struct icemake *icemake);
  */
 int icemake_loop_processes (struct icemake *icemake);
 
-/*! \brief Path Name Mangling (Borland)
- *  \param[in] b The path to mangle.
- *  \return b;
- *
- *  BCC and related tools can't handle some characters in path names... in
- *  particular, they can't seem to handle the "+" character too well since it's
- *  used for other things in some of the tools.
- */
-char *mangle_path_borland (char *b);
-
-/*! \brief Path Name Mangling (Borland) (S-expressions)
- *  \param[in] b The path to mangle.
- *  \return b;
- *
- *  BCC and related tools can't handle some characters in path names... in
- *  particular, they can't seem to handle the "+" character too well since it's
- *  used for other things in some of the tools.
- */
-sexpr mangle_path_borland_sx (sexpr b);
-
 void mkdir_pi (sexpr path);
-
-int icemake_prepare_toolchain_generic (struct toolchain_descriptor *td);
-int icemake_prepare_toolchain_gcc     (struct toolchain_descriptor *td);
-int icemake_prepare_toolchain_borland (struct toolchain_descriptor *td);
-int icemake_prepare_toolchain_msvc    (struct toolchain_descriptor *td);
-int icemake_prepare_toolchain_latex   (struct toolchain_descriptor *td);
-int icemake_prepare_toolchain_doxygen (struct toolchain_descriptor *td);
 
 int icemake_prepare_operating_system_generic
     (struct icemake *im, struct toolchain_descriptor *td);
@@ -955,13 +706,13 @@ sexpr icemake_which
     (const struct toolchain_descriptor *td, const char *programme,
      const char *env);
 
-sexpr icemake_decorate_file
-    (struct target *t, enum file_type ft, enum file_expansion_type fet,
-     sexpr file);
-
 sexpr get_path
     (struct target *context, sexpr layout, sexpr type, sexpr name,
      sexpr target);
+
+sexpr get_path_d
+    (struct target *context, sexpr layout1, sexpr layout2, sexpr type,
+     sexpr name, sexpr target);
 
 #endif
 

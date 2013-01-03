@@ -20,8 +20,6 @@
 ; toolchains
   (".*-(gcc|gnu)"
     (tc gcc "gnu"))
-  (".*-borland"
-    (tc borland "borland"))
   (".*-msvc"
     (tc msvc "msvc")
     (os windows "windows"))
@@ -217,7 +215,8 @@
         target:common
         libraries:use
         (Object
-          (gcc (fold library-paths ("-L" entry))
+          (gcc ldflags
+               (fold library-paths ("-L" entry))
                (fold libraries ("-l" entry))
                (? freestanding ("-ffreestanding"
                                 "-nostdlib" "-nodefaultlibs" "-nostartfiles"))
@@ -229,7 +228,8 @@
         target:common
         libraries:use
         (Object-PIC
-          (gcc (fold library-paths ("-L" entry))
+          (gcc ldflags
+               (fold library-paths ("-L" entry))
                (fold libraries ("-l" entry))
                (? freestanding ("-ffreestanding"
                                 "-nostdlib" "-nodefaultlibs" "-nostartfiles"))

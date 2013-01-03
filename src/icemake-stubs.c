@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2013, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,18 +27,6 @@
 */
 
 #include <icemake/icemake.h>
-
-int icemake_build_documentation (struct icemake *im) { return 0; }
-int icemake_run_tests (struct icemake *im) { return 0; }
-
-int icemake_prepare_toolchain_borland (struct toolchain_descriptor *td)
-{ return 0; }
-int icemake_prepare_toolchain_msvc    (struct toolchain_descriptor *td)
-{ return 0; }
-int icemake_prepare_toolchain_latex   (struct toolchain_descriptor *td)
-{ return 0; }
-int icemake_prepare_toolchain_doxygen (struct toolchain_descriptor *td)
-{ return 0; }
 
 void gc_call (sexpr sx) {}
 void initialise_stack () {}

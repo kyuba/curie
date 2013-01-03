@@ -189,24 +189,12 @@ single, unified directory tree, such as Windows.)
 Used to override or specify the gcc, ld, gpp, as and ar programmes in GCC
 toolchains.
 
-.IP BCC32
-.IP TLIB
-Used to override or specify the bcc32 and tlib programmes in Borland toolchains.
-
 .IP CL
 .IP RC
 .IP LINK
 .IP LIB
 Used to override or specify the cl, rc, link and lib programmes in Microsoft
 Visual Studio toolchains.
-
-.IP LATEX
-.IP PDFLATEX
-Used to override or specify the latex and pdflatex programmes in LaTeX
-toolchains.
-
-.IP DOXYGEN
-Used to override or specify the doxygen programme in Doxygen toolchains.
 
 .IP DIFF
 Used to override or specify the diff tool used to compare test output and
@@ -232,7 +220,7 @@ programme and library files using these modified header files automatically. If
 you modify header files, it may be best to completely erase the build/ directory
 and to call icemake again.
 
-ice is currently limited to the gcc, msvc++ and borland toolchains. Other
+ice is currently limited to the gcc and msvc++ toolchains. Other
 toolchains may require additional code to be added to ice, unless they have
 some sort of compatibility mode for one of the former toolchains.
 

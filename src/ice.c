@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2013, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,8 +42,9 @@
 
 struct icemake_meta
 {
+    sexpr destdir;
+    sexpr filesystem_layout_sym;
     sexpr buildtargets;
-    enum fs_layout filesystem_layout;
     unsigned long options;
     unsigned int max_processes;
     sexpr alternatives;
@@ -82,12 +83,10 @@ static void print_help ()
         " -P <dir>     Specify source directory (allowed multiple times)\n"\
         " -t <chost>   Specify target CHOST\n"\
         " -d <destdir> Specify the directory to install to.\n"\
+        " -F <layout>  Use <layout> when installing\n"\
         " -D <file>    Specify an additional toolchain data file.\n"\
         " -i           Install resulting binaries\n"\
         " -r           Execute runtime tests\n"\
-        " -f           Use the FHS layout for installation\n"\
-        " -l <libdir>  Use <libdir> instead of 'lib' when installing\n"\
-        " -s           Use the default FS layout for installation\n"\
         " -L           Optimise linking.\n"\
         " -c           Use gcc's -combine option for C source files.\n"\
         " -o           Don't link dynamic libraries.\n"\
@@ -96,7 +95,6 @@ static void print_help ()
         " -R           Enforce a dynamic link.\n"\
         " -j <num>     Spawn <num> processes simultaneously.\n"\
         " -a <1> <2>   Use implementation <2> for code part <1>.\n"\
-        " -x           Build documentation (if possible).\n"\
         " -m           Use raw output.\n"\
         " -M           Use nicer output (default).\n"\
         "\n"\
@@ -122,10 +120,11 @@ static int with_icemake (struct icemake *im, void *aux)
 {
     struct icemake_meta *imc = (struct icemake_meta *)aux;
 
-    im->filesystem_layout  = imc->filesystem_layout;
-    im->buildtargets       = imc->buildtargets;
+    im->destdir               = imc->destdir;
+    im->filesystem_layout_sym = imc->filesystem_layout_sym;
+    im->buildtargets          = imc->buildtargets;
 
-    im->max_processes      = imc->max_processes;
+    im->max_processes         = imc->max_processes;
 
     if (im->options & ICEMAKE_OPTION_VIS_ICE)
     {
@@ -169,7 +168,7 @@ static int with_toolchain (struct toolchain_descriptor *td, void *aux)
     {
         return icemake_prepare
             ((struct icemake *)0,
-             ((td->operating_system == os_windows) ? ".\\" : "./"),
+             "./",
              td, im->options, im->alternatives,
              with_icemake, aux);
     }
@@ -213,7 +212,7 @@ int cmain ()
     int i = 1;
     const char *target_architecture = (const char *)0;
     struct icemake_meta im =
-        { sx_end_of_list, fs_afsl,
+        { str_blank, sym_afsl, sx_end_of_list,
           ICEMAKE_OPTION_STATIC | ICEMAKE_OPTION_DYNAMIC_LINKING |
           ICEMAKE_OPTION_VIS_ICE,
           1, sx_end_of_list, sx_end_of_list };
@@ -222,8 +221,6 @@ int cmain ()
     icemake_load_internal_data ();
 
     mkdir ("build", 0755);
-
-    i_destlibdir = str_lib;
 
     while (curie_argv[i])
     {
@@ -253,7 +250,7 @@ int cmain ()
                     case 'd':
                         if (curie_argv[xn])
                         {
-                            i_destdir = make_string(curie_argv[xn]);
+                            im.destdir = make_string(curie_argv[xn]);
                             xn++;
                         }
                         break;
@@ -279,25 +276,16 @@ int cmain ()
                     case 'R':
                         im.options &= ~ICEMAKE_OPTION_STATIC;
                         break;
-                    case 'x':
-                        do_build_documentation = sx_true;
-                        break;
-                    case 'f':
-                        im.filesystem_layout = fs_fhs;
-                        break;
                     case 'o':
                         im.options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
                         break;
                     case 'O':
                         im.options |=  ICEMAKE_OPTION_DYNAMIC_LINKING;
                         break;
-                    case 's':
-                        im.filesystem_layout = fs_afsl;
-                        break;
-                    case 'l':
+                    case 'F':
                         if (curie_argv[xn])
                         {
-                            i_destlibdir = make_string(curie_argv[xn]);
+                            im.filesystem_layout_sym = make_symbol(curie_argv[xn]);
                             xn++;
                         }
                         break;

@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2013, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
 */
+
+#define _BSD_SOURCE
 
 #if !defined(_WIN32)
 #include <sys/utsname.h>
@@ -51,15 +53,6 @@
 #include <sievert/metadata.h>
 
 #include <ctype.h>
-
-sexpr i_destdir                        = sx_false;
-sexpr i_destlibdir                     = sx_false;
-
-sexpr do_build_documentation           = sx_false;
-
-sexpr p_latex                          = sx_false;
-sexpr p_pdflatex                       = sx_false;
-sexpr p_doxygen                        = sx_false;
 
 static void parse_add_definition
     (struct icemake *im, sexpr path, struct toolchain_descriptor *td,
@@ -148,7 +141,8 @@ static sexpr process_fold_includes
         p = cdr (p);
     }
 
-    if (stringp (i_destdir) && falsep (equalp (i_destdir, str_blank)))
+    if (stringp (t->icemake->destdir) &&
+        falsep (equalp (t->icemake->destdir, str_blank)))
     {
         for (q = get_path (t, sx_nonexistent, sym_C_Header,
                            str_blank, sx_nonexistent);
@@ -181,41 +175,35 @@ static sexpr process_fold_includes
     return sx_reverse (r);
 }
 
+static void target_map_build_path (struct tree_node *node, void *u)
+{
+    struct target *context = (struct target *)node_get_value(node);
+    sexpr *lib_paths       = (sexpr *)u;
+
+    if (context->options & ICEMAKE_LIBRARY)
+    {
+        (*lib_paths) =
+            sx_set_merge
+                ((*lib_paths),
+                 get_path (context, sym_build, sym_Shared_Object,
+                           str_blank, sx_nonexistent));
+    }
+}
+
 static sexpr process_fold_library_paths
     (struct target *t, sexpr variables, sexpr spec)
 {
-    sexpr r = sx_end_of_list, p = t->icemake->roots,
+    sexpr r = sx_end_of_list,
           lib_paths = sx_end_of_list, cur, q;
 
-    while (consp (p))
-    {
-        lib_paths =
-            sx_set_merge
-                (lib_paths, icemake_permutate_paths
-                     (t->toolchain, sx_join (car(p), str_include, sx_nil)));
-        p = cdr (p);
-    }
+    lib_paths =
+        sx_set_merge
+            (lib_paths,
+             get_path (t, sx_nonexistent, sym_Shared_Object,
+                       str_blank, sx_nonexistent));
 
-    if (stringp (i_destdir) && falsep (equalp (i_destdir, str_blank)))
-    {
-        lib_paths = sx_reverse (lib_paths);
-
-        for (q = get_path (t, sx_nonexistent, sym_Shared_Object,
-                           str_blank, sx_nonexistent);
-             consp (q); q = cdr (q))
-        {
-            lib_paths = cons (car (q), lib_paths);
-        }
-
-        for (q = get_path (t, sx_nonexistent, sym_Static_Library,
-                           str_blank, sx_nonexistent);
-             consp (q); q = cdr (q))
-        {
-            lib_paths = cons (car (q), lib_paths);
-        }
-
-        lib_paths = sx_reverse (lib_paths);
-    }
+    tree_map (&(t->icemake->targets), target_map_build_path,
+              (void *)(&lib_paths));
 
     cur = path_normalise(lib_paths);
 
@@ -361,7 +349,7 @@ static sexpr substitute_variables
                         r = cons (car (s), r);
                     }
                 }
-                else
+                else if (!eolp (s))
                 {
                     r = cons (s, r);
                 }
@@ -377,7 +365,7 @@ static sexpr substitute_variables
                         r = cons (car (s), r);
                     }
                 }
-                else
+                else if (!eolp (s))
                 {
                     r = cons (s, r);
                 }
@@ -410,6 +398,54 @@ static sexpr substitute_variables
     }
 
     return sx_reverse (r);
+}
+
+static void with_metadata_size (struct metadata *md, void *aux)
+{
+    long *res = (long *)aux;
+    enum metadata_classification_unix classification;
+    int uid, gid, mode, device, attributes;
+    long atime = 0, mtime = 0, ctime = 0, size;
+
+    metadata_to_unix
+        (md, &classification, &uid, &gid, &mode, &atime, &mtime, &ctime, &size,
+         &device, &attributes);
+
+    *res = size;
+}
+
+static long fsizeof (sexpr a)
+{
+    long res = -1;
+    const char *aa = sx_string(a);
+
+    metadata_from_path (aa, with_metadata_size, &res);
+
+    return res;
+}
+
+static void with_metadata_mode (struct metadata *md, void *aux)
+{
+    int *res = (int *)aux;
+    enum metadata_classification_unix classification;
+    int uid, gid, mode, device, attributes;
+    long atime = 0, mtime = 0, ctime = 0, size;
+
+    metadata_to_unix
+        (md, &classification, &uid, &gid, &mode, &atime, &mtime, &ctime, &size,
+         &device, &attributes);
+
+    *res = mode;
+}
+
+static int modeof (sexpr a)
+{
+    int res = 0444;
+    const char *aa = sx_string(a);
+
+    metadata_from_path (aa, with_metadata_mode, &res);
+
+    return res;
 }
 
 static sexpr get_path_r
@@ -452,7 +488,7 @@ static sexpr get_path_r
         }
         else if (truep (equalp (a, sym_root)))
         {
-            r = sx_join (r, i_destdir, sx_nil);
+            r = sx_join (r, context->icemake->destdir, sx_nil);
         }
         else if (truep (equalp (a, sym_target)))
         {
@@ -502,6 +538,11 @@ sexpr get_path
 
     if (!symbolp (layout))
     {
+        layout = context->icemake->filesystem_layout_sym;
+    }
+
+    if (!symbolp (layout))
+    {
         layout = sx_alist_get (toolchain_fs_layout, sym_default);
     }
 
@@ -518,17 +559,19 @@ sexpr get_path
         r = sx_set_merge (r, get_path_r (context, car (c), name, target));
     }
 
-    return r;
+    return (consp(r) || stringp(r)) ? path_normalise(r) : r;
 }
 
 sexpr get_path_d
     (struct target *context, sexpr layout1, sexpr layout2, sexpr type,
      sexpr name, sexpr target)
 {
-    return
+    sexpr r =
         get_path (context, layout2, type,
                   get_path (context, layout1, type, name, target),
                   target);
+
+    return (consp(r) || stringp(r)) ? path_normalise(r) : r;
 }
 
 static sexpr make_file_name
@@ -540,7 +583,7 @@ static sexpr make_file_name
 static sexpr sx_string_dir_prefix
     (struct toolchain_descriptor *td, sexpr f, sexpr p)
 {
-    if (td->operating_system == os_windows)
+    if (truep (equalp (td->operating_system_sym, sym_windows)))
     {
         return sx_join (p, str_backslash, f);
     }
@@ -708,37 +751,6 @@ sexpr prepend_flags_from_environment (sexpr x, const char *var)
     return x;
 }
 
-char *mangle_path_borland (char *b)
-{
-    int i;
-
-    for (i = 0; b[i]; i++)
-    {
-        if (b[i] == '+')
-        {
-            b[i] = 'x';
-        }
-    }
-
-    return b;
-}
-
-sexpr mangle_path_borland_sx (sexpr b)
-{
-    char buffer[BUFFERSIZE];
-    int i;
-    const char *bx = sx_string (b);
-
-    for (i = 0; (i < (BUFFERSIZE - 2)) && bx[i]; i++)
-    {
-        buffer[i] = bx[i];
-    }
-
-    buffer[i] = 0;
-
-    return make_string (mangle_path_borland (buffer));
-}
-
 static sexpr lowercase (sexpr s)
 {
     char buffer[BUFFERSIZE], c;
@@ -795,58 +807,6 @@ static sexpr find_code_sx
     return find_code_with_suffix (td, path, file, ".sx");
 }
 
-static sexpr find_code_c
-    (struct toolchain_descriptor *td, sexpr path, sexpr file)
-{
-    return find_code_with_suffix (td, path, file, ".c");
-}
-
-static sexpr find_code_cpp
-    (struct toolchain_descriptor *td, sexpr path, sexpr file)
-{
-    return find_code_with_suffix (td, path, file, ".c++");
-}
-
-static sexpr find_code_s
-    (struct toolchain_descriptor *td, sexpr path, sexpr file)
-{
-    return find_code_with_suffix (td, path, file, ".s");
-}
-
-static sexpr find_code_pic_s
-    (struct toolchain_descriptor *td, sexpr path, sexpr file)
-{
-    sexpr r = find_code_with_suffix (td, path, file, ".pic.s");
-
-    return (falsep(r) ? find_code_s (td, path, file) : r);
-}
-
-static sexpr find_code_S
-    (struct toolchain_descriptor *td, sexpr path, sexpr file)
-{
-    return find_code_with_suffix (td, path, file, ".S");
-}
-
-static sexpr find_code_pic_S
-    (struct toolchain_descriptor *td, sexpr path, sexpr file)
-{
-    sexpr r = find_code_with_suffix (td, path, file, ".pic.S");
-
-    return (falsep(r) ? find_code_S (td, path, file) : r);
-}
-
-static sexpr find_code_def
-    (struct toolchain_descriptor *td, sexpr path, sexpr file)
-{
-    return find_code_with_suffix (td, path, file, ".def");
-}
-
-static sexpr find_code_rc
-    (struct toolchain_descriptor *td, sexpr path, sexpr file)
-{
-    return find_code_with_suffix (td, path, file, ".rc");
-}
-
 static sexpr find_header_with_suffix
     (struct toolchain_descriptor *td, sexpr path, sexpr name, sexpr file,
      char *s) 
@@ -860,148 +820,6 @@ static sexpr find_header_h
     (struct toolchain_descriptor *td, sexpr path, sexpr name, sexpr file)
 {
     return find_header_with_suffix (td, path, name, file, ".h");
-}
-
-static sexpr generate_object_file_name (sexpr file, struct target *t)
-{
-    return icemake_decorate_file (t, ft_object, fet_build_file, file);
-}
-
-static sexpr generate_resource_file_name (struct target *t)
-{
-    return icemake_decorate_file (t, ft_resource, fet_build_file, t->name);
-}
-
-static sexpr generate_pic_object_file_name (sexpr file, struct target *t)
-{
-    return icemake_decorate_file (t, ft_object_pic, fet_build_file, file);
-}
-
-static void find_code (struct target *context, sexpr file)
-{
-    sexpr r;
-    sexpr primus   = sx_false;
-    sexpr secundus = sx_false;
-
-    if (consp (file))
-    {
-        sexpr ch = car (file), d = context->icemake->alternatives;
-
-        while (consp (d))
-        {
-            sexpr c = car (d);
-
-            if (truep (equalp (car (c), ch)))
-            {
-                sexpr co = cdr (file), e = cdr (c);
-
-                while (consp (co))
-                {
-                    if (truep (equalp (e, car (co))))
-                    {
-                        file = e;
-                        break;
-                    }
-
-                    co = cdr (co);
-                }
-
-                if (consp (file))
-                {
-                    context->icemake->visualiser.on_error
-                        (context->icemake, ie_invalid_choice, file);
-                }
-
-                break;
-            }
-
-            d = cdr (d);
-        }
-
-        if (consp (file))
-        {
-            file = car (cdr (file));
-        }
-    }
-
-    if ((r = find_code_S (context->toolchain, context->base, file)), stringp(r))
-    {
-        primus = sx_list3 (sym_preproc_assembly, r,
-                           generate_object_file_name (file, context));
-
-        if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
-            (context->toolchain->toolchain == tc_gcc) &&
-            !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
-        {
-            secundus = sx_list3 (sym_preproc_assembly_pic,
-                                 find_code_pic_S (context->toolchain,
-                                                  context->base, file),
-                                 generate_pic_object_file_name (file, context));
-        }
-    }
-    else if ((r = find_code_s (context->toolchain, context->base, file)),
-             stringp(r))
-    {
-        primus = sx_list3 (sym_assembly, r,
-                           generate_object_file_name (file, context));
-
-        if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
-            (context->toolchain->toolchain == tc_gcc) &&
-            !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
-        {
-            secundus = sx_list3 (sym_assembly_pic,
-                                 find_code_pic_s (context->toolchain,
-                                                  context->base, file),
-                                 generate_pic_object_file_name (file, context));
-        }
-    }
-
-    if (falsep(primus))
-    {
-        if (((r = find_code_cpp (context->toolchain, context->base, file)),
-            stringp(r)))
-        {
-            context->options |= ICEMAKE_HAVE_CPP;
-
-            primus = sx_list3 (sym_cpp, r,
-                               generate_object_file_name (file, context));
-
-            if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
-                (context->toolchain->toolchain == tc_gcc) &&
-                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
-            {
-                secundus = sx_list3 (sym_cpp_pic, r,
-                                     generate_pic_object_file_name
-                                        (file, context));
-            }
-        }
-        else if (((r = find_code_c (context->toolchain, context->base, file)),
-                 stringp(r)))
-        {
-            primus = sx_list3 (sym_c, r,
-                               generate_object_file_name (file, context));
-
-            if ((context->icemake->options & ICEMAKE_OPTION_DYNAMIC_LINKING) &&
-                (context->toolchain->toolchain == tc_gcc) &&
-                !(context->options & ICEMAKE_NO_SHARED_LIBRARY))
-            {
-                secundus = sx_list3 (sym_c_pic, r,
-                                     generate_pic_object_file_name
-                                        (file, context));
-            }
-        }
-        else
-        {
-            context->icemake->visualiser.on_error
-                (context->icemake, ie_missing_code_file, file);
-        }
-    }
-
-    context->code = cons (primus, context->code);
-    if (!falsep(secundus))
-    {
-        context->code = cons (secundus, context->code);
-    }
 }
 
 static void find_header (struct target *context, sexpr file)
@@ -1221,25 +1039,55 @@ static sexpr make_work_tree (struct target *context, sexpr code)
 
                         if (mode == m_use_first)
                         {
+                            sexpr ufst;
+                            int ufi = 0;
                             on  = (target == t_original) ? na : context->name;
 
-                            ufn = get_path_d
-                                    (context, context->toolchain->toolchain_sym,
-                                     sym_build, ty, on, sn);
+                            ufst = get_path
+                                (context, context->toolchain->toolchain_sym,
+                                 ty, on, sn);
+                            ufn = get_path
+                                    (context, sym_build, ty,
+                                     sx_reverse(ufst), sn);
 
                             for (uc = ufn; consp (uc); uc = cdr (uc))
                             {
+                                sexpr ifc;
+                                sexpr ifst = get_path
+                                    (context, context->toolchain->toolchain_sym,
+                                     ty, on, sn);
+                                sexpr ifn = get_path
+                                    (context, sx_nonexistent, ty,
+                                     sx_reverse(ifst), sn);
                                 sexpr qt = sx_list1(q);
+                                int iff = 0;
                                 ufn = car (uc);
 
                                 l = sx_alist_get    (r, ty);
                                 r = sx_alist_remove (r, ty);
 
-                                if (libraries == l_use)
+                                if (ufi)
+                                {
+                                    o = sx_list5
+                                        (na, ufn, src, qt,
+                                         sx_list1
+                                             (cons (sym_install,
+                                                cons (sx_false,
+                                                cons (sym_symlink,
+                                                    cons (ufst, ufn))))));
+                                    r = sx_alist_add (r, ty, sx_set_add (l, o));
+                                    continue;
+                                }
+                                ufi = 1;
+                                ufst = car (ufst);
+
+                                if ((libraries == l_use) &&
+                                    consp(context->olibraries))
                                 {
                                     spec = cons (cons (sym_require_libraries,
                                                      context->olibraries),
                                                  spec);
+                                    //sx_write (sx_open_stdio(), spec);
                                 }
 
                                 o = sx_list5
@@ -1258,8 +1106,38 @@ static sexpr make_work_tree (struct target *context, sexpr code)
                                     l = sx_end_of_list;
                                 }
 
-                                l = sx_set_add   (l, o);
-                                r = sx_alist_add (r, ty, l);
+                                r = sx_alist_add (r, ty, sx_set_add (l, o));
+
+                                for (ifc = ifn; consp (ifc); ifc = cdr (ifc))
+                                {
+                                    sexpr m = sx_alist_get (r, sym_install);
+                                    sexpr mq;
+                                    if (nexp (m))
+                                    {
+                                        l = sx_end_of_list;
+                                    }
+                                    r = sx_alist_remove (r, sym_install);
+                                    ifn = car (ifc);
+                                    if (iff)
+                                    {
+                                        mq = sx_list1
+                                                    (cons (sym_install,
+                                                        cons (sym_symlink,
+                                                        cons (ifst, ifn))));
+                                    }
+                                    else
+                                    {
+                                        iff = 1;
+                                        ifst = car (ifst);
+                                        mq = sx_list1
+                                                    (cons (sym_install,
+                                                        cons (ufn, ifn)));
+                                    }
+                                    m = sx_set_add (m, sx_list5
+                                        (on, ifn, sx_list1(ufn), o, mq));
+                                    //sx_write (sx_open_stdio(), mq);
+                                    r = sx_alist_add (r, sym_install, m);
+                                }
 
                                 update = u_update;
                             }
@@ -1275,25 +1153,55 @@ static sexpr make_work_tree (struct target *context, sexpr code)
 
                     if ((mode == m_merge) && !eolp (ml) && !eolp (mt))
                     {
+                        sexpr ufst;
+                        int ufi = 0;
                         on = context->name;
 
-                        ufn = get_path_d
-                                (context, context->toolchain->toolchain_sym,
-                                 sym_build, ty, on, sx_nonexistent);
+                        ufst = get_path
+                            (context, context->toolchain->toolchain_sym,
+                             ty, on, sx_nonexistent);
+                        ufn = get_path
+                                (context, sym_build, ty,
+                                 sx_reverse(ufst), sx_nonexistent);
 
                         for (uc = ufn; consp (uc); uc = cdr (uc))
                         {
+                            sexpr ifc;
+                            sexpr ifst = get_path
+                                (context, context->toolchain->toolchain_sym,
+                                 ty, on, sn);
+                            sexpr ifn = get_path
+                                (context, sx_nonexistent, ty,
+                                 sx_reverse(ifst), sn);
                             sexpr qt = mt;
+                            int iff = 0;
                             ufn = car (uc);
 
                             l = sx_alist_get    (r, ty);
                             r = sx_alist_remove (r, ty);
 
-                            if (libraries == l_use)
+                            if (ufi)
+                            {
+                                o = sx_list5
+                                    (na, ufn, src, qt,
+                                     sx_list1
+                                         (cons (sym_install,
+                                            cons (sx_false,
+                                            cons (sym_symlink,
+                                                cons (ufst, ufn))))));
+                                r = sx_alist_add (r, ty, sx_set_add (l, o));
+                                continue;
+                            }
+                            ufi = 1;
+                            ufst = car (ufst);
+
+                            if ((libraries == l_use) &&
+                                consp(context->olibraries))
                             {
                                 spec = cons (cons (sym_require_libraries,
                                                  context->olibraries),
                                              spec);
+                                //sx_write (sx_open_stdio(), spec);
                             }
 
                             o = sx_list5
@@ -1312,8 +1220,38 @@ static sexpr make_work_tree (struct target *context, sexpr code)
                                 l = sx_end_of_list;
                             }
 
-                            l = sx_set_add   (l, o);
-                            r = sx_alist_add (r, ty, l);
+                            r = sx_alist_add (r, ty, sx_set_add (l, o));
+
+                            for (ifc = ifn; consp (ifc); ifc = cdr (ifc))
+                            {
+                                sexpr m = sx_alist_get (r, sym_install);
+                                sexpr mq;
+                                if (nexp (m))
+                                {
+                                    l = sx_end_of_list;
+                                }
+                                r = sx_alist_remove (r, sym_install);
+                                ifn = car (ifc);
+                                if (iff)
+                                {
+                                    mq = sx_list1
+                                                (cons (sym_install,
+                                                    cons (sym_symlink,
+                                                    cons (ifst, ifn))));
+                                }
+                                else
+                                {
+                                    iff = 1;
+                                    ifst = car (ifst);
+                                    mq = sx_list1
+                                                (cons (sym_install,
+                                                    cons (ufn, ifn)));
+                                }
+                                m = sx_set_add (m, sx_list5
+                                    (on, ifn, sx_list1(ufn), o, mq));
+                                //sx_write (sx_open_stdio(), mq);
+                                r = sx_alist_add (r, sym_install, m);
+                            }
 
                             update = u_update;
                         }
@@ -1424,7 +1362,6 @@ static struct target *get_context
     struct target *context = get_pool_mem (&pool);
 
     context->libraries        = sx_end_of_list;
-    context->deffile          = sx_false;
     context->olibraries       = sx_end_of_list;
     context->code             = sx_end_of_list;
     context->test_reference   = sx_end_of_list;
@@ -1441,15 +1378,14 @@ static struct target *get_context
     context->toolchain        = td;
     context->icemake          = im;
     context->base             = path;
+    context->buildbase        = str_build_slash;
 
-    if (td->operating_system == os_windows)
+    /*
+    if (truep (equalp (im->operating_system_sym, sym_windows)))
     {
         context->buildbase    = str_build_backslash;
     }
-    else
-    {
-        context->buildbase    = str_build_slash;
-    }
+    */
 
     return context;
 }
@@ -1495,13 +1431,17 @@ static void make_metadata_files (struct target *context)
 
             io_close (o);
         }
+
+        context->headers =
+            cons (cons (name, cons (ufn, sx_end_of_list)),
+              context->headers);
     }
 }
 
 static void process_definition
     (struct target *context, sexpr definition)
 {
-    sexpr sx;
+    sexpr sx, q, c;
     
     /* find extra options to process first */
     if ((sx = find_code_sx (context->toolchain, context->base, context->name)),
@@ -1520,19 +1460,13 @@ static void process_definition
             else if (truep (equalp (r, sym_hosted)))
             {
                 context->toolchain->options &= ~ICEMAKE_OPTION_FREESTANDING;
-                    
-                if (context->toolchain->operating_system != os_windows)
-                {
-                    context->icemake->options &=
-                        ~ICEMAKE_OPTION_DYNAMIC_LINKING;
-                }
+                context->icemake->options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
             }
         }
 
         sx_close_io (in);
 
-        if ((context->toolchain->operating_system != os_windows) &&
-            !(context->toolchain->options & ICEMAKE_OPTION_FREESTANDING))
+        if (!(context->toolchain->options & ICEMAKE_OPTION_FREESTANDING))
         {
             context->icemake->options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
         }
@@ -1574,29 +1508,6 @@ static void process_definition
         else if (truep(equalp(sxcaar, sym_code)))
         {
             sexpr sxc = cdr (sxcar);
-
-/*            while (consp (sxc))
-            {
-                find_code (context, car (sxc));
-                
-                sxc = cdr (sxc);
-            }
-
-            if ((context->toolchain->operating_system == os_windows) &&
-                (context->toolchain->toolchain == tc_msvc))
-            {
-                sexpr r = find_code_rc
-                    (context->toolchain, context->base, context->name);
-
-                if (stringp (r))
-                {
-                    context->code =
-                        cons (cons(sym_resource, cons (r,
-                                cons (generate_resource_file_name (context),
-                                      sx_end_of_list))),
-                              context->code);
-                } 
-            } */
 
             context->code = find_code_with_spec (context, cdr(sxcar));
         }
@@ -1671,53 +1582,16 @@ static void process_definition
         definition = cdr (definition);
     }
 
-    mkdir_p (icemake_decorate_file (context, ft_other, fet_build_file, sx_nil));
-
-    mkdir_p (sx_join (context->buildbase, context->toolchain->uname,
-                      str_sinclude));
-
-    mkdir_p (icemake_decorate_file (context, ft_header, fet_build_file,
-                                    sx_nil));
-
-    context->headers =
-        cons (cons (str_version,
-                    cons (icemake_decorate_file (context, ft_header,
-                                                 fet_build_file, str_version),
-                          sx_end_of_list)),
-              context->headers);
-
-    if (context->toolchain->toolchain == tc_gcc)
+    q = path_normalise(get_path(context, sym_build, sym_C_Header, str_blank, sx_nonexistent));
+    for (c = car(q); consp(q); q = cdr(q))
     {
-        if ((context->options & ICEMAKE_HAVE_CPP) &&
-             (context->options & ICEMAKE_HOSTED))
-        {
-            context->libraries = cons (str_supcpp, context->libraries);
-            if (context->toolchain->operating_system == os_darwin)
-            {
-                context->libraries = cons (str_gcc_eh, context->libraries);
-            }
-        }
-        else
-        {
-            context->libraries = cons (str_gcc, context->libraries);
-        }
+        mkdir_p (c);
+    }
 
-        if ((context->options & ICEMAKE_HOSTED) &&
-            !(context->options & ICEMAKE_HAVE_CPP))
-        {
-            switch (context->toolchain->operating_system)
-            {
-                case os_windows:
-                    context->libraries = cons (str_kernel32, context->libraries);
-                    context->libraries = cons (str_mingw32, context->libraries);
-                    context->libraries = cons (str_coldname, context->libraries);
-                    context->libraries = cons (str_mingwex, context->libraries);
-                    context->libraries = cons (str_msvcrt, context->libraries);
-                    break;
-                default:
-                    context->libraries = cons (str_lc, context->libraries);
-            }
-        }
+    q = path_normalise(get_path(context, sym_build, sym_Object, str_blank, sx_nonexistent));
+    for (c = car(q); consp(q); q = cdr(q))
+    {
+        mkdir_p (c);
     }
 
     if (context->options & ICEMAKE_USE_CURIE)
@@ -1735,6 +1609,8 @@ static void process_definition
     context->olibraries = sx_set_remove (context->olibraries, context->name);
     context->libraries  = sx_set_remove (context->libraries,  context->name);
 
+    // sx_write (sx_open_stdio(), sx_list3 (context->name, context->olibraries, context->libraries));
+
     make_metadata_files (context);
 }
 
@@ -1749,7 +1625,7 @@ static struct target *create_archive
     context->description = str_archive;
     context->dversion    = str_1;
 
-    context->options |= ICEMAKE_LIBRARY | ICEMAKE_USE_CURIE;
+    context->options |= ICEMAKE_LIBRARY;
 
     process_definition (context, cdr(definition));
 
@@ -1768,11 +1644,13 @@ static struct target *create_library
 
     process_definition (context, cdr(definition));
 
+    /* TODO: huh?
+
     if (falsep(equalp(str_curie, context->name)))
     {
         context->libraries = cons (context->name, context->libraries);
     }
-    context->deffile = find_code_def (td, context->base, context->name);
+    */
 
     return context;
 }
@@ -1903,28 +1781,9 @@ static void target_map_merge (struct tree_node *node, void *u)
     }
 }
 
-static void target_map_combine (struct tree_node *node, void *u)
-{
-    struct target *context = (struct target *)node_get_value(node);
-
-    if ((context->icemake->options & ICEMAKE_OPTION_COMBINE) &&
-        consp(context->code) &&
-        (context->toolchain->toolchain == tc_gcc))
-    {
-        combine_code (context, sym_c,
-                      generate_object_file_name
-                        (str_combined_c_source, context));
-
-        combine_code (context, sym_c_pic,
-                      generate_pic_object_file_name
-                        (str_combined_c_source, context));
-    }
-}
-
 static void merge_contexts ( struct icemake *im )
 {
     tree_map (&(im->targets), target_map_merge,   (void *)im);
-//    tree_map (&(im->targets), target_map_combine, (void *)im);
 }
  
 static void target_map_make_tree (struct tree_node *node, void *u)
@@ -2036,7 +1895,6 @@ sexpr icemake_which
     return w;
 }
 
-static void spawn_stack_items (struct icemake *im, int *fl);
 static sexpr spawn_tree_items (struct icemake *im, int *fl);
 
 static sexpr running_tasks            = sx_end_of_list;
@@ -2145,6 +2003,8 @@ static void process_on_death
                  cons (make_integer (context->exitstatus), sx));
 
             d->failures++;
+
+            sx_write (sx_open_stdio(), sx);
         }
 
         free_exec_context (context);
@@ -2155,9 +2015,187 @@ static void process_on_death
     free_pool_mem (p);
 }
 
+struct file_metadata
+{
+    struct io      *out;
+    struct icemake *icemake;
+    sexpr           sx;
+    sexpr           source;
+    sexpr           target;
+};
+
+static void install_read (struct io *in, void *aux)
+{
+/*
+    struct file_metadata *meta = (struct file_metadata *)aux;
+
+    if (((in->length) - (in->position)) > 0)
+    {
+        io_write (meta->out,
+                  (in->buffer) + (in->position),
+                  (in->length) - (in->position));
+
+        in->position = in->length;
+    }
+*/
+}
+
+struct cpio_meta
+{
+    struct icemake *icemake;
+    const char     *filename;
+    void           *buffer;
+    long            length;
+};
+
+static void with_metadata_to_cpio (struct metadata *md, void *aux)
+{
+    struct cpio_meta *m = (struct cpio_meta *)aux;
+    struct io *cpiobuffer = io_open_buffer (m->buffer, m->length);
+
+    cpio_next_file
+        (m->icemake->resultcpio,
+         m->filename,
+         md,
+         cpiobuffer);
+
+}
+
+static void add_to_cpio
+    (sexpr a, struct icemake *im, sexpr target, void *buffer, long length)
+{
+    struct cpio_meta r = { im, sx_string (target), buffer, length };
+    const char *aa = sx_string(a);
+
+    metadata_from_path (aa, with_metadata_to_cpio, (void*)&r);
+}
+
+static void add_symlink_to_cpio
+    (sexpr a, struct icemake *im, sexpr target)
+{
+    struct cpio_meta r = { im, sx_string (target), (void*)sx_string(a), 0 };
+    const char *aa = sx_string(a);
+
+    for (r.length = 0; ((char*)r.buffer)[r.length] != (char)0; r.length++);
+
+    metadata_from_unix
+        (mcu_symbolic_link,
+         0, 0, 0777, 0, 0, 0, r.length, (int)(int_pointer)im, (int)(int_pointer)a,
+         with_metadata_to_cpio, (void*)&r);
+}
+
+static void install_close (struct io *in, void *aux)
+{
+    struct file_metadata *meta = (struct file_metadata *)aux;
+
+    if (((in->length) - (in->position)) > 0)
+    {
+        io_write (meta->out,
+                  (in->buffer) + (in->position),
+                  (in->length) - (in->position));
+
+        add_to_cpio (meta->source, meta->icemake, meta->target,
+                     (in->buffer) + (in->position),
+                     (in->length) - (in->position));
+
+        in->position = in->length;
+    }
+
+    (meta->icemake->alive_processes)--;
+
+    finish_task (meta->sx);
+
+    free_pool_mem (aux);
+}
+
+static int install_file
+    (struct icemake *im, sexpr sx)
+{
+    sexpr spec = cdr (sx);
+    sexpr source = car (spec);
+    sexpr target = cdr (spec);
+    int mode = 0;
+    int temporary = 0;
+    struct io *in, *out;
+    static struct memory_pool pool =
+        MEMORY_POOL_INITIALISER (sizeof (struct file_metadata));
+    struct file_metadata *meta;
+
+    //sx_write (sx_open_stdio(), sx);
+
+    running_task (sx, sx);
+
+    if (falsep (source))
+    {
+        temporary = 1;
+        source = car (target);
+        target = cdr (target);
+    }
+
+    if (integerp (source))
+    {
+        mode   = sx_integer (source);
+        source = car (target);
+        target = cdr (target);
+    }
+
+    if (truep(equalp(source, sym_symlink)))
+    {
+        source = car (target);
+        target = cdr (target);
+
+        mkdir_pi (target);
+
+        symlink (sx_string(source), sx_string(target));
+
+        if (!temporary)
+        {
+            add_symlink_to_cpio (source, im, target);
+        }
+
+        finish_task (sx);
+    }
+    else if (truep (filep (source)))
+    {
+        long size = fsizeof (source);
+
+        if (mode == 0)
+        {
+            mode = modeof (source);
+        }
+
+        mkdir_pi (target);
+
+        meta = (struct file_metadata *)get_pool_mem (&pool);
+
+        in  = io_open_read   (sx_string (source));
+        out = io_open_create (sx_string (target), mode);
+
+        meta->out     = out;
+        meta->icemake = im;
+        meta->sx      = sx;
+        meta->source  = source;
+        meta->target  = target;
+
+        (im->alive_processes)++;
+
+        multiplex_add_io (in, install_read, install_close, (void *)meta);
+        multiplex_add_io_no_callback (out);
+
+        /* force reading the whole file without going through the multiplex */
+        while (in->length < size)
+        {
+            io_read (in);
+        }
+    }
+
+    return 0;
+}
+
 static int have_libraries (struct icemake *im, sexpr libraries)
 {
-    sx_write (sx_open_stdio (), libraries);
+    /* TODO: handle library check */
+    //sx_write (sx_open_stdio (), libraries);
     return 1;
 }
 
@@ -2175,7 +2213,12 @@ static void spawn_item
         MEMORY_POOL_INITIALISER(sizeof (struct process_data));
     struct process_data *pd;
 
-    if (truep(equalp(cf, sym_chdir)))
+    if (truep(equalp(cf, sym_install)))
+    {
+        install_file (im, sx);
+        return;
+    }
+    else if (truep(equalp(cf, sym_chdir)))
     {
         sexpr cfcdr = cdr (cur);
         sexpr cfcdar = car (cfcdr);
@@ -2266,35 +2309,6 @@ static void spawn_item
     }
 }
 
-static void spawn_stack_items (struct icemake *im, int *fl)
-{
-    while (consp (im->workstack) && ((im->alive_processes) < im->max_processes))
-    {
-        sexpr spec = car (im->workstack);
-        sexpr sca  = car (spec);
-
-        im->visualiser.on_command (im, spec);
-
-        if (truep (equalp (sym_install, sca)) ||
-            truep (equalp (sym_symlink, sca)))
-        {
-            if (im->install_file !=
-                    (int (*)(struct icemake *, sexpr))0)
-            {
-                im->install_file (im, cdr (spec));
-            }
-        }
-        else if (falsep (equalp (sym_phase, sca)) &&
-                 falsep (equalp (sym_completed, sca)) &&
-                 falsep (equalp (sym_targets, sca)))
-        {
-            spawn_item (spec, process_on_death, im, fl);
-        }
-
-        im->workstack = cdr (im->workstack);
-    }
-}
-
 struct newerp_data
 {
     const char *b;
@@ -2367,6 +2381,8 @@ static void sti_test_source
     }
     else if (stringp (source))
     {
+        //sx_write (sx_open_stdio(), sx_list5(source, target, filep(source), filep(target), newerp(source,target)));
+        //sx_write (sx_open_stdio(), sx_list4(source, target, filep(source), filep(target)));
         if (falsep (filep (source)))
         {
             *dorun = (char)0;
@@ -2385,12 +2401,43 @@ static void sti_test_source
     }
 }
 
-static sexpr spawn_tree_items_r (struct icemake *im, sexpr tree, int *fl)
+static sexpr spawn_tree_items_r
+    (struct icemake *im, sexpr tree, int *fl, sexpr root)
 {
     sexpr c = tree, name, target, source, sub, run, cs, tfile;
-    char dorun = (char)1, sourcenewer = (char)0;
+    char dorun = (char)1, sourcenewer = (char)0, rootselection = (char)0;
 
     name   = car (c);
+
+    if (consp (name))
+    {
+        sexpr r = sx_end_of_list;
+
+        for (c = tree; consp(c); c = cdr(c))
+        {
+            sexpr a = spawn_tree_items_r (im, a, fl, root);
+            if (consp (a))
+            {
+                a = cons (a, r);
+            }
+        }
+
+        return r;
+    }
+
+    if (nexp (root))
+    {
+        rootselection = (char)1;
+        root = name;
+
+        /* drop from work tree if it's not needed for our targets */
+        /* TODO: this is far too radical */
+        //if (falsep (sx_set_memberp (im->buildtargets, root)))
+        //{
+        //    return sx_false;
+        //}
+    }
+
     c      = cdr (c);
     target = car (c);
     c      = cdr (c);
@@ -2442,7 +2489,7 @@ static sexpr spawn_tree_items_r (struct icemake *im, sexpr tree, int *fl)
 
         for (c = sub; consp (c); c = cdr (c))
         {
-            co = spawn_tree_items_r (im, car(c), fl);
+            co = spawn_tree_items_r (im, car(c), fl, root);
 
             if (consp (co))
             {
@@ -2474,7 +2521,14 @@ static sexpr spawn_tree_items_r (struct icemake *im, sexpr tree, int *fl)
         /* check source and target files */
         else
         {
+            //if (consp (name))
+            //{
+            //    sx_write (sx_open_stdio(), make_string("!?"));
+            //}
+            //sx_write (sx_open_stdio(), sx_list3 (name, source, target));
             sti_test_source (source, tfile, &dorun, &sourcenewer);
+            //sx_write (sx_open_stdio(), sx_list4 (name, make_integer(dorun), make_integer(sourcenewer), run));
+            //sx_write (sx_open_stdio(), tree);
         }
 
         /* now run task if possible */
@@ -2520,7 +2574,7 @@ static sexpr spawn_tree_items (struct icemake *im, int *fl)
 
         if (consp (a))
         {
-            a = spawn_tree_items_r (im, a, fl);
+            a = spawn_tree_items_r (im, a, fl, sx_nonexistent);
 
             if (consp (a))
             {
@@ -2528,6 +2582,8 @@ static sexpr spawn_tree_items (struct icemake *im, int *fl)
             }
         }
     }
+
+    //im->worktree = spawn_tree_items_r (im, im->worktree, fl);
 
     im->worktree = r;
 
@@ -2555,22 +2611,6 @@ enum signal_callback_result cb_on_bad_signal(enum signal s, void *p)
 
 static int icemake_count_print_items (struct icemake *im )
 {
-/*    int count = 0;
-    sexpr cur, ccur, ca;
-
-    for (cur = im->workstack; consp (cur); cur = cdr (cur))
-    {
-        ccur = car (cur);
-        ca   = car (ccur);
-
-        if (falsep (equalp (ca, sym_phase)) &&
-            falsep (equalp (ca, sym_targets)) &&
-            falsep (equalp (ca, sym_completed)))
-        {
-            count++;
-        }
-    } */
-
     im->visualiser.items (im, im->alive_processes, im->remaining_tasks,
                           im->max_tasks);
 
@@ -2581,11 +2621,8 @@ int icemake_loop_processes (struct icemake *im)
 {
     int failures = 0;
 
-/*    im->workstack = sx_reverse (im->workstack); */
-
 //    icemake_count_print_items (im);
 
-//    spawn_stack_items (im, &failures);
     spawn_tree_items (im, &failures);
 
     im->visualiser.on_command (im, sx_list2 (sym_phase, sym_build));
@@ -2594,7 +2631,6 @@ int icemake_loop_processes (struct icemake *im)
     {
         multiplex();
         spawn_tree_items (im, &failures);
-//        spawn_stack_items (im, &failures);
         icemake_count_print_items (im);
     }
 
@@ -2694,10 +2730,6 @@ int icemake_default_architecture
         {
             toolchain = "msvc";
         }
-        else if (!falsep(which(str_bcc32)))
-        {
-            toolchain = "borland";
-        }
         else /* if nothing specific is found, guess it's gcc*/
         {
             toolchain = "gnu";
@@ -2739,34 +2771,17 @@ int icemake_prepare_toolchain
      int (*with_data)(struct toolchain_descriptor *, void *), void *aux)
 {
     struct toolchain_descriptor td =
-        { tc_generic, os_generic, is_generic, make_string(name),
+        { make_string(name),
           "generic", "generic", "generic", "generic" };
 
     define_symbol (sym_tc,           "tc");
     define_symbol (sym_os,           "os");
     define_symbol (sym_is,           "is");
     define_symbol (sym_vendor,       "vendor");
-    define_symbol (sym_gcc,          "gcc");
-    define_symbol (sym_msvc,         "msvc");
-    define_symbol (sym_borland,      "borland");
-    define_symbol (sym_darwin,       "darwin");
-    define_symbol (sym_linux,        "linux");
-    define_symbol (sym_freebsd,      "freebsd");
-    define_symbol (sym_openbsd,      "openbsd");
-    define_symbol (sym_dragonflybsd, "dragonflybsd");
-    define_symbol (sym_netbsd,       "netbsd");
-    define_symbol (sym_windows,      "windows");
     define_symbol (sym_64bit,        "is-64-bit");
     define_symbol (sym_32bit,        "is-32-bit");
-    define_symbol (sym_arm,          "arm");
-    define_symbol (sym_x86,          "x86");
-    define_symbol (sym_mips,         "mips");
-    define_symbol (sym_powerpc,      "powerpc");
-    define_symbol (sym_sh,           "sh");
 
     sexpr c;
-
-    td.toolchain  = tc_generic;
 
     for (c = toolchain_patterns; consp (c); c = cdr (c))
     {
@@ -2790,19 +2805,6 @@ int icemake_prepare_toolchain
                         a  = cdr (a);
                         aa = car (a);
 
-                        if (truep (equalp (aa, sym_gcc)))
-                        {
-                            td.toolchain = tc_gcc;
-                        }
-                        else if (truep (equalp (aa, sym_borland)))
-                        {
-                            td.toolchain = tc_borland;
-                        }
-                        else if (truep (equalp (aa, sym_msvc)))
-                        {
-                            td.toolchain = tc_msvc;
-                        }
-
                         td.toolchain_sym = aa;
 
                         a  = cdr (a);
@@ -2815,35 +2817,6 @@ int icemake_prepare_toolchain
                         a  = cdr (a);
                         aa = car (a);
 
-                        if (truep (equalp (aa, sym_linux)))
-                        {
-                            td.operating_system = os_linux;
-                        }
-                        else if (truep (equalp (aa, sym_darwin)))
-                        {
-                            td.operating_system = os_darwin;
-                        }
-                        else if (truep (equalp (aa, sym_windows)))
-                        {
-                            td.operating_system = os_windows;
-                        }
-                        else if (truep (equalp (aa, sym_netbsd)))
-                        {
-                            td.operating_system = os_netbsd;
-                        }
-                        else if (truep (equalp (aa, sym_dragonflybsd)))
-                        {
-                            td.operating_system = os_dragonflybsd;
-                        }
-                        else if (truep (equalp (aa, sym_freebsd)))
-                        {
-                            td.operating_system = os_freebsd;
-                        }
-                        else if (truep (equalp (aa, sym_openbsd)))
-                        {
-                            td.operating_system = os_openbsd;
-                        }
-
                         td.operating_system_sym = aa;
 
                         a  = cdr (a);
@@ -2855,27 +2828,6 @@ int icemake_prepare_toolchain
                     {
                         a  = cdr (a);
                         aa = car (a);
-
-                        if (truep (equalp (aa, sym_arm)))
-                        {
-                            td.instruction_set = is_arm;
-                        }
-                        else if (truep (equalp (aa, sym_x86)))
-                        {
-                            td.instruction_set = is_x86;
-                        }
-                        else if (truep (equalp (aa, sym_mips)))
-                        {
-                            td.instruction_set = is_mips;
-                        }
-                        else if (truep (equalp (aa, sym_powerpc)))
-                        {
-                            td.instruction_set = is_powerpc;
-                        }
-                        else if (truep (equalp (aa, sym_sh)))
-                        {
-                            td.instruction_set = is_sh;
-                        }
 
                         td.instruction_set_sym = aa;
 
@@ -2976,24 +2928,7 @@ int icemake_prepare_toolchain
         }
     }
 
-    switch (td.toolchain)
-    {
-        case tc_generic: icemake_prepare_toolchain_generic (&td); break;
-        case tc_gcc:     icemake_prepare_toolchain_gcc     (&td); break;
-        case tc_borland: icemake_prepare_toolchain_borland (&td); break;
-        case tc_msvc:    icemake_prepare_toolchain_msvc    (&td); break;
-        case tc_latex:   icemake_prepare_toolchain_latex   (&td); break;
-        case tc_doxygen: icemake_prepare_toolchain_doxygen (&td); break;
-        case tc_unknown: break;
-    }
-
-    switch (td.operating_system)
-    {
-        default:
-        case os_generic:
-            icemake_prepare_operating_system_generic (0, &td);
-            break;
-    }
+    icemake_prepare_operating_system_generic (0, &td);
 
     return with_data (&td, aux);
 }
@@ -3197,12 +3132,12 @@ int icemake_prepare
      int (*with_data)(struct icemake *, void *), void *aux)
 {
     struct icemake iml =
-        { fs_afsl,
+        { str_blank, sx_false,
           sx_end_of_list,
           TREE_INITIALISER,
           (int (*)(struct icemake *, sexpr))0,
           0, 0, 0, 0, options,
-          sx_end_of_list, sx_end_of_list, sx_end_of_list, sx_end_of_list };
+          sx_end_of_list, sx_end_of_list, sx_end_of_list };
     sexpr base_path = make_string (path);
     sexpr icemake_sx_path;
     struct sexpr_io *io;
@@ -3213,6 +3148,9 @@ int icemake_prepare
     if (im == (struct icemake *)0)
     {
         im = &iml;
+        im->result     = io_open_create ("result.cpio", 0444);
+        im->resultcpio = cpio_create_archive (im->result);
+
         icemake_prepare_visualiser_stub (im);
     }
 
@@ -3224,13 +3162,7 @@ int icemake_prepare
  
     if (td != (struct toolchain_descriptor *)0)
     {
-        if (td->operating_system == os_darwin)
-        {
-            im->options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
-        }
-
-        if ((td->operating_system != os_windows) &&
-            !(td->options & ICEMAKE_OPTION_FREESTANDING))
+        if (!(td->options & ICEMAKE_OPTION_FREESTANDING))
         {
             im->options &= ~ICEMAKE_OPTION_DYNAMIC_LINKING;
         }
@@ -3364,35 +3296,13 @@ int icemake
 
 //    sx_write (sx_open_stdio(), im->worktree);
 
-/*    im->workstack =
-        cons (cons (sym_completed, cons (sym_targets, im->buildtargets)),
-              im->workstack);
-
-    if (im->options & ICEMAKE_OPTION_INSTALL)
-    {
-        failures += icemake_install (im);
-    }
-
-    if (im->options & ICEMAKE_OPTION_TESTS)
-    {
-        failures += icemake_run_tests (im);
-    }
-
-    if (truep (do_build_documentation))
-    {
-        failures += icemake_build_documentation (im);
-    }
-
-    failures += icemake_link  (im);
-    failures += icemake_build (im);
-
-    im->workstack =cons (cons (sym_targets, im->buildtargets), im->workstack);
-
-    im->buildtargets = sx_reverse (im->buildtargets); */
-
     failures += icemake_loop_processes (im);
 
+//    sx_write (sx_open_stdio(), im->worktree);
+
     save_metadata (im);
+
+    cpio_close (im->resultcpio);
 
     return failures;
 }

@@ -4,7 +4,7 @@ REM Win32\cmd Variant
 
 SET INCLUDES=-Iinclude\windows -Iinclude
 SET INCLUDESMSVC=/Iinclude\windows /Iinclude
-SET ICEMAKE_FILES=icemake icemake-build icemake-install icemake-link icemake-tc-gcc icemake-tc-borland icemake-tc-msvc icemake-tc-generic icemake-os-generic icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree-basic immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio utf-8 sexpr-custom hash tree-string tree-library gcd variables libc-compat io-pool sexpr-set bootstrap shell regex graph sexpr-sort metadata-path metadata-unix time-unix icemake-vis-stub icemake-vis-raw icemake-vis-ice ice sievert-filesystem sexpr-list icemake-archive cpio directory directory-common sexpr-alist
+SET ICEMAKE_FILES=icemake icemake-os-generic icemake-stubs sexpr memory memory-pool memory-allocator io string io-system sexpr-read-write sexpr-library tree-basic immutable multiplex multiplex-signal multiplex-process multiplex-io multiplex-system signal-system exec exec-system network network-system multiplex-sexpr filesystem sexpr-stdio stdio utf-8 sexpr-custom hash tree-string tree-library gcd variables libc-compat io-pool sexpr-set bootstrap shell regex graph sexpr-sort metadata-path metadata-unix time-unix icemake-vis-stub icemake-vis-raw icemake-vis-ice ice sievert-filesystem sexpr-list icemake-archive cpio directory directory-common sexpr-alist
 SET OBJECTS=
 
 SET TOOLCHAINTYPE=
@@ -26,19 +26,6 @@ GOTO :EOF
 IF EXIST build\b-icemake.exe GOTO :EOF
 
 cl %LDFLAGS% /nologo /Febuild\b-icemake.exe %*
-GOTO :EOF
-
-:BORLAND_BUILD
-SET OBJECTS=%2bj %OBJECTS%
-IF EXIST %2bj GOTO :EOF
-
-bcc32 %CFLAGS% %CCFLAGS% -DNOVERSION -AT -q -w %INCLUDES% -o %2bj -c %1
-GOTO :EOF
-
-:BORLAND_LINK
-IF EXIST build\b-icemake.exe GOTO :EOF
-
-bcc32 %LDFLAGS% -q -o build\b-icemake.exe %*
 GOTO :EOF
 
 :GCC_BUILD
@@ -93,13 +80,6 @@ GOTO :EOF
 cl
 IF "%ERRORLEVEL%"=="0" (
     SET TOOLCHAINTYPE=msvc
-)
-
-IF NOT "%TOOLCHAINTYPE%"=="" GOTO :EOF
-
-bcc32 --version
-IF "%ERRORLEVEL%"=="0" (
-    SET TOOLCHAINTYPE=borland
 )
 
 IF NOT "%TOOLCHAINTYPE%"=="" GOTO :EOF

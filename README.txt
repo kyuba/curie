@@ -53,10 +53,9 @@ Compilation:
 
   The compiler will try to determine the compiler to use automatically,
   depending on what's available in your PATH. The search order is MSVC++, then
-  Borland/Turbo C++, then GCC/MinGW. Do note that only the Borland compiler will
-  put itself into the computer's PATH automatically; for MSVC++ you may invoke
-  icemake from the MSVC command line (there should be a link to this in your
-  start menu).
+  GCC/MinGW. Do note that none of thse will put themselves into the computer's
+  PATH automatically; for MSVC++ you may invoke icemake from the MSVC command
+  line (there should be a link to this in your start menu).
 
 Installation:
   use this command to install regularly (for example into /usr, in the example):
@@ -90,7 +89,6 @@ Selecing a Toolchain:
 
   Valid toolchains are:
     * i386-microsoft-windows-gnu     -- GCC/MinGW
-    * i386-microsoft-windows-borland -- Borland/Turbo C++
     * i386-microsoft-windows-msvc    -- Microsoft Visual C++
 
 Testing:
