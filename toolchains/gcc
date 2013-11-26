@@ -1,0 +1,29 @@
+TOOLCHAINS:=$(strip $(TOOLCHAINS) gcc)
+
+ifeq ($(toolchain),gcc)
+COMPATIBLE_OS:=$(strip $(COMPATIBLE_OS) posix ansi)
+COMPATIBLE_TOOLCHAIN:=$(strip $(COMPATIBLE_TOOLCHAIN) gnu)
+
+%.o: src/%.c
+	$(CC) -c -Iinclude/ -std=c99 -Wall -pedantic $(CFLAGS) $< -o $@
+
+%.pic.o: src/%.c
+	$(CC) -c -Iinclude/ -std=c99 -Wall -pedantic $(CFLAGS) -fPIC $< -o $@
+
+VERSIONS:=current
+
+bin/%: $$($$*_OBJECTS)
+	rm -f $@ $@.$($*_VERSION)
+	$(CC) $(LDFLAGS) -fPIC $^ -o $@.$($*_VERSION)
+	$(SYMLINK) $@.$($*_VERSION) $@
+
+lib/lib%.so: $$($$*_OBJECTS_PIC)
+	rm -f $@ $@.$($*_VERSION)
+	$(CC) -shared $(LDFLAGS) -fPIC $^ -o $@.$($*_VERSION)
+	$(SYMLINK) $@.$($*_VERSION) $@
+
+lib/lib%.a: $$($$*_OBJECTS)
+	rm -f $@ $@.$($*_VERSION)
+	$(AR) $(ARFLAGS) $@.$($*_VERSION) $^
+	$(SYMLINK) $@.$($*_VERSION) $@
+endif

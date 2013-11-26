@@ -1,0 +1,5 @@
+TOOLCHAINS:=$(strip $(TOOLCHAINS) clang)
+
+ifeq ($(toolchain),clang)
+COMPATIBLE_OS:=$(strip $(COMPATIBLE_OS) posix ansi)
+endif

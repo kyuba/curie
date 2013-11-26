@@ -1,0 +1,9 @@
+TYPE=library
+LIBRARIES=
+NAME=libsyscall
+DESCRIPTION="raw syscall library, useful for implementing libcs and low-level system tools (headers only)"
+VERSION=2
+URL=http://kyuba.org/
+CODE=
+HEADERS="syscall invocation"
+DOCUMENTATION=

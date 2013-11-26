@@ -1,0 +1,10 @@
+TYPE=library
+LIBRARIES=curie
+NAME="Curie Boostrap"
+DESCRIPTION="minimalistic, sexpr-based, non-POSIX, non-ANSI libc: bootstrap handler"
+VERSION=11
+URL=http://kyuba.org/
+CODE="bootstrap bootstrap-highlevel"
+HEADERS=
+DOCUMENTATION=description
+PIC=NO

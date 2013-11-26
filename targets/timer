@@ -1,0 +1,10 @@
+TYPE=programme
+LIBRARIES="curie sievert"
+NAME=timer
+DESCRIPTION="programmable multi-purpose timer"
+VERSION=1
+URL=http://kyuba.org/
+CODE=timer
+HEADERS=
+DOCUMENTATION=
+BOOTSTRAP=YES
