@@ -4,26 +4,39 @@ ifeq ($(toolchain),gcc)
 COMPATIBLE_OS:=$(strip $(COMPATIBLE_OS) posix ansi)
 COMPATIBLE_TOOLCHAIN:=$(strip $(COMPATIBLE_TOOLCHAIN) gnu)
 
-%.o: src/%.c
-	$(CC) -c -Iinclude/ -std=c99 -Wall -pedantic $(CFLAGS) $< -o $@
+# ignore the default link rule
+%: %.o
 
+# build C source files in C99 mode
+%.o: src/%.c
+	@$(ECHO) CC $@
+	@$(CC) -c -Iinclude/ -std=c99 -Wall -pedantic $(CFLAGS) $($*_CFLAGS) $< -o $@
+
+# build C source files for PIC targets in C99 mode
 %.pic.o: src/%.c
-	$(CC) -c -Iinclude/ -std=c99 -Wall -pedantic $(CFLAGS) -fPIC $< -o $@
+	@$(ECHO) CC $@
+	@$(CC) -c -Iinclude/ -std=c99 -Wall -pedantic $(CFLAGS) $($*_CFLAGS) -fPIC $< -o $@
 
 VERSIONS:=current
 
+# link binaries
 bin/%: $$($$*_OBJECTS)
-	rm -f $@ $@.$($*_VERSION)
-	$(CC) $(LDFLAGS) -fPIC $^ -o $@.$($*_VERSION)
-	$(SYMLINK) $@.$($*_VERSION) $@
+	@$(ECHO) LD $@
+	@rm -f $@ $@.$($*_VERSION)
+	@$(CC) $(LDFLAGS) $($*_LDFLAGS) $^ -o $@.$($*_VERSION)
+	@$(SYMLINK) $@.$($*_VERSION) $@
 
+# link shared libraries
 lib/lib%.so: $$($$*_OBJECTS_PIC)
-	rm -f $@ $@.$($*_VERSION)
-	$(CC) -shared $(LDFLAGS) -fPIC $^ -o $@.$($*_VERSION)
-	$(SYMLINK) $@.$($*_VERSION) $@
+	@$(ECHO) LD $@
+	@rm -f $@ $@.$($*_VERSION)
+	@$(CC) -shared $(LDFLAGS) $($*_LDFLAGS) -fPIC $^ -o $@.$($*_VERSION)
+	@$(SYMLINK) $@.$($*_VERSION) $@
 
+# link static libraries
 lib/lib%.a: $$($$*_OBJECTS)
-	rm -f $@ $@.$($*_VERSION)
-	$(AR) $(ARFLAGS) $@.$($*_VERSION) $^
-	$(SYMLINK) $@.$($*_VERSION) $@
+	@$(ECHO) AR $@
+	@rm -f $@ $@.$($*_VERSION)
+	@$(AR) $(ARFLAGS) $($*_ARFLAGS) $@.$($*_VERSION) $^
+	@$(SYMLINK) $@.$($*_VERSION) $@
 endif

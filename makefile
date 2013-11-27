@@ -26,7 +26,7 @@ BUILDBASEMAKE=$(BUILDBASE)/makefile
 BASEDIRS=src include data lib bin
 MINIMALDOC=README AUTHORS COPYING CREDITS
 
-SUFFIXES=sx
+SUFFIXES:=sx mk
 
 SUFFIXES:=$(strip $(SUFFIXES) pic.s pic.S s S c c++ h)
 
@@ -74,7 +74,10 @@ create-build-directory: $(BUILDDIR)
 		done; \
 	done; true
 	rm -f $(BUILDBASEMAKE)
+	$(ECHO) "all: $(TARGETBASES)" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDEXPANSION:" >> $(BUILDBASEMAKE)
+	$(ECHO) ".INTERMEDIATE:" >> $(BUILDBASEMAKE)
+	$(ECHO) "include src/options.mk" >> $(BUILDBASEMAKE)
 	$(ECHO) "cpu:=$(cpu)" >> $(BUILDBASEMAKE)
 	$(ECHO) "vendor:=$(vendor)" >> $(BUILDBASEMAKE)
 	$(ECHO) "os:=$(os)" >> $(BUILDBASEMAKE)
@@ -82,9 +85,9 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "basedir:=$(basedir)" >> $(BUILDBASEMAKE)
 	$(ECHO) "SYMLINK:=$(SYMLINK)" >> $(BUILDBASEMAKE)
 	$(ECHO) "LN:=$(LN)" >> $(BUILDBASEMAKE)
+	$(ECHO) "ECHO:=$(ECHO)" >> $(BUILDBASEMAKE)
 #	$(CAT) "toolchains/$(toolchain)" >> $(BUILDBASEMAKE)
 	$(CAT) $(TOOLCHAINSPECS) >> $(BUILDBASEMAKE)
-	$(ECHO) "all: $(TARGETBASES)" >> $(BUILDBASEMAKE)
 	for i in $(TARGETS); do \
 		PIC=YES; \
 		BOOTSTRAP=NO; \
@@ -100,6 +103,7 @@ create-build-directory: $(BUILDDIR)
 		fi; \
 		if [ "$${BOOTSTRAP}" = "YES" ]; then \
 			LIBRARIES="$${LIBRARIES} curie-bootstrap"; \
+			$(ECHO) "$${name}_LDFLAGS:=\$$(BOOTSTRAP_LDFLAGS)"; \
 		fi; \
 		$(ECHO) "$${name}_VERSION:=$${VERSION}"; \
 		$(ECHO) "VERSIONS:=\$$(VERSIONS) $${VERSION}"; \
