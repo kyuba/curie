@@ -24,19 +24,19 @@ bin/%: $$($$*_OBJECTS)
 	@$(ECHO) LD $@
 	@rm -f $@ $@.$($*_VERSION)
 	@$(CC) $(LDFLAGS) $($*_LDFLAGS) $^ -o $@.$($*_VERSION)
-	@$(SYMLINK) $@.$($*_VERSION) $@
+	@$(SYMLINK) $(notdir $@.$($*_VERSION)) $@
 
 # link shared libraries
 lib/lib%.so: $$($$*_OBJECTS_PIC)
 	@$(ECHO) LD $@
 	@rm -f $@ $@.$($*_VERSION)
 	@$(CC) -shared $(LDFLAGS) $($*_LDFLAGS) -fPIC $^ -o $@.$($*_VERSION)
-	@$(SYMLINK) $@.$($*_VERSION) $@
+	@$(SYMLINK) $(notdir $@.$($*_VERSION)) $@
 
 # link static libraries
 lib/lib%.a: $$($$*_OBJECTS)
 	@$(ECHO) AR $@
 	@rm -f $@ $@.$($*_VERSION)
 	@$(AR) $(ARFLAGS) $($*_ARFLAGS) $@.$($*_VERSION) $^
-	@$(SYMLINK) $@.$($*_VERSION) $@
+	@$(SYMLINK) $(notdir $@.$($*_VERSION)) $@
 endif
