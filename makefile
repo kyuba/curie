@@ -73,8 +73,9 @@ create-build-directory: $(BUILDDIR)
 			done; \
 		done; \
 	done; true
-	rm -f $(BUILDBASEMAKE)
-	$(ECHO) "all: $(TARGETBASES)" >> $(BUILDBASEMAKE)
+	$(ECHO) "all: $(TARGETBASES)" > $(BUILDBASEMAKE)
+	$(ECHO) "install: $(addsuffix _INSTALL,$(TARGETBASES))" >> $(BUILDBASEMAKE)
+	$(ECHO) "uninstall: $(addsuffix _UNINSTALL,$(TARGETBASES))" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDEXPANSION:" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDARY:" >> $(BUILDBASEMAKE)
 	$(ECHO) "include src/options.mk" >> $(BUILDBASEMAKE)
@@ -136,8 +137,24 @@ create-build-directory: $(BUILDDIR)
 			$(ECHO) "$${name}_TARGETS:=\$$($${name}_TARGETS) $${name}_BUILD"; \
 		fi; \
 		$(ECHO) "$${name}: \$$($${name}_TARGETS)"; \
+		$(ECHO) "$${name}_INSTALL:"; \
+		$(ECHO) "$${name}_UNINSTALL:"; \
 	done >> $(BUILDBASEMAKE)
 
 host: $(BUILD)/$(HOST)/makefile
-	cd $(BUILD)/$(HOST) && $(MAKE)
+	cd $(BUILD)/$(HOST) && $(MAKE) all
 
+install: $(BUILD)/$(HOST)/makefile
+	cd $(BUILD)/$(HOST) && $(MAKE) install
+
+uninstall: $(BUILD)/$(HOST)/makefile
+	cd $(BUILD)/$(HOST) && $(MAKE) uninstall
+
+build-%: $(BUILD)/%/makefile
+	cd $(BUILD)/$* && $(MAKE) all
+
+install-%: $(BUILD)/%/makefile
+	cd $(BUILD)/$* && $(MAKE) install
+
+uninstall-%: $(BUILD)/%/makefile
+	cd $(BUILD)/$* && $(MAKE) uninstall
