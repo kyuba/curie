@@ -21,7 +21,8 @@ benchmarks/*
 !benchmarks/*.c
 !benchmarks/*.h
 
-documentation/doxygen
+documentation/html
+documentation/man
 
 a.out
 
