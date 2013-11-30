@@ -1,10 +1,10 @@
-## QUICK AND DIRTY: COMPILATION AND INSTALLATION ###############################
+# QUICK AND DIRTY: COMPILATION AND INSTALLATION ################################
 
 Don't really need anything...
 
     $ make PREFIX=/usr install
 
-################################################################################
+--------------------------------------------------------------------------------
 
 NOTE:
     Library documentation has gotten somewhat better, but this new build system
@@ -15,7 +15,7 @@ NOTE.2:
     Please take note of the library licence (the COPYING file), as well as the
     credits (the CREDITS file).
 
-## DETAILS #####################################################################
+# DETAILS ######################################################################
 
 Compilation
 -----------
@@ -32,7 +32,7 @@ Use this command to install regularly (for example into /usr, in the example):
 
     $ make PREFIX=/usr install
 
-## TROUBLESHOOTING / KNOWN ISSUES ##############################################
+# TROUBLESHOOTING / KNOWN ISSUES ###############################################
 
 Stack protectors
 ----------------
@@ -50,6 +50,6 @@ your computer science teachers with a favour for java and no concept nor
 understanding of pointers may have told you. SSP in all its forms is one of the
 sad reasons why applications suck these days.
 
-## CONTACT ####################################################################
+# CONTACT #####################################################################
 
 Your best bet is IRC: freenode #kyuba
