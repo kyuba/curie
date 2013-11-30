@@ -1,0 +1,11 @@
+$(DEST)/bin/%: bin/%
+	$(INSTALL) -D $<.$($*_VERSION) $@.$($*_VERSION)
+	$(SYMLINK) -f $*.$($*_VERSION) $@
+
+$(DEST)/$(LIBDIR)/lib%.a: lib/lib%.a
+	$(INSTALL) -D $<.$($*_VERSION) $@.$($*_VERSION)
+	$(SYMLINK) -f $*.$($*_VERSION) $@
+
+$(DEST)/$(LIBDIR)/lib%.so: lib/lib%.so
+	$(INSTALL) -D $<.$($*_VERSION) $@.$($*_VERSION)
+	$(SYMLINK) -f $*.$($*_VERSION) $@

@@ -1,6 +1,10 @@
 space:=
 space+=
 
+DESTDIR:=
+PREFIX:=/usr/local
+LIBDIR:=lib
+
 PWD=$(shell pwd)
 
 root:=$(PWD)
@@ -18,9 +22,11 @@ HOST=$(shell echo $(subst $(space),-,$(strip $(subst _,-,$(UNAME_MACHINE) $(UNAM
 BUILD=.build
 BUILDD=$(BUILD)/.volatile
 ECHO=echo
+ECHON=echo -n
 CAT=cat
 SYMLINK=ln -s
 LN=ln
+INSTALL=install
 BUILDBASE=$(BUILD)/$(basedir)
 BUILDBASEMAKE=$(BUILDBASE)/makefile
 BASEDIRS=src include data lib bin
@@ -74,8 +80,8 @@ create-build-directory: $(BUILDDIR)
 		done; \
 	done; true
 	$(ECHO) "all: $(TARGETBASES)" > $(BUILDBASEMAKE)
-	$(ECHO) "install: $(addsuffix _INSTALL,$(TARGETBASES))" >> $(BUILDBASEMAKE)
-	$(ECHO) "uninstall: $(addsuffix _UNINSTALL,$(TARGETBASES))" >> $(BUILDBASEMAKE)
+	$(ECHO) "install-fhs: $(addsuffix _INSTALL_FHS,$(TARGETBASES))" >> $(BUILDBASEMAKE)
+	$(ECHO) "uninstall-fhs: $(addsuffix _UNINSTALL_FHS,$(TARGETBASES))" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDEXPANSION:" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDARY:" >> $(BUILDBASEMAKE)
 	$(ECHO) "include src/options.mk" >> $(BUILDBASEMAKE)
@@ -86,7 +92,12 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "basedir:=$(basedir)" >> $(BUILDBASEMAKE)
 	$(ECHO) "SYMLINK:=$(SYMLINK)" >> $(BUILDBASEMAKE)
 	$(ECHO) "LN:=$(LN)" >> $(BUILDBASEMAKE)
+	$(ECHO) "INSTALL:=$(INSTALL)" >> $(BUILDBASEMAKE)
 	$(ECHO) "ECHO:=$(ECHO)" >> $(BUILDBASEMAKE)
+	$(ECHO) "DESTDIR:=$(DESTDIR)" >> $(BUILDBASEMAKE)
+	$(ECHO) "PREFIX:=$(PREFIX)" >> $(BUILDBASEMAKE)
+	$(ECHO) "DEST:=\$$(DESTDIR)\$$(PREFIX)" >> $(BUILDBASEMAKE)
+	$(ECHO) "LIBDIR:=$(LIBDIR)" >> $(BUILDBASEMAKE)
 #	$(CAT) "toolchains/$(toolchain)" >> $(BUILDBASEMAKE)
 	$(CAT) $(TOOLCHAINSPECS) >> $(BUILDBASEMAKE)
 	for i in $(TARGETS); do \
@@ -109,46 +120,49 @@ create-build-directory: $(BUILDDIR)
 		$(ECHO) "$${name}_VERSION:=$${VERSION}"; \
 		$(ECHO) "VERSIONS:=\$$(VERSIONS) $${VERSION}"; \
 		if [ -n "$${CODE}" ]; then \
-			$(ECHO) -n "$${name}_OBJECTS:="; \
+			$(ECHON) "$${name}_OBJECTS:="; \
 			for c in $${CODE}; do \
-				$(ECHO) -n " $${c}.o"; \
+				$(ECHON) " $${c}.o"; \
 			done; \
 			if [ "$${TYPE}" = "programme" ]; then \
 				for l in $${LIBRARIES}; do \
-					$(ECHO) -n " \$$($${l}_OBJECTS)"; \
+					$(ECHON) " \$$($${l}_OBJECTS)"; \
 				done; \
 			elif [ "$${TYPE}" = "library" -a "$${PIC}" = "YES" ]; then \
 				$(ECHO); \
-				$(ECHO) -n "$${name}_OBJECTS_PIC:="; \
+				$(ECHON) "$${name}_OBJECTS_PIC:="; \
 				for c in $${CODE}; do \
-					$(ECHO) -n " $${c}.pic.o"; \
+					$(ECHON) " $${c}.pic.o"; \
 				done; \
 			fi; \
 			$(ECHO);\
 			if [ "$${name}" != "$${ename}" ]; then \
 				$(ECHO) "$${name}_BUILD_TARGETS:=\$$($${name}_BUILD_TARGETS) $${ename}"; \
+				$(ECHO) "$${name}_FHS_TARGETS:=\$$($${name}_FHS_TARGETS) \$$(DEST)/$${ename}"; \
 				if [ "$${enamepic}" != "" -a "$${PIC}" = "YES" ]; then \
 					$(ECHO) "$${name}_BUILD_TARGETS:=\$$($${name}_BUILD_TARGETS) $${enamepic}"; \
+					$(ECHO) "$${name}_FHS_TARGETS:=\$$($${name}_FHS_TARGETS) \$$(DEST)/$${enamepic}"; \
 				fi; \
 			else \
 				$(ECHO) "$${name}_BUILD_TARGETS:=\$$($${name}_BUILD_TARGETS) $${name}"; \
+				$(ECHO) "$${name}_FHS_TARGETS:=\$$($${name}_FHS_TARGETS) \$$(DEST)/$${name}"; \
 			fi; \
 			$(ECHO) "$${name}_BUILD: \$$($${name}_BUILD_TARGETS)"; \
 			$(ECHO) "$${name}_TARGETS:=\$$($${name}_TARGETS) $${name}_BUILD"; \
 		fi; \
 		$(ECHO) "$${name}: \$$($${name}_TARGETS)"; \
-		$(ECHO) "$${name}_INSTALL:"; \
-		$(ECHO) "$${name}_UNINSTALL:"; \
+		$(ECHO) "$${name}_INSTALL_FHS: \$$($${name}_FHS_TARGETS)"; \
+		$(ECHO) "$${name}_UNINSTALL_FHS: \$$(addprefix remove-,\$$($${name}_FHS_TARGETS))"; \
 	done >> $(BUILDBASEMAKE)
 
 host: $(BUILD)/$(HOST)/makefile
 	cd $(BUILD)/$(HOST) && $(MAKE) all
 
 install: $(BUILD)/$(HOST)/makefile
-	cd $(BUILD)/$(HOST) && $(MAKE) install
+	cd $(BUILD)/$(HOST) && $(MAKE) install-fhs
 
 uninstall: $(BUILD)/$(HOST)/makefile
-	cd $(BUILD)/$(HOST) && $(MAKE) uninstall
+	cd $(BUILD)/$(HOST) && $(MAKE) uninstall-fhs
 
 build-%: $(BUILD)/%/makefile
 	cd $(BUILD)/$* && $(MAKE) all
