@@ -1,104 +1,55 @@
-###- QUICK AND DIRTY: COMPILATION AND INSTALLATION -############################
-  Don't really need anything...
+## QUICK AND DIRTY: COMPILATION AND INSTALLATION ###############################
 
-    $ ./build.sh -dif /usr
+Don't really need anything...
 
+    $ make PREFIX=/usr install
 
 ################################################################################
 
-
 NOTE:
-  Library documentation has gotten somewhat better, but this new build system
-  could have made things a tiny bit trickier. This has been tested on
-  linux/x86-64, linux/powerpc, darwin/powerpc and windows/x86 though.
+    Library documentation has gotten somewhat better, but this new build system
+    could have made things a tiny bit trickier. This has been tested on
+    linux/x86-64, linux/powerpc, darwin/powerpc and windows/x86 though.
 
 NOTE.2:
-  Please take note of the library licence (the COPYING file), as well as the
-  credits (the CREDITS file).
+    Please take note of the library licence (the COPYING file), as well as the
+    credits (the CREDITS file).
 
-NOTE.3:
-  This is the description for POSIX-ish systems. For details on how to get this
-  running on Windows systems, see README.txt.
+## DETAILS #####################################################################
 
-###- DETAILS -##################################################################
+Compilation
+-----------
 
-Compilation:
-  If you have icemake installed already, for whatever reason that may be, just
-  call:
+This version of Curie uses the good ol' "make" command. To compile the library,
+simply run this command:
 
-    $ icemake
+    $ make
 
-  otherwise (which should be the most common case), use:
+Installation
+------------
 
-    $ ./build.sh
+Use this command to install regularly (for example into /usr, in the example):
 
-  This will compile the library itself.
+    $ make PREFIX=/usr install
 
-  A number of compilation options are available if you run into issues. To see
-  them, use one of these:
+## TROUBLESHOOTING / KNOWN ISSUES ##############################################
 
-    $ icemake --help
-  -- or --
-    $ ./build.sh --help
+Stack protectors
+----------------
 
-Installation:
-  use this command to install regularly (for example into /usr, in the example):
+Compilation may crash or curie programmes may die/stall/eat all resources for no
+apparent reason in the garbage collection phase if you have a gcc that has been
+patched with SSP and SSP is enabled by default. If you experience any funky
+issues and you have SSP enabled, add -fno-stack-protector to your CFLAGS while
+compiling icemake and while compiling curie programmes with icemake.
 
-    $ icemake -dif /usr
-  -- or --
-    $ ./build.sh -dif /usr
+Protip: if you're an application developer you should shun SSP at all costs and
+instead just fix your (or others') code if it's broken. Do not confuse fighting
+the symptoms with fixing the underlying issue, it's not the same, no matter what
+your computer science teachers with a favour for java and no concept nor
+understanding of pointers may have told you. SSP in all its forms is one of the
+sad reasons why applications suck these days.
 
-Compiling/Installing icemake:
-  Installing icemake separately is fairly simple:
+## CONTACT ####################################################################
 
-    $ icemake -dif /usr icemake
-  -- or --
-    $ ./build.sh -dif /usr icemake
-
-  Icemake will heed the environment variables CHOST, CFLAGS, CXXFLAGS and
-  LDFLAGS. Other flags, such as CC, are ignored, because you /should/ set the
-  proper CHOST instead. The bootstrap version of icemake, used to build the
-  initial icemake and libcurie, does heed CC instead of the other environment
-  variables though.
-
-Linking against libcurie without using icemake:
-  Use pkg-config to retrieve the flags needed to link with libcurie:
-
-    $ pkg-config --cflags --libs libcurie
-
-  For the hosted variant, use:
-
-    $ pkg-config --cflags --libs libcurie-hosted
-
-  Check pkg-config's documentation for more details.
-
-Testing:
-  Please help by giving this libraries' test suites a shot:
-
-    $ icemake -r
-  -- or --
-    $ ./build.sh -r
-
-  When running this suite, please take note of the memory use with a tool like
-  top. Afterwards, just send the output of the command to
-  <magnus.deininger@student.uni-tuebingen.de>, or drop by on IRC
-
-###- TROUBLESHOOTING / KNOWN ISSUES -###########################################
-
-Stack protectors:
-  Compilation may crash or curie programmes may die/stall/eat all resources for
-  no apparent reason in the garbage collection phase if you have a gcc that has
-  been patched with SSP and SSP is enabled by default. If you experience any
-  funky issues and you have SSP enabled, add -fno-stack-protector to your CFLAGS
-  while compiling icemake and while compiling curie programmes with icemake.
-
-  Protip: if you're an application developer you should shun SSP at all costs
-  and instead just fix your (or others') code if it's broken. Do not confuse
-  fighting the symptoms with fixing the underlying issue, it's not the same, no
-  matter what your computer science teachers with a favour for java and no
-  concept nor understanding of pointers may have told you. SSP in all its forms
-  is one of the sad reasons why applications suck these days.
-
-###- CONTACT -##################################################################
-
-  Your best bet is IRC: freenode #kyuba
+Your best bet is IRC: freenode #kyuba
