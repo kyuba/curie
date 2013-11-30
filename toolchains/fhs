@@ -9,3 +9,9 @@ $(DEST)/$(LIBDIR)/lib%.a: lib/lib%.a
 $(DEST)/$(LIBDIR)/lib%.so: lib/lib%.so
 	$(INSTALL) -D $<.$($*_VERSION) $@.$($*_VERSION)
 	$(SYMLINK) -f $*.$($*_VERSION) $@
+
+$(DESTINCLUDE)/%: include/%
+	$(INSTALL) -D $< $@
+
+$(DESTSHARE)/%: share/%
+	$(INSTALL) -D $< $@

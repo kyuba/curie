@@ -96,8 +96,12 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "ECHO:=$(ECHO)" >> $(BUILDBASEMAKE)
 	$(ECHO) "DESTDIR:=$(DESTDIR)" >> $(BUILDBASEMAKE)
 	$(ECHO) "PREFIX:=$(PREFIX)" >> $(BUILDBASEMAKE)
-	$(ECHO) "DEST:=\$$(DESTDIR)\$$(PREFIX)" >> $(BUILDBASEMAKE)
 	$(ECHO) "LIBDIR:=$(LIBDIR)" >> $(BUILDBASEMAKE)
+	$(ECHO) "SHAREDIR:=\$$(subst //,/,/usr\$$(subst /usr/,/,\$$(PREFIX)/share))" >> $(BUILDBASEMAKE)
+	$(ECHO) "INCLUDEDIR:=\$$(subst //,/,/usr\$$(subst /usr/,/,\$$(PREFIX)/include))" >> $(BUILDBASEMAKE)
+	$(ECHO) "DEST:=\$$(DESTDIR)\$$(PREFIX)" >> $(BUILDBASEMAKE)
+	$(ECHO) "DESTSHARE:=\$$(DESTDIR)\$$(SHAREDIR)" >> $(BUILDBASEMAKE)
+	$(ECHO) "DESTINCLUDE:=\$$(DESTDIR)\$$(INCLUDEDIR)" >> $(BUILDBASEMAKE)
 #	$(CAT) "toolchains/$(toolchain)" >> $(BUILDBASEMAKE)
 	$(CAT) $(TOOLCHAINSPECS) >> $(BUILDBASEMAKE)
 	for i in $(TARGETS); do \
@@ -119,6 +123,12 @@ create-build-directory: $(BUILDDIR)
 		fi; \
 		$(ECHO) "$${name}_VERSION:=$${VERSION}"; \
 		$(ECHO) "VERSIONS:=\$$(VERSIONS) $${VERSION}"; \
+		$(ECHON) "$${name}_HEADERS:="; \
+		for c in $${HEADERS}; do \
+			$(ECHON) " $${name}/$${c}.h"; \
+		done; \
+		$(ECHO); \
+		$(ECHO) "$${name}_FHS_TARGETS:=\$$($${name}_FHS_TARGETS) \$$(addprefix \$$(DESTINCLUDE)/,\$$($${name}_HEADERS))"; \
 		if [ -n "$${CODE}" ]; then \
 			$(ECHON) "$${name}_OBJECTS:="; \
 			for c in $${CODE}; do \
@@ -135,7 +145,7 @@ create-build-directory: $(BUILDDIR)
 					$(ECHON) " $${c}.pic.o"; \
 				done; \
 			fi; \
-			$(ECHO);\
+			$(ECHO); \
 			if [ "$${name}" != "$${ename}" ]; then \
 				$(ECHO) "$${name}_BUILD_TARGETS:=\$$($${name}_BUILD_TARGETS) $${ename}"; \
 				$(ECHO) "$${name}_FHS_TARGETS:=\$$($${name}_FHS_TARGETS) \$$(DEST)/$${ename}"; \
