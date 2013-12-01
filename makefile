@@ -166,6 +166,7 @@ create-build-directory: $(BUILDDIR)
 			$(ECHO) "$${name}_BUILD: \$$($${name}_BUILD_TARGETS)"; \
 			$(ECHO) "$${name}_TARGETS:=\$$($${name}_TARGETS) $${name}_BUILD"; \
 		fi; \
+		$(ECHO) "$${name}_TARGETS:=\$$($${name}_TARGETS) $${name}-\$$(basedir).cpio"; \
 		$(ECHO) "$${name}: \$$($${name}_TARGETS)"; \
 		$(ECHO) "$${name}_INSTALL_FHS: \$$($${name}_FHS_TARGETS)"; \
 		$(ECHO) "$${name}_UNINSTALL_FHS: \$$(addprefix remove-,\$$($${name}_FHS_TARGETS))"; \

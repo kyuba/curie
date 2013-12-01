@@ -1,5 +1,9 @@
-include/%/archive.h:
+include/%/archive.h: include/%/version.h
 	mkdir -p $(dir $@)
 	$(ECHO) '#if !defined($(subst -,_,$*)_archive)' > $@
 	$(ECHO) '#define $(subst -,_,$*)_archive $($*_VERSION)' >> $@
 	$(ECHO) '#endif' >> $@
+
+%-$(basedir).cpio: include/%/version.h
+	$(ECHO) $(strip $($*_OBJECTS) $($*_OBJECTS_PIC)) include/$*/version.h | tr ' ' '\n' | $(CPIO) -o > $@.$($*_VERSION)
+	$(SYMLINK) $@.$($*_VERSION) $@
