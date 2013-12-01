@@ -26,6 +26,7 @@ ECHON=echo -n
 CAT=cat
 SYMLINK=ln -s
 LN=ln
+CPIO=cpio
 INSTALL=install
 BUILDBASE=$(BUILD)/$(basedir)
 BUILDBASEMAKE=$(BUILDBASE)/makefile
@@ -84,7 +85,9 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "uninstall-fhs: $(addsuffix _UNINSTALL_FHS,$(TARGETBASES))" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDEXPANSION:" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDARY:" >> $(BUILDBASEMAKE)
-	$(ECHO) "include src/options.mk" >> $(BUILDBASEMAKE)
+	for o in $(BUILDBASE)/src/*.mk; do \
+		[ -e "$$o" ] && $(CAT) $$o; \
+	done >> $(BUILDBASEMAKE)
 	$(ECHO) "cpu:=$(cpu)" >> $(BUILDBASEMAKE)
 	$(ECHO) "vendor:=$(vendor)" >> $(BUILDBASEMAKE)
 	$(ECHO) "os:=$(os)" >> $(BUILDBASEMAKE)
@@ -92,6 +95,7 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "basedir:=$(basedir)" >> $(BUILDBASEMAKE)
 	$(ECHO) "SYMLINK:=$(SYMLINK)" >> $(BUILDBASEMAKE)
 	$(ECHO) "LN:=$(LN)" >> $(BUILDBASEMAKE)
+	$(ECHO) "CPIO:=$(CPIO)" >> $(BUILDBASEMAKE)
 	$(ECHO) "INSTALL:=$(INSTALL)" >> $(BUILDBASEMAKE)
 	$(ECHO) "ECHO:=$(ECHO)" >> $(BUILDBASEMAKE)
 	$(ECHO) "DESTDIR:=$(DESTDIR)" >> $(BUILDBASEMAKE)
