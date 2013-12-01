@@ -33,8 +33,7 @@ BUILDBASEMAKE=$(BUILDBASE)/makefile
 BASEDIRS=src include data lib bin
 MINIMALDOC=README AUTHORS COPYING CREDITS
 
-SUFFIXES:=sx mk
-
+SUFFIXES:=$(strip $(EXTRASUFFIXES) sx mk)
 SUFFIXES:=$(strip $(SUFFIXES) pic.s pic.S s S c c++ h)
 
 TARGETS:=$(foreach dir,$(root),$(wildcard $(dir)/targets/*))
@@ -127,7 +126,7 @@ create-build-directory: $(BUILDDIR)
 		fi; \
 		$(ECHO) "$${name}_VERSION:=$${VERSION}"; \
 		$(ECHO) "VERSIONS:=\$$(VERSIONS) $${VERSION}"; \
-		$(ECHON) "$${name}_HEADERS:="; \
+		$(ECHON) "$${name}_HEADERS:=$${name}/version.h"; \
 		for c in $${HEADERS}; do \
 			$(ECHON) " $${name}/$${c}.h"; \
 		done; \
@@ -150,6 +149,9 @@ create-build-directory: $(BUILDDIR)
 				done; \
 			fi; \
 			$(ECHO); \
+			for c in $${CODE}; do \
+				$(ECHO) " $${c}.o: include/$${name}/version.h include/$${name}/archive.h"; \
+			done; \
 			if [ "$${name}" != "$${ename}" ]; then \
 				$(ECHO) "$${name}_BUILD_TARGETS:=\$$($${name}_BUILD_TARGETS) $${ename}"; \
 				$(ECHO) "$${name}_FHS_TARGETS:=\$$($${name}_FHS_TARGETS) \$$(DEST)/$${ename}"; \

@@ -1,0 +1,6 @@
+include/%/version.h:
+	mkdir -p $(dir $@)
+	$(ECHO) '#if !defined($(subst -,_,$*)_version)' > $@
+	$(ECHO) '#define $(subst -,_,$*)_version $($*_VERSION)' >> $@
+	$(ECHO) '#define $(subst -,_,$*)_version_string "$($*_VERSION)"' >> $@
+	$(ECHO) '#endif' >> $@

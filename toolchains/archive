@@ -1,0 +1,5 @@
+include/%/archive.h:
+	mkdir -p $(dir $@)
+	$(ECHO) '#if !defined($(subst -,_,$*)_archive)' > $@
+	$(ECHO) '#define $(subst -,_,$*)_archive $($*_VERSION)' >> $@
+	$(ECHO) '#endif' >> $@
