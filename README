@@ -41,7 +41,7 @@ Compilation may crash or curie programmes may die/stall/eat all resources for no
 apparent reason in the garbage collection phase if you have a gcc that has been
 patched with SSP and SSP is enabled by default. If you experience any funky
 issues and you have SSP enabled, add -fno-stack-protector to your CFLAGS while
-compiling icemake and while compiling curie programmes with icemake.
+compiling curie programmes.
 
 Protip: if you're an application developer you should shun SSP at all costs and
 instead just fix your (or others') code if it's broken. Do not confuse fighting
