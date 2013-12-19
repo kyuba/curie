@@ -137,7 +137,7 @@ create-build-directory: $(BUILDDIR)
 			$(ECHO) "$${name}_FHS_TARGETS:=\$$($${name}_FHS_TARGETS) \$$(addprefix \$$(DESTINCLUDE)/,$${name}.mk)"; \
 		fi; \
 		if [ -n "$${CODE}" ]; then \
-			$(ECHON) "$${name}_OBJECTS:="; \
+			$(ECHON) "$${name}_OBJECTS="; \
 			for c in $${CODE}; do \
 				$(ECHON) " $${c}.o"; \
 			done; \
@@ -147,7 +147,7 @@ create-build-directory: $(BUILDDIR)
 				done; \
 			elif [ "$${TYPE}" = "library" -a "$${PIC}" = "YES" ]; then \
 				$(ECHO); \
-				$(ECHON) "$${name}_OBJECTS_PIC:="; \
+				$(ECHON) "$${name}_OBJECTS_PIC="; \
 				for c in $${CODE}; do \
 					$(ECHON) " $${c}.pic.o"; \
 				done; \
