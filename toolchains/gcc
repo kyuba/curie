@@ -23,7 +23,7 @@ VERSIONS:=current
 bin/%: $$($$*_OBJECTS)
 	@$(ECHO) LD $@
 	@rm -f $@ $@.$($*_VERSION)
-	@$(CC) $(LDFLAGS) $($*_LDFLAGS) $^ -o $@.$($*_VERSION)
+	@$(CC) $(LDFLAGS) $($*_LDFLAGS) $(addprefix -l,$(filter-out $(HAVE_LIBRARIES),$($*_LIBRARIES))) $^ -o $@.$($*_VERSION)
 	@$(SYMLINK) $(notdir $@.$($*_VERSION)) $@
 
 # link shared libraries

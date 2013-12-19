@@ -7,7 +7,7 @@ LIBDIR:=lib
 
 PWD:=$(shell pwd)
 
-root:=$(root) $(PWD)
+root?=$(sort $(addprefix $(PWD)/,$(dir $(wildcard */targets)) .))
 
 SELF:=$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 CPUS:=unknown generic x86-64
@@ -124,6 +124,7 @@ create-build-directory: $(BUILDDIR)
 		if [ "$${TYPE}" = "library" ]; then \
 			ename="lib/lib$${name}.a"; \
 			enamepic="lib/lib$${name}.so"; \
+			$(ECHO) "HAVE_LIBRARIES += $${name}"; \
 		elif [ "$${TYPE}" = "programme" ]; then \
 			ename="bin/$${name}"; \
 		fi; \
@@ -138,6 +139,7 @@ create-build-directory: $(BUILDDIR)
 			$(ECHON) " $${name}/$${c}.h"; \
 		done; \
 		$(ECHO); \
+		$(ECHO) "$${name}_LIBRARIES:=$${LIBRARIES}"; \
 		$(ECHO) "$${name}_FHS_TARGETS:=\$$($${name}_FHS_TARGETS) \$$(addprefix \$$(DESTINCLUDE)/,\$$($${name}_HEADERS))"; \
 		if [ -e "$(BUILDBASE)/include/$${name}.mk" ]; then \
 			$(ECHO) "$${name}_FHS_TARGETS:=\$$($${name}_FHS_TARGETS) \$$(addprefix \$$(DESTINCLUDE)/,$${name}.mk)"; \

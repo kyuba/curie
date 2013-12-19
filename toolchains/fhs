@@ -4,11 +4,11 @@ $(DEST)/bin/%: bin/%
 
 $(DEST)/$(LIBDIR)/lib%.a: lib/lib%.a
 	$(INSTALL) -D $<.$($*_VERSION) $@.$($*_VERSION)
-	$(SYMLINK) -f $*.$($*_VERSION) $@
+	$(SYMLINK) -f lib$*.a.$($*_VERSION) $@
 
 $(DEST)/$(LIBDIR)/lib%.so: lib/lib%.so
 	$(INSTALL) -D $<.$($*_VERSION) $@.$($*_VERSION)
-	$(SYMLINK) -f $*.$($*_VERSION) $@
+	$(SYMLINK) -f lib$*.so.$($*_VERSION) $@
 
 $(DESTINCLUDE)/%: include/%
 	$(INSTALL) -D -m 0644 $< $@
