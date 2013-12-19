@@ -91,9 +91,7 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "uninstall-fhs: $(addsuffix _UNINSTALL_FHS,$(TARGETBASES))" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDEXPANSION:" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDARY:" >> $(BUILDBASEMAKE)
-	(for o in $(BUILDBASE)/src/*.mk; do \
-		[ -e "$$o" ] && $(CAT) $$o; \
-	done || true) >> $(BUILDBASEMAKE)
+	(for o in $(BUILDBASE)/src/*.mk; do [ -e "$$o" ] && $(CAT) $$o; done || true) >> $(BUILDBASEMAKE)
 	$(ECHO) "cpu:=$(cpu)" >> $(BUILDBASEMAKE)
 	$(ECHO) "vendor:=$(vendor)" >> $(BUILDBASEMAKE)
 	$(ECHO) "os:=$(os)" >> $(BUILDBASEMAKE)
@@ -150,9 +148,11 @@ create-build-directory: $(BUILDDIR)
 				$(ECHO) >> "$(BUILDBASE)/include/$${name}.mk"; \
 				$(ECHO) define TOOLCHAINSPECSDUMP >> "$(BUILDBASE)/include/$${name}.mk"; \
 				$(CAT) $(TOOLCHAINSPECS) >> "$(BUILDBASE)/include/$${name}.mk"; \
+				(for o in $(BUILDBASE)/src/*.mk; do [ -e "$$o" ] && $(CAT) $$o; done || true) >> "$(BUILDBASE)/include/$${name}.mk"; \
 				$(ECHO) endef >> "$(BUILDBASE)/include/$${name}.mk"; \
 				$(ECHO) "TOOLCHAINSPECS_VERBATIM:=\$$(value TOOLCHAINSPECSDUMP)" >> "$(BUILDBASE)/include/$${name}.mk"; \
 				$(CAT) $(TOOLCHAINSPECS) >> "$(BUILDBASE)/include/$${name}.mk"; \
+				(for o in $(BUILDBASE)/src/*.mk; do [ -e "$$o" ] && $(CAT) $$o; done || true) >> "$(BUILDBASE)/include/$${name}.mk"; \
 			fi; \
 		fi; \
 		if [ -n "$${CODE}" ]; then \
