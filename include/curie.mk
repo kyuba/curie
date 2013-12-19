@@ -146,7 +146,7 @@ create-build-directory: $(BUILDDIR)
 				$(ECHO) >> "$(BUILDBASE)/include/$${name}.mk"; \
 				$(ECHO) define TOOLCHAINSPECS_VERBATIM >> "$(BUILDBASE)/include/$${name}.mk"; \
 				$(CAT) $(TOOLCHAINSPECS) >> "$(BUILDBASE)/include/$${name}.mk"; \
-				$(ECHO) enddef >> "$(BUILDBASE)/include/$${name}.mk"; \
+				$(ECHO) endef >> "$(BUILDBASE)/include/$${name}.mk"; \
 			fi; \
 		fi; \
 		if [ -n "$${CODE}" ]; then \
