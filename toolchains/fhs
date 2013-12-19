@@ -11,7 +11,7 @@ $(DEST)/$(LIBDIR)/lib%.so: lib/lib%.so
 	$(SYMLINK) -f $*.$($*_VERSION) $@
 
 $(DESTINCLUDE)/%: include/%
-	$(INSTALL) -D $< $@
+	$(INSTALL) -D -m 0644 $< $@
 
 $(DESTSHARE)/%: share/%
-	$(INSTALL) -D $< $@
+	$(INSTALL) -D -m 0644 $< $@
