@@ -86,7 +86,7 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) ".SECONDARY:" >> $(BUILDBASEMAKE)
 	for o in $(BUILDBASE)/src/*.mk; do \
 		[ -e "$$o" ] && $(CAT) $$o; \
-	done >> $(BUILDBASEMAKE)
+	done || true >> $(BUILDBASEMAKE)
 	$(ECHO) "cpu:=$(cpu)" >> $(BUILDBASEMAKE)
 	$(ECHO) "vendor:=$(vendor)" >> $(BUILDBASEMAKE)
 	$(ECHO) "os:=$(os)" >> $(BUILDBASEMAKE)
