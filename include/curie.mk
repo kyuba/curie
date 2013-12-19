@@ -5,9 +5,9 @@ DESTDIR:=
 PREFIX:=/usr/local
 LIBDIR:=lib
 
-PWD=$(shell pwd)
+PWD:=$(shell pwd)
 
-root:=$(PWD)
+root:=$(root) $(PWD)
 
 SELF:=$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 CPUS:=unknown generic x86-64
@@ -51,7 +51,7 @@ $(BUILDD):
 $(BUILD)/toolchains.mk: $(BUILDD) $(SELF) $(TOOLCHAINSPECS) $(TARGETS)
 	rm -f $@ $(BUILD)/*/makefile
 	for c in $(CPUS); do for v in $(VENDORS); do for o in $(OSS); do for t in $(TOOLCHAINS); do \
-	$(ECHO) "\$$(BUILD)/$${c}-$${v}-$${o}-$${t}/makefile: \$$(BUILDD) \$$(SELF)\n\t\$$(MAKE) -f \$$(SELF) cpu=$${c} vendor=$${v} os=$${o} toolchain=$${t} basedir=$${c}-$${v}-$${o}-$${t} create-build-directory" >> "$@"; \
+	$(ECHO) "\$$(BUILD)/$${c}-$${v}-$${o}-$${t}/makefile: \$$(BUILDD) \$$(SELF)\n\t\$$(MAKE) -f \$$(SELF) cpu=$${c} vendor=$${v} os=$${o} toolchain=$${t} basedir=$${c}-$${v}-$${o}-$${t} root='$(root)' create-build-directory" >> "$@"; \
 	done; done; done; done
 
 create-build-directory: $(BUILDDIR)
@@ -106,6 +106,7 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "DESTSHARE:=\$$(DESTDIR)\$$(SHAREDIR)" >> $(BUILDBASEMAKE)
 	$(ECHO) "DESTINCLUDE:=\$$(DESTDIR)\$$(INCLUDEDIR)" >> $(BUILDBASEMAKE)
 #	$(CAT) "toolchains/$(toolchain)" >> $(BUILDBASEMAKE)
+	echo $(root)
 	$(CAT) $(TOOLCHAINSPECS) >> $(BUILDBASEMAKE)
 	for i in $(TARGETS); do \
 		PIC=YES; \
