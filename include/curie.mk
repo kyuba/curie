@@ -23,12 +23,14 @@ BUILD=.build
 BUILDD=$(BUILD)/.volatile
 ECHO=echo
 ECHON=echo -n
+ECHOE=printf "%s\n"
 CAT=cat
 SYMLINK=ln -s
 LN=ln
 CP=cp
 RM=rm
 MV=mv
+SED=sed
 CPIO=cpio
 INSTALL=install
 BUILDBASE=$(BUILD)/$(basedir)
@@ -47,14 +49,11 @@ export TOOLCHAINSPECS_VERBATIM
 
 all: host
 
-include $(TOOLCHAINSPECS) $(BUILD)/toolchain-specifications.mk $(BUILD)/toolchains.mk
+include $(TOOLCHAINSPECS) $(BUILD)/toolchains.mk
 
 $(BUILDD):
 	mkdir $(BUILD); true
 	touch $(BUILDD)
-
-$(BUILD)/toolchain-specifications.mk: $(SELF)
-	$(ECHO) "$${TOOLCHAINSPECS_VERBATIM}" > "$@"
 
 $(BUILD)/toolchains.mk: $(BUILDD) $(SELF) $(TOOLCHAINSPECS) $(TARGETS)
 	rm -f $@ $(BUILD)/*/makefile
@@ -113,8 +112,8 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "DEST:=\$$(DESTDIR)\$$(PREFIX)" >> $(BUILDBASEMAKE)
 	$(ECHO) "DESTSHARE:=\$$(DESTDIR)\$$(SHAREDIR)" >> $(BUILDBASEMAKE)
 	$(ECHO) "DESTINCLUDE:=\$$(DESTDIR)\$$(INCLUDEDIR)" >> $(BUILDBASEMAKE)
-	[ -n "$(TOOLCHAINSPECS)" ] && $(CAT) $(TOOLCHAINSPECS) >> $(BUILDBASEMAKE)
-	$(ECHO) "$${TOOLCHAINSPECS_VERBATIM}" >> $(BUILDBASEMAKE)
+	([ -n "$(TOOLCHAINSPECS)" ] && $(CAT) $(TOOLCHAINSPECS) || true) >> $(BUILDBASEMAKE)
+	$(ECHOE) "$${TOOLCHAINSPECS_VERBATIM}" >> $(BUILDBASEMAKE)
 	for i in $(TARGETS); do \
 		PIC=YES; \
 		BOOTSTRAP=NO; \
@@ -147,9 +146,11 @@ create-build-directory: $(BUILDDIR)
 				$(RM) "$(BUILDBASE)/include/$${name}.mk"; \
 				$(MV) tmpfile "$(BUILDBASE)/include/$${name}.mk"; \
 				$(ECHO) >> "$(BUILDBASE)/include/$${name}.mk"; \
-				$(ECHO) define TOOLCHAINSPECS_VERBATIM >> "$(BUILDBASE)/include/$${name}.mk"; \
+				$(ECHO) define TOOLCHAINSPECSDUMP >> "$(BUILDBASE)/include/$${name}.mk"; \
 				$(CAT) $(TOOLCHAINSPECS) >> "$(BUILDBASE)/include/$${name}.mk"; \
 				$(ECHO) endef >> "$(BUILDBASE)/include/$${name}.mk"; \
+				$(ECHO) "TOOLCHAINSPECS_VERBATIM:=\$$(value TOOLCHAINSPECSDUMP)" >> "$(BUILDBASE)/include/$${name}.mk"; \
+				$(CAT) $(TOOLCHAINSPECS) >> "$(BUILDBASE)/include/$${name}.mk"; \
 			fi; \
 		fi; \
 		if [ -n "$${CODE}" ]; then \
