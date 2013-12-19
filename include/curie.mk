@@ -84,9 +84,9 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "uninstall-fhs: $(addsuffix _UNINSTALL_FHS,$(TARGETBASES))" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDEXPANSION:" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDARY:" >> $(BUILDBASEMAKE)
-	for o in $(BUILDBASE)/src/*.mk; do \
+	(for o in $(BUILDBASE)/src/*.mk; do \
 		[ -e "$$o" ] && $(CAT) $$o; \
-	done || true >> $(BUILDBASEMAKE)
+	done || true) >> $(BUILDBASEMAKE)
 	$(ECHO) "cpu:=$(cpu)" >> $(BUILDBASEMAKE)
 	$(ECHO) "vendor:=$(vendor)" >> $(BUILDBASEMAKE)
 	$(ECHO) "os:=$(os)" >> $(BUILDBASEMAKE)
