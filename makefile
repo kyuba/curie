@@ -30,7 +30,7 @@ CPIO=cpio
 INSTALL=install
 BUILDBASE=$(BUILD)/$(basedir)
 BUILDBASEMAKE=$(BUILDBASE)/makefile
-BASEDIRS=src include data lib bin
+BASEDIRS=src include data lib bin src/test-case
 MINIMALDOC=README AUTHORS COPYING CREDITS
 
 SUFFIXES:=$(strip $(EXTRASUFFIXES) sx mk)
