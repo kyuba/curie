@@ -54,7 +54,7 @@ $(BUILDD):
 	touch $(BUILDD)
 
 $(BUILD)/toolchain-specifications.mk: $(SELF)
-	$(ECHO) "${TOOLCHAINSPECS_VERBATIM}" > "$@"
+	$(ECHO) "$${TOOLCHAINSPECS_VERBATIM}" > "$@"
 
 $(BUILD)/toolchains.mk: $(BUILDD) $(SELF) $(TOOLCHAINSPECS) $(TARGETS)
 	rm -f $@ $(BUILD)/*/makefile
