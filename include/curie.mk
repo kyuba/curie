@@ -26,6 +26,9 @@ ECHON=echo -n
 CAT=cat
 SYMLINK=ln -s
 LN=ln
+CP=cp
+RM=rm
+MV=mv
 CPIO=cpio
 INSTALL=install
 BUILDBASE=$(BUILD)/$(basedir)
@@ -39,6 +42,8 @@ SUFFIXES:=$(strip $(SUFFIXES) pic.s pic.S s S c c++ h)
 TARGETS:=$(foreach dir,$(root),$(wildcard $(dir)/targets/*))
 TARGETBASES=$(notdir $(TARGETS))
 TOOLCHAINSPECS:=$(foreach dir,$(root),$(wildcard $(dir)/toolchains/*))
+
+export TOOLCHAINSPECS_VERBATIM
 
 all: host
 
@@ -105,9 +110,8 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "DEST:=\$$(DESTDIR)\$$(PREFIX)" >> $(BUILDBASEMAKE)
 	$(ECHO) "DESTSHARE:=\$$(DESTDIR)\$$(SHAREDIR)" >> $(BUILDBASEMAKE)
 	$(ECHO) "DESTINCLUDE:=\$$(DESTDIR)\$$(INCLUDEDIR)" >> $(BUILDBASEMAKE)
-#	$(CAT) "toolchains/$(toolchain)" >> $(BUILDBASEMAKE)
-	echo $(root)
-	$(CAT) $(TOOLCHAINSPECS) >> $(BUILDBASEMAKE)
+	[ -n "$(TOOLCHAINSPECS)" ] && $(CAT) $(TOOLCHAINSPECS) >> $(BUILDBASEMAKE)
+	$(ECHO) "$${TOOLCHAINSPECS_VERBATIM}" >> $(BUILDBASEMAKE)
 	for i in $(TARGETS); do \
 		PIC=YES; \
 		BOOTSTRAP=NO; \
@@ -135,6 +139,15 @@ create-build-directory: $(BUILDDIR)
 		$(ECHO) "$${name}_FHS_TARGETS:=\$$($${name}_FHS_TARGETS) \$$(addprefix \$$(DESTINCLUDE)/,\$$($${name}_HEADERS))"; \
 		if [ -e "$(BUILDBASE)/include/$${name}.mk" ]; then \
 			$(ECHO) "$${name}_FHS_TARGETS:=\$$($${name}_FHS_TARGETS) \$$(addprefix \$$(DESTINCLUDE)/,$${name}.mk)"; \
+			if [ -n "$(TOOLCHAINSPECS)" ]; then \
+				$(CP) "$(BUILDBASE)/include/$${name}.mk" tmpfile; \
+				$(RM) "$(BUILDBASE)/include/$${name}.mk"; \
+				$(MV) tmpfile "$(BUILDBASE)/include/$${name}.mk"; \
+				$(ECHO) >> "$(BUILDBASE)/include/$${name}.mk"; \
+				$(ECHO) define TOOLCHAINSPECS_VERBATIM >> "$(BUILDBASE)/include/$${name}.mk"; \
+				$(CAT) $(TOOLCHAINSPECS) >> "$(BUILDBASE)/include/$${name}.mk"; \
+				$(ECHO) enddef >> "$(BUILDBASE)/include/$${name}.mk"; \
+			fi; \
 		fi; \
 		if [ -n "$${CODE}" ]; then \
 			$(ECHON) "$${name}_OBJECTS="; \
