@@ -1,3 +1,4 @@
+comma:=,
 space:=
 space+=
 
@@ -37,6 +38,7 @@ BUILDBASE=$(BUILD)/$(basedir)
 BUILDBASEMAKE=$(BUILDBASE)/makefile
 BASEDIRS=src include data lib bin src/test-case
 MINIMALDOC=README AUTHORS COPYING CREDITS
+OPTIMIZE_FOR_SIZE:=true
 
 SUFFIXES:=$(strip $(EXTRASUFFIXES) sx mk)
 SUFFIXES:=$(strip $(SUFFIXES) pic.s pic.S s S c c++ h)
@@ -166,10 +168,14 @@ create-build-directory: $(BUILDDIR)
 				done; \
 			elif [ "$${TYPE}" = "library" -a "$${PIC}" = "YES" ]; then \
 				$(ECHO); \
+				$(ECHO) "LIBRARY_OBJECTS+=\$$($${name}_OBJECTS)"; \
 				$(ECHON) "$${name}_OBJECTS_PIC="; \
 				for c in $${CODE}; do \
 					$(ECHON) " $${c}.pic.o"; \
 				done; \
+			elif [ "$${TYPE}" = "library" ]; then \
+				$(ECHO); \
+				$(ECHON) "LIBRARY_OBJECTS+=\$$($${name}_OBJECTS)"; \
 			fi; \
 			$(ECHO); \
 			for c in $${CODE}; do \
@@ -195,14 +201,10 @@ create-build-directory: $(BUILDDIR)
 		$(ECHO) "$${name}_UNINSTALL_FHS: \$$(addprefix remove-,\$$($${name}_FHS_TARGETS))"; \
 	done >> $(BUILDBASEMAKE)
 
-host: $(BUILD)/$(HOST)/makefile
-	cd $(BUILD)/$(HOST) && $(MAKE) all
-
-install: $(BUILD)/$(HOST)/makefile
-	cd $(BUILD)/$(HOST) && $(MAKE) install-fhs
-
-uninstall: $(BUILD)/$(HOST)/makefile
-	cd $(BUILD)/$(HOST) && $(MAKE) uninstall-fhs
+host: build-$(HOST)
+install: install-$(HOST)
+uninstall: uninstall-$(HOST)
+test: test-$(HOST)
 
 build-%: $(BUILD)/%/makefile
 	cd $(BUILD)/$* && $(MAKE) all
@@ -212,3 +214,6 @@ install-%: $(BUILD)/%/makefile
 
 uninstall-%: $(BUILD)/%/makefile
 	cd $(BUILD)/$* && $(MAKE) uninstall
+
+test-%: $(BUILD)/%/makefile
+	cd $(BUILD)/$* && $(MAKE) autotest

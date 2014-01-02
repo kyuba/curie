@@ -1,0 +1,5 @@
+TEST_CASES:=$(wildcard src/test-case/*)
+TEST_BINARIES:=$(addprefix test-case/,$(notdir $(basename $(TEST_CASES))))
+BASEDIRS+=test-case
+
+autotest: $(TEST_BINARIES)
