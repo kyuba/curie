@@ -36,7 +36,7 @@ CPIO=cpio
 INSTALL=install
 BUILDBASE=$(BUILD)/$(basedir)
 BUILDBASEMAKE=$(BUILDBASE)/makefile
-BASEDIRS=src include data lib bin src/test-case
+BASEDIRS=src include data lib bin
 MINIMALDOC=README AUTHORS COPYING CREDITS
 OPTIMISE_FOR_SIZE:=true
 
