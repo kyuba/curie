@@ -2,8 +2,8 @@ TOOLCHAINS:=$(strip $(TOOLCHAINS) gcc)
 LIBRARY_OBJECTS=
 
 ifeq ($(toolchain),gcc)
-CFLAGS+=$(if $(OPTIMIZE_FOR_SIZE),-fdata-sections -ffunction-sections)
-LDFLAGS+=$(if $(OPTIMIZE_FOR_SIZE),-Wl$(comma)--gc-sections)
+CFLAGS+=$(if $(OPTIMISE_FOR_SIZE),-fdata-sections -ffunction-sections)
+LDFLAGS+=$(if $(OPTIMISE_FOR_SIZE),-Wl$(comma)--gc-sections)
 COMPATIBLE_OS:=$(strip $(COMPATIBLE_OS) posix ansi)
 COMPATIBLE_TOOLCHAIN:=$(strip $(COMPATIBLE_TOOLCHAIN) gnu)
 
@@ -18,9 +18,9 @@ COMPATIBLE_TOOLCHAIN:=$(strip $(COMPATIBLE_TOOLCHAIN) gnu)
 # build C test cases in C99 mode
 test-case/%: src/test-case/%.c $$(LIBRARY_OBJECTS)
 	@$(ECHO) CC [TEST] $@
-	@$(CC) -c -Iinclude/ -std=c99 -Wall -pedantic $(CFLAGS) $($*_CFLAGS) $< -o $@.o
+	$(CC) -c -Iinclude/ -std=c99 -Wall -pedantic $(CFLAGS) $($*_CFLAGS) $< -o $@.o
 	@$(ECHO) LD [TEST] $@
-	@$(CC) $(LDFLAGS) $($*_CFLAGS) $@.o $(BOOTSTRAP_LDFLAGS) $(LIBRARY_OBJECTS) -o $@
+	$(CC) $(LDFLAGS) $($*_CFLAGS) $@.o $(BOOTSTRAP_LDFLAGS) $(LIBRARY_OBJECTS) -o $@
 
 # build C source files for PIC targets in C99 mode
 %.pic.o: src/%.c

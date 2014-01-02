@@ -3,3 +3,4 @@ TEST_BINARIES:=$(addprefix test-case/,$(notdir $(basename $(TEST_CASES))))
 BASEDIRS+=test-case
 
 autotest: $(TEST_BINARIES)
+	echo $(OPTIMIZE_FOR_SIZE)

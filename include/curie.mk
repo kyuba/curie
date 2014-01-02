@@ -38,7 +38,7 @@ BUILDBASE=$(BUILD)/$(basedir)
 BUILDBASEMAKE=$(BUILDBASE)/makefile
 BASEDIRS=src include data lib bin src/test-case
 MINIMALDOC=README AUTHORS COPYING CREDITS
-OPTIMIZE_FOR_SIZE:=true
+OPTIMISE_FOR_SIZE:=true
 
 SUFFIXES:=$(strip $(EXTRASUFFIXES) sx mk)
 SUFFIXES:=$(strip $(SUFFIXES) pic.s pic.S s S c c++ h)
@@ -93,6 +93,7 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "uninstall-fhs: $(addsuffix _UNINSTALL_FHS,$(TARGETBASES))" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDEXPANSION:" >> $(BUILDBASEMAKE)
 	$(ECHO) ".SECONDARY:" >> $(BUILDBASEMAKE)
+	$(ECHO) "comma:=," >> $(BUILDBASEMAKE)
 	(for o in $(BUILDBASE)/src/*.mk; do [ -e "$$o" ] && $(CAT) $$o; done || true) >> $(BUILDBASEMAKE)
 	$(ECHO) "cpu:=$(cpu)" >> $(BUILDBASEMAKE)
 	$(ECHO) "vendor:=$(vendor)" >> $(BUILDBASEMAKE)
@@ -112,6 +113,7 @@ create-build-directory: $(BUILDDIR)
 	$(ECHO) "DEST:=\$$(DESTDIR)\$$(PREFIX)" >> $(BUILDBASEMAKE)
 	$(ECHO) "DESTSHARE:=\$$(DESTDIR)\$$(SHAREDIR)" >> $(BUILDBASEMAKE)
 	$(ECHO) "DESTINCLUDE:=\$$(DESTDIR)\$$(INCLUDEDIR)" >> $(BUILDBASEMAKE)
+	$(ECHO) "OPTIMISE_FOR_SIZE:=$(OPTIMISE_FOR_SIZE)" >> $(BUILDBASEMAKE)
 	([ -n "$(TOOLCHAINSPECS)" ] && $(CAT) $(TOOLCHAINSPECS) || true) >> $(BUILDBASEMAKE)
 	$(ECHOE) "$${TOOLCHAINSPECS_VERBATIM}" >> $(BUILDBASEMAKE)
 	for i in $(TARGETS); do \
