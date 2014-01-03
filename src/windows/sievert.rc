@@ -17,7 +17,7 @@
             VALUE "FileDescription", "Curie Auxiliary Library - Higher-Level Functionality not needed for Curie"
             VALUE "FileVersion", "1"
             VALUE "InternalName", "libsievert"
-            VALUE "LegalCopyright", "Copyright (C) 2008-2011, Kyuba Project Members"
+            VALUE "LegalCopyright (c) 2008-2014, Kyuba Project Members"
             VALUE "OriginalFilename", "libsievert.1.dll"
             VALUE "ProductName", "Sievert: Curie Auxiliary Library"
             VALUE "ProductVersion", "1"

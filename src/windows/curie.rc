@@ -17,7 +17,7 @@
             VALUE "FileDescription", "Curie Core Library - Minimalistic Cross-Platform Programming Library"
             VALUE "FileVersion", "11"
             VALUE "InternalName", "libcurie"
-            VALUE "LegalCopyright", "Copyright (C) 2008-2011, Kyuba Project Members"
+            VALUE "LegalCopyright (c) 2008-2014, Kyuba Project Members"
             VALUE "OriginalFilename", "libcurie.11.dll"
             VALUE "ProductName", "Curie Core Library"
             VALUE "ProductVersion", "11"

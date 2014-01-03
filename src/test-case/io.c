@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2014, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@
 #define TESTDATA_LENGTH (unsigned int)(sizeof(TESTDATA) -1)
 
 int cmain(void) {
-    struct io *out = io_open_write ("build/to-io-test-file"), *in;
+    struct io *out = io_open_write ("to-io-test-file"), *in;
     char cont = (char)1;
     unsigned int i;
     int rv = 0;
@@ -44,7 +44,7 @@ int cmain(void) {
 
     io_close (out);
 
-    in = io_open_read ("build/to-io-test-file");
+    in = io_open_read ("to-io-test-file");
 
     do {
         enum io_result res = io_read (in);
@@ -82,5 +82,5 @@ int cmain(void) {
 
     io_close (in);
 
-    return 0;
+    return rv;
 }

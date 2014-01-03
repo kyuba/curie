@@ -41,7 +41,7 @@ MINIMALDOC=README AUTHORS COPYING CREDITS
 OPTIMISE_FOR_SIZE:=true
 
 SUFFIXES:=$(strip $(EXTRASUFFIXES) sx mk)
-SUFFIXES:=$(strip $(SUFFIXES) pic.s pic.S s S c c++ h)
+SUFFIXES:=$(strip $(SUFFIXES) pic.s pic.S s S c c++ h cpio)
 
 TARGETS:=$(foreach dir,$(root),$(wildcard $(dir)/targets/*))
 TARGETBASES=$(notdir $(TARGETS))

@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2014, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ define_string(str_hello_world, "hello world!");
 #define SX_TEST_INTEGER2 (signed long int)-23
 
 int cmain(void) {
-    struct io *out = io_open_write ("build/to-sexpr-write"), *in = io_open (0);
+    struct io *out = io_open_write ("to-sexpr-write.sx"), *in = io_open (0);
     struct sexpr_io *io = sx_open_io (in, out);
     sexpr s  = str_hello_world;
     sexpr s1 = str_hello_world;

@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2014, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -99,7 +99,7 @@ static void on_archive_buffered
 
 int cmain()
 {
-    struct io *out = io_open_write ("build/test-archive.cpio");
+    struct io *out = io_open_write ("test-archive.cpio");
     struct io *s;
     struct cpio *cpio;
 
@@ -110,7 +110,7 @@ int cmain()
     multiplex_sexpr ();
 
     io_get_file_contents
-        ("tests/data/test-data.cpio", on_archive_buffered, (void *)0);
+        ("test-data.cpio", on_archive_buffered, (void *)0);
 
     while (multiplex() != mx_nothing_to_do);
 

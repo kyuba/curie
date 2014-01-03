@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2014, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -75,8 +75,8 @@ static sexpr gtp (sexpr a, sexpr b, void *aux)
 
 int cmain(void)
 {
-    struct sexpr_io *o = sx_open_o (io_open_write ("build/to-sexpr-sort"));
-    struct sexpr_io *i = sx_open_i (io_open_read  ("tests/data/sexpr-sort"));
+    struct sexpr_io *o = sx_open_o (io_open_write ("to-sexpr-sort.sx"));
+    struct sexpr_io *i = sx_open_i (io_open_read  ("sexpr-sort.sx"));
     sexpr a;
 
     while (nexp (a = sx_read (i)));

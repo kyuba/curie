@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2014, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,8 @@ static void mx_on_read(sexpr sx, struct sexpr_io *io, void *n) {
 }
 
 int cmain(void) {
-    struct io *r = io_open_read("tests/data/sexpr-read-test-data"),
-              *w = io_open_write("build/to-multiplexer-sexpr-test-data");
+    struct io *r = io_open_read("sexpr-read-test-data.sx"),
+              *w = io_open_write("to-multiplexer-sexpr-test-data.sx");
     struct sexpr_io *io = sx_open_io (r, w);
 
     multiplex_sexpr();

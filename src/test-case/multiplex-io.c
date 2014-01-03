@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2014, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,8 +43,8 @@ static void mx_on_close(struct io *io, void *wx) {
 }
 
 int cmain(void) {
-    struct io *r = io_open_read("tests/reference/multiplexer-test-data"),
-              *w = io_open_write("build/to-multiplexer-test-data");
+    struct io *r = io_open_read("multiplexer-test-data.sx"),
+              *w = io_open_write("to-multiplexer-test-data.sx");
 
     multiplex_io();
 

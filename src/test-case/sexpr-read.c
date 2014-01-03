@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2014, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,8 @@
 #include "curie/sexpr.h"
 
 int cmain(void) {
-    struct io *out = io_open_write ("build/to-sexpr-read"),
-              *in = io_open_read ("tests/data/sexpr-read-test-data");
+    struct io *out = io_open_write ("to-sexpr-read"),
+              *in = io_open_read ("sexpr-read-test-data.sx");
 
     struct sexpr_io *io = sx_open_io (in, out);
     sexpr s;

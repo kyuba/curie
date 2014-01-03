@@ -5,7 +5,7 @@
 */
 
 /*
- * Copyright (c) 2008-2011, Kyuba Project Members
+ * Copyright (c) 2008-2014, Kyuba Project Members
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@
 define_string(str_hello_world, "hello world!");
 
 int cmain(void) {
-    struct sexpr_io *o = sx_open_o (io_open_write ("build/to-sexpr-custom")),
+    struct sexpr_io *o = sx_open_o (io_open_write ("to-sexpr-custom.sx")),
                     *i;
     sexpr forest = graph_create();
     sexpr s = make_integer(1);
@@ -57,7 +57,7 @@ int cmain(void) {
     sx_close_io (o);
     sx_destroy (forest);
 
-    i = sx_open_i (io_open_read ("build/to-sexpr-custom"));
+    i = sx_open_i (io_open_read ("to-sexpr-custom.sx"));
 
     while (!eofp(forest = sx_read (i)))
     {
