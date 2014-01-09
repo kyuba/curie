@@ -23,6 +23,7 @@ benchmarks/*
 
 documentation/html
 documentation/man
+documentation/curie.tag
 
 a.out
 
