@@ -240,10 +240,6 @@ void metadata_from_unix
      long size, int device, int attributes,
      void (*with_metadata) (struct metadata *, void *), void *aux);
 
-void metadata_from_sexpr
-    (sexpr data,
-     void (*with_metadata)(struct metadata *, void *), void *aux);
-
 void metadata_from_path
     (const char *path,
      void (*with_metadata) (struct metadata *, void *), void *aux);
@@ -253,9 +249,6 @@ void metadata_to_unix
      enum metadata_classification_unix *classification,
      int *uid, int *gid, int *mode, long *atime, long *mtime, long *ctime,
      long *size, int *device, int *attributes);
-
-sexpr metadata_to_sexpr
-    (struct metadata *metadata);
 
 void metadata_to_path
     (struct metadata *metadata,
