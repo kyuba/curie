@@ -31,7 +31,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * \see Projct Documentation: http://ef.gy/documentation/curie
+ * \see Project Documentation: http://ef.gy/documentation/curie
  * \see Project Source Code: http://git.becquerel.org/kyuba/curie.git
  */
 
