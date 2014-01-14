@@ -37,8 +37,42 @@
 extern "C" {
 #endif
 
+/**\brief Normalise path(s)
+ *
+ * Given a string, this function will remove any 'unnecessary' parts when the
+ * string is interpreted as a file name, i.e. sequences of '/'-es are merged
+ * into a single '/' and './' portions are removed.
+ *
+ * Given a list, the function is applied recursively to all elements of this
+ * list.
+ *
+ * \param[in] path The path or paths to normalise.
+ *
+ * \returns The normalised path or paths.
+ */
 sexpr path_normalise        (sexpr path);
+
+/**\brief Normalise, then remove longest common prefix
+ *
+ * Uses path_normalise() to normalise the given paths, then uses path_prefix()
+ * to find the longest common prefix. Finally, it removes this longest prefix
+ * from the normalised paths.
+ *
+ * \param[in] path A list of paths to clean up.
+ *
+ * \returns List of normalised paths with the longest common prefix removed.
+ */
 sexpr path_normalise_prefix (sexpr path);
+
+/**\brief Obtain longest common prefix
+ *
+ * Search for the longest common prefix that occurs in all elements of a list of
+ * path names. Only prefixes ending in '/' or '\\' are recognised.
+ *
+ * \param[in] list The list to process; must be a list of strings.
+ *
+ * \returns Longest common prefix, as a string.
+ */
 sexpr path_prefix           (sexpr list);
 
 #ifdef __cplusplus
