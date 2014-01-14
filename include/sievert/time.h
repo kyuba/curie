@@ -39,9 +39,27 @@ extern "C" {
 
 #include <curie/time.h>
 
+/**\brief Convert UNIX time to Curie date/time
+ *
+ * This function converts a UNIX time stamp to a Curie-style date/time record.
+ *
+ * \param[in] timestamp The UNIX time stamp to convert.
+ *
+ * \returns A Curie-style datetime struct that corresponds to the given UNIX
+ *          time stamp.
+ */
 struct datetime dt_from_unix
     (unsigned long long timestamp);
 
+/**\brief Convert Curie date/time record to UNIX time
+ *
+ * Converts a Curie-style date/time record to a UNIX time stamp, which is the
+ * number of seconds that have passed since the first of January, 1970.
+ *
+ * \param[in] date A Curie-style datetime struct to convert.
+ *
+ * \returns The UNIX time stamp that corresponds to the given date/time record.
+ */
 unsigned long long    dt_to_unix           (struct datetime date);
 
 #ifdef __cplusplus
