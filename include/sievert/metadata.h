@@ -46,90 +46,207 @@ extern "C" {
 #include <curie/time.h>
 #include <curie/sexpr.h>
 
+/**\brief ACL flag: flags are additive
+ *
+ * Indicates that the given access control flags should be added to the current
+ * and/or default set of access control flags.
+ */
 #define MCT_ADDITIVE          (1 << 0x0)
+
+/**\brief ACL flag: flags are subtractive
+ *
+ * Indicates that the given access control flags should be removed from the
+ * current and/or default set of access control flags.
+ */
 #define MCT_SUBTRACTIVE       (1 << 0x1)
+
+/**\brief ACL flag: only set the given flags
+ *
+ * Indicates that the given access control flags should override any other flags
+ * currently in effect.
+ */
 #define MCT_SET               (1 << 0x2)
+
+/**\brief ACL flag: impose limit
+ *
+ * If this flag is set, it means that any ACLs after this one may only set flags
+ * described in this bit field.
+ */
 #define MCT_LIMIT             (1 << 0x3)
+
+/**\brief ACL flag: allow reading
+ *
+ * This flag is set if an ACL target may read the given file.
+ */
 #define MCT_READ              (1 << 0x5)
+
+/**\brief ACL flag: allow writing
+ *
+ * This flag is set if an ACL target may write to the given file.
+ */
 #define MCT_WRITE             (1 << 0x6)
+
+/**\brief ACL flag: allow programme execution
+ *
+ * This flag is set if an ACL target may execute the file as a programme.
+ */
 #define MCT_EXECUTE           (1 << 0x7)
+
+/**\brief ACL flag: allow searching
+ *
+ * This flag is set if an ACL target may read the file if it is a directory.
+ */
 #define MCT_SEARCH            (1 << 0x8)
+
+/**\brief ACL flag: allow file creation
+ *
+ * This flag is set if an ACL target may create files under the given directory.
+ */
 #define MCT_CREATE            (1 << 0x9)
 
+/**\brief Generic attribute flag: set UID bit
+ *
+ * Set in a mat_flags generic attribute to indicate that the file has the "set
+ * user ID" flag set.
+ */
 #define MAT_SET_UID           (1 << 0x0)
+
+/**\brief Generic attribute flag: set GID bit
+ *
+ * Set in a mat_flags generic attribute to indicate that the file has the "set
+ * group ID" flag set.
+ */
 #define MAT_SET_GID           (1 << 0x1)
+
+/**\brief Generic attribute flag: set sticky bit
+ *
+ * Set in a mat_flags generic attribute to indicate that the file has the
+ * "sticky" flag set.
+ */
 #define MAT_STICKY            (1 << 0x2)
+
+/**\brief Generic attribute flag: file may be archived
+ *
+ * Set in a mat_flags generic attribute to indicate that the file has been in
+ * some way to indicate that it should be archived when backups are produced.
+ */
 #define MAT_MAY_ARCHIVE       (1 << 0x3)
+
+/**\brief Generic attribute flag: file is read-only
+ *
+ * Set in a mat_flags generic attribute to indicate that the file is to be
+ * considered read-only, regardless of whether ACLs would allow writing to the
+ * file.
+ */
 #define MAT_READONLY          (1 << 0x4)
+
+/**\brief Generic attribute flag: file should be hidden
+ *
+ * Set in a mat_flags generic attribute to indicate that the file should not be
+ * shown in directory listings unless explicitly told to show hidden files.
+ */
 #define MAT_HIDDEN            (1 << 0x5)
+
+/**\brief Generic attribute flag: file is encrypted
+ *
+ * Set in a mat_flags generic attribute to indicate that the file is encrypted
+ * and may or may not be accessible to a user, regardless of whether ACLs would
+ * otherwise allow access to the file.
+ */
 #define MAT_ENCRYPTED         (1 << 0x6)
 
+/**\brief Metadata classification type
+ *
+ * Used to determine what kind of classification record a
+ * metadata_classification struct really is.
+ */
 enum metadata_classification_type
 {
-    mdt_unknown,
-    mdt_mime,
-    mdt_unix
+    mdt_unknown, /**< Unknown classification type; should not be used. */
+    mdt_mime,    /**< Classification record is a MIME type. */
+    mdt_unix     /**< The record is a metadata_classification_unix_type. */
 };
 
+/**\brief Unix file classification
+ *
+ * Contains the rather coarse file classifications found in Unix-y systems to
+ * describe the general type of a file.
+ */
 enum metadata_classification_unix
 {
-    mcu_unknown,
-    mcu_file,
-    mcu_directory,
-    mcu_fifo,
-    mcu_pipe,
-    mcu_socket,
-    mcu_symbolic_link,
-    mcu_block_device,
-    mcu_character_device
+    mcu_unknown,         /**< Unknown file classification; should not be used.*/
+    mcu_file,            /**< File is a proper file. */
+    mcu_directory,       /**< File is a directory. */
+    mcu_fifo,            /**< File is a FIFO. */
+    mcu_pipe,            /**< File is a pipe. */
+    mcu_socket,          /**< File is a unix socket. */
+    mcu_symbolic_link,   /**< File is a symbolic link. */
+    mcu_block_device,    /**< File is a block device. */
+    mcu_character_device /**< File is a character device. */
 };
 
+/**\brief Purpose of date/time record
+ *
+ * Describes what kind of relation a date/time record has to a described file.
+ */
 enum metadata_datetime_purpose
 {
-    mdp_unknown,
-    mdp_creation,
-    mdp_link_creation,
-    mdp_last_access,
-    mdp_last_modification,
-    mdp_last_status_change,
-    mdp_expiry
+    mdp_unknown,            /**< Unknown relation; should not be used. */
+    mdp_creation,           /**< Creation date and time of the file. */
+    mdp_link_creation,      /**< Link creation date and time of the file. */
+    mdp_last_access,        /**< Time of last access to the file. */
+    mdp_last_modification,  /**< Time of last modification to the file. */
+    mdp_last_status_change, /**< Time of last change to the file's inode. */
+    mdp_expiry              /**< Time the file will expire. */
 };
 
+/**\brief Metadata relation types
+ *
+ * Enumerates the possible ways a file could be related to some entity.
+ */
 enum metadata_relation_type
 {
-    mrt_unknown,
-    mrt_owning_user,
-    mrt_owning_group,
-    mrt_creating_user,
-    mrt_creating_group
+    mrt_unknown,       /**< Unknown relation; should not be used. */
+    mrt_owning_user,   /**< Relation target is the owning user of the file. */
+    mrt_owning_group,  /**< Relation target is the owning group of the file. */
+    mrt_creating_user, /**< Relation target is the user who created the file. */
+    mrt_creating_group /**< Relation target is the creating group of the file.*/
 };
 
+/**\brief ACL target type
+ *
+ * Enumerates the possible types of access control targets.
+ */
 enum metadata_acl_target_type
 {
-    mct_unknown,
-    mct_creating_user,
-    mct_creating_group,
-    mct_owning_user,
-    mct_owning_group,
-    mct_user,
-    mct_group,
-    mct_default
+    mct_unknown,        /**< Unknown ACL type; should not be used. */
+    mct_creating_user,  /**< ACL applies to the creating user. */
+    mct_creating_group, /**< ACL applies to the creating group. */
+    mct_owning_user,    /**< ACL applies to the owning user. */
+    mct_owning_group,   /**< ACL applies to the owning group. */
+    mct_user,           /**< ACL applies to the user in the target field. */
+    mct_group,          /**< ACL applies to the group in the target field. */
+    mct_default         /**< ACL describes a default set of privileges. */
 };
 
+/**\brief Generic attribute type
+ *
+ * Describes what kind of attribute a generic attribute record contains.
+ */
 enum metadata_attribute_type
 {
-    mat_unknown,
-    mat_key_value,
-    mat_description,
-    mat_link_target,
-    mat_link_device_id,
-    mat_source_device_id,
-    mat_inode,
-    mat_link_count,
-    mat_size,
-    mat_user_id,
-    mat_group_id,
-    mat_flags
+    mat_unknown,          /**< Unknown record type. */
+    mat_key_value,        /**< Generic key/value record. */
+    mat_description,      /**< Textual description (string). */
+    mat_link_target,      /**< Target of a symbolic link (string). */
+    mat_link_device_id,   /**< Link device ID (integer). */
+    mat_source_device_id, /**< Link source device ID (integer). */
+    mat_inode,            /**< Link inode (integer). */
+    mat_link_count,       /**< Number of links to the file (integer). */
+    mat_size,             /**< File size (integer). */
+    mat_user_id,          /**< Owning user ID (integer). */
+    mat_group_id,         /**< Owning group ID (integer). */
+    mat_flags             /**< MAT_* flags OR'd together (integer). */
 };
 
 /**\brief Metadata signature types
@@ -221,40 +338,121 @@ struct metadata_datetime
     struct datetime datetime;
 };
 
+/**\brief File relation
+ *
+ * Describes a relation between a file and something else. Possible relations
+ * include owning users or groups and things like that.
+ */
 struct metadata_relation
 {
+    /**\brief Relation type
+     *
+     * In what kind of relation is the given target to the described file?
+     */
     enum metadata_relation_type type;
+
+    /**\brief Relation target
+     *
+     * The target of the described relation; this field should contain user
+     * names or similarly arbitrary strings.
+     */
     const char *target;
 };
 
+/**\brief Access control list element
+ *
+ * Describes a single element in the access control list for a file. Things like
+ * "the owning user may read this file but not execute it".
+ */
 struct metadata_acl
 {
+    /**\brief Access control target type
+     *
+     * What the access control list item applies to. Possible values include the
+     * creating or owning user or group.
+     */
     enum metadata_acl_target_type target_type;
+
+    /**\brief Access control target
+     *
+     * Additional information for the target type.
+     */
     const char *target;
+
+    /**\brief Access flags
+     *
+     * Contains some of the generic access flags defined by the MCT_* constants.
+     */
     int access;
 };
 
+/**\brief Metadata base struct: generic attributes
+ *
+ * Contains the attribute type; a pointer to a struct of this type would then
+ * need to be cast to the appropriate type for the given attribute.
+ */
 struct metadata_attribute
 {
+    /**\brief Generic attribute type
+     *
+     * The type of the generic attribute struct; the contents of this field make
+     * it possible to cast the struct to the appropriate type to get at its
+     * contents.
+     */
     enum metadata_attribute_type type;
 };
 
+/**\brief Generic key/value attribute
+ *
+ * Contains a key/value pair that describe some property of a file.
+ */
 struct metadata_attribute_key_value
 {
+    /**\copydoc metadata_attribute::type */
     enum metadata_attribute_type type;
+
+    /**\brief Key string
+     *
+     * The key for the described value.
+     */
     const char *key;
+
+    /**\brief Value string
+     *
+     * The value for the given key.
+     */
     const char *value;
 };
 
+/**\brief Generic string attribute
+ *
+ * Contains a single string attribute that describes a file in some way.
+ */
 struct metadata_attribute_string
 {
+    /**\copydoc metadata_attribute::type */
     enum metadata_attribute_type type;
+
+    /**\brief String value
+     *
+     * The string that describes the file in some way.
+     */
     const char *string;
 };
 
+/**\brief Generic integer attribute
+ *
+ * Contains a single integer attribute that describes a file in some way.
+ */
 struct metadata_attribute_integer
 {
+    /**\copydoc metadata_attribute::type */
     enum metadata_attribute_type type;
+
+    /**\brief Integer value
+     *
+     * The integer value that describes the file in some way.
+     */
     long long integer;
 };
 
@@ -402,6 +600,7 @@ void metadata_from_path
  * and turn the contained information into something that roughly resembles UNIX
  * file metadata.
  *
+ * \param[in]  metadata       The metadata record to parse.
  * \param[out] classification File classification. 
  * \param[out] uid            File owner's user ID.
  * \param[out] gid            File owner's group ID.
