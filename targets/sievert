@@ -4,6 +4,6 @@ NAME=Sievert
 DESCRIPTION="library with auxiliary functionality, based off of libcurie"
 VERSION=2
 URL=http://kyuba.org/
-CODE="immutable tree-string sievert-sexpr sexpr-set sexpr-set-regex sexpr-set-string sexpr-sort sexpr-list sexpr-alist string-set string-set-regex shell cpio time-unix time-julian-day time-julian-date time-gregorian-date io-mmap sievert-filesystem metadata-path metadata-unix"
+CODE="immutable tree-string sievert-sexpr sexpr-set sexpr-set-regex sexpr-set-string sexpr-sort sexpr-list sexpr-alist string-set string-set-regex shell cpio time-unix io-mmap sievert-filesystem metadata-path metadata-unix"
 HEADERS="immutable tree sexpr string shell cpio time io filesystem metadata"
 DOCUMENTATION=

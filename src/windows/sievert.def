@@ -33,21 +33,13 @@ EXPORTS
     dt_from_unix                        @33
     dt_to_unix                          @34
     metadata_from_unix                  @35
-    metadata_from_sexpr                 @36
     metadata_from_path                  @37
     metadata_to_unix                    @38
-    metadata_to_sexpr                   @39
     metadata_to_path                    @40
     path_normalise                      @41
     path_normalise_prefix               @42
     path_prefix                         @43
     sx_integer_to_string_hex            @44
-    dt_from_julian_day                  @45
-    dt_from_julian_date                 @46
-    dt_from_gregorian_date              @47
-    dt_to_julian_day                    @48
-    dt_to_julian_date                   @49
-    dt_to_gregorian_date                @50
     sx_alist_get                        @51
     sx_alist_add                        @52
     sx_alist_remove                     @53
