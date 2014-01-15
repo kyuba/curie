@@ -1,22 +1,21 @@
-/*
- * This file is part of the becquerel.org Curie project.
- * See the appropriate repository at http://git.becquerel.org/ for exact file
- * modification records.
-*/
-
-/*
- * Copyright (c) 2008-2014, Kyuba Project Members
+/**\file
+ * \brief Shell Helpers
  *
+ * Helper functions that emulate shell functionality.
+ *
+ * \copyright
+ * Copyright (c) 2008-2014, Kyuba Project Members
+ * \copyright
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * \copyright
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * \copyright
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,13 +23,10 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
-*/
-
-/*! \file
- *  \brief Shell Helpers
  *
- *  Helper functions that emulate shell functionality.
- */
+ * \see Project Documentation: http://ef.gy/documentation/curie
+ * \see Project Source Code: http://git.becquerel.org/kyuba/curie.git
+*/
 
 #ifndef LIBCURIE_SHELL_H
 #define LIBCURIE_SHELL_H
@@ -42,22 +38,22 @@ extern "C" {
 #include <curie/sexpr.h>
 #include <curie/main.h>
 
-/*! \brief Look up a Programme File in the PATH
- *  \param[in] environment The environment to look up PATH in.
- *  \param[in] programme   The programme to search for.
- *  \return sx_false if the programme does was not found, otherwise a string
- *          with the absolute path to the programme.
+/**\brief Look up a Programme File in the PATH
+ * \param[in] environment The environment to look up PATH in.
+ * \param[in] programme   The programme to search for.
+ * \return sx_false if the programme does was not found, otherwise a string
+ *         with the absolute path to the programme.
  *
- *  This works analoguous to the shell command "which", thus the name.
+ * This works analoguous to the shell command "which", thus the name.
  */
 sexpr ewhich (char **environment, sexpr programme);
 
-/*! \brief Look up a Programme File in the PATH
- *  \param[in] programme   The programme to search for.
- *  \return sx_false if the programme does was not found, otherwise a string
- *          with the absolute path to the programme.
+/**\brief Look up a Programme File in the PATH
+ * \param[in] programme   The programme to search for.
+ * \return sx_false if the programme does was not found, otherwise a string
+ *         with the absolute path to the programme.
  *
- *  Analoguous to ewhich(), but it defaults to curie's environment.
+ * Analoguous to ewhich(), but it defaults to curie's environment.
  */
 #define which(programme) ewhich (curie_environment, programme)
 

@@ -1,22 +1,22 @@
-/*
- * This file is part of the becquerel.org Curie project.
- * See the appropriate repository at http://git.becquerel.org/ for exact file
- * modification records.
-*/
-
-/*
- * Copyright (c) 2008-2014, Kyuba Project Members
+/**\file
+ * \brief Signal Handling
  *
+ * Platform-independent handling of process signals, such as segmentation
+ * faults or termination requests.
+ *
+ * \copyright
+ * Copyright (c) 2008-2014, Kyuba Project Members
+ * \copyright
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * \copyright
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * \copyright
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,14 +24,10 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
-*/
-
-/*! \file
- *  \brief Signal Handling
  *
- *  Platform-independent handling of process signals, such as segmentation
- *  faults or termination requests.
- */
+ * \see Project Documentation: http://ef.gy/documentation/curie
+ * \see Project Source Code: http://git.becquerel.org/kyuba/curie.git
+*/
 
 #ifndef LIBCURIE_SIGNAL_H
 #define LIBCURIE_SIGNAL_H
@@ -42,16 +38,16 @@
 extern "C" {
 #endif
 
-/*! \brief Signal Codes
+/**\brief Signal Codes
  *
- *  This is a list of signals which may be handled by the process. The list is
- *  copied here so that the curie code doesn't need to worry about whether these
- *  signals are actually available on the target platform.
+ * This is a list of signals which may be handled by the process. The list is
+ * copied here so that the curie code doesn't need to worry about whether these
+ * signals are actually available on the target platform.
  */
 enum signal {
     sig_unused = 0,  /*!< stub code */
 
-    /*  posix.1-1990 */
+    /* posix.1-1990 */
     sig_hup = 1,     /*!< terminal hangup/controlling process died */
     sig_int = 2,     /*!< interrupt, for example with CTRL+C */
     sig_quit = 3,    /*!< quit */
@@ -73,7 +69,7 @@ enum signal {
     sig_usr1 = 18,   /*!< user-defined signal */
     sig_usr2 = 19,   /*!< user-defined signal */
 
-    /*  posix.1-2001 */
+    /* posix.1-2001 */
     sig_bus = 20,    /*!< bus error */
     sig_poll = 21,   /*!< pollable event */
     sig_prof = 22,   /*!< profiling timer expired */
@@ -95,58 +91,58 @@ enum signal {
     sig_winch = 36   /*!< window resize */
 };
 
-/*! \brief Signal Handler Result Code
+/**\brief Signal Handler Result Code
  *
- *  Possible result codes for a signal handler, which describe what will happen
- *  to the handler.
+ * Possible result codes for a signal handler, which describe what will happen
+ * to the handler.
  */
 enum signal_callback_result {
-    /*! \brief Keep Signal Handler
+    /**\brief Keep Signal Handler
      *
-     *  Returning this will not remove the signal handler from the list of
-     *  handlers.
+     * Returning this will not remove the signal handler from the list of
+     * handlers.
      */
     scr_keep = 0,
 
-    /*! \brief Remove Signal Handler
+    /**\brief Remove Signal Handler
      *
-     *  If this is returned, the handler that was just called will be removed
-     *  from the list of signal handlers.
+     * If this is returned, the handler that was just called will be removed
+     * from the list of signal handlers.
      */
     scr_ditch = 1
 };
 
-/*! \brief Catch Signals
+/**\brief Catch Signals
  *
- *  This function initialises the signal multiplexer, so that signals can be
- *  handled by curie applications by grabbing them with multiplex_add_signal().
+ * This function initialises the signal multiplexer, so that signals can be
+ * handled by curie applications by grabbing them with multiplex_add_signal().
  */
 void multiplex_signal ();
 
-/*! \brief Catch Signals
+/**\brief Catch Signals
  *
- *  This function is very similar to multiplex_signal(). The normal method of
- *  handling signals uses a memory buffer to store the incoming signals. This
- *  works very well with the multiplexer in regular programmes, i.e. those that
- *  also wait for incoming data on stdio or some other socket or pipe. However,
- *  this method fails to work properly on systems where the multiplexer uses
- *  select() when no data is intended to come in through any of the other
- *  multiplexers. This method uses the old self-pipe trick to check for
- *  triggered signals, which works in this case and is generally more reliable,
- *  but it also wastes precious file descriptors which might even be inherited
- *  to child processes, which would then possibly also introduce security
- *  issues.
+ * This function is very similar to multiplex_signal(). The normal method of
+ * handling signals uses a memory buffer to store the incoming signals. This
+ * works very well with the multiplexer in regular programmes, i.e. those that
+ * also wait for incoming data on stdio or some other socket or pipe. However,
+ * this method fails to work properly on systems where the multiplexer uses
+ * select() when no data is intended to come in through any of the other
+ * multiplexers. This method uses the old self-pipe trick to check for
+ * triggered signals, which works in this case and is generally more reliable,
+ * but it also wastes precious file descriptors which might even be inherited
+ * to child processes, which would then possibly also introduce security
+ * issues.
  */
 void multiplex_signal_primary ();
 
-/*! \brief Register Callback for a Signal
- *  \param[in] signal  The signal to listen for.
- *  \param[in] handler The function to call when the signal is caught.
- *  \param[in] aux     Passed to the callback function.
+/**\brief Register Callback for a Signal
+ * \param[in] signal  The signal to listen for.
+ * \param[in] handler The function to call when the signal is caught.
+ * \param[in] aux     Passed to the callback function.
  *
- *  After calling this function, whenever the given signal comes in, the handler
- *  function is called. This function may be called multiple times even for the
- *  same signal -- it'll just add more callbacks for that signal then.
+ * After calling this function, whenever the given signal comes in, the handler
+ * function is called. This function may be called multiple times even for the
+ * same signal -- it'll just add more callbacks for that signal then.
  */
 void multiplex_add_signal
         (enum signal signal,

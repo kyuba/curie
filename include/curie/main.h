@@ -88,33 +88,33 @@ extern "C" {
 
 #include <curie/attributes.h>
 
-/*! \brief Terminate Process
- *  \param[in] status The status code to return.
+/**\brief Terminate Process
+ * \param[in] status The status code to return.
  *
- *  After calling this function, the process will terminate and return the given
- *  status code to the calling process.
+ * After calling this function, the process will terminate and return the given
+ * status code to the calling process.
  */
 extern void cexit (int status) NORETURN USED;
 
-/*! \brief Main Function
- *  \return The status code to return to the calling process.
+/**\brief Main Function
+ * \return The status code to return to the calling process.
  *
- *  This is the main entry point for plain curie applications. Once this
- *  function terminates, the process will also terminate.
+ * This is the main entry point for plain curie applications. Once this
+ * function terminates, the process will also terminate.
  */
 extern int cmain ( void ) USED;
 
-/*! \brief Command-line Arguments
+/**\brief Command-line Arguments
  *
- *  This array contains the command-line arguments passed to the application, if
- *  applicable.
+ * This array contains the command-line arguments passed to the application, if
+ * applicable.
  */
 extern char **curie_argv;
 
-/*! \brief Process Environment
+/**\brief Process Environment
  *
- *  This array contains the process environment that the prgramme was run in, if
- *  applicable.
+ * This array contains the process environment that the prgramme was run in, if
+ * applicable.
  */
 extern char **curie_environment;
 
