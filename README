@@ -1,36 +1,33 @@
 # QUICK AND DIRTY: COMPILATION AND INSTALLATION ################################
 
-Don't really need anything...
+All you need is a make programme that supports GNU make's extensions; then just
+run the makefile like this:
 
-    $ make PREFIX=/usr install
+    $ make PREFIX=/ install
 
 --------------------------------------------------------------------------------
 
 NOTE:
-    Library documentation has gotten somewhat better, but this new build system
-    could have made things a tiny bit trickier. This has been tested on
-    linux/x86-64, linux/powerpc, darwin/powerpc and windows/x86 though.
-
-NOTE.2:
     Please take note of the library licence (the COPYING file), as well as the
     credits (the CREDITS file).
 
 # DETAILS ######################################################################
 
-Compilation
------------
+Compilation and installation is described in much greater detail in the file
+documentation/COMPILING.md.
 
-This version of Curie uses the good ol' "make" command. To compile the library,
-simply run this command:
+In short, the interesting makefile targets are 'build' (the default), 'test'
+(to run test cases) and 'install' to copy the compiled library to somewhere the
+system will find it. The 'install' target supports the typical PREFIX and
+DESTDIR options with their normal meanings.
 
-    $ make
-
-Installation
-------------
-
-Use this command to install regularly (for example into /usr, in the example):
-
-    $ make PREFIX=/usr install
+To compile projects that depend on Curie, either install Curie and then compile
+those projects separately, or check out their sources as first-level
+subdirectories of the Curie source tree. The makefiles check for the 'targets'
+subdirectory, so if you had curie/targets and curie/duat/targets, and compiled
+things in the curie/ directory, then the makefile would compile both curie and
+duat in the same context (and the test and install targets would work just as
+well).
 
 # TROUBLESHOOTING / KNOWN ISSUES ###############################################
 
@@ -52,4 +49,4 @@ sad reasons why applications suck these days.
 
 # CONTACT #####################################################################
 
-Your best bet is IRC: freenode #kyuba
+Your best bet is IRC: freenode \#kyuba

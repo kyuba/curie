@@ -735,6 +735,8 @@ WARN_LOGFILE           =
 
 INPUT                  = include/curie/ \
                          include/sievert/ \
+                         README.md \
+                         documentation/*.md
 #                         src/
 
 # This tag can be used to specify the character encoding of the source files

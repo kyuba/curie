@@ -212,10 +212,10 @@ build-%: $(BUILD)/%/makefile
 	cd $(BUILD)/$* && $(MAKE) all
 
 install-%: $(BUILD)/%/makefile
-	cd $(BUILD)/$* && $(MAKE) install
+	cd $(BUILD)/$* && $(MAKE) install-fhs
 
 uninstall-%: $(BUILD)/%/makefile
-	cd $(BUILD)/$* && $(MAKE) uninstall
+	cd $(BUILD)/$* && $(MAKE) uninstall-fhs
 
 test-%: $(BUILD)/%/makefile
 	cd $(BUILD)/$* && $(MAKE) autotest
