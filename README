@@ -2,7 +2,7 @@
 
 Curie is a semi-high-level, C-based, non-ANSI, non-POSIX libc replacement. It is
 designed to only support the bare minimum of functionality that is needed to get
-soem use out of the language - because of this, the library can be used to write
+some use out of the language - because of this, the library can be used to write
 the tiniest of programmes in C.
 
 # QUICK AND DIRTY: COMPILATION AND INSTALLATION ################################
